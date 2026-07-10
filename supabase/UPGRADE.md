@@ -30,6 +30,10 @@ No schema changes required. Update frontend deploy and optional:
 - `npm run smoke:supabase` (expanded table/RPC checks)
 - Stripe webhook redeploy if using `stripe-webhook` audit logging
 
+## From 1.10.5 → 1.10.6
+
+No schema changes. Notification hub skip log for customer email opt-out (localStorage).
+
 ## From 1.10.4 → 1.10.5
 
 No schema changes. E2E for portal → staff CRM notification preference sync.

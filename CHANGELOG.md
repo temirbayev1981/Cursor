@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.10.6] — 2026-07-10
+
+Notification hub skip log for customer email opt-out.
+
+### Phase 104 — Notification hub skip log
+- `notification-skip-log` module records opt-out skips locally
+- Settings hub: Skipped tab, summary count, opt-out reason label
+- E2E: estimate send opt-out appears in hub skipped filter
+- Platform audit: `notification_hub_skip_log_audit` gate
+- **200** E2E tests, **151** unit tests
+
 ## [1.10.5] — 2026-07-10
 
 Bidirectional notification prefs sync — portal → staff CRM.

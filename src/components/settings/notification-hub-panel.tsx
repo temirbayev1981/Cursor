@@ -9,6 +9,7 @@ import {
   flushNotificationQueue,
   getNotificationQueueFiltered,
   getNotificationQueueStats,
+  getNotificationSkipLog,
   retryFailedNotifications,
   type NotificationHubFilter,
 } from '@/services/notification-service'
@@ -24,7 +25,13 @@ export function NotificationHubPanel({ onQueueChange }: NotificationHubPanelProp
   const [revision, setRevision] = useState(0)
 
   const stats = useMemo(() => getNotificationQueueStats(), [revision])
-  const items = useMemo(() => getNotificationQueueFiltered(filter).slice(0, 12), [filter, revision])
+  const skipItems = useMemo(() => getNotificationSkipLog().slice(0, 12), [revision])
+  const queueItems = useMemo(
+    () => getNotificationQueueFiltered(filter === 'skipped' ? 'all' : filter).slice(0, 12),
+    [filter, revision],
+  )
+  const showingSkipped = filter === 'skipped'
+  const items = showingSkipped ? skipItems : queueItems
 
   const bump = () => {
     setRevision((n) => n + 1)
@@ -56,6 +63,7 @@ export function NotificationHubPanel({ onQueueChange }: NotificationHubPanelProp
   const statusLabel = (status: string) => {
     if (status === 'sent') return t.settings.notificationStatusSent
     if (status === 'failed') return t.settings.notificationStatusFailed
+    if (status === 'skipped') return t.settings.notificationStatusSkipped
     return t.settings.notificationStatusQueued
   }
 
@@ -67,7 +75,8 @@ export function NotificationHubPanel({ onQueueChange }: NotificationHubPanelProp
           <p className="text-sm text-muted-foreground mt-1">
             {t.settings.notificationHubSummary
               .replace('{total}', String(stats.total))
-              .replace('{failed}', String(stats.failed))}
+              .replace('{failed}', String(stats.failed))
+              .replace('{skipped}', String(stats.skipped))}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -90,41 +99,62 @@ export function NotificationHubPanel({ onQueueChange }: NotificationHubPanelProp
             <TabsTrigger value="all" data-testid="notification-hub-filter-all">{t.common.all}</TabsTrigger>
             <TabsTrigger value="email" data-testid="notification-hub-filter-email">{t.settings.notificationHubEmail}</TabsTrigger>
             <TabsTrigger value="sms" data-testid="notification-hub-filter-sms">{t.settings.notificationHubSms}</TabsTrigger>
+            <TabsTrigger value="skipped" data-testid="notification-hub-filter-skipped">{t.settings.notificationHubSkipped}</TabsTrigger>
           </TabsList>
         </Tabs>
         {items.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t.settings.notificationQueueEmpty}</p>
         ) : (
           <div className="space-y-2 max-h-64 overflow-y-auto">
-            {items.map((item) => {
-              const Icon = item.channel === 'sms' ? MessageSquare : Mail
-              return (
-                <div
-                  key={item.id}
-                  className="rounded-lg bg-secondary/30 p-3 text-sm"
-                  data-testid={`notification-hub-item-${item.id}`}
-                >
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <Icon className="h-3.5 w-3.5 shrink-0 text-primary" />
-                      <span className="truncate font-medium">{item.to}</span>
+            {filter === 'skipped'
+              ? skipItems.map((skip) => (
+                  <div
+                    key={skip.id}
+                    className="rounded-lg bg-secondary/30 p-3 text-sm"
+                    data-testid={`notification-hub-skip-${skip.id}`}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Mail className="h-3.5 w-3.5 shrink-0 text-primary" />
+                        <span className="truncate font-medium">{skip.to}</span>
+                      </div>
+                      <Badge variant="outline" data-testid={`notification-hub-status-${skip.id}`}>
+                        {statusLabel('skipped')}
+                      </Badge>
                     </div>
-                    <Badge
-                      variant={item.status === 'failed' ? 'destructive' : item.status === 'sent' ? 'success' : 'outline'}
-                      data-testid={`notification-hub-status-${item.id}`}
-                    >
-                      {statusLabel(item.status)}
-                    </Badge>
+                    <p className="truncate">{skip.subject ?? skip.body}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t.settings.notificationHubSkipReason}</p>
                   </div>
-                  <p className="truncate">{item.subject ?? item.body}</p>
-                  {item.attempts > 0 && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {t.settings.notificationHubAttempts.replace('{count}', String(item.attempts))}
-                    </p>
-                  )}
-                </div>
-              )
-            })}
+                ))
+              : queueItems.map((item) => {
+                  const Icon = item.channel === 'sms' ? MessageSquare : Mail
+                  return (
+                    <div
+                      key={item.id}
+                      className="rounded-lg bg-secondary/30 p-3 text-sm"
+                      data-testid={`notification-hub-item-${item.id}`}
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Icon className="h-3.5 w-3.5 shrink-0 text-primary" />
+                          <span className="truncate font-medium">{item.to}</span>
+                        </div>
+                        <Badge
+                          variant={item.status === 'failed' ? 'destructive' : item.status === 'sent' ? 'success' : 'outline'}
+                          data-testid={`notification-hub-status-${item.id}`}
+                        >
+                          {statusLabel(item.status)}
+                        </Badge>
+                      </div>
+                      <p className="truncate">{item.subject ?? item.body}</p>
+                      {item.attempts > 0 && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {t.settings.notificationHubAttempts.replace('{count}', String(item.attempts))}
+                        </p>
+                      )}
+                    </div>
+                  )
+                })}
           </div>
         )}
       </CardContent>

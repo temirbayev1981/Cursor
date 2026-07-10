@@ -16,10 +16,12 @@ import {
   retryFailedNotifications,
 } from './notification-service'
 import { saveCustomerNotificationPreferences } from '@/lib/customer-notification-prefs'
+import { clearNotificationSkipLog, getNotificationSkipLog } from '@/lib/notification-skip-log'
 
 describe('notification-service', () => {
   beforeEach(() => {
     clearNotificationQueue()
+    clearNotificationSkipLog()
   })
 
   it('notifyResultMessage returns queued info when message is stored locally', () => {
@@ -159,6 +161,8 @@ describe('notification-service', () => {
     const result = await notifyEstimateSent('cust@example.com', 'Estimate', 100, 'cust-no-email')
     expect(result).toEqual({ ok: true, queued: false, skipped: true })
     expect(getNotificationQueueSize()).toBe(0)
+    expect(getNotificationSkipLog()).toHaveLength(1)
+    expect(getNotificationQueueStats().skipped).toBe(1)
     localStorage.removeItem('handymanos_customer_notify_prefs_cust-no-email')
   })
 

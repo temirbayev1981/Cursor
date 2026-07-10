@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.10.5
+# HandymanOS AI — Release 1.10.6
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.5`**, current package **1.10.5**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.6`**, current package **1.10.6**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -131,6 +131,11 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
 
+### 1.10.6 — Notification hub skip log
+- Hub Skipped tab shows customer opt-out history
+- `notification-skip-log` module; summary includes skipped count
+- Platform audit `notification_hub_skip_log_audit` gate
+
 ### 1.10.5 — Portal → staff notify sync
 - Portal email opt-out E2E syncs to staff CRM customer form and badge
 - Platform audit `portal_staff_notify_sync_audit` gate
@@ -163,8 +168,8 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
 ## Test coverage
 
-- Unit: **149** (`npm test`)
-- E2E: **199/199** (`npm run test:e2e`)
+- Unit: **151** (`npm test`)
+- E2E: **200/200** (`npm run test:e2e`)
 
 ## Deploy
 

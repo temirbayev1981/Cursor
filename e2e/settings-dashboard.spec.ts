@@ -75,6 +75,7 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('platform-audit-check-staff_customer_notify_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-notify_skipped_toast_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-portal_staff_notify_sync_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-notification_hub_skip_log_audit')).toBeVisible()
     await expect(page.getByTestId('notification-hub')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history-entry-0')).toBeVisible()
@@ -140,6 +141,23 @@ test.describe('Settings billing & team', () => {
     await page.getByTestId('notification-hub-filter-sms').click()
     await expect(page.getByTestId('notification-hub-item-hub-e2e-sms')).toBeVisible()
     await expect(page.getByTestId('notification-hub-item-hub-e2e-email')).not.toBeVisible()
+  })
+
+  test('notification hub shows skipped opt-out log', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await page.evaluate(() => {
+      localStorage.setItem('handymanos_customer_notify_prefs_cust-004', JSON.stringify({ email: false, sms: false }))
+    })
+    await page.goto('/estimates')
+    await page.getByTestId('estimate-send-est-003').click()
+    await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /system|система/i }).click()
+    await page.getByTestId('notification-hub-filter-skipped').click()
+    await expect(page.getByText(/chen\.family@email\.com/i).first()).toBeVisible()
+    await expect(page.getByText(/пропущено|skipped/i).first()).toBeVisible()
+    await expect(page.getByText(/отключил email|opted out/i).first()).toBeVisible()
   })
 })
 
