@@ -65,6 +65,8 @@ test.describe('Settings billing & team', () => {
     await page.getByRole('tab', { name: /system|система/i }).click()
     await expect(page.getByTestId('platform-audit-checklist')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-audit_e2e_full')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-stripe_webhook_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-audit_i18n')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-integration_probes')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-observability_probe_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-pwa_sw_offline_audit')).toBeVisible()

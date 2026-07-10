@@ -254,6 +254,8 @@ See [RELEASE.md](./RELEASE.md) for the full checklist.
 
 ### GitHub Pages (automated)
 
+**Prerequisite:** In the repository, open **Settings → Pages** and set **Source** to **GitHub Actions** (one-time). Without this, `deploy.yml` fails with `Failed to create deployment (status: 404)`.
+
 Push to `main` triggers `.github/workflows/deploy.yml`. Configure repository secrets (see [RELEASE.md](./RELEASE.md)):
 
 - `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` — live backend

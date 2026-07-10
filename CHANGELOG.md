@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.13.0] — 2026-07-10
+
+Field-ops milestone wrap-up with computed gates.
+
+### Phase 126 — Field-ops milestone complete
+- `FIELD_OPS_MILESTONE_AUDIT` computed from inventory, fleet, expense, fuel, dispatch, and offline sync sub-gates
+- Settings exposes `stripe_webhook_audit` and `audit_i18n` platform checks
+- verify-production: `STRIPE_WEBHOOK_AUDIT`, `AUDIT_I18N_COVERAGE`, `INTEGRATION_PROBES_AUDIT` gates
+- Split field-ops vs platform-ops visibility checks in verify-production
+- **230** E2E tests, **164** unit tests
+
 ## [1.12.6] — 2026-07-10
 
 Sample import, portal requests, estimate create, and entity update audit visibility.

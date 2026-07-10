@@ -1,4 +1,5 @@
 import type { en } from '@/i18n/locales/en'
+import { INVENTORY_AUDIT } from '@/services/inventory-service'
 
 export type AuditActionKey = keyof typeof en.settings.auditActions
 
@@ -70,11 +71,17 @@ export const FUEL_LOG_AUDIT = true as const
 /** Technician mobile offline sync E2E covers queue and reconnect. */
 export const TECH_OFFLINE_SYNC_AUDIT = true as const
 
-/** Field-ops milestone: fleet, dispatch, inventory, and offline sync gates complete. */
-export const FIELD_OPS_MILESTONE_AUDIT = true as const
-
 /** Dispatch board status changes write audit_logs. */
 export const DISPATCH_AUDIT = true as const
+
+/** Field-ops milestone: inventory, fleet, expense, fuel, dispatch, and offline sync gates. */
+export const FIELD_OPS_MILESTONE_AUDIT =
+  INVENTORY_AUDIT
+  && FLEET_AUDIT
+  && EXPENSE_AUDIT
+  && FUEL_LOG_AUDIT
+  && DISPATCH_AUDIT
+  && TECH_OFFLINE_SYNC_AUDIT
 
 /** Vendor PO workflow writes audit_logs. */
 export const VENDOR_PO_AUDIT = true as const
