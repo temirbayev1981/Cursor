@@ -21,6 +21,8 @@ import { TableSkeleton } from '@/components/shared/skeleton'
 import { PriorityBadge } from '@/components/shared/status-badge'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import { notifyTechnicianSms, notifyJobScheduled, notifyResultMessage } from '@/services/notification-service'
+import { logAudit } from '@/services/entity-service'
+import { useAuth } from '@/contexts/auth-context'
 import { toast } from 'sonner'
 import type { Job, JobStatus } from '@/types'
 import { MapPin } from 'lucide-react'
@@ -52,6 +54,7 @@ function JobCard({ job }: { job: Job }) {
 
 export default function DispatchPage() {
   const { t, locale } = useTranslation()
+  const { user, company } = useAuth()
   const { data: jobs = [], isLoading } = useJobs()
   const { data: employees = [] } = useEmployees()
   const { data: customers = [] } = useCustomers()
@@ -70,6 +73,9 @@ export default function DispatchPage() {
     const job = jobs.find((j) => j.id === jobId)
     if (job && job.status !== newStatus) {
       updateStatus.mutate({ job, status: newStatus })
+      if (user && company) {
+        void logAudit(company.id, user.id, 'dispatch.status_change', 'job', job.id)
+      }
       if (newStatus === 'scheduled' && job.assigned_technician_id) {
         const tech = employees.find((emp) => emp.id === job.assigned_technician_id)
         const phone = tech?.phone

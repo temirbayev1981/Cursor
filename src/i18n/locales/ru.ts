@@ -452,6 +452,14 @@ export const ru = {
     switchCompany: 'Сменить компанию',
     companySwitched: 'Компания переключена',
     auditLog: 'Журнал аудита',
+    systemMetrics: 'Системные метрики',
+    systemHealthy: 'Норма',
+    systemDegraded: 'Снижена',
+    systemCritical: 'Критично',
+    errorsLast24h: 'Ошибки (24ч)',
+    offlineQueue: 'Офлайн-очередь',
+    notificationQueue: 'Очередь уведомлений',
+    lastError: 'Последняя ошибка',
   },
   status: {
     job: {

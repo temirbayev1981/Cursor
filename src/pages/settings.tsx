@@ -15,6 +15,7 @@ import { useImportDemoSeed, useAuditLogs } from '@/hooks/use-entities'
 import { getNotificationQueue } from '@/services/notification-service'
 import { getErrorReports } from '@/lib/observability'
 import { computePlatformHealth } from '@/lib/platform-health'
+import { computeSystemMetrics } from '@/lib/system-metrics'
 import { getStoredCompany } from '@/services/onboarding-service'
 import { createTeamInvite, listTeamInvites, type TeamInvite } from '@/services/invite-service'
 import { startSubscriptionCheckout, updateCompanySubscription, PLAN_PRICES } from '@/services/billing-service'
@@ -140,7 +141,14 @@ export default function SettingsPage() {
   const notifications = getNotificationQueue().slice(0, 5)
   const errors = getErrorReports().slice(0, 5)
   const platformHealth = computePlatformHealth()
+  const systemMetrics = computeSystemMetrics()
   const { data: auditLogs = [] } = useAuditLogs()
+
+  const systemStatusLabel = {
+    healthy: t.settings.systemHealthy,
+    degraded: t.settings.systemDegraded,
+    critical: t.settings.systemCritical,
+  }[systemMetrics.status]
 
   return (
     <div>
@@ -346,6 +354,34 @@ export default function SettingsPage() {
                     </Badge>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+            <Card className="md:col-span-2">
+              <CardHeader><CardTitle>{t.settings.systemMetrics}</CardTitle></CardHeader>
+              <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div className="rounded-lg bg-secondary/30 p-3">
+                  <p className="text-muted-foreground">{t.settings.platformScore}</p>
+                  <Badge variant={systemMetrics.status === 'healthy' ? 'success' : systemMetrics.status === 'degraded' ? 'outline' : 'destructive'}>
+                    {systemStatusLabel}
+                  </Badge>
+                </div>
+                <div className="rounded-lg bg-secondary/30 p-3">
+                  <p className="text-muted-foreground">{t.settings.errorsLast24h}</p>
+                  <p className="text-2xl font-bold">{systemMetrics.errorsLast24h}</p>
+                </div>
+                <div className="rounded-lg bg-secondary/30 p-3">
+                  <p className="text-muted-foreground">{t.settings.offlineQueue}</p>
+                  <p className="text-2xl font-bold">{systemMetrics.offlineQueueSize}</p>
+                </div>
+                <div className="rounded-lg bg-secondary/30 p-3">
+                  <p className="text-muted-foreground">{t.settings.notificationQueue}</p>
+                  <p className="text-2xl font-bold">{systemMetrics.notificationQueueSize}</p>
+                </div>
+                {systemMetrics.lastErrorAt && (
+                  <p className="col-span-full text-xs text-muted-foreground">
+                    {t.settings.lastError}: {new Date(systemMetrics.lastErrorAt).toLocaleString()}
+                  </p>
+                )}
               </CardContent>
             </Card>
             {hasSupabase && (

@@ -454,6 +454,14 @@ export const en: TranslationKeys = {
     switchCompany: 'Switch company',
     companySwitched: 'Company switched',
     auditLog: 'Audit log',
+    systemMetrics: 'System metrics',
+    systemHealthy: 'Healthy',
+    systemDegraded: 'Degraded',
+    systemCritical: 'Critical',
+    errorsLast24h: 'Errors (24h)',
+    offlineQueue: 'Offline queue',
+    notificationQueue: 'Notification queue',
+    lastError: 'Last error',
   },
   status: {
     job: {

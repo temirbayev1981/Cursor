@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
-import { listEntities, saveEntity, createJobFromVendorPO, createEstimateFromJob, createInvoiceFromEstimate, createScheduleFromJob, importDemoSeedToSupabase, listFuelLogs, listAuditLogs } from '@/services/entity-service'
+import { listEntities, saveEntity, createJobFromVendorPO, createEstimateFromJob, createInvoiceFromEstimate, createScheduleFromJob, importDemoSeedToSupabase, listFuelLogs, listAuditLogs, logAudit } from '@/services/entity-service'
 import { recordInvoicePayment, sendInvoiceToCustomer } from '@/services/payment-service'
 import { listInventoryTransactions, useMaterialsOnJob, receiveStock } from '@/services/inventory-service'
 import type { Job, Customer, Estimate, Invoice, Employee, Material, Vehicle, Expense } from '@/types'
@@ -118,9 +118,13 @@ export function useCreateJobFromPO() {
 export function useCreateEstimateFromJob() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
     mutationFn: (job: Job) => createEstimateFromJob(job, companyId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['estimates', companyId] }),
+    onSuccess: (estimate) => {
+      qc.invalidateQueries({ queryKey: ['estimates', companyId] })
+      if (user) void logAudit(companyId, user.id, 'estimate.create', 'estimate', estimate.id)
+    },
   })
 }
 

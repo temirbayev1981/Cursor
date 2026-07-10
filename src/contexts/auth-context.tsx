@@ -3,7 +3,8 @@ import type { Profile, Company, UserRole, OnboardingData } from '@/types'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
 import { DEMO_COMPANY } from '@/data/mock-data'
 import { getStoredCompany, persistOnboarding } from '@/services/onboarding-service'
-import { registerUserWithCompany, loadUserSession, isOnboardingComplete } from '@/services/auth-service'
+import { registerUserWithCompany, loadUserSession, markOnboardingCompleteForInvitedMember, resolveOnboardingState } from '@/services/auth-service'
+import { type PostAuthState } from '@/lib/permissions'
 import { resolveActiveCompany, setActiveCompany, registerCompany, listAccessibleCompanies } from '@/services/company-service'
 import { logAudit } from '@/services/entity-service'
 
@@ -13,8 +14,8 @@ interface AuthContextType {
   isLoading: boolean
   isAuthenticated: boolean
   onboardingComplete: boolean
-  signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string, fullName: string, inviteToken?: string) => Promise<void>
+  signIn: (email: string, password: string) => Promise<PostAuthState>
+  signUp: (email: string, password: string, fullName: string, inviteToken?: string) => Promise<PostAuthState>
   signOut: () => Promise<void>
   completeOnboarding: (data?: OnboardingData) => Promise<void>
   switchCompany: (companyId: string) => Promise<void>
@@ -57,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (session) {
       setUser(session.profile)
       setCompany(session.company)
-      setOnboardingComplete(isOnboardingComplete(session.company))
+      setOnboardingComplete(resolveOnboardingState(session.profile.role, session.company))
       localStorage.setItem('handymanos_auth', 'true')
     }
     setIsLoading(false)
@@ -76,48 +77,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { restoreSession() }, [restoreSession])
 
-  const signUp = async (email: string, password: string, fullName: string, inviteToken?: string) => {
+  const signUp = async (email: string, password: string, fullName: string, inviteToken?: string): Promise<PostAuthState> => {
     if (DEMO_MODE) {
       if (inviteToken) {
         const { registerUserWithInvite } = await import('@/services/auth-service')
         const { profile, company: invitedCompany } = await registerUserWithInvite(email, password, fullName, inviteToken)
+        markOnboardingCompleteForInvitedMember(profile.role)
+        const complete = resolveOnboardingState(profile.role, invitedCompany)
         localStorage.setItem('handymanos_auth', 'true')
         setUser(profile)
         setCompany(invitedCompany)
-        setOnboardingComplete(localStorage.getItem('handymanos_onboarding') === 'complete')
-        return
+        setOnboardingComplete(complete)
+        return { role: profile.role, onboardingComplete: complete }
       }
       localStorage.setItem('handymanos_auth', 'true')
-      setUser({ ...DEMO_USER, email, full_name: fullName })
+      const demoProfile = { ...DEMO_USER, email, full_name: fullName }
+      setUser(demoProfile)
       const comp = resolveActiveCompany(getStoredCompany() ?? DEMO_COMPANY)
       setCompany(comp)
       setActiveCompany(comp)
-      setOnboardingComplete(localStorage.getItem('handymanos_onboarding') === 'complete')
-      return
+      const complete = localStorage.getItem('handymanos_onboarding') === 'complete'
+      setOnboardingComplete(complete)
+      return { role: demoProfile.role, onboardingComplete: complete }
     }
 
     const { profile, company: newCompany } = await registerUserWithCompany(email, password, fullName, inviteToken)
+    if (inviteToken) markOnboardingCompleteForInvitedMember(profile.role)
+    const complete = inviteToken ? resolveOnboardingState(profile.role, newCompany) : false
     setUser(profile)
     setCompany(newCompany)
-    setOnboardingComplete(false)
+    setOnboardingComplete(complete)
     localStorage.setItem('handymanos_auth', 'true')
+    return { role: profile.role, onboardingComplete: complete }
   }
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<PostAuthState> => {
     if (DEMO_MODE) {
       localStorage.setItem('handymanos_auth', 'true')
-      setUser({ ...DEMO_USER, email })
+      const demoProfile = { ...DEMO_USER, email }
+      setUser(demoProfile)
       const comp = resolveActiveCompany(getStoredCompany() ?? DEMO_COMPANY)
       setCompany(comp)
       setActiveCompany(comp)
-      setOnboardingComplete(localStorage.getItem('handymanos_onboarding') === 'complete')
-      return
+      const complete = localStorage.getItem('handymanos_onboarding') === 'complete'
+      setOnboardingComplete(complete)
+      return { role: demoProfile.role, onboardingComplete: complete }
     }
 
     if (!supabase) throw new Error('Supabase not configured')
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
     await restoreSession()
+    const session = await loadUserSession()
+    if (!session) throw new Error('Session not found')
+    const complete = resolveOnboardingState(session.profile.role, session.company)
+    setOnboardingComplete(complete)
+    return { role: session.profile.role, onboardingComplete: complete }
   }
 
   const signOut = async () => {

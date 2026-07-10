@@ -19,3 +19,18 @@ export function getDefaultRoute(role: UserRole): string {
   if (role === 'customer') return '/portal/customer'
   return '/dashboard'
 }
+
+/** Invited team members join an existing company and skip owner onboarding. */
+export function shouldSkipOnboardingForRole(role: UserRole): boolean {
+  return role !== 'owner'
+}
+
+export interface PostAuthState {
+  role: UserRole
+  onboardingComplete: boolean
+}
+
+export function resolvePostAuthRoute({ role, onboardingComplete }: PostAuthState): string {
+  if (!onboardingComplete && !shouldSkipOnboardingForRole(role)) return '/onboarding'
+  return getDefaultRoute(role)
+}

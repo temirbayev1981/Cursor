@@ -5,6 +5,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { handleCors, jsonResponse } from '../_shared/cors.ts'
 import { verifyAuth } from '../_shared/auth.ts'
+import { checkRateLimit, rateLimitResponse } from '../_shared/rate-limit.ts'
 
 serve(async (req) => {
   const cors = handleCors(req)
@@ -15,6 +16,9 @@ serve(async (req) => {
     if (!auth) {
       return jsonResponse({ error: 'Unauthorized' }, 401)
     }
+
+    const rate = checkRateLimit(`notify:${auth.userId}`, 30)
+    if (!rate.ok) return rateLimitResponse(rate.retryAfter ?? 60)
 
     const apiKey = Deno.env.get('RESEND_API_KEY')
     const fromEmail = Deno.env.get('RESEND_FROM_EMAIL') ?? 'HandymanOS <onboarding@resend.dev>'

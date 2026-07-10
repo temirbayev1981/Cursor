@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/contexts/auth-context'
 import { useTranslation } from '@/contexts/locale-context'
 import { LanguageSwitcher } from '@/components/shared/language-switcher'
+import { resolvePostAuthRoute } from '@/lib/permissions'
 import { DEMO_MODE } from '@/lib/supabase'
 import { getTeamInvitePreview } from '@/services/invite-service'
 import { toast } from 'sonner'
@@ -50,14 +51,13 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      if (mode === 'signup') {
-        await signUp(email, password, fullName || email.split('@')[0], inviteToken)
-        toast.success(locale === 'ru' ? 'Аккаунт создан' : 'Account created')
-      } else {
-        await signIn(email, password)
-      }
-      const complete = localStorage.getItem('handymanos_onboarding') === 'complete'
-      navigate(complete ? '/dashboard' : '/onboarding')
+      const authState = mode === 'signup'
+        ? await signUp(email, password, fullName || email.split('@')[0], inviteToken)
+        : await signIn(email, password)
+      toast.success(mode === 'signup'
+        ? (locale === 'ru' ? 'Аккаунт создан' : 'Account created')
+        : (locale === 'ru' ? 'Вход выполнен' : 'Signed in'))
+      navigate(resolvePostAuthRoute(authState))
     } catch {
       toast.error(locale === 'ru' ? 'Ошибка авторизации' : 'Auth error')
     } finally {

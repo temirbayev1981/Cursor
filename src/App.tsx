@@ -10,7 +10,7 @@ import { ErrorBoundary } from '@/components/shared/error-boundary'
 import { CommandPalette } from '@/components/shared/command-palette'
 import { AppLayout } from '@/components/layout/app-layout'
 import { TableSkeleton } from '@/components/shared/skeleton'
-import { canAccess, getDefaultRoute } from '@/lib/permissions'
+import { canAccess, getDefaultRoute, shouldSkipOnboardingForRole } from '@/lib/permissions'
 import { getPortalSession, isDemoPortalAccess } from '@/services/portal-service'
 import type { UserRole } from '@/types'
 import LoginPage from '@/pages/login'
@@ -57,7 +57,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!isAuthenticated) return <Navigate to="/login" replace />
-  if (!onboardingComplete) return <Navigate to="/onboarding" replace />
+  if (!onboardingComplete && user && !shouldSkipOnboardingForRole(user.role)) {
+    return <Navigate to="/onboarding" replace />
+  }
 
   if (user && user.role === 'technician') {
     return <Navigate to="/tech" replace />
@@ -76,7 +78,9 @@ function TechnicianRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, user, onboardingComplete } = useAuth()
   if (isLoading) return <PageLoader />
   if (!isAuthenticated) return <Navigate to="/login" replace />
-  if (!onboardingComplete) return <Navigate to="/onboarding" replace />
+  if (!onboardingComplete && user && !shouldSkipOnboardingForRole(user.role)) {
+    return <Navigate to="/onboarding" replace />
+  }
   const allowed: UserRole[] = ['technician', 'owner', 'admin', 'dispatcher']
   if (!user || !allowed.includes(user.role)) return <Navigate to="/dashboard" replace />
   return <>{children}</>

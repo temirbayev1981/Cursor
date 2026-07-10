@@ -1,6 +1,7 @@
-import type { Company, Profile } from '@/types'
+import type { Company, Profile, UserRole } from '@/types'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
 import { DEMO_COMPANY } from '@/data/mock-data'
+import { shouldSkipOnboardingForRole } from '@/lib/permissions'
 import { getTeamInvitePreview, acceptTeamInvite } from '@/services/invite-service'
 
 function getStoredCompanyForInvite(companyId: string): Company {
@@ -160,4 +161,15 @@ export function isOnboardingComplete(company: Company | null): boolean {
   if (localStorage.getItem('handymanos_onboarding') === 'complete') return true
   const settings = company?.settings as Record<string, unknown> | undefined
   return Boolean(settings?.onboarded_at)
+}
+
+export function markOnboardingCompleteForInvitedMember(role: UserRole): void {
+  if (shouldSkipOnboardingForRole(role)) {
+    localStorage.setItem('handymanos_onboarding', 'complete')
+  }
+}
+
+export function resolveOnboardingState(role: UserRole, company: Company | null): boolean {
+  if (shouldSkipOnboardingForRole(role)) return true
+  return isOnboardingComplete(company)
 }
