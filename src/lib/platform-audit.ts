@@ -3,7 +3,7 @@ import { computePlatformHealth, integrationProbesPass, type PlatformHealthOption
 import { TYPED_SUPABASE_QUERIES } from '@/lib/supabase-queries'
 import { hasIntegrationProbeHistory } from '@/lib/integration-probe-history'
 import { integrationProbeUiReady } from '@/lib/integration-probe-ui'
-import { AUDIT_E2E_FULL_COVERAGE, AUDIT_I18N_COVERAGE, BILLING_PLAN_AUDIT, BULK_OPS_AUDIT, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, ENTITY_UPDATE_AUDIT, ESTIMATE_CREATE_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INTEGRATION_PROBES_AUDIT, INTEGRATION_PROBE_HISTORY_AUDIT, INTEGRATION_PROBE_UI_AUDIT, INVOICE_AUDIT, INVITE_AUDIT, NOTIFICATION_HUB_AUDIT, NOTIFICATION_OPT_OUT_AUDIT, OBSERVABILITY_PROBE_AUDIT, PORTAL_AUDIT, PORTAL_NOTIFICATION_PREFS_AUDIT, PORTAL_REQUESTS_AUDIT, PWA_SW_OFFLINE_AUDIT, SAMPLE_IMPORT_AUDIT, TEAM_INVITE_AUDIT, VENDOR_PO_AUDIT } from '@/lib/audit-labels'
+import { AUDIT_E2E_FULL_COVERAGE, AUDIT_I18N_COVERAGE, BILLING_PLAN_AUDIT, BULK_OPS_AUDIT, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, ENTITY_UPDATE_AUDIT, ESTIMATE_CREATE_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INTEGRATION_PROBES_AUDIT, INTEGRATION_PROBE_HISTORY_AUDIT, INTEGRATION_PROBE_UI_AUDIT, INVOICE_AUDIT, INVITE_AUDIT, NOTIFICATION_HUB_AUDIT, NOTIFICATION_OPT_OUT_AUDIT, OBSERVABILITY_PROBE_AUDIT, PORTAL_AUDIT, PORTAL_NOTIFICATION_PREFS_AUDIT, PORTAL_REQUESTS_AUDIT, PWA_SW_OFFLINE_AUDIT, SAMPLE_IMPORT_AUDIT, STAFF_CUSTOMER_NOTIFY_AUDIT, TEAM_INVITE_AUDIT, VENDOR_PO_AUDIT } from '@/lib/audit-labels'
 import { MULTI_TENANT_SUPPORTED, MULTI_TENANT_MEMBERSHIP_RPC } from '@/services/company-service'
 import { PORTAL_RPC_ENFORCED } from '@/services/portal-data-service'
 import { STRIPE_WEBHOOK_AUDIT } from '@/services/billing-service'
@@ -86,6 +86,7 @@ export function computePlatformAudit(options: PlatformHealthOptions = {}): Platf
     { id: 'notification_hub_audit', label: 'Notification hub', ok: liveBackend && NOTIFICATION_HUB_AUDIT, weight: 0.5 },
     { id: 'portal_notification_prefs_audit', label: 'Portal notification prefs', ok: liveBackend && PORTAL_NOTIFICATION_PREFS_AUDIT, weight: 0.5 },
     { id: 'notification_opt_out_audit', label: 'Notification opt-out', ok: liveBackend && NOTIFICATION_OPT_OUT_AUDIT, weight: 0.5 },
+    { id: 'staff_customer_notify_audit', label: 'Staff customer notify prefs', ok: liveBackend && STAFF_CUSTOMER_NOTIFY_AUDIT, weight: 0.5 },
     { id: 'observability_probe_audit', label: 'Observability live probe', ok: liveBackend && OBSERVABILITY_PROBE_AUDIT && observabilityProbeOk, weight: 0.5 },
     { id: 'pwa_sw_offline_audit', label: 'Service worker offline gate', ok: liveBackend && PWA_SW_OFFLINE_AUDIT && (health.checks.find((c) => c.id === 'offline_sync')?.ok ?? false), weight: 0.5 },
     { id: 'multi_tenant', label: 'Multi-company membership', ok: liveBackend && MULTI_TENANT_SUPPORTED && Boolean(MULTI_TENANT_MEMBERSHIP_RPC), weight: 0.5 },

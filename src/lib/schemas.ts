@@ -7,6 +7,8 @@ export const customerSchema = z.object({
   address: z.string().min(5, 'Укажите адрес'),
   type: z.enum(['residential', 'commercial', 'property_management']),
   notes: z.string().optional(),
+  notify_email: z.boolean(),
+  notify_sms: z.boolean(),
 })
 
 export type CustomerFormValues = z.infer<typeof customerSchema>

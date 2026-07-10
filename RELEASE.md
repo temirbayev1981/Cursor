@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.10.2
+# HandymanOS AI — Release 1.10.3
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.2`**, current package **1.10.2**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.3`**, current package **1.10.3**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -131,6 +131,12 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
 
+### 1.10.3 — Staff customer notify prefs
+- Customer form email/SMS toggles; customers table opt-out badge
+- `notifyResultMessage` skipped handling in dispatch/scheduling
+- E2E customer form prefs + estimate send opt-out
+- Platform audit `staff_customer_notify_audit` gate
+
 ### 1.10.2 — Notification opt-out consistency
 - Estimate/invoice sends respect customer email preferences
 - Notification hub filter E2E; `notification_opt_out_audit` gate
@@ -148,8 +154,8 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
 ## Test coverage
 
-- Unit: **144** (`npm test`)
-- E2E: **192/192** (`npm run test:e2e`)
+- Unit: **147** (`npm test`)
+- E2E: **194/194** (`npm run test:e2e`)
 
 ## Deploy
 

@@ -266,7 +266,29 @@ if (auditLabels.includes('NOTIFICATION_OPT_OUT_AUDIT = true')) {
   ok = false
 }
 
+if (auditLabels.includes('STAFF_CUSTOMER_NOTIFY_AUDIT = true')) {
+  console.log('✓ STAFF_CUSTOMER_NOTIFY_AUDIT gate enabled')
+} else {
+  console.log('✗ STAFF_CUSTOMER_NOTIFY_AUDIT must be true')
+  ok = false
+}
+
+const customerForm = readFileSync('src/components/forms/customer-form.tsx', 'utf8')
+if (customerForm.includes('customer-form-notify-email') && customerForm.includes('notification_preferences')) {
+  console.log('✓ customer form exposes notification preference toggles')
+} else {
+  console.log('✗ customer form must expose notification preference toggles')
+  ok = false
+}
+
 const notificationService = readFileSync('src/services/notification-service.ts', 'utf8')
+if (notificationService.includes('result.skipped')) {
+  console.log('✓ notifyResultMessage handles skipped notifications')
+} else {
+  console.log('✗ notifyResultMessage must handle skipped notifications')
+  ok = false
+}
+
 if (notificationService.includes('customerAllowsNotification') && notificationService.includes('notifyEstimateSent')) {
   const estimateOptOut = notificationService.includes('notifyEstimateSent(')
     && notificationService.split('notifyEstimateSent')[1]?.includes('customerAllowsNotification')

@@ -22,6 +22,22 @@ test.describe('Jobs & customers', () => {
     await expect(page.getByText('E2E Test Customer').first()).toBeVisible()
   })
 
+  test('customer form saves email notification opt-out', async ({ page }) => {
+    await page.goto('/customers')
+    await page.getByTestId('customer-edit-cust-004').click()
+    await expect(page.getByTestId('customer-form-notification-prefs')).toBeVisible()
+
+    const emailToggle = page.getByTestId('customer-form-notify-email')
+    const isChecked = await emailToggle.getAttribute('data-state')
+    if (isChecked === 'checked') {
+      await emailToggle.click()
+    }
+    await page.getByTestId('customer-form-submit').click()
+
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByTestId('customer-email-optout-cust-004')).toBeVisible()
+  })
+
   test('customer search filters the table', async ({ page }) => {
     await page.goto('/customers')
     await expect(page.getByText('ABC Property Management').first()).toBeVisible()
