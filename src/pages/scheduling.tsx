@@ -13,10 +13,11 @@ import { useOptimizedRouteFromStops } from '@/hooks/use-route-optimizer'
 import { addDays, format, startOfWeek, isSameDay } from 'date-fns'
 import { useTranslation } from '@/contexts/locale-context'
 import { toast } from 'sonner'
+import { notifyJobScheduled, flushNotificationQueue, notifyResultMessage } from '@/services/notification-service'
 import type { ScheduleFormValues } from '@/lib/schemas'
 
 export default function SchedulingPage() {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const [view, setView] = useState<'day' | 'week' | 'month'>('week')
   const [currentDate, setCurrentDate] = useState(new Date())
   const [showForm, setShowForm] = useState(false)
@@ -60,9 +61,32 @@ export default function SchedulingPage() {
         location: customer?.address ?? job.title,
       },
       {
-        onSuccess: () => {
+        onSuccess: async () => {
           toast.success(t.scheduling.scheduled)
           setShowForm(false)
+
+          if (customer?.email) {
+            const when = format(start, 'PPp', { locale: undefined })
+            const result = await notifyJobScheduled(customer.email, job.title, when)
+            const feedback = notifyResultMessage(
+              result,
+              locale,
+              locale === 'ru' ? `Email отправлен: ${customer.email}` : `Email sent: ${customer.email}`,
+              locale === 'ru' ? `Email (демо) → ${customer.email}` : `Email (demo) → ${customer.email}`,
+            )
+            if (feedback.type === 'success') toast.success(feedback.message)
+            else if (feedback.type === 'info') toast.info(feedback.message)
+            else toast.error(feedback.message)
+          }
+
+          const flushed = await flushNotificationQueue()
+          if (flushed > 0) {
+            toast.success(
+              locale === 'ru'
+                ? `Отправлено из очереди: ${flushed}`
+                : `Sent from queue: ${flushed}`,
+            )
+          }
         },
       }
     )

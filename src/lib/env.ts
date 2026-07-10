@@ -20,7 +20,7 @@ export const hasSupabase = Boolean(env.VITE_SUPABASE_URL && env.VITE_SUPABASE_AN
 export const hasStripe = Boolean(env.VITE_STRIPE_PUBLISHABLE_KEY)
 export const hasGoogleMaps = Boolean(env.VITE_GOOGLE_MAPS_API_KEY)
 export const hasNotificationWebhook = Boolean(env.VITE_NOTIFICATION_WEBHOOK_URL)
-export const hasSms = Boolean(env.VITE_SMS_WEBHOOK_URL)
+export const hasSms = Boolean(env.VITE_SMS_WEBHOOK_URL) || hasSupabase
 
 export function getOpenAIEndpoint(): string | undefined {
   return env.VITE_OPENAI_PROXY_ENDPOINT
@@ -44,6 +44,9 @@ export function getSmsEndpoint(): string | undefined {
   return env.VITE_SMS_WEBHOOK_URL
     ?? (hasSupabase ? `${getSupabaseFunctionsUrl()}/send-sms` : undefined)
 }
+
+export const hasNotificationConfigured = Boolean(getNotificationEndpoint())
+export const hasSmsConfigured = Boolean(getSmsEndpoint())
 
 export function getStripeCheckoutEndpoint(): string | undefined {
   return env.VITE_STRIPE_CHECKOUT_ENDPOINT

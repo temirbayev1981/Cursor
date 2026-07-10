@@ -1,6 +1,8 @@
 import type { TimeEntry } from '@/types'
 import { loadStore, saveStore, STORE_KEYS } from '@/lib/data-store'
 import { saveTimeEntry } from '@/services/entity-service'
+import { uploadJobPhoto } from '@/services/storage-service'
+import { base64ToFile } from '@/lib/file-utils'
 import type { OfflineAction } from '@/lib/pwa'
 
 export interface OfflineSyncContext {
@@ -64,6 +66,19 @@ export async function applyOfflineAction(
     if (closed) {
       await saveTimeEntry(toTimeEntry(closed, context, end))
     }
+    return true
+  }
+
+  if (action.type === 'photo_upload') {
+    const { companyId, jobId, fileName, mimeType, data } = action.payload as {
+      companyId: string
+      jobId: string
+      fileName: string
+      mimeType: string
+      data: string
+    }
+    const file = base64ToFile(data, fileName, mimeType)
+    await uploadJobPhoto(file, companyId, jobId)
     return true
   }
 

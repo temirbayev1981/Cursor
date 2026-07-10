@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { JobStatusBadge, PriorityBadge } from '@/components/shared/status-badge'
-import { useJobs, useEmployees } from '@/hooks/use-entities'
+import { useJobs, useEmployees, useCustomers, useProperties } from '@/hooks/use-entities'
 import { useAuth } from '@/contexts/auth-context'
 import { useTranslation } from '@/contexts/locale-context'
 import { useOnlineStatus } from '@/hooks/use-online-status'
@@ -13,7 +13,11 @@ import { loadStore, saveStore, STORE_KEYS } from '@/lib/data-store'
 import { queueOfflineAction, getOfflineQueue, syncOfflineQueue } from '@/lib/pwa'
 import { applyOfflineAction } from '@/services/offline-sync-service'
 import { uploadJobPhoto } from '@/services/storage-service'
+import { resolveJobAddress } from '@/hooks/use-route-optimizer'
+import { buildGoogleMapsDirectionsUrl, geocodeAddressForRouting } from '@/lib/route-optimizer'
+import { fileToBase64 } from '@/lib/file-utils'
 import { toast } from 'sonner'
+import type { Job } from '@/types'
 
 interface LocalTimeEntry {
   id: string
@@ -31,6 +35,8 @@ export default function TechnicianMobilePage() {
   const companyId = company?.id ?? 'comp-001'
   const { data: jobs = [] } = useJobs()
   const { data: employees = [] } = useEmployees()
+  const { data: customers = [] } = useCustomers()
+  const { data: properties = [] } = useProperties()
   const [activeJobId, setActiveJobId] = useState<string | null>(null)
   const [timeEntries, setTimeEntries] = useState<LocalTimeEntry[]>([])
   const [gps, setGps] = useState<{ lat: number; lng: number } | null>(null)
@@ -56,15 +62,33 @@ export default function TechnicianMobilePage() {
     })
     .slice(0, 10)
 
+  const activeEntry = activeJobId
+    ? timeEntries.find((e) => e.job_id === activeJobId && !e.end)
+    : undefined
+
   useEffect(() => {
     setTimeEntries(loadStore<LocalTimeEntry>(STORE_KEYS.timeEntries))
     setPendingSync(getOfflineQueue().length)
     if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition((pos) => {
-        setGps({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-      })
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setGps({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {},
+        { enableHighAccuracy: true },
+      )
     }
   }, [])
+
+  useEffect(() => {
+    if (!activeJobId || !('geolocation' in navigator)) return
+
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => setGps({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 30000 },
+    )
+
+    return () => navigator.geolocation.clearWatch(watchId)
+  }, [activeJobId])
 
   useEffect(() => {
     if (!online || getOfflineQueue().length === 0) return
@@ -81,6 +105,27 @@ export default function TechnicianMobilePage() {
       }
     })()
   }, [online, t.techMobile.synced, companyId, myEmployee?.id, user?.id])
+
+  const getJobPhone = (job: Job) => customers.find((c) => c.id === job.customer_id)?.phone
+
+  const openNavigate = (job: Job) => {
+    const address = resolveJobAddress(job, customers, properties)
+    const stop = { id: job.id, label: job.title, address, ...geocodeAddressForRouting(address) }
+    window.open(buildGoogleMapsDirectionsUrl([stop]), '_blank', 'noopener,noreferrer')
+  }
+
+  const queuePhotoUpload = async (file: File, jobId: string) => {
+    const data = await fileToBase64(file)
+    queueOfflineAction('photo_upload', {
+      companyId,
+      jobId,
+      fileName: file.name,
+      mimeType: file.type || 'image/jpeg',
+      data,
+    })
+    setPendingSync(getOfflineQueue().length)
+    toast.success(t.techMobile.photoQueued)
+  }
 
   const clockIn = (jobId: string) => {
     const entry: LocalTimeEntry = {
@@ -124,7 +169,7 @@ export default function TechnicianMobilePage() {
         syncContext
       )
     }
-    toast.success('Отметка ухода записана')
+    toast.success(t.techMobile.clockOut)
   }
 
   const openPhotoPicker = (jobId: string) => {
@@ -140,10 +185,18 @@ export default function TechnicianMobilePage() {
 
     setUploadingJobId(jobId)
     try {
-      await uploadJobPhoto(file, companyId, jobId)
-      toast.success(t.common.photo ?? 'Photo saved')
+      if (!online) {
+        await queuePhotoUpload(file, jobId)
+      } else {
+        try {
+          await uploadJobPhoto(file, companyId, jobId)
+          toast.success(t.techMobile.photoSaved)
+        } catch {
+          await queuePhotoUpload(file, jobId)
+        }
+      }
     } catch {
-      toast.error('Upload failed')
+      toast.error(t.techMobile.uploadFailed)
     } finally {
       setUploadingJobId(null)
       photoJobRef.current = null
@@ -192,56 +245,67 @@ export default function TechnicianMobilePage() {
           </Card>
         )}
 
-        {myJobs.map((job) => (
-          <Card key={job.id} className={activeJobId === job.id ? 'border-primary' : ''}>
-            <CardContent className="p-4 space-y-3">
-              <div className="flex items-start justify-between">
-                <p className="font-semibold">{job.title}</p>
-                <JobStatusBadge status={job.status} />
-              </div>
-              <div className="flex items-center gap-2">
-                <PriorityBadge priority={job.priority} />
-                <span className="text-sm font-medium">{formatCurrency(job.revenue)}</span>
-              </div>
-              {job.scheduled_date && (
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  {formatDateTime(job.scheduled_date)}
-                </p>
-              )}
-              <div className="grid grid-cols-3 gap-2">
-                <Button variant="outline" size="sm" onClick={() => window.open('tel:+15551234567')}>
-                  <Phone className="h-4 w-4" />{t.common.call}
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => window.open('https://maps.google.com')}>
-                  <Navigation className="h-4 w-4" />{t.common.navigate}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={uploadingJobId === job.id}
-                  onClick={() => openPhotoPicker(job.id)}
-                >
-                  <Camera className="h-4 w-4" />{t.common.photo}
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {activeJobId === job.id ? (
-                  <Button size="sm" variant="destructive" onClick={clockOut}>
-                    <Square className="h-4 w-4" />Уйти
-                  </Button>
-                ) : (
-                  <Button size="sm" onClick={() => clockIn(job.id)}>
-                    <Play className="h-4 w-4" />{t.techMobile.clockIn}
-                  </Button>
+        {myJobs.map((job) => {
+          const phone = getJobPhone(job)
+          const address = resolveJobAddress(job, customers, properties)
+
+          return (
+            <Card key={job.id} className={activeJobId === job.id ? 'border-primary' : ''}>
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <p className="font-semibold">{job.title}</p>
+                  <JobStatusBadge status={job.status} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <PriorityBadge priority={job.priority} />
+                  <span className="text-sm font-medium">{formatCurrency(job.revenue)}</span>
+                </div>
+                {job.scheduled_date && (
+                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    {formatDateTime(job.scheduled_date)}
+                  </p>
                 )}
-                <Button variant="outline" size="sm">
-                  <PenLine className="h-4 w-4" />{t.common.notes}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                <p className="text-xs text-muted-foreground truncate">{address}</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!phone}
+                    onClick={() => phone && window.open(`tel:${phone}`)}
+                  >
+                    <Phone className="h-4 w-4" />{t.common.call}
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => openNavigate(job)}>
+                    <Navigation className="h-4 w-4" />{t.common.navigate}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={uploadingJobId === job.id}
+                    onClick={() => openPhotoPicker(job.id)}
+                  >
+                    <Camera className="h-4 w-4" />{t.common.photo}
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {activeJobId === job.id ? (
+                    <Button size="sm" variant="destructive" onClick={clockOut}>
+                      <Square className="h-4 w-4" />{t.techMobile.clockOut}
+                    </Button>
+                  ) : (
+                    <Button size="sm" onClick={() => clockIn(job.id)}>
+                      <Play className="h-4 w-4" />{t.techMobile.clockIn}
+                    </Button>
+                  )}
+                  <Button variant="outline" size="sm">
+                    <PenLine className="h-4 w-4" />{t.common.notes}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
 
         <Card>
           <CardContent className="p-4">
@@ -249,16 +313,18 @@ export default function TechnicianMobilePage() {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t.techMobile.arrival}</span>
-                <span>{activeJobId ? new Date().toLocaleTimeString() : '—'}</span>
+                <span>{activeEntry ? formatDateTime(activeEntry.start) : '—'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">GPS</span>
                 <span>{gps ? `${gps.lat.toFixed(4)}, ${gps.lng.toFixed(4)}` : '—'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Статус</span>
+                <span className="text-muted-foreground">{t.jobs.status}</span>
                 <Badge variant={activeJobId ? 'success' : 'outline'}>
-                  {activeJobId ? <><CheckCircle className="h-3 w-3 mr-1" />{t.techMobile.onSite}</> : 'Вне объекта'}
+                  {activeJobId
+                    ? <><CheckCircle className="h-3 w-3 mr-1" />{t.techMobile.onSite}</>
+                    : t.techMobile.offSite}
                 </Badge>
               </div>
             </div>

@@ -11,6 +11,11 @@ export interface NotificationPayload {
   metadata?: Record<string, string>
 }
 
+export interface NotificationResult {
+  ok: boolean
+  demo: boolean
+}
+
 const QUEUE_KEY = 'handymanos_notification_queue'
 
 function loadQueue(): NotificationPayload[] {
@@ -26,7 +31,7 @@ function saveQueue(items: NotificationPayload[]) {
   localStorage.setItem(QUEUE_KEY, JSON.stringify(items.slice(0, 100)))
 }
 
-export async function sendNotification(payload: NotificationPayload): Promise<{ ok: boolean; demo: boolean }> {
+export async function sendNotification(payload: NotificationPayload): Promise<NotificationResult> {
   const webhook = getNotificationEndpoint()
 
   if (webhook) {
@@ -80,7 +85,7 @@ export async function notifyEstimateSent(customerEmail: string, title: string, t
   })
 }
 
-export async function sendSms(to: string, body: string): Promise<{ ok: boolean; demo: boolean }> {
+export async function sendSms(to: string, body: string): Promise<NotificationResult> {
   const smsWebhook = getSmsEndpoint()
   if (smsWebhook) {
     try {
@@ -104,4 +109,64 @@ export async function notifyTechnicianSms(phone: string, message: string) {
 
 export function getNotificationQueue(): NotificationPayload[] {
   return loadQueue()
+}
+
+export async function flushNotificationQueue(): Promise<number> {
+  const emailEndpoint = getNotificationEndpoint()
+  const smsEndpoint = getSmsEndpoint()
+  if (!emailEndpoint && !smsEndpoint) return 0
+
+  const queue = loadQueue()
+  if (queue.length === 0) return 0
+
+  const remaining: NotificationPayload[] = []
+  let sent = 0
+
+  for (const payload of [...queue].reverse()) {
+    try {
+      if (payload.channel === 'sms' && smsEndpoint) {
+        const headers = await getSupabaseAuthHeaders()
+        const res = await fetch(smsEndpoint, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ to: payload.to, body: payload.body, provider: 'twilio' }),
+        })
+        if (res.ok) {
+          sent++
+          continue
+        }
+      } else if (payload.channel === 'email' && emailEndpoint) {
+        const headers = await getSupabaseAuthHeaders()
+        const res = await fetch(emailEndpoint, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(payload),
+        })
+        if (res.ok) {
+          sent++
+          continue
+        }
+      }
+      remaining.push(payload)
+    } catch {
+      remaining.push(payload)
+    }
+  }
+
+  saveQueue(remaining)
+  return sent
+}
+
+export function notifyResultMessage(
+  result: NotificationResult,
+  locale: 'ru' | 'en',
+  success: string,
+  demo: string
+): { type: 'success' | 'info' | 'error'; message: string } {
+  if (result.ok && result.demo) return { type: 'info', message: demo }
+  if (result.ok) return { type: 'success', message: success }
+  return {
+    type: 'error',
+    message: locale === 'ru' ? 'Не удалось отправить уведомление' : 'Failed to send notification',
+  }
 }

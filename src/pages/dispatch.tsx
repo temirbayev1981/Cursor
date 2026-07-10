@@ -20,7 +20,7 @@ import { useOptimizedRoute } from '@/hooks/use-route-optimizer'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { PriorityBadge } from '@/components/shared/status-badge'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
-import { notifyTechnicianSms } from '@/services/notification-service'
+import { notifyTechnicianSms, notifyJobScheduled, notifyResultMessage } from '@/services/notification-service'
 import { toast } from 'sonner'
 import type { Job, JobStatus } from '@/types'
 import { MapPin } from 'lucide-react'
@@ -51,7 +51,7 @@ function JobCard({ job }: { job: Job }) {
 }
 
 export default function DispatchPage() {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const { data: jobs = [], isLoading } = useJobs()
   const { data: employees = [] } = useEmployees()
   const { data: customers = [] } = useCustomers()
@@ -79,11 +79,28 @@ export default function DispatchPage() {
             phone,
             `Новый заказ: ${job.title}. Запланирован на ${when}.`
           )
-          if (result.demo) {
-            toast.info(`SMS (демо) → ${tech?.name}: ${job.title}`)
-          } else if (result.ok) {
-            toast.success(`SMS отправлено: ${tech?.name}`)
-          }
+          const feedback = notifyResultMessage(
+            result,
+            locale,
+            `SMS отправлено: ${tech?.name}`,
+            `SMS (демо) → ${tech?.name}: ${job.title}`,
+          )
+          if (feedback.type === 'success') toast.success(feedback.message)
+          else if (feedback.type === 'info') toast.info(feedback.message)
+        }
+
+        const customer = customers.find((c) => c.id === job.customer_id)
+        if (customer?.email) {
+          const when = job.scheduled_date ? formatDateTime(job.scheduled_date) : (locale === 'ru' ? 'скоро' : 'soon')
+          const emailResult = await notifyJobScheduled(customer.email, job.title, when)
+          const emailFeedback = notifyResultMessage(
+            emailResult,
+            locale,
+            locale === 'ru' ? `Email клиенту: ${customer.email}` : `Customer email: ${customer.email}`,
+            locale === 'ru' ? `Email (демо) → ${customer.email}` : `Email (demo) → ${customer.email}`,
+          )
+          if (emailFeedback.type === 'success') toast.success(emailFeedback.message)
+          else if (emailFeedback.type === 'info') toast.info(emailFeedback.message)
         }
       }
     }
