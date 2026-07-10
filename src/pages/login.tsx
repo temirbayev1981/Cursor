@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Zap, Mail, Lock, ArrowRight } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,6 +18,13 @@ export default function LoginPage() {
   const { signIn, onboardingComplete } = useAuth()
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const isPortal = searchParams.get('portal') === '1'
+
+  const handlePortalDemo = () => {
+    sessionStorage.setItem('handymanos_portal_token', 'demo')
+    navigate('/portal/customer')
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -80,6 +87,11 @@ export default function LoginPage() {
               <p className="text-xs text-center text-muted-foreground mt-4">
                 {t.auth.demoHint}
               </p>
+            )}
+            {isPortal && DEMO_MODE && (
+              <Button type="button" variant="outline" className="w-full mt-3" onClick={handlePortalDemo}>
+                Демо-доступ к порталу клиента
+              </Button>
             )}
           </CardContent>
         </Card>

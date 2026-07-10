@@ -10,6 +10,7 @@ import { Progress } from '@/components/ui/progress'
 import { useAuth } from '@/contexts/auth-context'
 import { useTranslation } from '@/contexts/locale-context'
 import { LanguageSwitcher } from '@/components/shared/language-switcher'
+import { toast } from 'sonner'
 import type { OnboardingData } from '@/types'
 
 export default function OnboardingPage() {
@@ -37,9 +38,14 @@ export default function OnboardingPage() {
 
   const progress = ((step + 1) / STEPS.length) * 100
 
-  const handleComplete = () => {
-    completeOnboarding()
-    navigate('/dashboard')
+  const handleComplete = async () => {
+    try {
+      await completeOnboarding(data)
+      toast.success(t.auth.completeSetup)
+      navigate('/dashboard')
+    } catch {
+      toast.error('Ошибка сохранения')
+    }
   }
 
   return (

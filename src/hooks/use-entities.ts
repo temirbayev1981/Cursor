@@ -39,6 +39,35 @@ export function useSchedules() {
   return useQuery({ queryKey: ['schedules', companyId], queryFn: () => listEntities('schedules', companyId) })
 }
 
+export function useProperties() {
+  const companyId = useCompanyId()
+  return useQuery({ queryKey: ['properties', companyId], queryFn: () => listEntities('properties', companyId) })
+}
+
+export function useMaterials() {
+  const companyId = useCompanyId()
+  return useQuery({ queryKey: ['materials', companyId], queryFn: () => listEntities('materials', companyId) })
+}
+
+export function useVehicles() {
+  const companyId = useCompanyId()
+  return useQuery({ queryKey: ['vehicles', companyId], queryFn: () => listEntities('vehicles', companyId) })
+}
+
+export function useExpenses() {
+  const companyId = useCompanyId()
+  return useQuery({ queryKey: ['expenses', companyId], queryFn: () => listEntities('expenses', companyId) })
+}
+
+export function useSaveCustomer() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: (customer: Customer) => saveEntity('customers', customer),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['customers', companyId] }),
+  })
+}
+
 export function useSaveJob() {
   const qc = useQueryClient()
   const companyId = useCompanyId()

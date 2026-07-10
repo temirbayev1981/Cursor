@@ -1,4 +1,5 @@
 import type { AIExtractedData } from '@/types'
+import { hasOpenAI, env } from '@/lib/env'
 
 const REPAIR_PATTERNS: Record<string, { tasks: string[]; materials: string[]; hours: number }> = {
   drywall: {
@@ -33,6 +34,51 @@ const REPAIR_PATTERNS: Record<string, { tasks: string[]; materials: string[]; ho
   },
 }
 
+async function callOpenAI(systemPrompt: string, userContent: string): Promise<string | null> {
+  if (!hasOpenAI) return null
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${env.VITE_OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userContent },
+        ],
+        temperature: 0.3,
+      }),
+    })
+    if (!res.ok) return null
+    const json = await res.json() as { choices?: { message?: { content?: string } }[] }
+    return json.choices?.[0]?.message?.content ?? null
+  } catch {
+    return null
+  }
+}
+
+const EXTRACT_SYSTEM = `You are a handyman work order parser. Extract structured data from work order text.
+Return valid JSON only with keys: customer, property, job, tasks, estimate.
+customer: {name, phone, email, address}
+property: {property_type, unit_number, location}
+job: {requested_repairs[], required_materials[], estimated_labor_hours, priority, special_instructions}
+tasks: string[]
+estimate: {labor_hours, materials[], suggested_price_min, suggested_price_max}`
+
+async function parseWithOpenAI(content: string): Promise<AIExtractedData | null> {
+  const raw = await callOpenAI(EXTRACT_SYSTEM, content.slice(0, 8000))
+  if (!raw) return null
+  try {
+    const cleaned = raw.replace(/```json\n?|\n?```/g, '').trim()
+    return JSON.parse(cleaned) as AIExtractedData
+  } catch {
+    return null
+  }
+}
+
 function detectRepairTypes(text: string): string[] {
   const lower = text.toLowerCase()
   const detected: string[] = []
@@ -62,7 +108,10 @@ function extractEmail(text: string): string | undefined {
 }
 
 export async function analyzeWorkOrderPDF(content: string): Promise<AIExtractedData> {
-  await new Promise((r) => setTimeout(r, 1500))
+  const aiResult = await parseWithOpenAI(content)
+  if (aiResult) return aiResult
+
+  await new Promise((r) => setTimeout(r, 800))
 
   const repairs = content
     .split(/[.,;]/)
@@ -144,7 +193,14 @@ export async function analyzePhoto(_file: File): Promise<AIExtractedData> {
 }
 
 export async function askBusinessAssistant(question: string, locale: 'ru' | 'en' = 'ru'): Promise<string> {
-  await new Promise((r) => setTimeout(r, 1000))
+  const systemPrompt = locale === 'ru'
+    ? 'Ты AI-ассистент для handyman SaaS HandymanOS. Отвечай на русском, кратко и по делу, с цифрами и рекомендациями.'
+    : 'You are an AI assistant for HandymanOS handyman SaaS. Be concise with numbers and recommendations.'
+
+  const aiAnswer = await callOpenAI(systemPrompt, question)
+  if (aiAnswer) return aiAnswer
+
+  await new Promise((r) => setTimeout(r, 600))
 
   const q = question.toLowerCase()
 

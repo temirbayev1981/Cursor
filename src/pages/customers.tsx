@@ -1,4 +1,4 @@
-import { Plus, Search } from 'lucide-react'
+import { Plus, Search, X } from 'lucide-react'
 import { useState } from 'react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
@@ -6,9 +6,14 @@ import { TableSkeleton } from '@/components/shared/skeleton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { useCustomers } from '@/hooks/use-entities'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CustomerForm } from '@/components/forms/customer-form'
+import { useAuth } from '@/contexts/auth-context'
+import { useCustomers, useSaveCustomer } from '@/hooks/use-entities'
 import { formatCurrency } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
+import { toast } from 'sonner'
+import type { Customer } from '@/types'
 
 const CUSTOMER_TYPE_KEYS = ['residential', 'commercial', 'property_management'] as const
 
@@ -16,7 +21,11 @@ export default function CustomersPage() {
   const { t, locale } = useTranslation()
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
   const [search, setSearch] = useState('')
+  const [showForm, setShowForm] = useState(false)
+  const { company } = useAuth()
+  const companyId = company?.id ?? 'comp-001'
   const { data: customers = [], isLoading } = useCustomers()
+  const saveCustomer = useSaveCustomer()
 
   const filtered = customers.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase())
@@ -31,13 +40,34 @@ export default function CustomersPage() {
     return type
   }
 
+  const handleCreate = (customer: Customer) => {
+    saveCustomer.mutate(customer, {
+      onSuccess: () => {
+        toast.success(t.common.save)
+        setShowForm(false)
+      },
+    })
+  }
+
   return (
     <div>
       <PageHeader
         title={t.customers.title}
         description={t.customers.description}
-        actions={<Button><Plus className="h-4 w-4" />{t.customers.addCustomer}</Button>}
+        actions={<Button onClick={() => setShowForm(true)}><Plus className="h-4 w-4" />{t.customers.addCustomer}</Button>}
       />
+
+      {showForm && (
+        <Card className="mb-6">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">{t.customers.addCustomer}</CardTitle>
+            <Button variant="ghost" size="icon" onClick={() => setShowForm(false)}><X className="h-4 w-4" /></Button>
+          </CardHeader>
+          <CardContent>
+            <CustomerForm companyId={companyId} onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
+          </CardContent>
+        </Card>
+      )}
 
       <div className="relative max-w-sm mb-6">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

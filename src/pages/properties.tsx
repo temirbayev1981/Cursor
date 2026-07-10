@@ -3,11 +3,16 @@ import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { DEMO_PROPERTIES, DEMO_CUSTOMERS } from '@/data/mock-data'
+import { TableSkeleton } from '@/components/shared/skeleton'
+import { useProperties, useCustomers } from '@/hooks/use-entities'
 import { useTranslation } from '@/contexts/locale-context'
 
 export default function PropertiesPage() {
   const { t } = useTranslation()
+  const { data: properties = [], isLoading: propsLoading } = useProperties()
+  const { data: customers = [], isLoading: custLoading } = useCustomers()
+
+  if (propsLoading || custLoading) return <TableSkeleton rows={3} cols={3} />
 
   return (
     <div>
@@ -18,8 +23,8 @@ export default function PropertiesPage() {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {DEMO_PROPERTIES.map((prop) => {
-          const customer = DEMO_CUSTOMERS.find((c) => c.id === prop.customer_id)
+        {properties.map((prop) => {
+          const customer = customers.find((c) => c.id === prop.customer_id)
           return (
             <Card key={prop.id}>
               <CardContent className="p-5 space-y-3">

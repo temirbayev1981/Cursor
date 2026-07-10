@@ -4,13 +4,17 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { DEMO_EMPLOYEES } from '@/data/mock-data'
+import { TableSkeleton } from '@/components/shared/skeleton'
+import { useEmployees } from '@/hooks/use-entities'
 import { calculateTrueHourlyCost, formatCurrency, getInitials } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 
 export default function TechniciansPage() {
   const { t } = useTranslation()
-  const techs = DEMO_EMPLOYEES.filter((e) => e.billing_rate > 0)
+  const { data: employees = [], isLoading } = useEmployees()
+  const techs = employees.filter((e) => e.billing_rate > 0 && e.is_active)
+
+  if (isLoading) return <TableSkeleton rows={3} cols={3} />
 
   return (
     <div>

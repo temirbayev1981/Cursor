@@ -11,6 +11,7 @@ import { CommandPalette } from '@/components/shared/command-palette'
 import { AppLayout } from '@/components/layout/app-layout'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { canAccess, getDefaultRoute } from '@/lib/permissions'
+import type { UserRole } from '@/types'
 import LoginPage from '@/pages/login'
 import OnboardingPage from '@/pages/onboarding'
 import TechnicianMobilePage from '@/pages/technician-mobile'
@@ -69,15 +70,33 @@ function RoleRoute({ module, children }: { module: string; children: React.React
   return <>{children}</>
 }
 
+function TechnicianRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading, user, onboardingComplete } = useAuth()
+  if (isLoading) return <PageLoader />
+  if (!isAuthenticated) return <Navigate to="/login" replace />
+  if (!onboardingComplete) return <Navigate to="/onboarding" replace />
+  const allowed: UserRole[] = ['technician', 'owner', 'admin', 'dispatcher']
+  if (!user || !allowed.includes(user.role)) return <Navigate to="/dashboard" replace />
+  return <>{children}</>
+}
+
+function PortalRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading, user } = useAuth()
+  const portalToken = sessionStorage.getItem('handymanos_portal_token')
+  if (isLoading) return <PageLoader />
+  if (portalToken === 'demo' || (isAuthenticated && user?.role === 'customer')) return <>{children}</>
+  return <Navigate to="/login?portal=1" replace />
+}
+
 function AppRoutes() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
-        <Route path="/tech" element={<TechnicianMobilePage />} />
-        <Route path="/portal/property" element={<PropertyPortalPage />} />
-        <Route path="/portal/customer" element={<CustomerPortalPage />} />
+        <Route path="/tech" element={<TechnicianRoute><TechnicianMobilePage /></TechnicianRoute>} />
+        <Route path="/portal/property" element={<PortalRoute><PropertyPortalPage /></PortalRoute>} />
+        <Route path="/portal/customer" element={<PortalRoute><CustomerPortalPage /></PortalRoute>} />
         <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
           <Route path="/dashboard" element={<RoleRoute module="dashboard"><DashboardPage /></RoleRoute>} />
           <Route path="/jobs" element={<RoleRoute module="jobs"><JobsPage /></RoleRoute>} />

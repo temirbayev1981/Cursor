@@ -1,16 +1,20 @@
 import { Plus } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
+import { TableSkeleton } from '@/components/shared/skeleton'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { DEMO_EXPENSES } from '@/data/mock-data'
+import { useExpenses } from '@/hooks/use-entities'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 
 export default function ExpensesPage() {
   const { t, locale } = useTranslation()
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
-  const total = DEMO_EXPENSES.reduce((s, e) => s + e.amount, 0)
+  const { data: expenses = [], isLoading } = useExpenses()
+  const total = expenses.reduce((s, e) => s + e.amount, 0)
+
+  if (isLoading) return <TableSkeleton />
 
   return (
     <div>
@@ -26,7 +30,7 @@ export default function ExpensesPage() {
       </div>
 
       <DataTable headers={[t.vehicles.date, t.expenses.category, t.expenses.descriptionCol, t.expenses.amount, t.expenses.linked]}>
-        {DEMO_EXPENSES.map((exp) => (
+        {expenses.map((exp) => (
           <DataTableRow key={exp.id}>
             <DataTableCell>{formatDate(exp.date, dateLocale)}</DataTableCell>
             <DataTableCell><Badge variant="outline">{exp.category}</Badge></DataTableCell>

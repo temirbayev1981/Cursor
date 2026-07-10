@@ -1,15 +1,19 @@
 import { Plus, AlertTriangle } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
+import { TableSkeleton } from '@/components/shared/skeleton'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { DEMO_MATERIALS } from '@/data/mock-data'
+import { useMaterials } from '@/hooks/use-entities'
 import { formatCurrencyPrecise } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 
 export default function MaterialsPage() {
   const { t } = useTranslation()
-  const lowStock = DEMO_MATERIALS.filter((m) => m.quantity <= m.reorder_level)
+  const { data: materials = [], isLoading } = useMaterials()
+  const lowStock = materials.filter((m) => m.quantity <= m.reorder_level)
+
+  if (isLoading) return <TableSkeleton />
 
   return (
     <div>
@@ -32,17 +36,17 @@ export default function MaterialsPage() {
       )}
 
       <DataTable headers={[t.materials.material, t.materials.category, t.materials.supplier, t.materials.cost, t.materials.markup, t.materials.customerPrice, t.materials.qty, t.materials.stockStatus]}>
-        {DEMO_MATERIALS.map((mat) => {
+        {materials.map((mat) => {
           const isLow = mat.quantity <= mat.reorder_level
           return (
             <DataTableRow key={mat.id}>
               <DataTableCell className="font-medium">{mat.name}</DataTableCell>
               <DataTableCell>{mat.category}</DataTableCell>
-              <DataTableCell className="text-muted-foreground">{mat.supplier}</DataTableCell>
+              <DataTableCell>{mat.supplier}</DataTableCell>
               <DataTableCell>{formatCurrencyPrecise(mat.cost)}</DataTableCell>
               <DataTableCell>{mat.markup_percent}%</DataTableCell>
               <DataTableCell className="font-medium">{formatCurrencyPrecise(mat.customer_price)}</DataTableCell>
-              <DataTableCell>{mat.quantity} {mat.unit}</DataTableCell>
+              <DataTableCell>{mat.quantity}</DataTableCell>
               <DataTableCell>
                 <Badge variant={isLow ? 'warning' : 'success'}>
                   {isLow ? t.materials.lowStock : t.materials.inStock}

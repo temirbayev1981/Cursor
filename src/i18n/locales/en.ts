@@ -7,6 +7,7 @@ export const en: TranslationKeys = {
     add: 'Add',
     new: 'New',
     save: 'Save',
+    cancel: 'Cancel',
     back: 'Back',
     next: 'Next',
     edit: 'Edit',

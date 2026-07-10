@@ -21,6 +21,7 @@ import { PriorityBadge } from '@/components/shared/status-badge'
 import { formatCurrency } from '@/lib/utils'
 import type { Job, JobStatus } from '@/types'
 import { MapPin } from 'lucide-react'
+import { JobMap } from '@/components/maps/job-map'
 
 const COLUMNS: { status: JobStatus; color: string }[] = [
   { status: 'draft', color: 'border-muted-foreground' },
@@ -105,9 +106,10 @@ export default function DispatchPage() {
           <CardTitle className="text-base flex items-center gap-2"><MapPin className="h-4 w-4" />Карта объектов</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="rounded-lg bg-secondary/30 h-48 flex items-center justify-center text-muted-foreground text-sm">
-            Google Maps API — подключите VITE_GOOGLE_MAPS_API_KEY для отображения маршрутов
-          </div>
+          <JobMap
+            addresses={jobs.filter((j) => j.status === 'scheduled' || j.status === 'in_progress').map((j) => j.title)}
+            className="h-48"
+          />
         </CardContent>
       </Card>
     </div>

@@ -1,16 +1,22 @@
-import { CreditCard, Star } from 'lucide-react'
+import { Star } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { EstimateStatusBadge } from '@/components/shared/status-badge'
-import { DEMO_ESTIMATES, DEMO_INVOICES } from '@/data/mock-data'
+import { StripePayButton } from '@/components/payments/stripe-pay-button'
+import { TableSkeleton } from '@/components/shared/skeleton'
+import { useEstimates, useInvoices } from '@/hooks/use-entities'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 
 export default function CustomerPortalPage() {
   const { t, locale } = useTranslation()
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
-  const myEstimates = DEMO_ESTIMATES.filter((e) => e.customer_id === 'cust-002')
-  const myInvoices = DEMO_INVOICES
+  const { data: estimates = [], isLoading: estLoading } = useEstimates()
+  const { data: invoices = [], isLoading: invLoading } = useInvoices()
+  const myEstimates = estimates.filter((e) => e.customer_id === 'cust-002')
+  const myInvoices = invoices.filter((i) => i.customer_id === 'cust-002' || i.customer_id === 'cust-001')
+
+  if (estLoading || invLoading) return <div className="p-6"><TableSkeleton /></div>
 
   return (
     <div className="gradient-bg min-h-screen">
@@ -55,7 +61,7 @@ export default function CustomerPortalPage() {
                   <p className="font-medium">{inv.invoice_number}</p>
                   <p className="text-lg font-bold">{formatCurrency(inv.total)}</p>
                 </div>
-                <Button><CreditCard className="h-4 w-4" />{t.invoices.payNow}</Button>
+                <StripePayButton amount={inv.total - inv.amount_paid} invoiceNumber={inv.invoice_number} />
               </CardContent>
             </Card>
           ))}

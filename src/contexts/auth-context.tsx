@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
-import type { Profile, Company, UserRole } from '@/types'
+import type { Profile, Company, UserRole, OnboardingData } from '@/types'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
 import { DEMO_COMPANY } from '@/data/mock-data'
+import { getStoredCompany, persistOnboarding } from '@/services/onboarding-service'
 
 interface AuthContextType {
   user: Profile | null
@@ -11,7 +12,7 @@ interface AuthContextType {
   onboardingComplete: boolean
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
-  completeOnboarding: () => void
+  completeOnboarding: (data?: OnboardingData) => Promise<void>
   hasRole: (...roles: UserRole[]) => boolean
 }
 
@@ -40,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const stored = localStorage.getItem('handymanos_auth')
       if (stored === 'true') {
         setUser(DEMO_USER)
-        setCompany(DEMO_COMPANY)
+        setCompany(getStoredCompany() ?? DEMO_COMPANY)
       }
       setIsLoading(false)
       return
@@ -85,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (DEMO_MODE) {
       localStorage.setItem('handymanos_auth', 'true')
       setUser({ ...DEMO_USER, email })
-      setCompany(DEMO_COMPANY)
+      setCompany(getStoredCompany() ?? DEMO_COMPANY)
       return
     }
 
@@ -102,8 +103,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setCompany(null)
   }
 
-  const completeOnboarding = () => {
-    localStorage.setItem('handymanos_onboarding', 'complete')
+  const completeOnboarding = async (data?: OnboardingData) => {
+    if (data && user) {
+      const company = await persistOnboarding(data, user.company_id, user.id)
+      setCompany(company)
+    } else {
+      localStorage.setItem('handymanos_onboarding', 'complete')
+    }
     setOnboardingComplete(true)
   }
 

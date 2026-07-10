@@ -16,15 +16,19 @@ import {
   REVENUE_CHART_DATA,
   SERVICE_PROFITABILITY,
   TECHNICIAN_PERFORMANCE,
-  DEMO_JOBS,
-  DEMO_CUSTOMERS,
 } from '@/data/mock-data'
+import { useJobs, useCustomers } from '@/hooks/use-entities'
+import { TableSkeleton } from '@/components/shared/skeleton'
 import { formatCurrency } from '@/lib/utils'
 import { ProfitIndicator } from '@/components/shared/status-badge'
 import { useTranslation } from '@/contexts/locale-context'
 
 export default function ReportsPage() {
   const { t } = useTranslation()
+  const { data: jobs = [], isLoading: jobsLoading } = useJobs()
+  const { data: customers = [], isLoading: custLoading } = useCustomers()
+
+  if (jobsLoading || custLoading) return <TableSkeleton rows={6} cols={4} />
 
   return (
     <div>
@@ -68,8 +72,8 @@ export default function ReportsPage() {
 
         <TabsContent value="profit">
           <div className="space-y-3">
-            {DEMO_JOBS.filter((j) => j.status === 'completed').map((job) => {
-              const customer = DEMO_CUSTOMERS.find((c) => c.id === job.customer_id)
+            {jobs.filter((j) => j.status === 'completed').map((job) => {
+              const customer = customers.find((c) => c.id === job.customer_id)
               const totalCost = job.labor_cost + job.material_cost + job.fuel_cost + job.overhead_cost
               return (
                 <Card key={job.id}>
@@ -120,7 +124,7 @@ export default function ReportsPage() {
 
         <TabsContent value="customers">
           <div className="space-y-3">
-            {DEMO_CUSTOMERS.map((c) => (
+            {customers.map((c) => (
               <Card key={c.id}>
                 <CardContent className="p-4 flex justify-between items-center">
                   <div>

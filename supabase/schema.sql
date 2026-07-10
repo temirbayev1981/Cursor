@@ -444,6 +444,30 @@ CREATE POLICY "Company members can manage schedule" ON schedule_events
 CREATE POLICY "Company members can view audit logs" ON audit_logs
   FOR SELECT USING (company_id = get_user_company_id());
 
+CREATE POLICY "Company members can manage payments" ON payments
+  FOR ALL USING (company_id = get_user_company_id());
+
+CREATE POLICY "Company members can manage inventory" ON inventory
+  FOR ALL USING (company_id = get_user_company_id());
+
+CREATE POLICY "Company members can manage fuel logs" ON fuel_logs
+  FOR ALL USING (vehicle_id IN (SELECT id FROM vehicles WHERE company_id = get_user_company_id()));
+
+CREATE POLICY "Company members can manage documents" ON documents
+  FOR ALL USING (company_id = get_user_company_id());
+
+CREATE POLICY "Company members can manage photos" ON photos
+  FOR ALL USING (company_id = get_user_company_id());
+
+CREATE POLICY "Company members can manage ai results" ON ai_results
+  FOR ALL USING (company_id = get_user_company_id());
+
+CREATE POLICY "Company members can manage notifications" ON notifications
+  FOR ALL USING (company_id = get_user_company_id());
+
+CREATE POLICY "Company members can view service catalog" ON service_catalog
+  FOR ALL USING (company_id = get_user_company_id());
+
 -- Updated_at trigger
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$

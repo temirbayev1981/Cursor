@@ -5,6 +5,7 @@ export const ru = {
     add: 'Добавить',
     new: 'Новый',
     save: 'Сохранить',
+    cancel: 'Отмена',
     back: 'Назад',
     next: 'Далее',
     edit: 'Редактировать',

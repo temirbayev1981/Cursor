@@ -4,15 +4,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
-import { DEMO_VEHICLES, DEMO_FUEL_LOGS } from '@/data/mock-data'
+import { TableSkeleton } from '@/components/shared/skeleton'
+import { DEMO_FUEL_LOGS } from '@/data/mock-data'
+import { useVehicles } from '@/hooks/use-entities'
 import { formatCurrencyPrecise, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 
 export default function VehiclesPage() {
   const { t, locale } = useTranslation()
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
+  const { data: vehicles = [], isLoading } = useVehicles()
   const totalFuelCost = DEMO_FUEL_LOGS.reduce((s, l) => s + l.total_cost, 0)
   const totalMiles = DEMO_FUEL_LOGS.reduce((s, l) => s + l.miles, 0)
+
+  if (isLoading) return <TableSkeleton />
 
   return (
     <div>
@@ -47,7 +52,7 @@ export default function VehiclesPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        {DEMO_VEHICLES.map((vehicle) => (
+        {vehicles.map((vehicle) => (
           <Card key={vehicle.id}>
             <CardContent className="p-5">
               <div className="flex items-center justify-between mb-3">
@@ -69,7 +74,7 @@ export default function VehiclesPage() {
         <CardContent className="p-0">
           <DataTable headers={[t.vehicles.date, t.vehicles.vehicle, t.vehicles.miles, t.vehicles.gallons, t.vehicles.pricePerGal, t.vehicles.total]}>
             {DEMO_FUEL_LOGS.map((log) => {
-              const vehicle = DEMO_VEHICLES.find((v) => v.id === log.vehicle_id)
+              const vehicle = vehicles.find((v) => v.id === log.vehicle_id)
               return (
                 <DataTableRow key={log.id}>
                   <DataTableCell>{formatDate(log.date, dateLocale)}</DataTableCell>

@@ -5,20 +5,25 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { DEMO_SCHEDULE, DEMO_EMPLOYEES } from '@/data/mock-data'
+import { TableSkeleton } from '@/components/shared/skeleton'
+import { useSchedules, useEmployees } from '@/hooks/use-entities'
 import { addDays, format, startOfWeek, isSameDay } from 'date-fns'
 import { useTranslation } from '@/contexts/locale-context'
 
 export default function SchedulingPage() {
   const { t } = useTranslation()
   const [view, setView] = useState<'day' | 'week' | 'month'>('week')
-  const [currentDate, setCurrentDate] = useState(new Date('2026-07-10'))
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const { data: schedule = [], isLoading: schedLoading } = useSchedules()
+  const { data: employees = [], isLoading: empLoading } = useEmployees()
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 })
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
   const getEventsForDay = (day: Date) =>
-    DEMO_SCHEDULE.filter((e) => isSameDay(new Date(e.start_time), day))
+    schedule.filter((e) => isSameDay(new Date(e.start_time), day))
+
+  if (schedLoading || empLoading) return <TableSkeleton rows={4} cols={7} />
 
   return (
     <div>
@@ -55,7 +60,7 @@ export default function SchedulingPage() {
           <div className="grid grid-cols-7 gap-2">
             {weekDays.map((day) => {
               const events = getEventsForDay(day)
-              const isToday = isSameDay(day, new Date('2026-07-10'))
+              const isToday = isSameDay(day, new Date())
               return (
                 <Card key={day.toISOString()} className={isToday ? 'border-primary/50' : ''}>
                   <CardContent className="p-3">
@@ -65,7 +70,7 @@ export default function SchedulingPage() {
                     </div>
                     <div className="space-y-2">
                       {events.map((event) => {
-                        const tech = DEMO_EMPLOYEES.find((e) => e.id === event.technician_id)
+                        const tech = employees.find((e) => e.id === event.technician_id)
                         return (
                           <div key={event.id} className="rounded-lg bg-primary/10 p-2 text-xs cursor-grab">
                             <p className="font-medium truncate">{event.title}</p>
@@ -92,7 +97,7 @@ export default function SchedulingPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">{t.scheduling.routeSaved}</p>
-              {DEMO_SCHEDULE.slice(0, 3).map((event, i) => (
+              {schedule.slice(0, 3).map((event, i) => (
                 <div key={event.id} className="flex items-start gap-3 text-sm">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">{i + 1}</span>
                   <div>
@@ -112,7 +117,7 @@ export default function SchedulingPage() {
               <CardTitle className="text-base">{t.scheduling.availability}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {DEMO_EMPLOYEES.filter((e) => e.billing_rate > 0).map((tech) => (
+              {employees.filter((e) => e.billing_rate > 0).map((tech) => (
                 <div key={tech.id} className="flex items-center justify-between text-sm">
                   <span>{tech.name}</span>
                   <Badge variant="success">{t.scheduling.available}</Badge>

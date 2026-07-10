@@ -29,6 +29,7 @@ import { getInitials } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { LanguageSwitcher } from '@/components/shared/language-switcher'
 import { canAccess } from '@/lib/permissions'
+import { DEMO_MODE } from '@/lib/supabase'
 
 const navItems = [
   { key: 'dashboard' as const, href: '/dashboard', icon: LayoutDashboard },
@@ -59,6 +60,11 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { user, company, signOut } = useAuth()
   const { t } = useTranslation()
 
+  const visibleNav = navItems.filter((item) => {
+    const module = item.key === 'dispatch' ? 'dispatch' : item.href.replace('/', '')
+    return !user || canAccess(user.role, module)
+  })
+
   return (
     <motion.aside
       initial={false}
@@ -87,7 +93,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       <nav className="flex-1 overflow-y-auto scrollbar-thin py-4 px-2">
         <ul className="space-y-1">
-          {navItems.map((item) => {
+          {visibleNav.map((item) => {
             const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/')
             const name = 'label' in item && item.label ? item.label : t.nav[item.key as keyof typeof t.nav]
             return (
