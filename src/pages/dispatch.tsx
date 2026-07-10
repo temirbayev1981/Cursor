@@ -6,6 +6,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  useDroppable,
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core'
@@ -90,6 +91,50 @@ function JobCard({
   )
 }
 
+function DispatchColumn({
+  col,
+  colJobs,
+  statusLabels,
+  onStatusChange,
+}: {
+  col: (typeof COLUMNS)[number]
+  colJobs: Job[]
+  statusLabels: Record<JobStatus, string>
+  onStatusChange: (job: Job, status: JobStatus) => void
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: col.status })
+
+  return (
+    <Card className={`border-t-2 ${col.color}`}>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center justify-between">
+          <span>{statusLabels[col.status]}</span>
+          <Badge variant="outline">{colJobs.length}</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <SortableContext items={colJobs.map((j) => j.id)} strategy={verticalListSortingStrategy}>
+          <div
+            ref={setNodeRef}
+            className={`space-y-2 min-h-[200px] ${isOver ? 'ring-2 ring-primary/40 rounded-lg' : ''}`}
+            id={col.status}
+            data-testid={`dispatch-column-${col.status}`}
+          >
+            {colJobs.map((job) => (
+              <JobCard
+                key={job.id}
+                job={job}
+                statusLabels={statusLabels}
+                onStatusChange={onStatusChange}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function DispatchPage() {
   const { t } = useTranslation()
   const { user, company } = useAuth()
@@ -154,8 +199,17 @@ export default function DispatchPage() {
   const handleDragEnd = async (e: DragEndEvent) => {
     setActiveId(null)
     const jobId = String(e.active.id)
-    const newStatus = e.over?.id as JobStatus | undefined
+    const overId = e.over?.id
+    if (!overId) return
+
+    let newStatus: JobStatus | undefined
+    if (BOARD_STATUSES.includes(overId as JobStatus)) {
+      newStatus = overId as JobStatus
+    } else {
+      newStatus = jobs.find((j) => j.id === overId)?.status
+    }
     if (!newStatus) return
+
     const job = jobs.find((j) => j.id === jobId)
     if (job) await handleJobStatusChange(job, newStatus)
   }
@@ -173,28 +227,13 @@ export default function DispatchPage() {
           {COLUMNS.map((col) => {
             const colJobs = jobs.filter((j) => j.status === col.status)
             return (
-              <Card key={col.status} className={`border-t-2 ${col.color}`}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center justify-between">
-                    <span>{statusLabels[col.status]}</span>
-                    <Badge variant="outline">{colJobs.length}</Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <SortableContext items={colJobs.map((j) => j.id)} strategy={verticalListSortingStrategy} id={col.status}>
-                    <div className="space-y-2 min-h-[200px]" id={col.status}>
-                      {colJobs.map((job) => (
-                        <JobCard
-                          key={job.id}
-                          job={job}
-                          statusLabels={statusLabels}
-                          onStatusChange={(j, status) => void handleJobStatusChange(j, status)}
-                        />
-                      ))}
-                    </div>
-                  </SortableContext>
-                </CardContent>
-              </Card>
+              <DispatchColumn
+                key={col.status}
+                col={col}
+                colJobs={colJobs}
+                statusLabels={statusLabels}
+                onStatusChange={(j, status) => void handleJobStatusChange(j, status)}
+              />
             )
           })}
         </div>

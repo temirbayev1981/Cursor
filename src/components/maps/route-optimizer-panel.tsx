@@ -26,7 +26,7 @@ export function RouteOptimizerPanel({
 
   if (jobCount === 0) {
     return (
-      <Card>
+      <Card data-testid="route-optimizer-panel">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Navigation className="h-4 w-4" />
@@ -50,7 +50,7 @@ export function RouteOptimizerPanel({
     : t.scheduling.routeTotal.replace('{totalMiles}', totalMiles.toFixed(1))
 
   return (
-    <Card>
+    <Card data-testid="route-optimizer-panel">
       <CardHeader>
         <CardTitle className="text-base flex items-center justify-between gap-2">
           <span className="flex items-center gap-2">

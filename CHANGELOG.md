@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.4.4] — 2026-07-10
+
+Dispatch drag-and-drop, AI chat input, and reports PDF E2E.
+
+### Phase 52 — Dispatch, AI chat & PDF export E2E
+- E2E: dispatch kanban drag-and-drop status change (`dispatch-ai-pdf.spec.ts`)
+- E2E: route optimizer panel + Google Maps link
+- E2E: AI assistant custom input and suggested questions
+- E2E: reports PDF export preview popup
+- `data-testid` on dispatch columns, route panel, AI chat controls
+- Dispatch kanban columns use `useDroppable` for cross-column drag-and-drop
+
 ## [1.4.3] — 2026-07-10
 
 Technicians, theme toggle, and reports export E2E.

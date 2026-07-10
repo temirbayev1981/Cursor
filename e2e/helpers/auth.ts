@@ -86,6 +86,40 @@ export async function seedInProgressTechJob(page: Page, technicianId = 'emp-001'
   await page.reload()
 }
 
+/** Seeds a scheduled job with property for route optimizer E2E. */
+export async function seedScheduledRouteJob(page: Page) {
+  await page.evaluate(() => {
+    const jobs = JSON.parse(localStorage.getItem('handymanos_jobs') || '[]') as Array<Record<string, unknown>>
+    const job = {
+      id: 'job-e2e-scheduled-route',
+      company_id: 'comp-001',
+      customer_id: 'cust-001',
+      property_id: 'prop-001',
+      title: 'E2E Scheduled Route Job',
+      description: 'Route optimizer E2E test job',
+      status: 'scheduled',
+      priority: 'medium',
+      scheduled_date: new Date().toISOString(),
+      assigned_technician_id: 'emp-002',
+      estimated_hours: 2,
+      actual_hours: 0,
+      revenue: 250,
+      labor_cost: 0,
+      material_cost: 0,
+      fuel_cost: 0,
+      overhead_cost: 0,
+      profit: 0,
+      profit_margin: 0,
+      created_at: new Date().toISOString(),
+    }
+    const idx = jobs.findIndex((j) => j.id === 'job-e2e-scheduled-route')
+    if (idx >= 0) jobs[idx] = job
+    else jobs.push(job)
+    localStorage.setItem('handymanos_jobs', JSON.stringify(jobs))
+  })
+  await page.reload()
+}
+
 export async function clearOfflineQueue(page: Page) {
   await page.evaluate(() => localStorage.removeItem('handymanos_offline_queue'))
 }
