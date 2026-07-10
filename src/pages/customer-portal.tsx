@@ -86,7 +86,7 @@ export default function CustomerPortalPage() {
       <div className="safe-top safe-bottom mx-auto max-w-3xl p-4 sm:p-6">
         <div className="mb-6 flex items-start justify-between gap-3 sm:mb-8">
           <div className="min-w-0 text-center sm:text-left">
-            <h1 className="text-xl font-bold sm:text-2xl">{t.customerPortal.title}</h1>
+            <h1 className="text-xl font-bold sm:text-2xl" data-testid="customer-portal-title">{t.customerPortal.title}</h1>
             <p className="text-sm text-muted-foreground sm:text-base">{portal.customerName}</p>
           </div>
           <Button variant="ghost" size="sm" onClick={handleLogout} className="shrink-0">
@@ -95,7 +95,7 @@ export default function CustomerPortalPage() {
           </Button>
         </div>
 
-        <h2 className="mb-3 text-base font-semibold sm:mb-4 sm:text-lg">{t.customerPortal.yourEstimates}</h2>
+        <h2 className="mb-3 text-base font-semibold sm:mb-4 sm:text-lg" data-testid="customer-portal-estimates-heading">{t.customerPortal.yourEstimates}</h2>
         <div className="mb-6 space-y-3 sm:mb-8">
           {myEstimates.length === 0 ? (
             <Card><CardContent className="p-6 text-center text-muted-foreground">{t.customerPortal.noEstimates}</CardContent></Card>

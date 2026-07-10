@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.5.7] — 2026-07-10
+
+Cancelled jobs tab, report services/customers PDF i18n, customer portal EN.
+
+### Phase 63 — Cancelled tab, report PDF tabs & portal EN
+- Jobs page «Отменённые» / «Cancelled» filter tab with `jobs-tab-cancelled`
+- Reports services/customers tab testids for PDF export E2E
+- Customer portal title/estimates heading testids
+- E2E: customer portal EN, services/customers PDF i18n, cancelled tab filter
+
 ## [1.5.6] — 2026-07-10
 
 Property portal EN, report technicians PDF tab, jobs bulk cancel.

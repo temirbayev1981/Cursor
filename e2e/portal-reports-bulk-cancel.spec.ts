@@ -70,9 +70,84 @@ test.describe('Jobs bulk cancel', () => {
     await page.getByTestId('jobs-bulk-cancel').click()
 
     await expect(page.getByText(/отменено заказов:\s*2|cancelled 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
-    await page.getByRole('tab', { name: /все|all/i }).click()
+    await page.getByTestId('jobs-tab-cancelled').click()
     await expect(page.getByText('E2E Bulk Draft A').first()).toBeVisible()
     await expect(page.getByText('E2E Bulk Draft B').first()).toBeVisible()
-    await expect(page.getByText(/отменён|cancelled/i).first()).toBeVisible()
+  })
+})
+
+test.describe('Customer portal English', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      sessionStorage.setItem('handymanos_portal_token', 'demo')
+      localStorage.setItem('handymanos_locale', 'en')
+    })
+  })
+
+  test('customer portal shows English title and estimates section', async ({ page }) => {
+    await page.goto('/portal/customer')
+    await expect(page.getByTestId('customer-portal-title')).toHaveText('Customer Portal')
+    await expect(page.getByTestId('customer-portal-estimates-heading')).toHaveText('Your Estimates')
+    await expect(page.getByText(/Bathroom Fixture/i).first()).toBeVisible()
+  })
+})
+
+test.describe('Report PDF services tab', () => {
+  test('Russian locale exports service profitability labels', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await page.goto('/reports')
+    await page.getByTestId('reports-tab-services').click()
+
+    const popupPromise = page.waitForEvent('popup')
+    await page.getByTestId('reports-export-pdf').click()
+    const popup = await popupPromise
+
+    await expect(popup.locator('body')).toContainText(/Прибыльность услуг/i)
+    await expect(popup.locator('body')).toContainText(/Услуга/i)
+    await popup.close()
+  })
+
+  test('English locale exports service profitability labels', async ({ page }) => {
+    await loginAsOwner(page, 'en')
+    await page.goto('/reports')
+    await page.getByTestId('reports-tab-services').click()
+
+    const popupPromise = page.waitForEvent('popup')
+    await page.getByTestId('reports-export-pdf').click()
+    const popup = await popupPromise
+
+    await expect(popup.locator('body')).toContainText(/Service Profitability/i)
+    await expect(popup.locator('body')).toContainText(/Service/i)
+    await popup.close()
+  })
+})
+
+test.describe('Report PDF customers tab', () => {
+  test('Russian locale exports customer table labels', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await page.goto('/reports')
+    await page.getByTestId('reports-tab-customers').click()
+
+    const popupPromise = page.waitForEvent('popup')
+    await page.getByTestId('reports-export-pdf').click()
+    const popup = await popupPromise
+
+    await expect(popup.locator('body')).toContainText(/Клиенты/i)
+    await expect(popup.locator('body')).toContainText(/ABC Property Management/i)
+    await popup.close()
+  })
+
+  test('English locale exports customer table labels', async ({ page }) => {
+    await loginAsOwner(page, 'en')
+    await page.goto('/reports')
+    await page.getByTestId('reports-tab-customers').click()
+
+    const popupPromise = page.waitForEvent('popup')
+    await page.getByTestId('reports-export-pdf').click()
+    const popup = await popupPromise
+
+    await expect(popup.locator('body')).toContainText(/Customers/i)
+    await expect(popup.locator('body')).toContainText(/ABC Property Management/i)
+    await popup.close()
   })
 })
