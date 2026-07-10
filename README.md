@@ -54,7 +54,7 @@ npm run test:e2e
 
 Open [http://localhost:5173](http://localhost:5173) after configuring Supabase (see below).
 
-**Current version:** 1.7.0 — see [RELEASE.md](./RELEASE.md) and [CHANGELOG.md](./CHANGELOG.md).
+**Current version:** 1.7.4 — see [RELEASE.md](./RELEASE.md) and [CHANGELOG.md](./CHANGELOG.md).
 
 Copy `.env.example` to `.env.local` and set **Supabase** credentials (required). Add Stripe, maps, and notification webhooks for full production features.
 
@@ -106,19 +106,22 @@ supabase/
 | `/portal/property` | Property manager portal |
 | `/portal/customer` | Customer portal |
 
-See [CHANGELOG.md](./CHANGELOG.md) for release history.
+See [CHANGELOG.md](./CHANGELOG.md) for release history. To merge the 1.7.x PR stack, see [MERGE.md](./MERGE.md).
 
 ## Production readiness
 
 | Check | Command / location |
 |-------|-------------------|
 | Release gate | `npm run verify:release` |
-| E2E smoke tests | `npm run test:e2e` |
+| Production readiness | `npm run verify:production` |
+| E2E tests | `npm run test:e2e` (138 tests) |
+| Live Supabase smoke | `npm run smoke:supabase` (optional) |
 | Platform audit | Settings → System (score ≥ 8.5 with live integrations) |
 | Deploy guide | [DEPLOYMENT.md](./DEPLOYMENT.md) |
 | Release checklist | [RELEASE.md](./RELEASE.md) |
+| Merge stacked PRs | [MERGE.md](./MERGE.md) |
 
-Current version: **1.7.0**
+Current version: **1.7.4**
 
 ## Security
 

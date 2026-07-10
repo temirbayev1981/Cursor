@@ -14,6 +14,12 @@ Audit P4: localized audit log, release sync.
 - RELEASE.md consolidated for 1.7.x stack
 - E2E: localized audit log entry after team invite
 
+### Phase 74 — Release docs consolidation
+- README/DEPLOYMENT updated for 1.7.4 (138 E2E, production-only)
+- MERGE.md: step-by-step guide for stacked PRs #63–#68
+- `smoke:supabase`: validates portal and multi-tenant RPCs
+- `verify:production`: README version sync + MERGE.md required
+
 ## [1.7.3] — 2026-07-10
 
 E2E stabilization: mock backend fixes, locale switching, portal pay.

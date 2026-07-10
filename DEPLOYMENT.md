@@ -35,6 +35,23 @@ Re-run the full `supabase/schema.sql` in the SQL Editor. New objects include:
 
 Then redeploy all Edge Functions (see section 2).
 
+### Upgrading to 1.7.x (production-only)
+
+1.7.0 removes demo/offline mode — **Supabase is required** (`VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY`).
+Re-run `supabase/schema.sql` if upgrading from 1.6.x (portal RPCs, `team_invites`, `customer_reviews` unchanged but verify objects exist).
+
+After deploy:
+
+```bash
+npm run verify:production
+npm run test:e2e   # 138 tests across 30 spec files
+npm run smoke:supabase   # optional, needs live Supabase env
+```
+
+**1.7.x highlights:** portal RPC-only security, localized platform audit & audit log (Settings → System), 138/138 E2E with mock backend, manual invoice pay when Stripe key is unset.
+
+Merge stacked PRs in order — see [MERGE.md](./MERGE.md).
+
 ### Upgrading from 1.2.0 → 1.2.2
 
 No schema changes required. Frontend-only release (i18n, AI fallbacks, invite sign-in fix). Run:
@@ -262,7 +279,7 @@ Set all `VITE_*` env vars in your hosting provider.
 npm run test:e2e
 ```
 
-Playwright builds the app, runs **120 tests** across 30 spec files against `http://127.0.0.1:4173`.
+Playwright builds the app, runs **138 tests** across 30 spec files against `http://127.0.0.1:4173` (in-memory Supabase mock).
 
 ### Optional: live Supabase smoke
 
@@ -272,6 +289,8 @@ When `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are configured as GitHub s
 npm run smoke:supabase
 # or: Actions → Supabase smoke → Run workflow
 ```
+
+Validates REST connectivity, `validate_portal_token` RPC, and `get_accessible_companies` RPC (re-apply `schema.sql` if RPC checks fail).
 
 ---
 

@@ -49,6 +49,8 @@ git push origin main
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for secrets, Edge Functions, and schema setup.
 
+See [MERGE.md](./MERGE.md) for merging the stacked PR chain into `main`.
+
 ## Merge chain
 
 `#63` (1.7.0) → `#64` (1.7.1) → `#65` (1.7.2) → `#66` (1.7.3) → **#67** (1.7.4)

@@ -17,6 +17,7 @@ const requiredFiles = [
   'supabase/schema.sql',
   'RELEASE.md',
   'DEPLOYMENT.md',
+  'MERGE.md',
   '.github/workflows/deploy.yml',
   '.github/workflows/ci.yml',
   '.github/workflows/supabase-smoke.yml',
@@ -100,7 +101,7 @@ for (const token of schemaChecks) {
 }
 
 const deployment = readFileSync('DEPLOYMENT.md', 'utf8')
-const deploymentChecks = ['verify:production', 'npm run test:e2e', 'team_invites', 'openai-proxy']
+const deploymentChecks = ['verify:production', 'npm run test:e2e', 'team_invites', 'openai-proxy', 'MERGE.md']
 console.log('\nDEPLOYMENT.md:')
 for (const token of deploymentChecks) {
   if (deployment.includes(token)) {
@@ -116,6 +117,14 @@ if (deployWorkflow.includes(`VITE_APP_VERSION: ${pkg.version}`)) {
   console.log(`✓ deploy.yml VITE_APP_VERSION matches package.json (${pkg.version})`)
 } else {
   console.log(`✗ deploy.yml VITE_APP_VERSION must match package.json (${pkg.version})`)
+  ok = false
+}
+
+const readme = readFileSync('README.md', 'utf8')
+if (readme.includes(`**${pkg.version}**`) || readme.includes(`version:** ${pkg.version}`)) {
+  console.log(`✓ README.md mentions package version (${pkg.version})`)
+} else {
+  console.log(`✗ README.md must mention current version (${pkg.version})`)
   ok = false
 }
 
