@@ -3,6 +3,8 @@ import {
   sendNotification,
   notifyJobScheduled,
   notifyCustomerEta,
+  notifyEstimateSent,
+  notifyInvoiceSent,
   notifyTechnicianSms,
   notifyResultMessage,
   getNotificationQueue,
@@ -129,7 +131,7 @@ describe('notification-service', () => {
   it('notifyJobScheduled skips email when customer disabled email prefs', async () => {
     saveCustomerNotificationPreferences('cust-no-email', { email: false, sms: false })
     const result = await notifyJobScheduled('cust@example.com', 'Fix', 'Jul 10', 'cust-no-email')
-    expect(result).toEqual({ ok: true, queued: false })
+    expect(result).toEqual({ ok: true, queued: false, skipped: true })
     expect(getNotificationQueueSize()).toBe(0)
     localStorage.removeItem('handymanos_customer_notify_prefs_cust-no-email')
   })
@@ -139,5 +141,21 @@ describe('notification-service', () => {
     expect(result.ok).toBe(true)
     const [item] = getNotificationQueue()
     expect(item.subject).toContain('en route')
+  })
+
+  it('notifyEstimateSent skips email when customer disabled email prefs', async () => {
+    saveCustomerNotificationPreferences('cust-no-email', { email: false, sms: false })
+    const result = await notifyEstimateSent('cust@example.com', 'Estimate', 100, 'cust-no-email')
+    expect(result).toEqual({ ok: true, queued: false, skipped: true })
+    expect(getNotificationQueueSize()).toBe(0)
+    localStorage.removeItem('handymanos_customer_notify_prefs_cust-no-email')
+  })
+
+  it('notifyInvoiceSent skips email when customer disabled email prefs', async () => {
+    saveCustomerNotificationPreferences('cust-no-email', { email: false, sms: false })
+    const result = await notifyInvoiceSent('cust@example.com', 'INV-1', 50, 'cust-no-email')
+    expect(result).toEqual({ ok: true, queued: false, skipped: true })
+    expect(getNotificationQueueSize()).toBe(0)
+    localStorage.removeItem('handymanos_customer_notify_prefs_cust-no-email')
   })
 })

@@ -65,13 +65,17 @@ export default function EstimatesPage() {
   const handleSend = async (est: Estimate) => {
     const customer = customers.find((c) => c.id === est.customer_id)
     if (!customer?.email) return
-    await notifyEstimateSent(customer.email, est.title, est.total)
+    const result = await notifyEstimateSent(customer.email, est.title, est.total, customer.id, customer)
     saveEstimate.mutate(
       { ...est, status: 'sent' },
       {
         onSuccess: () => {
           if (user) void logAudit(companyId, user.id, 'estimate.sent', 'estimate', est.id)
-          toast.success(t.estimates.estimateSent.replace('{email}', customer.email))
+          if (result.skipped) {
+            toast.info(t.estimates.estimateSentSkipped.replace('{email}', customer.email))
+          } else {
+            toast.success(t.estimates.estimateSent.replace('{email}', customer.email))
+          }
         },
       },
     )

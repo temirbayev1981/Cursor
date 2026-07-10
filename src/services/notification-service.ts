@@ -65,6 +65,7 @@ export interface QueuedNotification extends NotificationPayload {
 export interface NotificationResult {
   ok: boolean
   queued: boolean
+  skipped?: boolean
 }
 
 const QUEUE_KEY = 'handymanos_notification_queue'
@@ -161,7 +162,7 @@ export async function notifyJobScheduled(
   customer?: Pick<Customer, 'notification_preferences'>,
 ) {
   if (customerId && !customerAllowsNotification(customerId, 'email', customer)) {
-    return { ok: true, queued: false }
+    return { ok: true, queued: false, skipped: true }
   }
   const tpl = notifyTemplates()
   return sendNotification({
@@ -181,7 +182,7 @@ export async function notifyCustomerEta(
   customer?: Pick<Customer, 'notification_preferences'>,
 ) {
   if (customerId && !customerAllowsNotification(customerId, 'email', customer)) {
-    return { ok: true, queued: false }
+    return { ok: true, queued: false, skipped: true }
   }
   const tpl = notifyTemplates()
   return sendNotification({
@@ -193,7 +194,16 @@ export async function notifyCustomerEta(
   })
 }
 
-export async function notifyInvoiceSent(customerEmail: string, invoiceNumber: string, amount: number) {
+export async function notifyInvoiceSent(
+  customerEmail: string,
+  invoiceNumber: string,
+  amount: number,
+  customerId?: string,
+  customer?: Pick<Customer, 'notification_preferences'>,
+) {
+  if (customerId && !customerAllowsNotification(customerId, 'email', customer)) {
+    return { ok: true, queued: false, skipped: true }
+  }
   const tpl = notifyTemplates()
   return sendNotification({
     to: customerEmail,
@@ -204,7 +214,16 @@ export async function notifyInvoiceSent(customerEmail: string, invoiceNumber: st
   })
 }
 
-export async function notifyEstimateSent(customerEmail: string, title: string, total: number) {
+export async function notifyEstimateSent(
+  customerEmail: string,
+  title: string,
+  total: number,
+  customerId?: string,
+  customer?: Pick<Customer, 'notification_preferences'>,
+) {
+  if (customerId && !customerAllowsNotification(customerId, 'email', customer)) {
+    return { ok: true, queued: false, skipped: true }
+  }
   const tpl = notifyTemplates()
   return sendNotification({
     to: customerEmail,

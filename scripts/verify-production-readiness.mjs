@@ -259,7 +259,28 @@ if (portalDataService.includes('portalUpdateNotificationPreferences')) {
   ok = false
 }
 
+if (auditLabels.includes('NOTIFICATION_OPT_OUT_AUDIT = true')) {
+  console.log('✓ NOTIFICATION_OPT_OUT_AUDIT gate enabled')
+} else {
+  console.log('✗ NOTIFICATION_OPT_OUT_AUDIT must be true')
+  ok = false
+}
+
 const notificationService = readFileSync('src/services/notification-service.ts', 'utf8')
+if (notificationService.includes('customerAllowsNotification') && notificationService.includes('notifyEstimateSent')) {
+  const estimateOptOut = notificationService.includes('notifyEstimateSent(')
+    && notificationService.split('notifyEstimateSent')[1]?.includes('customerAllowsNotification')
+  if (estimateOptOut) {
+    console.log('✓ notification-service applies opt-out to estimate and invoice sends')
+  } else {
+    console.log('✗ notification-service must apply opt-out to estimate sends')
+    ok = false
+  }
+} else {
+  console.log('✗ notification-service must apply customer opt-out')
+  ok = false
+}
+
 if (notificationService.includes('getNotificationQueueFiltered') && notificationService.includes('retryFailedNotifications')) {
   console.log('✓ notification-service exposes hub filter and retry')
 } else {

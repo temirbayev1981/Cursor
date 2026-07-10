@@ -79,8 +79,14 @@ export default function InvoicesPage() {
   const handleSend = (invoice: Invoice) => {
     const customer = customers.find((c) => c.id === invoice.customer_id)
     if (!customer?.email) return
-    sendInvoice.mutate({ invoice, email: customer.email }, {
-      onSuccess: () => toast.success(t.invoices.invoiceSent.replace('{email}', customer.email)),
+    sendInvoice.mutate({ invoice, email: customer.email, customer }, {
+      onSuccess: ({ notification }) => {
+        if (notification.skipped) {
+          toast.info(t.invoices.invoiceSentSkipped.replace('{email}', customer.email))
+        } else {
+          toast.success(t.invoices.invoiceSent.replace('{email}', customer.email))
+        }
+      },
     })
   }
 

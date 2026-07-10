@@ -71,6 +71,7 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('platform-audit-check-integration_probe_history_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-notification_hub_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-portal_notification_prefs_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-notification_opt_out_audit')).toBeVisible()
     await expect(page.getByTestId('notification-hub')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history-entry-0')).toBeVisible()
@@ -99,6 +100,43 @@ test.describe('Settings billing & team', () => {
     await page.goto('/settings')
     await page.getByRole('tab', { name: /system|система/i }).click()
     await expect(page.getByTestId('integration-probe-history-supabase-1')).toHaveText(/недоступн|unreachable/i)
+  })
+
+  test('notification hub filters queued email and sms', async ({ page }) => {
+    await page.evaluate(() => {
+      const items = [
+        {
+          id: 'hub-e2e-email',
+          to: 'email@test.com',
+          subject: 'Email test',
+          body: 'Body',
+          channel: 'email',
+          status: 'queued',
+          attempts: 0,
+          created_at: new Date().toISOString(),
+        },
+        {
+          id: 'hub-e2e-sms',
+          to: '+15551234567',
+          body: 'SMS test',
+          channel: 'sms',
+          status: 'queued',
+          attempts: 0,
+          created_at: new Date().toISOString(),
+        },
+      ]
+      localStorage.setItem('handymanos_notification_queue', JSON.stringify(items))
+    })
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /system|система/i }).click()
+    await expect(page.getByTestId('notification-hub-item-hub-e2e-email')).toBeVisible()
+    await expect(page.getByTestId('notification-hub-item-hub-e2e-sms')).toBeVisible()
+    await page.getByTestId('notification-hub-filter-email').click()
+    await expect(page.getByTestId('notification-hub-item-hub-e2e-email')).toBeVisible()
+    await expect(page.getByTestId('notification-hub-item-hub-e2e-sms')).not.toBeVisible()
+    await page.getByTestId('notification-hub-filter-sms').click()
+    await expect(page.getByTestId('notification-hub-item-hub-e2e-sms')).toBeVisible()
+    await expect(page.getByTestId('notification-hub-item-hub-e2e-email')).not.toBeVisible()
   })
 })
 

@@ -307,6 +307,7 @@ export const ru = {
     total: 'Итого',
     validUntil: 'Действует до',
     estimateSent: 'Смета отправлена: {email}',
+    estimateSentSkipped: 'Смета отмечена отправленной (email отключён: {email})',
     invoiceCreatedFromEstimate: 'Счёт создан из сметы',
     pdf: {
       lineItems: 'Позиции',
@@ -485,6 +486,7 @@ export const ru = {
     payNow: 'Оплатить',
     paymentReceived: 'Оплата получена',
     invoiceSent: 'Счёт отправлен: {email}',
+    invoiceSentSkipped: 'Счёт отмечен отправленным (email отключён: {email})',
     pdf: {
       invoiceTitle: 'Счёт',
       lineItems: 'Позиции',
@@ -674,6 +676,7 @@ export const ru = {
       integration_probe_history_audit: 'История проб',
       notification_hub_audit: 'Центр уведомлений',
       portal_notification_prefs_audit: 'Настройки уведомлений портала',
+      notification_opt_out_audit: 'Opt-out уведомлений',
       multi_tenant: 'Мульти-тенант',
     },
     auditActions: {

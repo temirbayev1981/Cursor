@@ -30,6 +30,10 @@ No schema changes required. Update frontend deploy and optional:
 - `npm run smoke:supabase` (expanded table/RPC checks)
 - Stripe webhook redeploy if using `stripe-webhook` audit logging
 
+## From 1.10.1 → 1.10.2
+
+No schema changes. Estimate/invoice sends respect customer email opt-out.
+
 ## From 1.10.0 → 1.10.1
 
 1. Re-run **`schema.sql`** (adds portal notification preference RPCs)

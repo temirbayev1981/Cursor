@@ -1,7 +1,8 @@
-import type { Invoice, Payment } from '@/types'
+import type { Customer, Invoice, Payment } from '@/types'
 import { loadStore, STORE_KEYS } from '@/lib/data-store'
 import { saveEntity, savePayment } from '@/services/entity-service'
 import { notifyInvoiceSent } from '@/services/notification-service'
+import type { NotificationResult } from '@/services/notification-service'
 
 export async function recordInvoicePayment(
   invoice: Invoice,
@@ -39,12 +40,24 @@ export function getAllPayments(): Payment[] {
   return loadStore<Payment>(STORE_KEYS.payments)
 }
 
-export async function sendInvoiceToCustomer(invoice: Invoice, customerEmail: string): Promise<Invoice> {
-  await notifyInvoiceSent(customerEmail, invoice.invoice_number, invoice.total)
+export async function sendInvoiceToCustomer(
+  invoice: Invoice,
+  customerEmail: string,
+  customerId?: string,
+  customer?: Pick<Customer, 'notification_preferences'>,
+): Promise<{ invoice: Invoice; notification: NotificationResult }> {
+  const notification = await notifyInvoiceSent(
+    customerEmail,
+    invoice.invoice_number,
+    invoice.total,
+    customerId,
+    customer,
+  )
+  let updated = invoice
   if (invoice.status === 'draft') {
-    return saveEntity('invoices', { ...invoice, status: 'sent' })
+    updated = await saveEntity('invoices', { ...invoice, status: 'sent' })
   }
-  return invoice
+  return { invoice: updated, notification }
 }
 
 export function generateInvoiceNumber(existing: Invoice[]): string {

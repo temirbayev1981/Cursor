@@ -309,6 +309,7 @@ export const en: TranslationKeys = {
     total: 'Total',
     validUntil: 'Valid Until',
     estimateSent: 'Estimate sent: {email}',
+    estimateSentSkipped: 'Estimate marked sent (email disabled for {email})',
     invoiceCreatedFromEstimate: 'Invoice created from estimate',
     pdf: {
       lineItems: 'Line items',
@@ -487,6 +488,7 @@ export const en: TranslationKeys = {
     payNow: 'Pay Now',
     paymentReceived: 'Payment received',
     invoiceSent: 'Invoice sent: {email}',
+    invoiceSentSkipped: 'Invoice marked sent (email disabled for {email})',
     pdf: {
       invoiceTitle: 'Invoice',
       lineItems: 'Line items',
@@ -676,6 +678,7 @@ export const en: TranslationKeys = {
       integration_probe_history_audit: 'Probe history',
       notification_hub_audit: 'Notification hub',
       portal_notification_prefs_audit: 'Portal notify prefs',
+      notification_opt_out_audit: 'Notification opt-out',
       multi_tenant: 'Multi-tenant',
     },
     auditActions: {
