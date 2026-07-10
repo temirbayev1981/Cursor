@@ -98,7 +98,7 @@ export default function VehiclesPage() {
         ))}
       </div>
 
-      <Card>
+      <Card data-testid="vehicles-fuel-logs">
         <CardHeader>
           <CardTitle>{t.vehicles.fuelLogs}</CardTitle>
         </CardHeader>

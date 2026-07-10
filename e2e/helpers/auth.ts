@@ -1,5 +1,11 @@
 import { expect, type BrowserContext, type Page } from '@playwright/test'
 
+export async function openCommandPalette(page: Page) {
+  await page.evaluate(() => {
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true, cancelable: true }))
+  })
+}
+
 export async function loginAsOwner(page: Page, locale: 'ru' | 'en' = 'ru') {
   await page.addInitScript((lang) => {
     localStorage.setItem('handymanos_locale', lang)

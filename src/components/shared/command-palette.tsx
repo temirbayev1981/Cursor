@@ -48,13 +48,14 @@ export function CommandPalette() {
   return (
     <div className="fixed inset-0 z-50 bg-black/60" onClick={() => setOpen(false)}>
       <div className="mx-auto mt-[15vh] max-w-xl px-4" onClick={(e) => e.stopPropagation()}>
-        <Command className="glass-card overflow-hidden shadow-2xl" shouldFilter={false}>
+        <Command className="glass-card overflow-hidden shadow-2xl" shouldFilter={false} data-testid="command-palette">
           <div className="flex items-center border-b border-border px-3">
             <Search className="h-4 w-4 text-muted-foreground mr-2" />
             <Command.Input
               value={query}
               onValueChange={setQuery}
               placeholder={t.common.searchJobs}
+              data-testid="command-palette-input"
               className="flex-1 bg-transparent py-3 text-sm outline-none"
             />
             <kbd className="text-xs text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">ESC</kbd>

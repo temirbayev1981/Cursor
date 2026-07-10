@@ -35,7 +35,7 @@ export function ExpenseForm({ companyId, onSubmit, onCancel }: ExpenseFormProps)
   }
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="space-y-4">
+    <form onSubmit={handleSubmit(submit)} className="space-y-4" data-testid="expense-form">
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label>{t.expenses.category}</Label>
@@ -62,7 +62,7 @@ export function ExpenseForm({ companyId, onSubmit, onCancel }: ExpenseFormProps)
       </div>
       <div className="flex justify-end gap-2 pt-2">
         {onCancel && <Button type="button" variant="outline" onClick={onCancel}>{t.common.cancel}</Button>}
-        <Button type="submit" disabled={isSubmitting}>{t.common.save}</Button>
+        <Button type="submit" disabled={isSubmitting} data-testid="expense-form-submit">{t.common.save}</Button>
       </div>
     </form>
   )

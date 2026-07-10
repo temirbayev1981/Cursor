@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.4.1] — 2026-07-10
+
+Fleet, expenses, and command palette E2E.
+
+### Phase 49 — Fleet, expenses & command palette E2E
+- E2E: vehicles fleet/fuel logs, create vehicle (`fleet-expenses.spec.ts`)
+- E2E: create expense + monthly total update
+- E2E: command palette Ctrl+K navigation and customer search
+- `openCommandPalette` helper; `data-testid` on forms and palette
+
 ## [1.4.0] — 2026-07-10
 
 Release consolidating Phases 43–48 (work orders AI, vendor PO, workflows, billing, CRM, inventory).

@@ -56,7 +56,7 @@ export default function ExpensesPage() {
         </Card>
       )}
 
-      <div className="glass-card p-5 mb-6 inline-block">
+      <div className="glass-card p-5 mb-6 inline-block" data-testid="expenses-monthly-total">
         <p className="text-sm text-muted-foreground">{t.expenses.totalMonth}</p>
         <p className="text-3xl font-bold">{formatCurrency(total)}</p>
       </div>
