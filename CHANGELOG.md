@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.10.5] — 2026-07-10
+
+Bidirectional notification prefs sync — portal → staff CRM.
+
+### Phase 103 — Portal → staff notify sync
+- E2E: portal email opt-out syncs to staff CRM badge and customer form
+- Settings audit checklist: `portal_staff_notify_sync_audit`
+- Platform audit: `portal_staff_notify_sync_audit` gate
+- **199** E2E tests, **149** unit tests
+
 ## [1.10.4] — 2026-07-10
 
 Skipped-notification UX E2E and CRM ↔ portal prefs sync.

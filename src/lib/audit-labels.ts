@@ -142,6 +142,9 @@ export const STAFF_CUSTOMER_NOTIFY_AUDIT = true as const
 /** Dispatch and scheduling show skipped toasts when customer email is opted out. */
 export const NOTIFY_SKIPPED_TOAST_AUDIT = true as const
 
+/** Portal notification preference changes sync to staff CRM customer record. */
+export const PORTAL_STAFF_NOTIFY_SYNC_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }

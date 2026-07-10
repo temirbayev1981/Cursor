@@ -686,6 +686,7 @@ export const ru = {
       notification_opt_out_audit: 'Opt-out уведомлений',
       staff_customer_notify_audit: 'Уведомления клиента (CRM)',
       notify_skipped_toast_audit: 'Toast при пропуске уведомлений',
+      portal_staff_notify_sync_audit: 'Синхронизация портал → CRM',
       multi_tenant: 'Мульти-тенант',
     },
     auditActions: {

@@ -288,6 +288,20 @@ if (customerNotifySyncSpec.includes('staff CRM email opt-out syncs to customer p
   ok = false
 }
 
+if (customerNotifySyncSpec.includes('portal email opt-out syncs to staff CRM')) {
+  console.log('✓ customer-notify-sync E2E covers portal → staff prefs')
+} else {
+  console.log('✗ customer-notify-sync E2E must cover portal → staff prefs')
+  ok = false
+}
+
+if (auditLabels.includes('PORTAL_STAFF_NOTIFY_SYNC_AUDIT = true')) {
+  console.log('✓ PORTAL_STAFF_NOTIFY_SYNC_AUDIT gate enabled')
+} else {
+  console.log('✗ PORTAL_STAFF_NOTIFY_SYNC_AUDIT must be true')
+  ok = false
+}
+
 const customerForm = readFileSync('src/components/forms/customer-form.tsx', 'utf8')
 if (customerForm.includes('customer-form-notify-email') && customerForm.includes('notification_preferences')) {
   console.log('✓ customer form exposes notification preference toggles')

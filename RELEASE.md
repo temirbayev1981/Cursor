@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.10.4
+# HandymanOS AI — Release 1.10.5
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.4`**, current package **1.10.4**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.5`**, current package **1.10.5**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -131,6 +131,10 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
 
+### 1.10.5 — Portal → staff notify sync
+- Portal email opt-out E2E syncs to staff CRM customer form and badge
+- Platform audit `portal_staff_notify_sync_audit` gate
+
 ### 1.10.4 — Skipped toast & CRM ↔ portal sync
 - Dispatch/scheduling E2E assert skipped toasts on email opt-out
 - Staff CRM prefs sync to customer portal entity field
@@ -159,8 +163,8 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
 ## Test coverage
 
-- Unit: **148** (`npm test`)
-- E2E: **198/198** (`npm run test:e2e`)
+- Unit: **149** (`npm test`)
+- E2E: **199/199** (`npm run test:e2e`)
 
 ## Deploy
 
