@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.9.4
+# HandymanOS AI — Release 1.9.5
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.9.4`**, current package **1.9.4**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.9.5`**, current package **1.9.5**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -76,7 +76,7 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
 ### 1.8.4 — Fuel log & dispatch audit
 - `FuelLogForm` + `useSaveFuelLog`; dispatch audit gate
-- Platform audit `fuel_log_audit`, `dispatch_audit` gates; **45** localized audit actions
+- Platform audit `fuel_log_audit`, `dispatch_audit` gates; **44** localized audit actions
 - E2E: fuel log create, dispatch status change → audit log
 
 ### 1.8.5 — Vendor PO & company profile audit
@@ -126,9 +126,14 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Per-run summary and per-integration status badges
 - Platform audit `integration_probe_history_audit` gate
 
+### 1.9.5 — System audit fixes
+- Locale-aware notification templates; observability probe gate uses live results
+- Notification queue flush in Settings; RU audit checklist translations
+- Docs: **44** audit actions (historical correction)
+
 ## Test coverage
 
-- Unit: **132** (`npm test`)
+- Unit: **133** (`npm test`)
 - E2E: **185/185** (`npm run test:e2e`)
 
 ## Deploy

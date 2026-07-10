@@ -30,6 +30,8 @@ export interface PlatformHealthOptions {
   probeResults?: Record<string, boolean | null>
   /** Service worker active — refreshes offline_sync after async registration. */
   serviceWorkerReady?: boolean
+  /** Integration probe history recorded (Settings → System). */
+  probeHistoryReady?: boolean
 }
 
 function integrationOk(

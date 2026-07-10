@@ -57,13 +57,23 @@ describe('notification-service', () => {
     expect(getNotificationQueue()[0].to).toBe('test@example.com')
   })
 
-  it('notifyJobScheduled queues customer email', async () => {
+  it('notifyJobScheduled uses Russian templates when locale is ru', async () => {
+    localStorage.setItem('handymanos_locale', 'ru')
     const result = await notifyJobScheduled('cust@example.com', 'Fix faucet', 'Jul 10')
     expect(result.ok).toBe(true)
-    expect(result.queued).toBe(true)
     const [item] = getNotificationQueue()
     expect(item.channel).toBe('email')
-    expect(item.to).toBe('cust@example.com')
+    expect(item.subject).toContain('запланирован')
+    expect(item.body).toContain('Fix faucet')
+    localStorage.removeItem('handymanos_locale')
+  })
+
+  it('notifyJobScheduled uses English templates by default', async () => {
+    localStorage.removeItem('handymanos_locale')
+    const result = await notifyJobScheduled('cust@example.com', 'Fix faucet', 'Jul 10')
+    expect(result.ok).toBe(true)
+    const [item] = getNotificationQueue()
+    expect(item.subject).toContain('scheduled')
     expect(item.body).toContain('Fix faucet')
   })
 

@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Sun, Moon, Copy } from 'lucide-react'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
 import { useTheme } from '@/contexts/theme-context'
@@ -14,7 +14,7 @@ import { useTranslation } from '@/contexts/locale-context'
 import { hasStripe, hasGoogleMaps, hasOpenAI, hasSupabase, hasNotificationConfigured, hasSmsConfigured, hasObservability } from '@/lib/env'
 import { useImportSampleData, useAuditLogs } from '@/hooks/use-entities'
 import { logAudit } from '@/services/entity-service'
-import { getNotificationQueue } from '@/services/notification-service'
+import { getNotificationQueue, flushNotificationQueue } from '@/services/notification-service'
 import { getErrorReports } from '@/lib/observability'
 import { computePlatformHealth } from '@/lib/platform-health'
 import { formatAuditAction, countUniqueAuditActions, AUDIT_ACTION_COUNT } from '@/lib/audit-labels'
@@ -48,9 +48,9 @@ export default function SettingsPage() {
   const base = stored ?? company
   const companyId = base?.id ?? 'comp-001'
 
-  const refreshAuditLogs = () => {
+  const refreshAuditLogs = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: ['auditLogs', companyId] })
-  }
+  }, [queryClient, companyId])
 
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState<UserRole>('technician')
@@ -64,6 +64,7 @@ export default function SettingsPage() {
   const [probesRefreshKey, setProbesRefreshKey] = useState(0)
   const [probeHistory, setProbeHistory] = useState<IntegrationProbeHistoryEntry[]>(() => loadIntegrationProbeHistory())
   const [serviceWorkerReady, setServiceWorkerReady] = useState(isServiceWorkerRegistered)
+  const [metricsRevision, setMetricsRevision] = useState(0)
 
   const [companyForm, setCompanyForm] = useState({
     name: base?.name ?? '',
@@ -138,7 +139,7 @@ export default function SettingsPage() {
       })
       window.history.replaceState({}, '', '/settings')
     }
-  }, [companyId, t.settings.planUpgraded, user])
+  }, [companyId, t.settings.planUpgraded, user, refreshAuditLogs])
 
   const handleUpgrade = async (plan: SubscriptionPlan) => {
     if (plan === currentPlan) return
@@ -224,13 +225,28 @@ export default function SettingsPage() {
   const notifications = getNotificationQueue().slice(0, 5)
   const errors = getErrorReports().slice(0, 5)
   const healthOptions = useMemo(
-    () => ({ probeResults: integrationProbes, serviceWorkerReady }),
-    [integrationProbes, serviceWorkerReady],
+    () => ({
+      probeResults: integrationProbes,
+      serviceWorkerReady,
+      probeHistoryReady: probeHistory.length > 0,
+    }),
+    [integrationProbes, serviceWorkerReady, probeHistory.length],
   )
   const platformHealth = useMemo(() => computePlatformHealth(healthOptions), [healthOptions])
   const platformAudit = useMemo(() => computePlatformAudit(healthOptions), [healthOptions])
-  const systemMetrics = computeSystemMetrics()
+  const systemMetrics = useMemo(() => computeSystemMetrics(), [metricsRevision])
   const { data: auditLogs = [] } = useAuditLogs()
+
+  const refreshNotifications = () => {
+    void flushNotificationQueue().then((sent) => {
+      setMetricsRevision((n) => n + 1)
+      if (sent > 0) {
+        toast.success(t.settings.notificationQueueFlushed.replace('{count}', String(sent)))
+      } else {
+        toast.info(t.settings.notificationQueueFlushPending)
+      }
+    })
+  }
 
   const systemStatusLabel = {
     healthy: t.settings.systemHealthy,
@@ -545,7 +561,7 @@ export default function SettingsPage() {
                         '{time}',
                         new Date(latestProbeHistory.checkedAt).toLocaleString(),
                       )
-                    : t.settings.integrationProbeHistoryEmpty}
+                    : null}
                 </p>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
@@ -643,7 +659,19 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
             <Card>
-              <CardHeader><CardTitle>{t.settings.notificationsPanel.replace('{count}', String(notifications.length))}</CardTitle></CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+                <CardTitle>{t.settings.notificationsPanel.replace('{count}', String(notifications.length))}</CardTitle>
+                {systemMetrics.notificationQueueSize > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    data-testid="notification-queue-flush"
+                    onClick={() => refreshNotifications()}
+                  >
+                    {t.settings.notificationQueueFlush}
+                  </Button>
+                )}
+              </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 {notifications.length === 0 ? <p className="text-muted-foreground">{t.settings.notificationQueueEmpty}</p> : notifications.map((n, i) => (
                   <div key={i} className="rounded bg-secondary/30 p-2">

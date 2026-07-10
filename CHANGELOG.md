@@ -2,6 +2,19 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.9.5] — 2026-07-10
+
+System audit fixes and operator UX improvements.
+
+### Phase 97 — Audit remediation
+- Locale-aware customer notification templates (EN/RU) in `notification-service`
+- `observability_probe_audit` gate now respects live probe results
+- Platform audit probe history uses reactive `probeHistoryReady` option
+- Settings: notification queue flush button; probe history empty-state dedup
+- Russian translations for platform audit checklist labels
+- Docs: corrected historical **44** audit action count (was 45)
+- **185** E2E tests, **133** unit tests
+
 ## [1.9.4] — 2026-07-10
 
 Integration probe history for operators.
@@ -113,7 +126,7 @@ Fuel log audit and dispatch E2E.
 - `FuelLogForm` on Vehicles page; `useSaveFuelLog` with `fuel_log.create`/`fuel_log.update`
 - Platform audit: `fuel_log_audit`, `dispatch_audit` quality gates
 - E2E: fuel log create, dispatch status change → audit log
-- **45** localized audit actions
+- **44** localized audit actions
 
 ## [1.8.3] — 2026-07-10
 

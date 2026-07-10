@@ -3,6 +3,38 @@ import { getSupabaseAuthHeaders } from '@/lib/supabase'
 
 export type NotificationChannel = 'email' | 'sms' | 'push'
 
+type NotificationLocale = 'en' | 'ru'
+
+const NOTIFY_TEMPLATES = {
+  en: {
+    jobScheduledSubject: (title: string) => `Job scheduled: ${title}`,
+    jobScheduledBody: (title: string, date: string) => `Your job "${title}" is scheduled for ${date}.`,
+    invoiceSentSubject: (num: string) => `Invoice ${num}`,
+    invoiceSentBody: (num: string, amount: number) => `Invoice ${num} for $${amount.toFixed(2)} has been issued.`,
+    estimateSentSubject: (title: string) => `Estimate: ${title}`,
+    estimateSentBody: (title: string, total: number) =>
+      `Estimate "${title}" for $${total.toFixed(2)} has been sent. Please review and approve.`,
+  },
+  ru: {
+    jobScheduledSubject: (title: string) => `Заказ запланирован: ${title}`,
+    jobScheduledBody: (title: string, date: string) => `Ваш заказ «${title}» запланирован на ${date}.`,
+    invoiceSentSubject: (num: string) => `Счёт ${num}`,
+    invoiceSentBody: (num: string, amount: number) => `Выставлен счёт ${num} на сумму $${amount.toFixed(2)}.`,
+    estimateSentSubject: (title: string) => `Смета: ${title}`,
+    estimateSentBody: (title: string, total: number) =>
+      `Вам отправлена смета «${title}» на сумму $${total.toFixed(2)}. Пожалуйста, ознакомьтесь и утвердите.`,
+  },
+} as const
+
+function getNotificationLocale(): NotificationLocale {
+  if (typeof localStorage === 'undefined') return 'en'
+  return localStorage.getItem('handymanos_locale') === 'ru' ? 'ru' : 'en'
+}
+
+function notifyTemplates() {
+  return NOTIFY_TEMPLATES[getNotificationLocale()]
+}
+
 export interface NotificationPayload {
   to: string
   subject?: string
@@ -57,30 +89,33 @@ export async function sendNotification(payload: NotificationPayload): Promise<No
 }
 
 export async function notifyJobScheduled(customerEmail: string, jobTitle: string, date: string) {
+  const tpl = notifyTemplates()
   return sendNotification({
     to: customerEmail,
-    subject: `Заказ запланирован: ${jobTitle}`,
-    body: `Ваш заказ «${jobTitle}» запланирован на ${date}.`,
+    subject: tpl.jobScheduledSubject(jobTitle),
+    body: tpl.jobScheduledBody(jobTitle, date),
     channel: 'email',
     metadata: { type: 'job_scheduled' },
   })
 }
 
 export async function notifyInvoiceSent(customerEmail: string, invoiceNumber: string, amount: number) {
+  const tpl = notifyTemplates()
   return sendNotification({
     to: customerEmail,
-    subject: `Счёт ${invoiceNumber}`,
-    body: `Выставлен счёт ${invoiceNumber} на сумму $${amount.toFixed(2)}.`,
+    subject: tpl.invoiceSentSubject(invoiceNumber),
+    body: tpl.invoiceSentBody(invoiceNumber, amount),
     channel: 'email',
     metadata: { type: 'invoice_sent' },
   })
 }
 
 export async function notifyEstimateSent(customerEmail: string, title: string, total: number) {
+  const tpl = notifyTemplates()
   return sendNotification({
     to: customerEmail,
-    subject: `Смета: ${title}`,
-    body: `Вам отправлена смета «${title}» на сумму $${total.toFixed(2)}. Пожалуйста, ознакомьтесь и утвердите.`,
+    subject: tpl.estimateSentSubject(title),
+    body: tpl.estimateSentBody(title, total),
     channel: 'email',
     metadata: { type: 'estimate_sent' },
   })
