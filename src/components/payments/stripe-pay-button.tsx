@@ -56,7 +56,7 @@ export function StripePayButton({ invoice, customerEmail, portalToken, onSuccess
   if (amount <= 0 || invoice.status === 'paid') return null
 
   return (
-    <Button size="sm" variant="outline" onClick={handlePay} disabled={loading}>
+    <Button size="sm" variant="outline" onClick={handlePay} disabled={loading} data-testid={`invoice-pay-${invoice.id}`}>
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
       {hasStripe ? 'Stripe' : t.common.pay}
     </Button>

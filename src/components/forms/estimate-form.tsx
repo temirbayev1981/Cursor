@@ -75,7 +75,7 @@ export function EstimateForm({ companyId, customers, defaultLaborRate = 75, onSu
   }
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="space-y-4">
+    <form onSubmit={handleSubmit(submit)} className="space-y-4" data-testid="estimate-form">
       <div>
         <Label>{t.estimates.estimate}</Label>
         <Input className="mt-1" {...register('title')} />
@@ -118,7 +118,7 @@ export function EstimateForm({ companyId, customers, defaultLaborRate = 75, onSu
       <p className="text-lg font-semibold">{t.estimates.total}: ${total.toFixed(2)}</p>
       <div className="flex justify-end gap-2">
         {onCancel && <Button type="button" variant="outline" onClick={onCancel}>{t.common.cancel}</Button>}
-        <Button type="submit" disabled={isSubmitting}>{t.estimates.newEstimate}</Button>
+        <Button type="submit" disabled={isSubmitting} data-testid="estimate-form-submit">{t.estimates.newEstimate}</Button>
       </div>
     </form>
   )

@@ -107,7 +107,7 @@ export default function EstimatesPage() {
       )}
 
       {showEngine && (
-        <Card className="mb-6 border-primary/30">
+        <Card className="mb-6 border-primary/30" data-testid="estimates-smart-engine-panel">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-accent" />
@@ -166,10 +166,13 @@ export default function EstimatesPage() {
               <DataTableCell>
                 <div className="flex gap-1">
                   {est.status === 'draft' && (
-                    <Button size="sm" variant="ghost" onClick={() => handleSend(est)}><Send className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="ghost" onClick={() => handleSend(est)} data-testid={`estimate-send-${est.id}`}>
+                      <Send className="h-4 w-4" />
+                    </Button>
                   )}
                   {['sent', 'approved'].includes(est.status) && (
-                    <Button size="sm" variant="ghost" onClick={() => handleConvert(est)} title="Создать счёт">
+                    <Button size="sm" variant="ghost" onClick={() => handleConvert(est)} title="Создать счёт"
+                      data-testid={`estimate-convert-${est.id}`}>
                       <FileSpreadsheet className="h-4 w-4" />
                     </Button>
                   )}

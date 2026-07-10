@@ -2,6 +2,15 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.3.5] — 2026-07-10
+
+Estimates and invoices workflow E2E.
+
+### Phase 46 — Estimates & invoices E2E
+- E2E: smart engine panel, create estimate, send draft, convert to invoice
+- E2E: invoices demo payment flow (`estimates-invoices.spec.ts`)
+- `data-testid` on estimate form, send/convert actions, invoice pay button
+
 ## [1.3.4] — 2026-07-10
 
 Workflow E2E for vendor PO, PDF import, and scheduling.
