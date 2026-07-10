@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.3.4] — 2026-07-10
+
+Workflow E2E for vendor PO, PDF import, and scheduling.
+
+### Phase 45 — Workflow E2E
+- E2E: vendor PO PDF → create job + estimate → jobs page (`work-orders-vendor-po.spec.ts`)
+- E2E: work orders PDF tab text analyze (`work-orders-upload.spec.ts`)
+- E2E: scheduling week view + schedule draft job (`scheduling.spec.ts`)
+- `data-testid` on vendor PO create-job, PDF analyze, schedule form submit
+
 ## [1.3.3] — 2026-07-10
 
 Vendor PO PDF upload E2E.

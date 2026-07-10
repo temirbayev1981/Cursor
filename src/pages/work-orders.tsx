@@ -243,7 +243,7 @@ export default function WorkOrdersPage() {
                     className="mt-2"
                   />
                 </div>
-                <Button onClick={() => handleAnalyze(pdfContent, 'pdf')} disabled={analyzing} className="w-full">
+                <Button onClick={() => handleAnalyze(pdfContent, 'pdf')} disabled={analyzing} className="w-full" data-testid="work-orders-pdf-analyze">
                   {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
                   {t.workOrders.analyzeAi}
                 </Button>

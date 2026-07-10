@@ -26,4 +26,14 @@ test.describe('Work orders AI import', () => {
     await expect(page.getByText(/ии-анализ завершён|ai analysis complete/i).first()).toBeVisible({ timeout: 15000 })
     await expect(page.getByText(/результаты ии|ai results/i).first()).toBeVisible()
   })
+
+  test('pdf tab analyzes pasted work order text', async ({ page }) => {
+    await page.goto('/work-orders')
+    await page.getByRole('tab', { name: /загрузка pdf|pdf upload/i }).click()
+    await page.getByTestId('work-orders-pdf-analyze').click()
+
+    await expect(page.getByText(/ии-анализ завершён|ai analysis complete/i).first()).toBeVisible({ timeout: 15000 })
+    await expect(page.getByText(/результаты ии|ai results/i).first()).toBeVisible()
+    await expect(page.getByText(/drywall|гипсокартон|repair/i).first()).toBeVisible()
+  })
 })

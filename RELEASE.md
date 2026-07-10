@@ -1,16 +1,17 @@
-# HandymanOS AI — Release 1.3.3
+# HandymanOS AI — Release 1.3.4
 
-Vendor PO PDF E2E on **1.3.2**.
+Workflow E2E on **1.3.3**.
 
-## What's new in 1.3.3
+## What's new in 1.3.4
 
-- E2E: vendor PO PDF upload → parse → table row (39 tests total)
-- `data-testid` on vendor PO dropzone; sample PDF fixture
+- E2E: vendor PO → create job workflow (43 tests total)
+- E2E: work orders PDF tab AI analyze
+- E2E: scheduling form → calendar event
 
 ## Test coverage
 
-- Unit: **82**
-- E2E: **39** (13 spec files)
+- Unit: **83**
+- E2E: **43** (14 spec files)
 
 ## Deploy
 
@@ -19,10 +20,10 @@ npm run verify:production
 npm run test:e2e
 
 git checkout main
-git merge cursor/phase-44-vendor-po-pdf-e2e-1b4a
+git merge cursor/phase-45-workflows-e2e-1b4a
 git push origin main
 ```
 
 ## Merge chain
 
-`#24` → … → `#36` → **#37**
+`#24` → … → `#37` → **#38**

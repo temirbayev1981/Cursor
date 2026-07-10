@@ -109,7 +109,8 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
                     <Eye className="h-4 w-4" />
                   </Button>
                   <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" disabled={isRunning}
-                    onClick={() => handleCreateJob(row)} title={t.vendorPO.createJob}>
+                    onClick={() => handleCreateJob(row)} title={t.vendorPO.createJob}
+                    data-testid={`vendor-po-create-job-${row.id}`}>
                     <Briefcase className="h-4 w-4" />
                   </Button>
                   {onDelete && (
