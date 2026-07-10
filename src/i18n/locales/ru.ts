@@ -644,6 +644,8 @@ export const ru = {
       'job.update': 'Заказ обновлён',
       'schedule.create': 'Расписание создано из заказа',
       'estimate.sent': 'Смета отправлена клиенту',
+      'inventory.receive': 'Приход на склад',
+      'inventory.apply': 'Материалы списаны на заказ',
     },
     supabaseCard: 'Supabase',
     notificationsPanel: 'Уведомления ({count})',

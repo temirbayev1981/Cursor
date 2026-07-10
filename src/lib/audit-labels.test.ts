@@ -28,4 +28,9 @@ describe('audit-labels', () => {
     expect(isAuditActionKey('schedule.create')).toBe(true)
     expect(isAuditActionKey('estimate.sent')).toBe(true)
   })
+
+  it('recognizes v1.8 inventory audit keys', () => {
+    expect(isAuditActionKey('inventory.receive')).toBe(true)
+    expect(isAuditActionKey('inventory.apply')).toBe(true)
+  })
 })

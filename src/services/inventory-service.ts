@@ -4,6 +4,9 @@ import { loadStore, saveStore, upsertStore, STORE_KEYS } from '@/lib/data-store'
 import { supabase } from '@/lib/supabase'
 import { insertRows } from '@/lib/supabase-queries'
 
+/** Inventory mutations write audit_logs for receive and job usage. */
+export const INVENTORY_AUDIT = true as const
+
 export async function listInventoryTransactions(companyId: string): Promise<InventoryTransaction[]> {
   const materials = await listEntities('materials', companyId)
   const materialIdList = materials.map((m) => m.id)

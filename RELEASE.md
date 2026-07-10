@@ -1,8 +1,8 @@
-# HandymanOS AI — Release 1.7.10
+# HandymanOS AI — Release 1.8.0
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.7.10`**, current package **1.7.10**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.8.0`**, current package **1.8.0**).
 
-Consolidated **1.7.x** production release (stacked PRs #63–#68).
+Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
 ## What's new since 1.6.4
 
@@ -53,10 +53,15 @@ Consolidated **1.7.x** production release (stacked PRs #63–#68).
 - Audit: job create/update, schedule from job, estimate sent
 - Platform audit `audit_i18n` gate (28+ localized actions)
 
+### 1.8.0 — Inventory audit milestone
+- Audit: stock receive, materials applied to job
+- Platform audit `inventory_audit` gate; **32** localized audit actions
+- E2E: schedule, inventory receive/apply → audit log
+
 ## Test coverage
 
-- Unit: **105** (`npm test`)
-- E2E: **143/143** (`npm run test:e2e`)
+- Unit: **106** (`npm test`)
+- E2E: **146/146** (`npm run test:e2e`)
 
 ## Deploy
 

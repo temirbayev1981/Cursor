@@ -5,6 +5,7 @@ import { AUDIT_I18N_COVERAGE } from '@/lib/audit-labels'
 import { MULTI_TENANT_SUPPORTED, MULTI_TENANT_MEMBERSHIP_RPC } from '@/services/company-service'
 import { PORTAL_RPC_ENFORCED } from '@/services/portal-data-service'
 import { STRIPE_WEBHOOK_AUDIT } from '@/services/billing-service'
+import { INVENTORY_AUDIT } from '@/services/inventory-service'
 
 export type AuditRecommendationId =
   | 'connect_supabase'
@@ -52,6 +53,7 @@ export function computePlatformAudit(): PlatformAuditReport {
     { id: 'portal_rpc', label: 'Portal server RPCs', ok: liveBackend && PORTAL_RPC_ENFORCED, weight: 0.5 },
     { id: 'stripe_webhook_audit', label: 'Stripe webhook audit', ok: liveBackend && STRIPE_WEBHOOK_AUDIT, weight: 0.5 },
     { id: 'audit_i18n', label: 'Localized audit actions', ok: liveBackend && AUDIT_I18N_COVERAGE, weight: 0.5 },
+    { id: 'inventory_audit', label: 'Inventory audit logging', ok: liveBackend && INVENTORY_AUDIT, weight: 0.5 },
     { id: 'multi_tenant', label: 'Multi-company membership', ok: liveBackend && MULTI_TENANT_SUPPORTED && Boolean(MULTI_TENANT_MEMBERSHIP_RPC), weight: 0.5 },
   ]
 

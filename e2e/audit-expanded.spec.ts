@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { loginAsOwner, openSettingsAuditTab, seedInProgressTechJob } from './helpers/auth'
+import { loginAsOwner, openSettingsAuditTab, seedDraftJob, seedInProgressTechJob } from './helpers/auth'
 
 test.describe('Expanded audit log E2E', () => {
   test.beforeEach(async ({ page }) => {
@@ -68,5 +68,43 @@ test.describe('Expanded audit log E2E', () => {
 
     await openSettingsAuditTab(page)
     await expect(page.locator('[data-audit-action="estimate.sent"]').first()).toBeVisible({ timeout: 10000 })
+  })
+
+  test('schedule create appears in audit log', async ({ page }) => {
+    await seedDraftJob(page)
+    await page.goto('/scheduling')
+    await page.getByRole('button', { name: /запланировать заказ|schedule from job/i }).first().click()
+    await page.getByTestId('schedule-form').getByRole('combobox').first().click()
+    await page.getByRole('option', { name: /E2E Draft Job for Scheduling/i }).click()
+    await page.getByTestId('schedule-form').getByRole('combobox').nth(1).click()
+    await page.getByRole('option', { name: /Marcus Thompson/i }).click()
+    await page.getByTestId('schedule-form-submit').click()
+    await expect(page.getByText(/заказ добавлен в расписание|added to schedule/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="schedule.create"]').first()).toBeVisible({ timeout: 10000 })
+  })
+
+  test('inventory receive appears in audit log', async ({ page }) => {
+    await page.goto('/materials')
+    await page.getByTestId('material-receive-mat-003').click()
+    await page.getByTestId('materials-receive-dialog').locator('input[type="number"]').fill('2')
+    await page.getByTestId('materials-receive-submit').click()
+    await expect(page.getByText(/приход на склад|receive stock/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="inventory.receive"]').first()).toBeVisible({ timeout: 10000 })
+  })
+
+  test('inventory apply appears in audit log', async ({ page }) => {
+    await page.goto('/jobs')
+    await page.getByTestId('job-material-usage-job-001').click()
+    await page.getByTestId('job-material-dialog').getByRole('combobox').click()
+    await page.getByRole('option', { name: /Joint Compound/i }).click()
+    await page.getByTestId('job-material-submit').click()
+    await expect(page.getByText(/материалы списаны|materials deducted/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="inventory.apply"]').first()).toBeVisible({ timeout: 10000 })
   })
 })

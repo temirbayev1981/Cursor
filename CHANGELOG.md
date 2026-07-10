@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.8.0] — 2026-07-10
+
+**Milestone:** full core-ops audit coverage (inventory + scheduling E2E).
+
+### Phase 82 — Inventory audit & v1.8.0
+- `logAudit`: `inventory.receive`, `inventory.apply`
+- Platform audit: `inventory_audit` quality gate (`INVENTORY_AUDIT`)
+- E2E: schedule create, stock receive, materials apply → audit log
+- 32 localized audit actions (`AUDIT_I18N_COVERAGE` ≥ 30)
+
 ## [1.7.10] — 2026-07-10
 
 Field-ops audit coverage and platform audit gate.

@@ -450,13 +450,15 @@ export function useInventoryTransactionsList() {
 export function useInventoryTransactions() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
     mutationFn: (params: {
       companyId: string
       jobId: string
       items: { materialId: string; quantity: number }[]
     }) => applyMaterialsOnJob(params.companyId, params.jobId, params.items),
-    onSuccess: () => {
+    onSuccess: (_transactions, params) => {
+      if (user) void logAudit(companyId, user.id, 'inventory.apply', 'job', params.jobId)
       qc.invalidateQueries({ queryKey: ['inventory', companyId] })
       qc.invalidateQueries({ queryKey: ['materials', companyId] })
     },
@@ -466,10 +468,12 @@ export function useInventoryTransactions() {
 export function useReceiveStock() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
     mutationFn: (params: { materialId: string; quantity: number; notes?: string }) =>
       receiveStock(companyId, params.materialId, params.quantity, params.notes),
-    onSuccess: () => {
+    onSuccess: (_transaction, params) => {
+      if (user) void logAudit(companyId, user.id, 'inventory.receive', 'material', params.materialId)
       qc.invalidateQueries({ queryKey: ['inventory', companyId] })
       qc.invalidateQueries({ queryKey: ['materials', companyId] })
     },

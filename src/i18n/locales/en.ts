@@ -646,6 +646,8 @@ export const en: TranslationKeys = {
       'job.update': 'Job updated',
       'schedule.create': 'Schedule created from job',
       'estimate.sent': 'Estimate sent to customer',
+      'inventory.receive': 'Stock received',
+      'inventory.apply': 'Materials applied to job',
     },
     supabaseCard: 'Supabase',
     notificationsPanel: 'Notifications ({count})',
