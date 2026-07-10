@@ -9,6 +9,8 @@ type ErrorReport = {
 const REPORTS_KEY = 'handymanos_error_reports'
 const MAX_REPORTS = 50
 
+let sentryReady = false
+
 function saveReport(report: ErrorReport) {
   try {
     const reports = JSON.parse(localStorage.getItem(REPORTS_KEY) || '[]') as ErrorReport[]
@@ -16,6 +18,34 @@ function saveReport(report: ErrorReport) {
     localStorage.setItem(REPORTS_KEY, JSON.stringify(reports.slice(0, MAX_REPORTS)))
   } catch {
     // ignore storage errors
+  }
+}
+
+async function initSentry(dsn: string) {
+  try {
+    const Sentry = await import('@sentry/react')
+    Sentry.init({
+      dsn,
+      environment: import.meta.env.MODE,
+      release: `handymanos-ai@${import.meta.env.VITE_APP_VERSION ?? '1.1.0'}`,
+      integrations: [Sentry.browserTracingIntegration()],
+      tracesSampleRate: import.meta.env.PROD ? 0.1 : 0,
+    })
+    sentryReady = true
+  } catch {
+    sentryReady = false
+  }
+}
+
+async function sendToSentrySdk(error: Error, componentStack?: string) {
+  if (!sentryReady) return
+  try {
+    const Sentry = await import('@sentry/react')
+    Sentry.captureException(error, {
+      contexts: componentStack ? { react: { componentStack } } : undefined,
+    })
+  } catch {
+    // silent fail for observability
   }
 }
 
@@ -34,7 +64,7 @@ function parseSentryDsn(dsn: string): { storeUrl: string; publicKey: string } | 
   }
 }
 
-async function sendToSentry(report: ErrorReport, dsn: string) {
+async function sendToSentryStore(report: ErrorReport, dsn: string) {
   const parsed = parseSentryDsn(dsn)
   if (!parsed) return
 
@@ -90,14 +120,21 @@ export function captureError(error: Error, componentStack?: string) {
     console.error('[Observability]', report)
   }
 
+  void sendToSentrySdk(error, componentStack)
+
   const sentryDsn = import.meta.env.VITE_SENTRY_DSN as string | undefined
   const webhookUrl = import.meta.env.VITE_ERROR_WEBHOOK_URL as string | undefined
 
-  if (sentryDsn) void sendToSentry(report, sentryDsn)
+  if (!sentryReady && sentryDsn) void sendToSentryStore(report, sentryDsn)
   else if (webhookUrl) void sendToWebhook(report, webhookUrl)
 }
 
-export function initObservability() {
+export async function initObservability() {
+  const sentryDsn = import.meta.env.VITE_SENTRY_DSN as string | undefined
+  if (sentryDsn) {
+    await initSentry(sentryDsn)
+  }
+
   window.addEventListener('error', (event) => {
     captureError(event.error ?? new Error(event.message))
   })
@@ -114,3 +151,5 @@ export function getErrorReports(): ErrorReport[] {
     return []
   }
 }
+
+export type { ErrorReport }

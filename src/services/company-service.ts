@@ -3,6 +3,7 @@ import { DEMO_COMPANY, DEMO_COMPANY_B } from '@/data/mock-data'
 import { getStoredCompany } from '@/services/onboarding-service'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
 import { updateRows } from '@/lib/supabase-queries'
+import { callRpc } from '@/lib/supabase-rpc'
 
 const REGISTRY_KEY = 'handymanos_company_registry'
 const ACTIVE_COMPANY_KEY = 'handymanos_active_company'
@@ -110,15 +111,22 @@ export async function fetchAccessibleCompanies(profile?: Profile | null): Promis
   const stored = getStoredCompany()
   if (stored) byId.set(stored.id, stored)
 
-  if (profile?.company_id && supabase) {
-    const { data } = await supabase
-      .from('companies')
-      .select('*')
-      .eq('id', profile.company_id)
-      .single()
-    if (data) {
-      const companyRow = data as unknown as Company
-      byId.set(companyRow.id, companyRow)
+  if (profile && supabase) {
+    const { data: memberships, error } = await callRpc('get_accessible_companies', {})
+    if (!error && memberships && memberships.length > 0) {
+      for (const row of memberships as Company[]) {
+        byId.set(row.id, row)
+      }
+    } else if (profile.company_id) {
+      const { data } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('id', profile.company_id)
+        .single()
+      if (data) {
+        const companyRow = data as unknown as Company
+        byId.set(companyRow.id, companyRow)
+      }
     }
   }
 
@@ -127,4 +135,9 @@ export async function fetchAccessibleCompanies(profile?: Profile | null): Promis
   }
 
   return Array.from(byId.values()).sort((a, b) => a.name.localeCompare(b.name))
+}
+
+export function userCanAccessCompany(profile: Profile | null, companyId: string, companies: Company[]): boolean {
+  if (!profile) return false
+  return companies.some((company) => company.id === companyId)
 }

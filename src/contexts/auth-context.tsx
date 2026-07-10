@@ -5,7 +5,7 @@ import { DEMO_COMPANY } from '@/data/mock-data'
 import { getStoredCompany, persistOnboarding } from '@/services/onboarding-service'
 import { registerUserWithCompany, loadUserSession, markOnboardingCompleteForInvitedMember, resolveOnboardingState } from '@/services/auth-service'
 import { type PostAuthState } from '@/lib/permissions'
-import { resolveActiveCompany, setActiveCompany, registerCompany, listAccessibleCompanies, syncActiveCompanyToProfile, updateCompanyProfile, type CompanyProfilePatch } from '@/services/company-service'
+import { resolveActiveCompany, setActiveCompany, registerCompany, listAccessibleCompanies, fetchAccessibleCompanies, syncActiveCompanyToProfile, updateCompanyProfile, type CompanyProfilePatch } from '@/services/company-service'
 import { logAudit } from '@/services/entity-service'
 import { setTechOnboardingPending } from '@/services/tech-onboarding-service'
 
@@ -171,7 +171,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const switchCompany = async (companyId: string) => {
     if (!user) return
-    const nextCompany = listAccessibleCompanies().find((item) => item.id === companyId)
+    const accessible = DEMO_MODE
+      ? listAccessibleCompanies()
+      : await fetchAccessibleCompanies(user)
+    const nextCompany = accessible.find((item) => item.id === companyId)
     if (!nextCompany) return
 
     setActiveCompany(nextCompany)

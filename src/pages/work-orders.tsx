@@ -52,9 +52,9 @@ export default function WorkOrdersPage() {
         onSuccess: () => localStorage.setItem('handymanos_vendor_pos_seeded', 'true'),
       })
     }
-  }, [isLoading, vendorPOs.length])
+  }, [isLoading, vendorPOs.length, seedVendorPOs])
 
-  const handleAnalyze = async (content: string, type: 'pdf' | 'email' | 'photo', file?: File) => {
+  const handleAnalyze = useCallback(async (content: string, type: 'pdf' | 'email' | 'photo', file?: File) => {
     setAnalyzing(true)
     setExtracted(null)
     try {
@@ -73,9 +73,9 @@ export default function WorkOrdersPage() {
     } finally {
       setAnalyzing(false)
     }
-  }
+  }, [companyId, queryClient, t.workOrders.analysisComplete, t.workOrders.analysisFailed])
 
-  const handleVendorPOUpload = async (files: File[]) => {
+  const handleVendorPOUpload = useCallback(async (files: File[]) => {
     const pdfFiles = files.filter((f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'))
     if (pdfFiles.length === 0) return
 
@@ -101,31 +101,31 @@ export default function WorkOrdersPage() {
     } finally {
       setParsingPdf(false)
     }
-  }
+  }, [saveVendorPOs, t.vendorPO.notVendorPO, t.vendorPO.parseError, t.vendorPO.parseSuccess])
 
   const onDropVendorPO = useCallback((files: File[]) => {
-    handleVendorPOUpload(files)
-  }, [])
+    void handleVendorPOUpload(files)
+  }, [handleVendorPOUpload])
 
   const onDropGeneral = useCallback((files: File[]) => {
     const file = files[0]
     if (!file) return
     if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-      handleVendorPOUpload([file])
+      void handleVendorPOUpload([file])
       return
     }
     if (file.type.startsWith('image/')) {
-      handleAnalyze('', 'photo', file)
+      void handleAnalyze('', 'photo', file)
     } else {
       const reader = new FileReader()
       reader.onload = (e) => {
         const text = (e.target?.result as string) || ''
         setPdfContent(text)
-        handleAnalyze(text, 'pdf')
+        void handleAnalyze(text, 'pdf')
       }
       reader.readAsText(file)
     }
-  }, [])
+  }, [handleAnalyze, handleVendorPOUpload])
 
   const vendorDropzone = useDropzone({
     onDrop: onDropVendorPO,

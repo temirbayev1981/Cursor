@@ -429,6 +429,12 @@ export const en: TranslationKeys = {
     q3: 'Which technician is most profitable?',
     q4: 'How can I increase profit?',
   },
+  header: {
+    notifications: 'Notifications',
+    noNotifications: 'No recent notifications',
+    clearNotifications: 'Clear',
+    demoQueued: 'Demo',
+  },
   settings: {
     title: 'Settings',
     description: 'Company configuration and subscription',

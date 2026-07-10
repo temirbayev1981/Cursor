@@ -32,6 +32,17 @@ export interface Database {
         Insert: Partial<Database['public']['Tables']['profiles']['Row']>
         Update: Partial<Database['public']['Tables']['profiles']['Row']>
       }
+      company_members: {
+        Row: {
+          id: string
+          company_id: string
+          profile_id: string
+          role: string
+          created_at: string
+        }
+        Insert: Partial<Database['public']['Tables']['company_members']['Row']>
+        Update: Partial<Database['public']['Tables']['company_members']['Row']>
+      }
       customers: {
         Row: {
           id: string
@@ -487,6 +498,10 @@ export interface Database {
       accept_team_invite: {
         Args: { p_token: string }
         Returns: boolean
+      }
+      get_accessible_companies: {
+        Args: Record<string, never>
+        Returns: Database['public']['Tables']['companies']['Row'][]
       }
     }
     Enums: Record<string, never>

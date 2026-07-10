@@ -42,6 +42,19 @@ CREATE TABLE profiles (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Multi-company membership (active company remains profiles.company_id)
+CREATE TABLE company_members (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  role user_role NOT NULL DEFAULT 'technician',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(company_id, profile_id)
+);
+
+CREATE INDEX idx_company_members_profile ON company_members(profile_id);
+CREATE INDEX idx_company_members_company ON company_members(company_id);
+
 -- Customers
 CREATE TABLE customers (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -392,6 +405,7 @@ ALTER TABLE ai_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE service_catalog ENABLE ROW LEVEL SECURITY;
+ALTER TABLE company_members ENABLE ROW LEVEL SECURITY;
 
 -- Helper function to get user's company_id
 CREATE OR REPLACE FUNCTION get_user_company_id()
@@ -401,7 +415,10 @@ $$ LANGUAGE SQL SECURITY DEFINER STABLE;
 
 -- RLS Policies (company-scoped access)
 CREATE POLICY "Users can view own company" ON companies
-  FOR SELECT USING (id = get_user_company_id());
+  FOR SELECT USING (
+    id = get_user_company_id()
+    OR id IN (SELECT company_id FROM company_members WHERE profile_id = auth.uid())
+  );
 
 CREATE POLICY "Authenticated users can create company" ON companies
   FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
@@ -417,6 +434,12 @@ CREATE POLICY "Users can insert own profile" ON profiles
 
 CREATE POLICY "Users can update own profile" ON profiles
   FOR UPDATE USING (id = auth.uid());
+
+CREATE POLICY "Users can view own memberships" ON company_members
+  FOR SELECT USING (profile_id = auth.uid());
+
+CREATE POLICY "Users can view company memberships" ON company_members
+  FOR SELECT USING (company_id = get_user_company_id());
 
 CREATE POLICY "Company members can view customers" ON customers
   FOR ALL USING (company_id = get_user_company_id());
@@ -814,6 +837,10 @@ BEGIN
       role = v_invite.role
   WHERE id = auth.uid();
 
+  INSERT INTO company_members (company_id, profile_id, role)
+  VALUES (v_invite.company_id, auth.uid(), v_invite.role)
+  ON CONFLICT (company_id, profile_id) DO UPDATE SET role = EXCLUDED.role;
+
   RETURN TRUE;
 END;
 $$;
@@ -925,3 +952,27 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.check_rate_limit(TEXT, INTEGER, INTEGER) TO service_role;
+
+-- Accessible companies for multi-tenant switcher
+CREATE OR REPLACE FUNCTION get_accessible_companies()
+RETURNS SETOF companies
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT c.*
+  FROM companies c
+  INNER JOIN company_members cm ON cm.company_id = c.id
+  WHERE cm.profile_id = auth.uid()
+  ORDER BY c.name;
+$$;
+
+GRANT EXECUTE ON FUNCTION get_accessible_companies() TO authenticated;
+
+-- Backfill memberships from existing profiles
+INSERT INTO company_members (company_id, profile_id, role)
+SELECT company_id, id, role
+FROM profiles
+WHERE company_id IS NOT NULL
+ON CONFLICT (company_id, profile_id) DO NOTHING;

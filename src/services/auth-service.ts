@@ -176,6 +176,13 @@ export async function registerUserWithCompany(
   const { error: profileError } = await upsertRows('profiles', profile)
   if (profileError) throw profileError
 
+  const { error: memberError } = await insertRows('company_members', {
+    company_id: companyId,
+    profile_id: authData.user.id,
+    role: 'owner',
+  })
+  if (memberError) throw memberError
+
   return { profile, company }
 }
 

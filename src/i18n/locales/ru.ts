@@ -427,6 +427,12 @@ export const ru = {
     q3: 'Какой мастер самый прибыльный?',
     q4: 'Как увеличить прибыль?',
   },
+  header: {
+    notifications: 'Уведомления',
+    noNotifications: 'Нет недавних уведомлений',
+    clearNotifications: 'Очистить',
+    demoQueued: 'Демо',
+  },
   settings: {
     title: 'Настройки',
     description: 'Конфигурация компании и подписка',

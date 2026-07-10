@@ -111,6 +111,14 @@ export function getNotificationQueue(): NotificationPayload[] {
   return loadQueue()
 }
 
+export function clearNotificationQueue(): void {
+  saveQueue([])
+}
+
+export function getNotificationQueueSize(): number {
+  return loadQueue().length
+}
+
 export async function flushNotificationQueue(): Promise<number> {
   const emailEndpoint = getNotificationEndpoint()
   const smsEndpoint = getSmsEndpoint()

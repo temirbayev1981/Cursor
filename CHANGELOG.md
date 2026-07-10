@@ -4,6 +4,14 @@ All notable changes to HandymanOS AI are documented here.
 
 ## [Unreleased]
 
+### Phase 27 — Observability & multi-tenant membership
+- Notification bell panel in header (queue preview, clear, badge count)
+- `@sentry/react` SDK when `VITE_SENTRY_DSN` is set (with store API fallback)
+- `company_members` junction table + `get_accessible_companies` RPC
+- Production company switcher validates membership via RPC
+- Owner signup creates membership row; invite accept upserts membership
+- Fixed `react-hooks/exhaustive-deps` in work-orders and technician-mobile
+
 ### Phase 26 — Production polish
 - Company settings persist to Supabase via `updateCompanyProfile` + auth context refresh
 - Portal i18n: `portalAccess` strings, empty invoice state, sign-out labels

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Bell, Menu } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { Sidebar } from './sidebar'
 import { GlobalSearch } from '@/components/shared/global-search'
 import { Button } from '@/components/ui/button'
 import { LanguageSwitcher } from '@/components/shared/language-switcher'
+import { NotificationBell } from '@/components/layout/notification-bell'
 import { useIsMobileNav } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'
 
@@ -75,10 +76,7 @@ export function AppLayout() {
           <GlobalSearch />
           <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
             <LanguageSwitcher compact />
-            <Button variant="ghost" size="icon" className="relative h-9 w-9">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
-            </Button>
+            <NotificationBell />
           </div>
         </header>
 

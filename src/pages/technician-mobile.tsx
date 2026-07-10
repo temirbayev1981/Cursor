@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Phone, Navigation, Camera, Clock, CheckCircle, Play, Square, WifiOff, CloudOff } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -55,11 +55,14 @@ export default function TechnicianMobilePage() {
     employees.find((e) => e.profile_id === user?.id) ??
     employees.find((e) => e.is_active && e.billing_rate > 0 && /technician/i.test(e.role))
 
-  const syncContext = {
-    companyId,
-    employeeId: myEmployee?.id,
-    profileId: user?.id,
-  }
+  const syncContext = useMemo(
+    () => ({
+      companyId,
+      employeeId: myEmployee?.id,
+      profileId: user?.id,
+    }),
+    [companyId, myEmployee?.id, user?.id],
+  )
 
   const myJobs = jobs
     .filter((j) => {
@@ -132,7 +135,7 @@ export default function TechnicianMobilePage() {
         toast.info(t.techMobile.synced)
       }
     })()
-  }, [online, t.techMobile.synced, companyId, myEmployee?.id, user?.id])
+  }, [online, t.techMobile.synced, syncContext, qc, companyId])
 
   const getJobPhone = (job: Job) => customers.find((c) => c.id === job.customer_id)?.phone
 
