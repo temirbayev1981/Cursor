@@ -677,6 +677,8 @@ export const ru = {
       fleet_audit: 'Аудит автопарка',
       expense_audit: 'Аудит расходов',
       fuel_log_audit: 'Аудит топлива',
+      tech_offline_sync_audit: 'E2E офлайн-синхронизация техника',
+      field_ops_milestone_audit: 'Майлстоун field-ops завершён',
       dispatch_audit: 'Аудит диспетчеризации',
       vendor_po_audit: 'Аудит vendor PO',
       company_profile_audit: 'Аудит профиля компании',

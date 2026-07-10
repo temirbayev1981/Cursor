@@ -67,6 +67,12 @@ export const EXPENSE_AUDIT = true as const
 /** Fuel log mutations write audit_logs. */
 export const FUEL_LOG_AUDIT = true as const
 
+/** Technician mobile offline sync E2E covers queue and reconnect. */
+export const TECH_OFFLINE_SYNC_AUDIT = true as const
+
+/** Field-ops milestone: fleet, dispatch, inventory, and offline sync gates complete. */
+export const FIELD_OPS_MILESTONE_AUDIT = true as const
+
 /** Dispatch board status changes write audit_logs. */
 export const DISPATCH_AUDIT = true as const
 

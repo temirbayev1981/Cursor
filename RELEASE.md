@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.11.2
+# HandymanOS AI — Release 1.12.0
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.11.2`**, current package **1.11.2**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.12.0`**, current package **1.12.0**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -130,6 +130,11 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Locale-aware notification templates; observability probe gate uses live results
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
+
+### 1.12.0 — Field-ops milestone
+- Technician offline sync E2E gated via `tech_offline_sync_audit`
+- Settings exposes inventory, fleet, dispatch, and field-ops milestone audit checks
+- Platform audit `field_ops_milestone_audit` gate
 
 ### 1.11.2 — Hub skip CSV email channel
 - Skip log CSV includes email/SMS summary header line
