@@ -3,6 +3,7 @@ import type { Profile, Company, UserRole, OnboardingData } from '@/types'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
 import { DEMO_COMPANY } from '@/data/mock-data'
 import { getStoredCompany, persistOnboarding } from '@/services/onboarding-service'
+import { registerUserWithCompany, loadUserSession, isOnboardingComplete } from '@/services/auth-service'
 
 interface AuthContextType {
   user: Profile | null
@@ -33,52 +34,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Profile | null>(null)
   const [company, setCompany] = useState<Company | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [onboardingComplete, setOnboardingComplete] = useState(
-    () => localStorage.getItem('handymanos_onboarding') === 'complete'
-  )
+  const [onboardingComplete, setOnboardingComplete] = useState(false)
 
   const restoreSession = useCallback(async () => {
     if (DEMO_MODE) {
       const stored = localStorage.getItem('handymanos_auth')
       if (stored === 'true') {
         setUser(DEMO_USER)
-        setCompany(getStoredCompany() ?? DEMO_COMPANY)
+        const comp = getStoredCompany() ?? DEMO_COMPANY
+        setCompany(comp)
+        setOnboardingComplete(localStorage.getItem('handymanos_onboarding') === 'complete')
       }
       setIsLoading(false)
       return
     }
 
-    if (!supabase) {
-      setIsLoading(false)
-      return
-    }
-
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session?.user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single()
-
-      if (profile) {
-        setUser(profile as unknown as Profile)
-        const { data: comp } = await supabase
-          .from('companies')
-          .select('*')
-          .eq('id', (profile as { company_id: string }).company_id)
-          .single()
-        if (comp) setCompany(comp as unknown as Company)
-      }
+    const session = await loadUserSession()
+    if (session) {
+      setUser(session.profile)
+      setCompany(session.company)
+      setOnboardingComplete(isOnboardingComplete(session.company))
+      localStorage.setItem('handymanos_auth', 'true')
     }
     setIsLoading(false)
 
-    supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!session) {
-        setUser(null)
-        setCompany(null)
-      }
-    })
+    if (supabase) {
+      supabase.auth.onAuthStateChange(async (_event, authSession) => {
+        if (!authSession) {
+          setUser(null)
+          setCompany(null)
+          setOnboardingComplete(false)
+          localStorage.removeItem('handymanos_auth')
+        }
+      })
+    }
   }, [])
 
   useEffect(() => { restoreSession() }, [restoreSession])
@@ -88,34 +77,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('handymanos_auth', 'true')
       setUser({ ...DEMO_USER, email, full_name: fullName })
       setCompany(getStoredCompany() ?? DEMO_COMPANY)
+      setOnboardingComplete(localStorage.getItem('handymanos_onboarding') === 'complete')
       return
     }
 
-    if (!supabase) throw new Error('Supabase not configured')
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName } },
-    })
-    if (error) throw error
-    if (data.user) {
-      setUser({
-        id: data.user.id,
-        company_id: 'comp-001',
-        email,
-        full_name: fullName,
-        role: 'owner',
-        created_at: new Date().toISOString(),
-      })
-      localStorage.setItem('handymanos_auth', 'true')
-    }
+    const { profile, company: newCompany } = await registerUserWithCompany(email, password, fullName)
+    setUser(profile)
+    setCompany(newCompany)
+    setOnboardingComplete(false)
+    localStorage.setItem('handymanos_auth', 'true')
   }
 
   const signIn = async (email: string, password: string) => {
     if (DEMO_MODE) {
       localStorage.setItem('handymanos_auth', 'true')
       setUser({ ...DEMO_USER, email })
-      setCompany(getStoredCompany() ?? DEMO_COMPANY)
+      const comp = getStoredCompany() ?? DEMO_COMPANY
+      setCompany(comp)
+      setOnboardingComplete(localStorage.getItem('handymanos_onboarding') === 'complete')
       return
     }
 
@@ -130,12 +109,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (supabase && !DEMO_MODE) await supabase.auth.signOut()
     setUser(null)
     setCompany(null)
+    setOnboardingComplete(false)
   }
 
   const completeOnboarding = async (data?: OnboardingData) => {
     if (data && user) {
-      const company = await persistOnboarding(data, user.company_id, user.id)
-      setCompany(company)
+      const updatedCompany = await persistOnboarding(data, user.company_id, user.id)
+      setCompany(updatedCompany)
     } else {
       localStorage.setItem('handymanos_onboarding', 'complete')
     }

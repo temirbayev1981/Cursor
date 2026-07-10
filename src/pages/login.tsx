@@ -19,7 +19,7 @@ export default function LoginPage() {
   const [fullName, setFullName] = useState('')
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [loading, setLoading] = useState(false)
-  const { signIn, signUp, onboardingComplete } = useAuth()
+  const { signIn, signUp } = useAuth()
   const { t, locale } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -40,7 +40,8 @@ export default function LoginPage() {
       } else {
         await signIn(email, password)
       }
-      navigate(onboardingComplete ? '/dashboard' : '/onboarding')
+      const complete = localStorage.getItem('handymanos_onboarding') === 'complete'
+      navigate(complete ? '/dashboard' : '/onboarding')
     } catch {
       toast.error(locale === 'ru' ? 'Ошибка авторизации' : 'Auth error')
     } finally {

@@ -1,3 +1,5 @@
+import { getNotificationEndpoint, getSmsEndpoint } from '@/lib/env'
+
 export type NotificationChannel = 'email' | 'sms' | 'push'
 
 export interface NotificationPayload {
@@ -24,7 +26,7 @@ function saveQueue(items: NotificationPayload[]) {
 }
 
 export async function sendNotification(payload: NotificationPayload): Promise<{ ok: boolean; demo: boolean }> {
-  const webhook = import.meta.env.VITE_NOTIFICATION_WEBHOOK_URL as string | undefined
+  const webhook = getNotificationEndpoint()
 
   if (webhook) {
     try {
@@ -77,7 +79,7 @@ export async function notifyEstimateSent(customerEmail: string, title: string, t
 }
 
 export async function sendSms(to: string, body: string): Promise<{ ok: boolean; demo: boolean }> {
-  const smsWebhook = import.meta.env.VITE_SMS_WEBHOOK_URL as string | undefined
+  const smsWebhook = getSmsEndpoint()
   if (smsWebhook) {
     try {
       const res = await fetch(smsWebhook, {

@@ -10,7 +10,7 @@ import { useState } from 'react'
 import { useAuth } from '@/contexts/auth-context'
 import { useTheme } from '@/contexts/theme-context'
 import { useTranslation } from '@/contexts/locale-context'
-import { hasStripe, hasGoogleMaps, hasOpenAI, hasSupabase, hasSms, hasNotificationWebhook } from '@/lib/env'
+import { hasStripe, hasGoogleMaps, hasOpenAI, hasSupabase, hasNotificationWebhook } from '@/lib/env'
 import { useImportDemoSeed } from '@/hooks/use-entities'
 import { getNotificationQueue } from '@/services/notification-service'
 import { getErrorReports } from '@/lib/observability'
@@ -38,7 +38,7 @@ export default function SettingsPage() {
     maps: hasGoogleMaps ? 'connected' : 'configure',
     openai: hasOpenAI ? 'connected' : 'configure',
     supabase: hasSupabase ? 'connected' : 'configure',
-    email: hasNotificationWebhook || hasSms ? 'connected' : 'configure',
+    email: hasNotificationWebhook || hasSupabase ? 'connected' : 'configure',
   }
 
   const importDemoSeed = useImportDemoSeed()

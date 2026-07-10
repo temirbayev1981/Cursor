@@ -50,46 +50,53 @@ VITE_STRIPE_CHECKOUT_ENDPOINT=https://YOUR_PROJECT_REF.supabase.co/functions/v1/
 
 The Edge Function template lives at `supabase/functions/create-checkout-session/index.ts`. It creates a Stripe Checkout session and returns `{ sessionId }` for `StripePayButton`.
 
-### Optional webhook
+### Stripe webhook (auto-mark invoices paid)
 
-For automatic invoice status updates after payment, add a Stripe webhook endpoint (separate Edge Function or server) listening for `checkout.session.completed` and updating the `invoices` table.
+```bash
+supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...
+supabase secrets set SUPABASE_SERVICE_ROLE_KEY=eyJ...  # service role, auto-injected in hosted Supabase
+supabase functions deploy stripe-webhook --no-verify-jwt
+```
+
+In Stripe Dashboard → Webhooks, point to:
+`https://YOUR_PROJECT_REF.supabase.co/functions/v1/stripe-webhook`
+
+Events: `checkout.session.completed`
+
+The webhook updates `invoices` and inserts into `payments` using the service role.
 
 ---
 
-## 3. SMS (Twilio via webhook)
+## 3. SMS (Twilio Edge Function)
 
-HandymanOS sends SMS by POSTing to `VITE_SMS_WEBHOOK_URL`. Implement a small serverless handler:
-
-```json
-POST /sms
-{ "to": "+15551234567", "body": "Новый заказ: ...", "provider": "twilio" }
+```bash
+supabase secrets set TWILIO_ACCOUNT_SID=AC...
+supabase secrets set TWILIO_AUTH_TOKEN=...
+supabase secrets set TWILIO_PHONE_NUMBER=+1...
+supabase functions deploy send-sms
 ```
 
-Example (Node/Express + Twilio):
+When `VITE_SUPABASE_URL` is set, the app auto-routes SMS to:
+`{SUPABASE_URL}/functions/v1/send-sms`
 
-```js
-app.post('/sms', async (req, res) => {
-  const { to, body } = req.body
-  await twilioClient.messages.create({ to, from: process.env.TWILIO_FROM, body })
-  res.json({ ok: true })
-})
-```
+Or override with `VITE_SMS_WEBHOOK_URL`.
 
-```env
-VITE_SMS_WEBHOOK_URL=https://your-api.com/sms
-```
-
-SMS is triggered when:
-- Dispatch moves a job to **scheduled** (technician notification)
-- Future: customer appointment reminders
+SMS is triggered when dispatch moves a job to **scheduled**.
 
 ---
 
-## 4. Email notifications
+## 4. Email (Resend Edge Function)
 
-```env
-VITE_NOTIFICATION_WEBHOOK_URL=https://your-api.com/notify
+```bash
+supabase secrets set RESEND_API_KEY=re_...
+supabase secrets set RESEND_FROM_EMAIL="HandymanOS <billing@yourdomain.com>"
+supabase functions deploy send-notification
 ```
+
+When Supabase is configured, email notifications auto-route to:
+`{SUPABASE_URL}/functions/v1/send-notification`
+
+Or override with `VITE_NOTIFICATION_WEBHOOK_URL`.
 
 Payload:
 
@@ -98,16 +105,24 @@ Payload:
   "to": "customer@example.com",
   "subject": "Смета: Bathroom Repair",
   "body": "...",
-  "channel": "email",
-  "metadata": { "type": "estimate_sent" }
+  "channel": "email"
 }
 ```
 
-Without a webhook, notifications are queued in `localStorage` (visible in **Settings → System**).
+Without a webhook, notifications queue in `localStorage` (Settings → System).
 
 ---
 
-## 5. Optional integrations
+## 5. Production auth flow
+
+1. User signs up → `registerUserWithCompany` creates auth user, company, and owner profile
+2. SQL trigger `handle_new_user` ensures a profile row exists as fallback
+3. User completes 6-step onboarding → company settings saved with `onboarded_at`
+4. Sign-in restores session from Supabase `profiles` + `companies`
+
+---
+
+## 6. Optional integrations
 
 | Variable | Service |
 |----------|---------|
@@ -117,7 +132,7 @@ Without a webhook, notifications are queued in `localStorage` (visible in **Sett
 
 ---
 
-## 6. Build & deploy frontend
+## 7. Build & deploy frontend
 
 ```bash
 npm run build
@@ -128,7 +143,7 @@ Set all `VITE_*` env vars in your hosting provider.
 
 ---
 
-## 7. E2E tests (CI)
+## 8. E2E tests (CI)
 
 ```bash
 npm run test:e2e
@@ -138,7 +153,7 @@ Playwright builds the app, runs smoke tests and portal tests against `http://127
 
 ---
 
-## 8. PWA
+## 9. PWA
 
 Service worker (`public/sw.js`) is registered in production builds. Ensure your host serves `/sw.js` and `/manifest.json` with correct cache headers.
 
@@ -149,7 +164,8 @@ Service worker (`public/sw.js`) is registered in production builds. Ensure your 
 - [ ] `supabase/schema.sql` applied
 - [ ] Demo data imported (or real data entered)
 - [ ] Stripe Edge Function deployed + `VITE_STRIPE_CHECKOUT_ENDPOINT` set
-- [ ] SMS webhook deployed + `VITE_SMS_WEBHOOK_URL` set
-- [ ] Email webhook (optional) + `VITE_NOTIFICATION_WEBHOOK_URL` set
+- [ ] `stripe-webhook` deployed + Stripe webhook configured
+- [ ] `send-sms` deployed with Twilio secrets (or custom `VITE_SMS_WEBHOOK_URL`)
+- [ ] `send-notification` deployed with Resend (or custom `VITE_NOTIFICATION_WEBHOOK_URL`)
 - [ ] Frontend deployed with all env vars
 - [ ] `npm run test:e2e` passes in CI

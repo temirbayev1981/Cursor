@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Plus, Mail, X } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
@@ -9,7 +10,7 @@ import { StripePayButton } from '@/components/payments/stripe-pay-button'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/contexts/auth-context'
-import { useInvoices, useCustomers, useSaveInvoice, useSendInvoice } from '@/hooks/use-entities'
+import { useInvoices, useCustomers, useSaveInvoice, useSendInvoice, usePayInvoice } from '@/hooks/use-entities'
 import { generateInvoiceNumber } from '@/services/payment-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
@@ -25,6 +26,7 @@ function isThisMonth(dateStr: string): boolean {
 export default function InvoicesPage() {
   const { t, locale } = useTranslation()
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
+  const [searchParams, setSearchParams] = useSearchParams()
   const [showForm, setShowForm] = useState(false)
   const { company } = useAuth()
   const companyId = company?.id ?? 'comp-001'
@@ -32,6 +34,29 @@ export default function InvoicesPage() {
   const { data: customers = [], isLoading: customersLoading } = useCustomers()
   const saveInvoice = useSaveInvoice()
   const sendInvoice = useSendInvoice()
+  const payInvoice = usePayInvoice()
+  const processedPaidRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    const paidId = searchParams.get('paid')
+    if (!paidId || invoices.length === 0 || processedPaidRef.current === paidId) return
+    const invoice = invoices.find((i) => i.id === paidId)
+    if (!invoice || invoice.status === 'paid') {
+      setSearchParams({}, { replace: true })
+      return
+    }
+    processedPaidRef.current = paidId
+    payInvoice.mutate(
+      { invoice, amount: invoice.total - invoice.amount_paid },
+      {
+        onSuccess: () => {
+          toast.success(locale === 'ru' ? 'Оплата получена' : 'Payment received')
+          setSearchParams({}, { replace: true })
+          refetch()
+        },
+      }
+    )
+  }, [searchParams, invoices, payInvoice, setSearchParams, refetch, locale])
 
   const outstanding = invoices.filter((i) => i.status !== 'paid').reduce((s, i) => s + (i.total - i.amount_paid), 0)
   const paidMonth = invoices

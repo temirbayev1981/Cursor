@@ -1,4 +1,4 @@
-import { hasStripe, env } from '@/lib/env'
+import { hasStripe, env, getStripeCheckoutEndpoint } from '@/lib/env'
 
 type StripeInstance = {
   redirectToCheckout: (opts: { sessionId: string }) => Promise<{ error?: { message: string } }>
@@ -23,7 +23,7 @@ export async function startStripeCheckout(params: {
   amount: number
   customerEmail?: string
 }): Promise<'redirected' | 'demo' | 'error'> {
-  const endpoint = import.meta.env.VITE_STRIPE_CHECKOUT_ENDPOINT as string | undefined
+  const endpoint = getStripeCheckoutEndpoint()
 
   if (!hasStripe) return 'demo'
 

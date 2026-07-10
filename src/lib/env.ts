@@ -20,3 +20,23 @@ export const hasGoogleMaps = Boolean(env.VITE_GOOGLE_MAPS_API_KEY)
 export const hasOpenAI = Boolean(env.VITE_OPENAI_API_KEY)
 export const hasNotificationWebhook = Boolean(env.VITE_NOTIFICATION_WEBHOOK_URL)
 export const hasSms = Boolean(env.VITE_SMS_WEBHOOK_URL)
+
+export function getSupabaseFunctionsUrl(): string | null {
+  if (!env.VITE_SUPABASE_URL) return null
+  return `${env.VITE_SUPABASE_URL}/functions/v1`
+}
+
+export function getNotificationEndpoint(): string | undefined {
+  return env.VITE_NOTIFICATION_WEBHOOK_URL
+    ?? (hasSupabase ? `${getSupabaseFunctionsUrl()}/send-notification` : undefined)
+}
+
+export function getSmsEndpoint(): string | undefined {
+  return env.VITE_SMS_WEBHOOK_URL
+    ?? (hasSupabase ? `${getSupabaseFunctionsUrl()}/send-sms` : undefined)
+}
+
+export function getStripeCheckoutEndpoint(): string | undefined {
+  return env.VITE_STRIPE_CHECKOUT_ENDPOINT
+    ?? (hasSupabase ? `${getSupabaseFunctionsUrl()}/create-checkout-session` : undefined)
+}
