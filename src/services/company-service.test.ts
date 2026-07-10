@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { DEMO_COMPANY, DEMO_COMPANY_B } from '@/data/mock-data'
-import { listAccessibleCompanies, registerCompany, setActiveCompany, resolveActiveCompany } from './company-service'
+import { listAccessibleCompanies, registerCompany, setActiveCompany, resolveActiveCompany, fetchAccessibleCompanies } from './company-service'
 
 describe('company-service', () => {
   beforeEach(() => {
@@ -21,5 +21,10 @@ describe('company-service', () => {
     const active = resolveActiveCompany(DEMO_COMPANY)
     expect(active.id).toBe('comp-999')
     expect(active.name).toBe('Custom Co')
+  })
+
+  it('fetchAccessibleCompanies returns demo registry in demo mode', async () => {
+    const companies = await fetchAccessibleCompanies()
+    expect(companies.length).toBeGreaterThanOrEqual(2)
   })
 })

@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { useTranslation } from '@/contexts/locale-context'
 import { useOnlineStatus } from '@/hooks/use-online-status'
 import { useQueryClient } from '@tanstack/react-query'
+import { supabase, DEMO_MODE } from '@/lib/supabase'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import { loadStore, saveStore, upsertStore, STORE_KEYS } from '@/lib/data-store'
 import { queueOfflineAction, getOfflineQueue, syncOfflineQueue } from '@/lib/pwa'
@@ -70,6 +71,27 @@ export default function TechnicianMobilePage() {
   const activeEntry = activeJobId
     ? timeEntries.find((e) => e.job_id === activeJobId && !e.end)
     : undefined
+
+  useEffect(() => {
+    if (DEMO_MODE || !supabase || !myEmployee?.id) return
+    const client = supabase
+
+    const channel = client
+      .channel(`jobs:tech:${myEmployee.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'jobs',
+          filter: `assigned_technician_id=eq.${myEmployee.id}`,
+        },
+        () => { void qc.invalidateQueries({ queryKey: ['jobs', companyId] }) },
+      )
+      .subscribe()
+
+    return () => { void client.removeChannel(channel) }
+  }, [myEmployee?.id, companyId, qc])
 
   useEffect(() => {
     setTimeEntries(loadStore<LocalTimeEntry>(STORE_KEYS.timeEntries))

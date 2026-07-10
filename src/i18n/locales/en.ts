@@ -82,6 +82,15 @@ export const en: TranslationKeys = {
     acceptInvite: 'Accept the invite by signing up below',
     portalDemoAccess: 'Demo customer portal access',
   },
+  techOnboarding: {
+    title: 'Technician setup',
+    subtitle: 'Confirm your profile before starting field work',
+    fullName: 'Full name',
+    phone: 'Mobile phone',
+    skillsHint: 'Select your skills (optional)',
+    finish: 'Start working',
+    complete: 'Profile saved — welcome aboard!',
+  },
   onboarding: {
     company: 'Company',
     companyDesc: 'Business information',

@@ -17,7 +17,7 @@ test.describe('Team invite flow', () => {
     }, INVITE_TOKEN)
   })
 
-  test('technician invite signup redirects to mobile app', async ({ page }) => {
+  test('technician invite signup completes lite onboarding', async ({ page }) => {
     await page.goto(`/login?invite=${INVITE_TOKEN}`)
     await expect(page.getByText(/пригласили|invited/i).first()).toBeVisible()
     await expect(page.getByText('technician')).toBeVisible()
@@ -30,6 +30,15 @@ test.describe('Team invite flow', () => {
     }
 
     await page.getByRole('button', { name: /зарегистрироваться|sign up/i }).click()
+    await expect(page).toHaveURL(/\/tech-onboarding/, { timeout: 10000 })
+    await expect(page.getByText(/technician setup|настройка мастера/i).first()).toBeVisible()
+
+    await page.locator('input').first().fill('Test Technician')
+    await page.getByPlaceholder('(555)').fill('(555) 999-0000')
+    await page.getByRole('button', { name: /далее|next/i }).click()
+    await page.getByText('Plumbing').click()
+    await page.getByRole('button', { name: /start working|начать работу/i }).click()
+
     await expect(page).toHaveURL(/\/tech/, { timeout: 10000 })
     await expect(page.getByRole('heading', { name: /мои заказы|my jobs/i })).toBeVisible()
   })

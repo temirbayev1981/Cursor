@@ -1,4 +1,5 @@
 import type { UserRole } from '@/types'
+import { isTechOnboardingPending } from '@/services/tech-onboarding-service'
 
 const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
   owner: ['*'],
@@ -15,7 +16,9 @@ export function canAccess(role: UserRole, module: string): boolean {
 }
 
 export function getDefaultRoute(role: UserRole): string {
-  if (role === 'technician') return '/tech'
+  if (role === 'technician') {
+    return isTechOnboardingPending() ? '/tech-onboarding' : '/tech'
+  }
   if (role === 'customer') return '/portal/customer'
   return '/dashboard'
 }

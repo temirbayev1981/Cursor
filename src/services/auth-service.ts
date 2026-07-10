@@ -1,8 +1,42 @@
-import type { Company, Profile, UserRole } from '@/types'
+import type { Company, Profile, UserRole, Employee } from '@/types'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
 import { DEMO_COMPANY } from '@/data/mock-data'
 import { shouldSkipOnboardingForRole } from '@/lib/permissions'
 import { getTeamInvitePreview, acceptTeamInvite } from '@/services/invite-service'
+import { setTechOnboardingPending } from '@/services/tech-onboarding-service'
+import { loadStore, STORE_KEYS } from '@/lib/data-store'
+import { saveEntity } from '@/services/entity-service'
+
+async function ensureEmployeeForInvite(
+  profileId: string,
+  companyId: string,
+  fullName: string,
+  role: UserRole,
+): Promise<void> {
+  if (role !== 'technician') return
+
+  const existing = loadStore<Employee>(STORE_KEYS.employees).find(
+    (employee) => employee.profile_id === profileId && employee.company_id === companyId,
+  )
+  if (existing) return
+
+  await saveEntity('employees', {
+    id: crypto.randomUUID(),
+    company_id: companyId,
+    profile_id: profileId,
+    name: fullName,
+    role: 'Technician',
+    hourly_wage: 0,
+    billing_rate: 0,
+    payroll_tax_rate: 0.0765,
+    insurance_cost_monthly: 200,
+    benefits_monthly: 150,
+    overhead_allocation: 0.15,
+    is_active: true,
+    skills: [],
+    created_at: new Date().toISOString(),
+  })
+}
 
 function getStoredCompanyForInvite(companyId: string): Company {
   try {
@@ -38,6 +72,8 @@ export async function registerUserWithInvite(
       role: invite.role,
       created_at: new Date().toISOString(),
     }
+    await ensureEmployeeForInvite(profile.id, invite.company_id, fullName, invite.role)
+    if (invite.role === 'technician') setTechOnboardingPending(true)
     return { profile, company: getStoredCompanyForInvite(invite.company_id) }
   }
 
@@ -70,6 +106,8 @@ export async function registerUserWithInvite(
     .single()
 
   const linkedProfile = (profileRow as unknown as Profile) ?? profile
+  await ensureEmployeeForInvite(linkedProfile.id, preview.company_id, fullName, preview.role)
+  if (preview.role === 'technician') setTechOnboardingPending(true)
 
   const { data: company } = await supabase
     .from('companies')

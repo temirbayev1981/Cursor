@@ -16,6 +16,8 @@ import type { UserRole } from '@/types'
 import LoginPage from '@/pages/login'
 import OnboardingPage from '@/pages/onboarding'
 import TechnicianMobilePage from '@/pages/technician-mobile'
+import TechnicianOnboardingPage from '@/pages/technician-onboarding'
+import { isTechOnboardingPending } from '@/services/tech-onboarding-service'
 
 const DashboardPage = lazy(() => import('@/pages/dashboard'))
 const JobsPage = lazy(() => import('@/pages/jobs'))
@@ -62,7 +64,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (user && user.role === 'technician') {
-    return <Navigate to="/tech" replace />
+    return <Navigate to={getDefaultRoute('technician')} replace />
   }
 
   return <>{children}</>
@@ -71,6 +73,15 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function RoleRoute({ module, children }: { module: string; children: React.ReactNode }) {
   const { user } = useAuth()
   if (!user || !canAccess(user.role, module)) return <Navigate to={getDefaultRoute(user?.role ?? 'owner')} replace />
+  return <>{children}</>
+}
+
+function TechOnboardingRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading, user } = useAuth()
+  if (isLoading) return <PageLoader />
+  if (!isAuthenticated) return <Navigate to="/login" replace />
+  if (!user || user.role !== 'technician') return <Navigate to="/dashboard" replace />
+  if (!isTechOnboardingPending()) return <Navigate to="/tech" replace />
   return <>{children}</>
 }
 
@@ -83,6 +94,9 @@ function TechnicianRoute({ children }: { children: React.ReactNode }) {
   }
   const allowed: UserRole[] = ['technician', 'owner', 'admin', 'dispatcher']
   if (!user || !allowed.includes(user.role)) return <Navigate to="/dashboard" replace />
+  if (user.role === 'technician' && isTechOnboardingPending()) {
+    return <Navigate to="/tech-onboarding" replace />
+  }
   return <>{children}</>
 }
 
@@ -102,6 +116,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
+        <Route path="/tech-onboarding" element={<TechOnboardingRoute><TechnicianOnboardingPage /></TechOnboardingRoute>} />
         <Route path="/tech" element={<TechnicianRoute><TechnicianMobilePage /></TechnicianRoute>} />
         <Route path="/portal/access" element={<PortalAccessPage />} />
         <Route path="/portal/property" element={<PortalRoute portalType="property"><PropertyPortalPage /></PortalRoute>} />

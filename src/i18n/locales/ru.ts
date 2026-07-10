@@ -80,6 +80,15 @@ export const ru = {
     acceptInvite: 'Примите приглашение, зарегистрировавшись',
     portalDemoAccess: 'Демо-доступ к порталу клиента',
   },
+  techOnboarding: {
+    title: 'Настройка мастера',
+    subtitle: 'Подтвердите профиль перед выездом на объекты',
+    fullName: 'Имя',
+    phone: 'Телефон',
+    skillsHint: 'Выберите навыки (необязательно)',
+    finish: 'Начать работу',
+    complete: 'Профиль сохранён — добро пожаловать!',
+  },
   onboarding: {
     company: 'Компания',
     companyDesc: 'Информация о бизнесе',

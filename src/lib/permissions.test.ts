@@ -1,7 +1,12 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { resolvePostAuthRoute, shouldSkipOnboardingForRole } from './permissions'
+import { setTechOnboardingPending } from '@/services/tech-onboarding-service'
 
 describe('permissions post-auth routing', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
   it('sends owner without onboarding to wizard', () => {
     expect(resolvePostAuthRoute({ role: 'owner', onboardingComplete: false })).toBe('/onboarding')
   })
@@ -10,8 +15,11 @@ describe('permissions post-auth routing', () => {
     expect(resolvePostAuthRoute({ role: 'owner', onboardingComplete: true })).toBe('/dashboard')
   })
 
-  it('sends invited technician directly to mobile app', () => {
+  it('sends invited technician to lite onboarding when pending', () => {
     expect(shouldSkipOnboardingForRole('technician')).toBe(true)
+    setTechOnboardingPending(true)
+    expect(resolvePostAuthRoute({ role: 'technician', onboardingComplete: false })).toBe('/tech-onboarding')
+    setTechOnboardingPending(false)
     expect(resolvePostAuthRoute({ role: 'technician', onboardingComplete: false })).toBe('/tech')
   })
 

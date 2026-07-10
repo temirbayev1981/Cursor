@@ -7,6 +7,7 @@ import { registerUserWithCompany, loadUserSession, markOnboardingCompleteForInvi
 import { type PostAuthState } from '@/lib/permissions'
 import { resolveActiveCompany, setActiveCompany, registerCompany, listAccessibleCompanies } from '@/services/company-service'
 import { logAudit } from '@/services/entity-service'
+import { setTechOnboardingPending } from '@/services/tech-onboarding-service'
 
 interface AuthContextType {
   user: Profile | null
@@ -137,6 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     localStorage.removeItem('handymanos_auth')
+    setTechOnboardingPending(false)
     if (supabase && !DEMO_MODE) await supabase.auth.signOut()
     setUser(null)
     setCompany(null)

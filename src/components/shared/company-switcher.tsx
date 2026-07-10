@@ -1,9 +1,8 @@
 import { Building2 } from 'lucide-react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
 import { useTranslation } from '@/contexts/locale-context'
-import { listAccessibleCompanies } from '@/services/company-service'
-import { DEMO_MODE } from '@/lib/supabase'
+import { fetchAccessibleCompanies } from '@/services/company-service'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 
@@ -12,12 +11,16 @@ interface CompanySwitcherProps {
 }
 
 export function CompanySwitcher({ collapsed }: CompanySwitcherProps) {
-  const { company, switchCompany } = useAuth()
+  const { company, switchCompany, user } = useAuth()
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const companies = listAccessibleCompanies()
+  const { data: companies = [] } = useQuery({
+    queryKey: ['accessible-companies', user?.id],
+    queryFn: () => fetchAccessibleCompanies(user),
+    enabled: Boolean(user),
+  })
 
-  if (!DEMO_MODE || companies.length < 2) return null
+  if (companies.length < 2) return null
 
   const handleChange = async (companyId: string) => {
     if (companyId === company?.id) return
