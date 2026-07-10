@@ -7,13 +7,14 @@ import { Badge } from '@/components/ui/badge'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { VehicleForm } from '@/components/forms/vehicle-form'
+import { FuelLogForm } from '@/components/forms/fuel-log-form'
 import { useAuth } from '@/contexts/auth-context'
-import { useVehicles, useFuelLogs, useSaveVehicle } from '@/hooks/use-entities'
+import { useVehicles, useFuelLogs, useSaveVehicle, useSaveFuelLog } from '@/hooks/use-entities'
 import { formatCurrencyPrecise, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
-import type { Vehicle } from '@/types'
+import type { Vehicle, FuelLog } from '@/types'
 
 export default function VehiclesPage() {
   const { t } = useTranslation()
@@ -21,9 +22,11 @@ export default function VehiclesPage() {
   const { company } = useAuth()
   const companyId = company?.id ?? 'comp-001'
   const [showForm, setShowForm] = useState(false)
+  const [showFuelForm, setShowFuelForm] = useState(false)
   const { data: vehicles = [], isLoading: vehLoading } = useVehicles()
   const { data: fuelLogs = [], isLoading: fuelLoading } = useFuelLogs()
   const saveVehicle = useSaveVehicle()
+  const saveFuelLog = useSaveFuelLog()
   const totalFuelCost = fuelLogs.reduce((s, l) => s + l.total_cost, 0)
   const totalMiles = fuelLogs.reduce((s, l) => s + l.miles, 0)
 
@@ -32,6 +35,15 @@ export default function VehiclesPage() {
       onSuccess: () => {
         toast.success(t.common.save)
         setShowForm(false)
+      },
+    })
+  }
+
+  const handleCreateFuelLog = (log: FuelLog) => {
+    saveFuelLog.mutate(log, {
+      onSuccess: () => {
+        toast.success(t.common.save)
+        setShowFuelForm(false)
       },
     })
   }
@@ -99,9 +111,21 @@ export default function VehiclesPage() {
       </div>
 
       <Card data-testid="vehicles-fuel-logs">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>{t.vehicles.fuelLogs}</CardTitle>
+          <Button size="sm" onClick={() => setShowFuelForm(true)} disabled={vehicles.length === 0}>
+            <Plus className="h-4 w-4" />{t.vehicles.addFuelLog}
+          </Button>
         </CardHeader>
+        {showFuelForm && vehicles.length > 0 && (
+          <CardContent className="border-b">
+            <FuelLogForm
+              vehicles={vehicles}
+              onSubmit={handleCreateFuelLog}
+              onCancel={() => setShowFuelForm(false)}
+            />
+          </CardContent>
+        )}
         <CardContent className="p-0">
           <DataTable headers={[t.vehicles.date, t.vehicles.vehicle, t.vehicles.miles, t.vehicles.gallons, t.vehicles.pricePerGal, t.vehicles.total]}>
             {fuelLogs.map((log) => {

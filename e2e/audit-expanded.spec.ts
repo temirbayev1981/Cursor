@@ -173,6 +173,37 @@ test.describe('Expanded audit log E2E', () => {
     await expect(page.getByText(/расход добавлен|expense created/i).first()).toBeVisible()
   })
 
+  test('fuel log create appears in audit log', async ({ page }) => {
+    await page.goto('/vehicles')
+    await page.getByRole('button', { name: /добавить заправку|add fuel log/i }).click()
+    await expect(page.getByTestId('fuel-log-form')).toBeVisible()
+    const form = page.getByTestId('fuel-log-form')
+    await form.locator('input[type="number"]').first().fill('42')
+    await form.locator('input[type="number"]').nth(1).fill('12.5')
+    await form.locator('input[type="number"]').nth(2).fill('3.45')
+    await page.getByTestId('fuel-log-form-submit').click()
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="fuel_log.create"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/заправка добавлена|fuel log created/i).first()).toBeVisible()
+  })
+
+  test('dispatch status change appears in audit log', async ({ page }) => {
+    await seedDraftJob(page)
+    await page.goto('/dispatch')
+    await expect(page.getByTestId('dispatch-card-job-e2e-draft')).toBeVisible()
+    await page.getByTestId('dispatch-status-job-e2e-draft').click()
+    await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
+    await expect(
+      page.getByTestId('dispatch-column-scheduled').getByTestId('dispatch-status-job-e2e-draft'),
+    ).toContainText(/запланирован|scheduled/i, { timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="dispatch.status_change"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/изменение статуса в диспетчеризации|dispatch status changed/i).first()).toBeVisible()
+  })
+
   test('audit coverage summary shows unique and total counts', async ({ page }) => {
     await openSettingsAuditTab(page)
     const summary = page.getByTestId('audit-coverage-summary')

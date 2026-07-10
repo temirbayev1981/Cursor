@@ -435,6 +435,7 @@ export const ru = {
     gallons: 'Галлоны',
     pricePerGal: 'Цена/гал',
     total: 'Итого',
+    addFuelLog: 'Добавить заправку',
   },
   expenses: {
     title: 'Расходы',
@@ -657,6 +658,8 @@ export const ru = {
       'vehicle.update': 'Транспорт обновлён',
       'expense.create': 'Расход добавлен',
       'expense.update': 'Расход обновлён',
+      'fuel_log.create': 'Заправка добавлена',
+      'fuel_log.update': 'Заправка обновлена',
     },
     auditCoverageSummary: '{unique} типов действий в журнале · {total} локализованных меток',
     supabaseCard: 'Supabase',

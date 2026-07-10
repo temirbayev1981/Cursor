@@ -123,3 +123,13 @@ export const expenseSchema = z.object({
 })
 
 export type ExpenseFormValues = z.infer<typeof expenseSchema>
+
+export const fuelLogSchema = z.object({
+  vehicle_id: z.string().min(1),
+  date: z.string().min(1),
+  miles: z.coerce.number().min(0),
+  gallons: z.coerce.number().min(0.01),
+  fuel_price: z.coerce.number().min(0.01),
+})
+
+export type FuelLogFormValues = z.infer<typeof fuelLogSchema>

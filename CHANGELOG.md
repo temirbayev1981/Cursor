@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.8.4] — 2026-07-10
+
+Fuel log audit and dispatch E2E.
+
+### Phase 86 — Fuel log & dispatch audit
+- `FuelLogForm` on Vehicles page; `useSaveFuelLog` with `fuel_log.create`/`fuel_log.update`
+- Platform audit: `fuel_log_audit`, `dispatch_audit` quality gates
+- E2E: fuel log create, dispatch status change → audit log
+- **45** localized audit actions
+
 ## [1.8.3] — 2026-07-10
 
 Expense audit logging.

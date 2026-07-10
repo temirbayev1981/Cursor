@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatAuditAction, isAuditActionKey, countUniqueAuditActions, EXPENSE_AUDIT, FLEET_AUDIT } from './audit-labels'
+import { formatAuditAction, isAuditActionKey, countUniqueAuditActions, DISPATCH_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT } from './audit-labels'
 
 describe('audit-labels', () => {
   const labels = {
@@ -50,6 +50,13 @@ describe('audit-labels', () => {
     expect(isAuditActionKey('expense.create')).toBe(true)
     expect(isAuditActionKey('expense.update')).toBe(true)
     expect(EXPENSE_AUDIT).toBe(true)
+  })
+
+  it('recognizes v1.8.4 fuel log and dispatch audit keys', () => {
+    expect(isAuditActionKey('fuel_log.create')).toBe(true)
+    expect(isAuditActionKey('dispatch.status_change')).toBe(true)
+    expect(FUEL_LOG_AUDIT).toBe(true)
+    expect(DISPATCH_AUDIT).toBe(true)
   })
 
   it('counts unique audit actions in log', () => {

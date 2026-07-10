@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
-import { listEntities, saveEntity, deleteEntity, createJobFromVendorPO, createEstimateFromJob, createInvoiceFromEstimate, createScheduleFromJob, importSampleData, listFuelLogs, listAuditLogs, logAudit } from '@/services/entity-service'
+import { listEntities, saveEntity, deleteEntity, createJobFromVendorPO, createEstimateFromJob, createInvoiceFromEstimate, createScheduleFromJob, importSampleData, listFuelLogs, saveFuelLog, listAuditLogs, logAudit } from '@/services/entity-service'
 import { recordInvoicePayment, sendInvoiceToCustomer } from '@/services/payment-service'
 import { listInventoryTransactions, applyMaterialsOnJob, receiveStock } from '@/services/inventory-service'
-import type { Job, Customer, Estimate, Invoice, Employee, Material, Vehicle, Expense } from '@/types'
+import type { Job, Customer, Estimate, Invoice, Employee, Material, Vehicle, Expense, FuelLog } from '@/types'
 import type { VendorPORecord } from '@/types/vendor-po'
 
 function useCompanyId() {
@@ -428,6 +428,32 @@ export function useSaveVehicle() {
         )
       }
       qc.invalidateQueries({ queryKey: ['vehicles', companyId] })
+      qc.invalidateQueries({ queryKey: ['fuelLogs', companyId] })
+    },
+  })
+}
+
+export function useSaveFuelLog() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  const { user } = useAuth()
+  return useMutation({
+    mutationFn: async (log: FuelLog) => {
+      const existing = await listFuelLogs(companyId)
+      const isNew = !existing.some((item) => item.id === log.id)
+      await saveFuelLog(log)
+      return { log, isNew }
+    },
+    onSuccess: ({ log, isNew }) => {
+      if (user) {
+        void logAudit(
+          companyId,
+          user.id,
+          isNew ? 'fuel_log.create' : 'fuel_log.update',
+          'fuel_log',
+          log.id,
+        )
+      }
       qc.invalidateQueries({ queryKey: ['fuelLogs', companyId] })
     },
   })

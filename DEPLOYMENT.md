@@ -46,7 +46,7 @@ After deploy:
 
 ```bash
 npm run verify:production
-npm run test:e2e   # 153 tests across 31 spec files
+npm run test:e2e   # 155 tests across 31 spec files
 npm run smoke:supabase   # optional, needs live Supabase env
 ```
 
@@ -60,7 +60,7 @@ No schema changes required. Frontend-only release (i18n, AI fallbacks, invite si
 
 ```bash
 npm run verify:production
-npm run test:e2e   # 153 tests (see e2e/*.spec.ts)
+npm run test:e2e   # 155 tests (see e2e/*.spec.ts)
 ```
 
 Merge to `main` to redeploy GitHub Pages with `VITE_APP_VERSION` from the release branch.
@@ -281,7 +281,7 @@ Set all `VITE_*` env vars in your hosting provider.
 npm run test:e2e
 ```
 
-Playwright builds the app, runs **153 tests** across 31 spec files against `http://127.0.0.1:4173` (in-memory Supabase mock).
+Playwright builds the app, runs **155 tests** across 31 spec files against `http://127.0.0.1:4173` (in-memory Supabase mock).
 
 ### Optional: live Supabase smoke
 

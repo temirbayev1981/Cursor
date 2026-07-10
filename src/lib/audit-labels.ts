@@ -45,6 +45,8 @@ const AUDIT_ACTION_KEYS = new Set<string>([
   'vehicle.update',
   'expense.create',
   'expense.update',
+  'fuel_log.create',
+  'fuel_log.update',
 ])
 
 export function isAuditActionKey(action: string): action is AuditActionKey {
@@ -61,6 +63,12 @@ export const FLEET_AUDIT = true as const
 
 /** Expense mutations write audit_logs. */
 export const EXPENSE_AUDIT = true as const
+
+/** Fuel log mutations write audit_logs. */
+export const FUEL_LOG_AUDIT = true as const
+
+/** Dispatch board status changes write audit_logs. */
+export const DISPATCH_AUDIT = true as const
 
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size

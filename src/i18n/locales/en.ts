@@ -437,6 +437,7 @@ export const en: TranslationKeys = {
     gallons: 'Gallons',
     pricePerGal: 'Price/Gal',
     total: 'Total',
+    addFuelLog: 'Add Fuel Log',
   },
   expenses: {
     title: 'Expenses',
@@ -659,6 +660,8 @@ export const en: TranslationKeys = {
       'vehicle.update': 'Vehicle updated',
       'expense.create': 'Expense created',
       'expense.update': 'Expense updated',
+      'fuel_log.create': 'Fuel log created',
+      'fuel_log.update': 'Fuel log updated',
     },
     auditCoverageSummary: '{unique} action types in log · {total} localized labels',
     supabaseCard: 'Supabase',
