@@ -1,8 +1,16 @@
-# HandymanOS AI — Release 1.2.2
+# HandymanOS AI — Release 1.2.3
 
-Consolidates Phases 31–33 (i18n polish, AI fallbacks, vendor PO).
+Production hardening on top of **1.2.2** (Phases 31–34).
 
-## What's included
+## What's new in 1.2.3
+
+- Expanded `npm run verify:production` (Edge Functions, schema, E2E specs, DEPLOYMENT.md)
+- CI runs `verify:production` on every push/PR
+- DEPLOYMENT.md: GitHub secrets reference, existing-user invite sign-in, upgrade notes
+- E2E: scheduling queues demo email notification (21 tests total)
+- Shared Playwright auth helper
+
+## Prior releases (1.2.2)
 
 Everything from **1.2.1**, plus:
 
@@ -10,8 +18,6 @@ Everything from **1.2.1**, plus:
 - `useDateLocale` hook; settings/route optimizer/toast i18n
 - AI assistant fallback responses externalized (`src/i18n/ai-fallbacks.ts`)
 - Vendor PO table: compliance checklist, job creation toasts (EN/RU)
-- `npm run verify:production` readiness script
-- CI: lint, unit tests, E2E (Playwright), GitHub Pages deploy
 
 ## GitHub repository secrets (production deploy)
 
@@ -52,7 +58,7 @@ supabase functions deploy stripe-webhook --no-verify-jwt
 
 # Merge to main triggers deploy workflow
 git checkout main
-git merge cursor/phase-33-ai-vendor-i18n-1b4a
+git merge cursor/phase-35-production-hardening-1b4a
 git push origin main
 ```
 

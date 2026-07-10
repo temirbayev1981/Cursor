@@ -23,7 +23,7 @@ VITE_SUPABASE_ANON_KEY=eyJ...
 
 When Supabase is configured, reads are mirrored to `localStorage` for PWA/offline resilience. Writes update both Supabase and the local cache. If the network fails, the app falls back to cached data.
 
-### Upgrading from 1.1.x → 1.2.0
+### Upgrading from 1.1.x → 1.2.x
 
 Re-run the full `supabase/schema.sql` in the SQL Editor. New objects include:
 
@@ -34,6 +34,17 @@ Re-run the full `supabase/schema.sql` in the SQL Editor. New objects include:
 - Private storage bucket policies for `handymanos`
 
 Then redeploy all Edge Functions (see section 2).
+
+### Upgrading from 1.2.0 → 1.2.2
+
+No schema changes required. Frontend-only release (i18n, AI fallbacks, invite sign-in fix). Run:
+
+```bash
+npm run verify:production
+npm run test:e2e   # 21 tests
+```
+
+Merge to `main` to redeploy GitHub Pages with `VITE_APP_VERSION` from the release branch.
 
 ---
 
@@ -176,7 +187,8 @@ Tokens are stored in `portal_tokens` (7-day expiry). Demo mode uses localStorage
 **Settings → Team** — invite by email and role. Link format:
 `/login?invite=TOKEN`
 
-On signup, the user joins the existing company with the invited role (`team_invites` table).
+- **New users:** sign up via the invite link (role and company applied automatically).
+- **Existing users:** open the same link, switch to **Sign In**, and log in — membership is added via `acceptInviteForCurrentUser` + `company_members`.
 
 ---
 
@@ -197,6 +209,24 @@ On signup, the user joins the existing company with the invited role (`team_invi
 | `VITE_OPENAI_API_KEY` | Legacy browser-side OpenAI (not recommended) |
 | `VITE_GOOGLE_MAPS_API_KEY` | Dispatch map & route links |
 | `VITE_SENTRY_DSN` | Error monitoring |
+| `VITE_ERROR_WEBHOOK_URL` | Custom error webhook fallback |
+
+### GitHub Actions secrets (GitHub Pages deploy)
+
+| Secret | Required | Purpose |
+|--------|----------|---------|
+| `VITE_SUPABASE_URL` | Recommended | Live Supabase project |
+| `VITE_SUPABASE_ANON_KEY` | Recommended | Supabase anon key |
+| `VITE_STRIPE_PUBLISHABLE_KEY` | Optional | Stripe.js |
+| `VITE_STRIPE_CHECKOUT_ENDPOINT` | Optional | Invoice checkout function URL |
+| `VITE_STRIPE_SUBSCRIPTION_ENDPOINT` | Optional | SaaS subscription checkout URL |
+| `VITE_GOOGLE_MAPS_API_KEY` | Optional | Maps embed |
+| `VITE_NOTIFICATION_WEBHOOK_URL` | Optional | Override email function URL |
+| `VITE_SMS_WEBHOOK_URL` | Optional | Override SMS function URL |
+| `VITE_SENTRY_DSN` | Optional | Sentry browser SDK |
+| `VITE_ERROR_WEBHOOK_URL` | Optional | Custom error reporting |
+
+See [RELEASE.md](./RELEASE.md) for the full checklist.
 
 ---
 
@@ -215,7 +245,9 @@ Push to `main` triggers `.github/workflows/deploy.yml`. Configure repository sec
 ### Manual deploy
 
 ```bash
+npm run verify:production
 npm run verify:release
+npm run test:e2e
 npm run build
 # Deploy dist/ to Vercel, Netlify, Cloudflare Pages, etc.
 ```
@@ -242,6 +274,7 @@ Service worker (`public/sw.js`) is registered in production builds. Ensure your 
 
 ## Checklist
 
+- [ ] `npm run verify:production` passes locally
 - [ ] `supabase/schema.sql` applied
 - [ ] Demo data imported (or real data entered)
 - [ ] Stripe Edge Function deployed + `VITE_STRIPE_CHECKOUT_ENDPOINT` set

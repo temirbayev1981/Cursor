@@ -20,6 +20,7 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npm run verify:production
       - run: npm run lint
       - run: npm run test
       - run: npm run build

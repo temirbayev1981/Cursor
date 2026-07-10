@@ -4,6 +4,17 @@ All notable changes to HandymanOS AI are documented here.
 
 ## [Unreleased]
 
+### Phase 35 — Production hardening
+- `verify:production` expanded: Edge Functions, schema tokens, DEPLOYMENT.md, E2E specs
+- CI workflow runs `npm run verify:production`
+- DEPLOYMENT.md: GitHub secrets table, 1.2.x upgrade path, existing-user invite flow
+- E2E: scheduling demo email notification (`e2e/notifications.spec.ts`)
+- Shared E2E helper `e2e/helpers/auth.ts`
+
+## [1.2.3] — 2026-07-10
+
+Patch release — production docs and notification E2E.
+
 ### Phase 34 — i18n E2E coverage
 - E2E: AI assistant fallback answers in RU and EN locales
 - E2E: Vendor PO compliance checklist localized (RU/EN)

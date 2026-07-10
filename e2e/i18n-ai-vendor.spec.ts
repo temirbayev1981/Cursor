@@ -1,14 +1,5 @@
-import { test, expect, type Page } from '@playwright/test'
-
-async function loginAsOwner(page: Page, locale: 'ru' | 'en' = 'ru') {
-  await page.addInitScript((lang) => {
-    localStorage.setItem('handymanos_locale', lang)
-    localStorage.setItem('handymanos_onboarding', 'complete')
-  }, locale)
-  await page.goto('/login')
-  await page.getByRole('button', { name: /войти|sign in/i }).click()
-  await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
-}
+import { test, expect } from '@playwright/test'
+import { loginAsOwner } from './helpers/auth'
 
 test.describe('i18n — AI assistant & vendor PO', () => {
   test('AI assistant shows Russian welcome and fallback answer', async ({ page }) => {
