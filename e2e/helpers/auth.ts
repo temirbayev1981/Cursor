@@ -149,3 +149,31 @@ export async function setPageOnline(page: Page, context: BrowserContext) {
 export async function clearNotificationQueue(page: Page) {
   await page.evaluate(() => localStorage.removeItem('handymanos_notification_queue'))
 }
+
+/** Seeds a draft invoice for send-flow E2E. */
+export async function seedDraftInvoice(page: Page) {
+  await page.evaluate(() => {
+    const invoices = JSON.parse(localStorage.getItem('handymanos_invoices') || '[]') as Array<Record<string, unknown>>
+    const invoice = {
+      id: 'inv-e2e-draft',
+      company_id: 'comp-001',
+      customer_id: 'cust-001',
+      invoice_number: 'INV-E2E-DRAFT',
+      status: 'draft',
+      subtotal: 150,
+      tax: 12.38,
+      total: 162.38,
+      amount_paid: 0,
+      due_date: new Date(Date.now() + 14 * 86400000).toISOString(),
+      line_items: [
+        { id: 'li-e2e', description: 'E2E draft invoice service', quantity: 1, unit_price: 150, total: 150, type: 'service' },
+      ],
+      created_at: new Date().toISOString(),
+    }
+    const idx = invoices.findIndex((i) => i.id === 'inv-e2e-draft')
+    if (idx >= 0) invoices[idx] = invoice
+    else invoices.push(invoice)
+    localStorage.setItem('handymanos_invoices', JSON.stringify(invoices))
+  })
+  await page.reload()
+}

@@ -26,9 +26,10 @@ export function GlobalSearch() {
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => setFocused(true)}
         onBlur={() => setTimeout(() => setFocused(false), 200)}
+        data-testid="global-search-input"
       />
       {focused && hasResults && (
-        <div className="absolute top-full left-0 right-0 mt-1 glass-card z-50 max-h-64 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 glass-card z-50 max-h-64 overflow-y-auto" data-testid="global-search-results">
           {data!.jobs.map((j) => (
             <button key={j.id} className="w-full text-left px-4 py-2 text-sm hover:bg-secondary/50 cursor-pointer" onClick={() => { navigate('/jobs'); setQuery('') }}>
               <span className="text-muted-foreground">{t.nav.jobs}: </span>{j.title}

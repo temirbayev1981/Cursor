@@ -140,7 +140,9 @@ export default function InvoicesPage() {
               <DataTableCell>
                 <div className="flex gap-1">
                   {inv.status === 'draft' && (
-                    <Button size="sm" variant="ghost" onClick={() => handleSend(inv)}><Mail className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="ghost" onClick={() => handleSend(inv)} data-testid={`invoice-send-${inv.id}`}>
+                      <Mail className="h-4 w-4" />
+                    </Button>
                   )}
                   <StripePayButton invoice={inv} customerEmail={customer?.email} onSuccess={() => refetch()} />
                 </div>

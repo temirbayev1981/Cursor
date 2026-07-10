@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.4.7] — 2026-07-10
+
+Vendor PO multi-site, AI follow-up, search & invoice send E2E.
+
+### Phase 55 — Vendor PO, search, AI & invoice E2E
+- E2E: vendor PO multi-site badge and emergency priority rows
+- E2E: AI assistant multi-turn chat (`vendor-search-ai-invoice.spec.ts`)
+- E2E: global header search navigation
+- E2E: draft invoice send demo notification
+- `seedDraftInvoice` helper; testids on multi-site badge, search, invoice send
+
 ## [1.4.6] — 2026-07-10
 
 Onboarding wizard, invite errors, and vendor PO export E2E.

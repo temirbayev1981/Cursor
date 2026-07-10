@@ -56,7 +56,7 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
           <Download className="h-4 w-4" />{t.common.exportCsv}
         </Button>
         {multiSiteAddresses.length > 0 && (
-          <Badge variant="warning" className="py-1.5">
+          <Badge variant="warning" className="py-1.5" data-testid="vendor-po-multi-site-badge">
             {t.vendorPO.multiSiteBadge.replace('{count}', String(multiSiteAddresses.length))}
           </Badge>
         )}
