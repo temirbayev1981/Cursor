@@ -240,7 +240,7 @@ export default function SettingsPage() {
                   {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 </Button>
               </div>
-              <Button onClick={() => void handleSaveCompany()} disabled={companySaving}>{t.settings.saveChanges}</Button>
+              <Button data-testid="company-profile-save" onClick={() => void handleSaveCompany()} disabled={companySaving}>{t.settings.saveChanges}</Button>
             </CardContent>
           </Card>
         </TabsContent>

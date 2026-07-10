@@ -204,11 +204,61 @@ test.describe('Expanded audit log E2E', () => {
     await expect(page.getByText(/изменение статуса в диспетчеризации|dispatch status changed/i).first()).toBeVisible()
   })
 
+  test('company profile update appears in audit log', async ({ page }) => {
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /компания|company/i }).click()
+    const nameInput = page.getByRole('tabpanel').locator('input').first()
+    await nameInput.fill('E2E Audit Company Name')
+    await page.getByTestId('company-profile-save').click()
+    await expect(page.getByText(/сохранить изменения|save changes/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="company.profile_update"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/профиль компании обновлён|company profile updated/i).first()).toBeVisible()
+  })
+
   test('audit coverage summary shows unique and total counts', async ({ page }) => {
     await openSettingsAuditTab(page)
     const summary = page.getByTestId('audit-coverage-summary')
     await expect(summary).toBeVisible({ timeout: 10000 })
     await expect(summary).toHaveText(/\d+.*(?:типов действий в журнале|action types in log).*\d+.*(?:локализованных меток|localized labels)/i)
+  })
+})
+
+test.describe('Vendor PO audit E2E', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('handymanos_vendor_pos', '[]')
+      localStorage.setItem('handymanos_vendor_pos_seeded', 'true')
+      localStorage.setItem('__e2e_supabase__vendor_po_records', '[]')
+    })
+    await loginAsOwner(page, 'ru')
+  })
+
+  test('vendor PO to job appears in audit log', async ({ page }) => {
+    await page.goto('/work-orders')
+    const dropzone = page.getByTestId('work-orders-vendor-po-dropzone')
+    await dropzone.locator('input[type="file"]').setInputFiles('e2e/fixtures/vendor-po-sample.pdf')
+    await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 15000 })
+    await page.getByTestId(/vendor-po-create-job-/).first().click()
+    await expect(page.getByText(/заказ создан из 207872-02|job created from 207872-02/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="vendor_po_to_job"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/заказ создан из vendor po|job created from vendor po/i).first()).toBeVisible()
+  })
+
+  test('emergency vendor PO alert appears in audit log', async ({ page }) => {
+    await page.goto('/work-orders')
+    const dropzone = page.getByTestId('work-orders-vendor-po-dropzone')
+    await dropzone.locator('input[type="file"]').setInputFiles('e2e/fixtures/vendor-po-emergency.pdf')
+    await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 15000 })
+    await page.getByTestId(/vendor-po-create-job-/).first().click()
+    await expect(page.getByText(/заказ создан из 210214-01|job created from 210214-01/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="emergency_alert"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/аварийный vendor po|emergency vendor po alert/i).first()).toBeVisible()
   })
 })
 

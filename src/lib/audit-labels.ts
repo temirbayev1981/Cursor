@@ -70,6 +70,12 @@ export const FUEL_LOG_AUDIT = true as const
 /** Dispatch board status changes write audit_logs. */
 export const DISPATCH_AUDIT = true as const
 
+/** Vendor PO workflow writes audit_logs. */
+export const VENDOR_PO_AUDIT = true as const
+
+/** Company profile updates write audit_logs. */
+export const COMPANY_PROFILE_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }

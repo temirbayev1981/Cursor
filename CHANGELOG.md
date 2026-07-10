@@ -2,6 +2,15 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.8.5] — 2026-07-10
+
+Vendor PO and company profile audit E2E.
+
+### Phase 87 — Vendor PO & company profile audit
+- Platform audit: `vendor_po_audit`, `company_profile_audit` quality gates
+- E2E: vendor PO → job, emergency alert, company profile update → audit log
+- `company-profile-save` test id on Settings → Company
+
 ## [1.8.4] — 2026-07-10
 
 Fuel log audit and dispatch E2E.

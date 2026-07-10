@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.8.4
+# HandymanOS AI — Release 1.8.5
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.8.4`**, current package **1.8.4**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.8.5`**, current package **1.8.5**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -79,10 +79,14 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Platform audit `fuel_log_audit`, `dispatch_audit` gates; **45** localized audit actions
 - E2E: fuel log create, dispatch status change → audit log
 
+### 1.8.5 — Vendor PO & company profile audit
+- Platform audit `vendor_po_audit`, `company_profile_audit` gates
+- E2E: vendor PO → job, emergency alert, company profile update → audit log
+
 ## Test coverage
 
-- Unit: **111** (`npm test`)
-- E2E: **155/155** (`npm run test:e2e`)
+- Unit: **112** (`npm test`)
+- E2E: **158/158** (`npm run test:e2e`)
 
 ## Deploy
 
