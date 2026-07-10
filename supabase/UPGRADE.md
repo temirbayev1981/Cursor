@@ -30,6 +30,10 @@ No schema changes required. Update frontend deploy and optional:
 - `npm run smoke:supabase` (expanded table/RPC checks)
 - Stripe webhook redeploy if using `stripe-webhook` audit logging
 
+## From 1.7.7 → 1.7.8+
+
+No schema changes. Frontend-only: integration probes and expanded audit logging.
+
 ## From 1.7.5–1.7.6 → 1.7.7+
 
 No schema changes. Redeploy **`stripe-webhook`** Edge Function for subscription audit logging (`billing.plan_upgrade`).

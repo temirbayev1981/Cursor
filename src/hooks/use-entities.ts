@@ -88,9 +88,26 @@ export function useSaveWorkOrder() {
 export function useSaveCustomer() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
-    mutationFn: (customer: Customer) => saveEntity('customers', customer),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['customers', companyId] }),
+    mutationFn: async (customer: Customer) => {
+      const existing = await listEntities('customers', companyId) as Customer[]
+      const isNew = !existing.some((c) => c.id === customer.id)
+      await saveEntity('customers', customer)
+      return { customer, isNew }
+    },
+    onSuccess: ({ customer, isNew }) => {
+      if (user) {
+        void logAudit(
+          companyId,
+          user.id,
+          isNew ? 'customer.create' : 'customer.update',
+          'customer',
+          customer.id,
+        )
+      }
+      qc.invalidateQueries({ queryKey: ['customers', companyId] })
+    },
   })
 }
 
@@ -131,10 +148,14 @@ export function useCreateEstimateFromJob() {
 export function useUpdateJobStatus() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
     mutationFn: async ({ job, status }: { job: Job; status: Job['status'] }) =>
       saveEntity('jobs', { ...job, status }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs', companyId] }),
+    onSuccess: (_data, { job }) => {
+      if (user) void logAudit(companyId, user.id, 'job.status_change', 'job', job.id)
+      qc.invalidateQueries({ queryKey: ['jobs', companyId] })
+    },
   })
 }
 
@@ -278,10 +299,12 @@ export function useSaveEstimate() {
 export function useConvertEstimateToInvoice() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
     mutationFn: async ({ estimate, invoiceNumber }: { estimate: Estimate; invoiceNumber: string }) =>
       createInvoiceFromEstimate(estimate, companyId, invoiceNumber),
-    onSuccess: () => {
+    onSuccess: (invoice) => {
+      if (user) void logAudit(companyId, user.id, 'invoice.create', 'invoice', invoice.id)
       qc.invalidateQueries({ queryKey: ['estimates', companyId] })
       qc.invalidateQueries({ queryKey: ['invoices', companyId] })
     },

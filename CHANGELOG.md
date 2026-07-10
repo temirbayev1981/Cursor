@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.7.8] — 2026-07-10
+
+Async integration probes and expanded audit logging.
+
+### Phase 79 — Integration probes & audit
+- `probeLiveIntegrations()`: async reachability checks for Stripe, Supabase, OpenAI, email, SMS endpoints
+- Settings → Integrations: live probe badges (Live / Unreachable / Checking)
+- Expanded `logAudit`: `customer.create`/`customer.update`, `invoice.create`, `job.status_change`
+- Localized audit labels (EN/RU) for new actions
+
 ## [1.7.7] — 2026-07-10
 
 Stripe subscription audit, CI smoke fix, rate-limit RPC check.

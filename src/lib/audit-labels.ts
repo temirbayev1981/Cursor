@@ -24,6 +24,10 @@ const AUDIT_ACTION_KEYS = new Set<string>([
   'portal.invoice_payment',
   'sample.import',
   'billing.plan_upgrade',
+  'customer.create',
+  'customer.update',
+  'invoice.create',
+  'job.status_change',
 ])
 
 export function isAuditActionKey(action: string): action is AuditActionKey {

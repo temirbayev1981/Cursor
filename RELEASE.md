@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.7.7
+# HandymanOS AI — Release 1.7.8
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.7.7`**, current package **1.7.7**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.7.8`**, current package **1.7.8**).
 
 Consolidated **1.7.x** production release (stacked PRs #63–#68).
 
@@ -40,6 +40,10 @@ Consolidated **1.7.x** production release (stacked PRs #63–#68).
 - Stripe webhook writes `billing.plan_upgrade` audit on SaaS subscription checkout
 - Platform audit: `stripe_webhook_audit` quality gate
 - `SMOKE_OPTIONAL=1` for CI; `check_rate_limit` RPC in smoke script
+
+### 1.7.8 — Integration probes & audit
+- Settings → Integrations: async live endpoint probes (Live / Unreachable)
+- Expanded audit: customer create/update, invoice from estimate, job status change
 
 ## Test coverage
 

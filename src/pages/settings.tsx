@@ -19,6 +19,7 @@ import { getErrorReports } from '@/lib/observability'
 import { computePlatformHealth } from '@/lib/platform-health'
 import { formatAuditAction } from '@/lib/audit-labels'
 import { computePlatformAudit } from '@/lib/platform-audit'
+import { probeLiveIntegrations, type IntegrationProbe } from '@/lib/platform-probes'
 import { computeSystemMetrics } from '@/lib/system-metrics'
 import { getStoredCompany } from '@/services/onboarding-service'
 import { createTeamInvite, listTeamInvites, type TeamInvite } from '@/services/invite-service'
@@ -51,6 +52,8 @@ export default function SettingsPage() {
   const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan>(base?.subscription_plan ?? 'professional')
   const [companySaving, setCompanySaving] = useState(false)
   const [upgradingPlan, setUpgradingPlan] = useState<SubscriptionPlan | null>(null)
+  const [integrationProbes, setIntegrationProbes] = useState<Record<string, IntegrationProbe['reachable']>>({})
+  const [probesLoading, setProbesLoading] = useState(false)
 
   const [companyForm, setCompanyForm] = useState({
     name: base?.name ?? '',
@@ -77,6 +80,24 @@ export default function SettingsPage() {
   useEffect(() => {
     setCurrentPlan(base?.subscription_plan ?? 'professional')
   }, [base?.subscription_plan])
+
+  useEffect(() => {
+    let cancelled = false
+    setProbesLoading(true)
+    void probeLiveIntegrations()
+      .then((results) => {
+        if (cancelled) return
+        const map: Record<string, IntegrationProbe['reachable']> = {}
+        for (const probe of results) {
+          map[probe.id] = probe.reachable
+        }
+        setIntegrationProbes(map)
+      })
+      .finally(() => {
+        if (!cancelled) setProbesLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -142,6 +163,13 @@ export default function SettingsPage() {
     if (status === 'connected') return t.common.connected
     if (status === 'configure') return t.common.configure
     return t.common.comingSoon
+  }
+
+  const getIntegrationProbeLabel = (key: typeof INTEGRATION_KEYS[number]) => {
+    if (probesLoading) return t.settings.integrationProbeChecking
+    const reachable = integrationProbes[key]
+    if (reachable === null || reachable === undefined) return null
+    return reachable ? t.settings.integrationProbeLive : t.settings.integrationProbeUnreachable
   }
 
   const getRoleDescription = (index: number) => {
@@ -257,6 +285,7 @@ export default function SettingsPage() {
             {INTEGRATION_KEYS.map((key) => {
               const card = t.settings.integrationCards[key]
               const status = integrationStatus[key]
+              const probeLabel = getIntegrationProbeLabel(key)
               return (
                 <Card key={key}>
                   <CardContent className="p-5 flex items-center justify-between">
@@ -264,7 +293,18 @@ export default function SettingsPage() {
                       <p className="font-medium">{card.name}</p>
                       <p className="text-sm text-muted-foreground">{card.desc}</p>
                     </div>
-                    <Badge variant={status === 'connected' ? 'success' : 'outline'}>{getIntegrationStatus(key)}</Badge>
+                    <div className="flex flex-col items-end gap-1">
+                      <Badge variant={status === 'connected' ? 'success' : 'outline'}>{getIntegrationStatus(key)}</Badge>
+                      {probeLabel && (
+                        <Badge
+                          variant={integrationProbes[key] ? 'success' : 'outline'}
+                          className="text-xs"
+                          data-testid={`integration-probe-${key}`}
+                        >
+                          {probeLabel}
+                        </Badge>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               )
