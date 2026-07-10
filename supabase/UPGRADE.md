@@ -30,6 +30,10 @@ No schema changes required. Update frontend deploy and optional:
 - `npm run smoke:supabase` (expanded table/RPC checks)
 - Stripe webhook redeploy if using `stripe-webhook` audit logging
 
+## From 1.10.11 → 1.10.12
+
+No schema changes. Portal SMS prefs sync E2E and hub estimate/invoice SMS skip log visibility.
+
 ## From 1.10.10 → 1.10.11
 
 No schema changes. Dispatch ETA SMS E2E and invoice SMS queue E2E coverage.

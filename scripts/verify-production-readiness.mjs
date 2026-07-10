@@ -367,6 +367,20 @@ if (auditLabels.includes('DISPATCH_ETA_SMS_AUDIT = true')) {
   ok = false
 }
 
+if (auditLabels.includes('PORTAL_SMS_NOTIFY_SYNC_AUDIT = true')) {
+  console.log('✓ PORTAL_SMS_NOTIFY_SYNC_AUDIT gate enabled')
+} else {
+  console.log('✗ PORTAL_SMS_NOTIFY_SYNC_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('NOTIFICATION_HUB_ESTIMATE_INVOICE_SMS_SKIP_AUDIT = true')) {
+  console.log('✓ NOTIFICATION_HUB_ESTIMATE_INVOICE_SMS_SKIP_AUDIT gate enabled')
+} else {
+  console.log('✗ NOTIFICATION_HUB_ESTIMATE_INVOICE_SMS_SKIP_AUDIT must be true')
+  ok = false
+}
+
 const notificationsE2e = readFileSync('e2e/notifications.spec.ts', 'utf8')
 if (notificationsE2e.includes('scheduling skips customer SMS when opted out') && notificationsE2e.includes('scheduling queues customer SMS when enabled')) {
   console.log('✓ scheduling customer SMS E2E coverage present')
@@ -396,6 +410,22 @@ if (invoiceE2e.includes('send draft invoice queues customer SMS when enabled')) 
   console.log('✓ invoice SMS queue E2E coverage present')
 } else {
   console.log('✗ invoice SMS queue E2E test required')
+  ok = false
+}
+
+const notifySyncE2e = readFileSync('e2e/customer-notify-sync.spec.ts', 'utf8')
+if (notifySyncE2e.includes('staff CRM SMS opt-out syncs to customer portal') && notifySyncE2e.includes('portal SMS opt-out syncs to staff CRM')) {
+  console.log('✓ portal SMS notify sync E2E coverage present')
+} else {
+  console.log('✗ portal SMS notify sync E2E tests required')
+  ok = false
+}
+
+const settingsE2e = readFileSync('e2e/settings-dashboard.spec.ts', 'utf8')
+if (settingsE2e.includes('notification hub shows estimate SMS opt-out skip') && settingsE2e.includes('notification hub shows invoice SMS opt-out skip')) {
+  console.log('✓ hub estimate/invoice SMS skip E2E coverage present')
+} else {
+  console.log('✗ hub estimate/invoice SMS skip E2E tests required')
   ok = false
 }
 

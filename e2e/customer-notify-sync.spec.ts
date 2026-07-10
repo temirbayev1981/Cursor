@@ -49,6 +49,52 @@ test.describe('Customer notification prefs sync', () => {
     await expect(page.getByTestId('customer-form-notify-email')).toHaveAttribute('data-state', 'unchecked')
   })
 
+  test('staff CRM SMS opt-out syncs to customer portal', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await page.goto('/customers')
+    await page.getByTestId('customer-edit-cust-002').click()
+    await expect(page.getByTestId('customer-form-notification-prefs')).toBeVisible()
+
+    const smsToggle = page.getByTestId('customer-form-notify-sms')
+    if ((await smsToggle.getAttribute('data-state')) === 'checked') {
+      await smsToggle.click()
+    }
+    await page.getByTestId('customer-form-submit').click()
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await setCustomerPortalSession(page)
+    await page.goto('/portal/customer')
+    await expect(page.getByTestId('customer-portal-notification-prefs')).toBeVisible()
+    await expect(page.getByTestId('customer-portal-notify-sms')).toHaveAttribute('data-state', 'unchecked')
+  })
+
+  test('portal SMS opt-out syncs to staff CRM', async ({ page }) => {
+    await setCustomerPortalSession(page)
+    await page.goto('/portal/customer')
+    await expect(page.getByTestId('customer-portal-notification-prefs')).toBeVisible()
+
+    const portalSmsToggle = page.getByTestId('customer-portal-notify-sms')
+    if ((await portalSmsToggle.getAttribute('data-state')) === 'checked') {
+      await portalSmsToggle.click()
+      await expect(page.getByText(/настройки уведомлений сохранены|notification preferences saved/i).first()).toBeVisible({ timeout: 5000 })
+    }
+
+    await page.evaluate(() => {
+      sessionStorage.setItem('__e2e_storage_init__', '1')
+      localStorage.setItem('handymanos_locale', 'ru')
+      localStorage.setItem('handymanos_onboarding', 'complete')
+    })
+    await page.goto('/login')
+    await page.locator('#email').fill('owner@profixhandyman.com')
+    await page.locator('#password').fill('demo1234')
+    await page.getByRole('button', { name: /войти|sign in/i }).click()
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
+
+    await page.goto('/customers')
+    await page.getByTestId('customer-edit-cust-002').click()
+    await expect(page.getByTestId('customer-form-notify-sms')).toHaveAttribute('data-state', 'unchecked')
+  })
+
   test('dispatch skipped toast uses entity prefs from staff CRM', async ({ page }) => {
     await loginAsOwner(page, 'ru')
     await seedDraftJob(page, true)

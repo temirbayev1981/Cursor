@@ -710,6 +710,8 @@ export const en: TranslationKeys = {
       scheduling_customer_sms_audit: 'Scheduling customer SMS E2E',
       estimate_invoice_sms_audit: 'Estimate & invoice SMS opt-out',
       dispatch_eta_sms_audit: 'Dispatch ETA SMS E2E',
+      portal_sms_notify_sync_audit: 'Portal SMS notify sync',
+      notification_hub_estimate_invoice_sms_skip_audit: 'Hub estimate/invoice SMS skip',
       multi_tenant: 'Multi-tenant',
     },
     auditActions: {
