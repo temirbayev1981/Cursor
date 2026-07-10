@@ -395,6 +395,9 @@ export const en: TranslationKeys = {
     dateTo: 'To',
     margin: 'Margin',
     efficiency: 'Efficiency',
+    expenses: 'Expenses',
+    expenseBreakdown: 'Expense Breakdown',
+    vsPrevious: 'vs previous period',
   },
   ai: {
     title: 'AI Business Assistant',
@@ -494,6 +497,9 @@ export const en: TranslationKeys = {
     startJob: 'Start job',
     completeJob: 'Complete job',
     statusUpdated: 'Job status updated',
+    jobNotes: 'Job notes',
+    jobNotesPlaceholder: 'Add field notes, access details, or follow-up items...',
+    notesSaved: 'Notes saved',
   },
   propertyPortal: {
     title: 'Property Manager Portal',

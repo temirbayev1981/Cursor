@@ -16,6 +16,8 @@ test.describe('Reports and technician mobile', () => {
     await expect(page.locator('#report-start')).toBeVisible()
     await expect(page.locator('#report-end')).toBeVisible()
     await expect(page.getByText(/маржа|margin/i).first()).toBeVisible()
+    await page.getByRole('tab', { name: /расходы|expenses/i }).click()
+    await expect(page.getByText(/структура расходов|expense breakdown/i).first()).toBeVisible()
   })
 
   test('technician mobile page loads assigned jobs', async ({ page }) => {

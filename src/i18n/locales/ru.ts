@@ -393,6 +393,9 @@ export const ru = {
     dateTo: 'По',
     margin: 'Маржа',
     efficiency: 'Эффективность',
+    expenses: 'Расходы',
+    expenseBreakdown: 'Структура расходов',
+    vsPrevious: 'к пред. периоду',
   },
   ai: {
     title: 'ИИ-бизнес-помощник',
@@ -492,6 +495,9 @@ export const ru = {
     startJob: 'Начать работу',
     completeJob: 'Завершить',
     statusUpdated: 'Статус заказа обновлён',
+    jobNotes: 'Заметки по заказу',
+    jobNotesPlaceholder: 'Заметки с объекта, код доступа, дальнейшие действия...',
+    notesSaved: 'Заметки сохранены',
   },
   propertyPortal: {
     title: 'Портал управляющей компании',

@@ -34,6 +34,7 @@ import {
   computeExpenseBreakdown,
   computeServiceProfitability,
   computeTechnicianPerformance,
+  computePeriodComparison,
   hasRevenueData,
   hasValueData,
   hasProfitData,
@@ -73,6 +74,7 @@ export default function DashboardPage() {
   const { data: fuelLogs = [] } = useFuelLogs()
 
   const metrics = computeDashboardMetrics(jobs, estimates, expenses, fuelLogs)
+  const comparison = computePeriodComparison(jobs)
   const revenueChart = computeRevenueChart(jobs)
   const expenseChart = computeExpenseBreakdown(jobs, expenses, fuelLogs)
   const serviceChart = computeServiceProfitability(jobs)
@@ -86,9 +88,9 @@ export default function DashboardPage() {
       <PageHeader title={t.dashboard.title} description={t.dashboard.description} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard title={t.dashboard.revenueToday} value={metrics.revenueToday} icon={DollarSign} format="currency" trend={12.5} delay={0} />
-        <StatCard title={t.dashboard.revenueMonth} value={metrics.revenueMonth} icon={TrendingUp} format="currency" trend={4.0} delay={0.05} />
-        <StatCard title={t.dashboard.openJobs} value={metrics.openJobs} icon={Briefcase} subtitle={`${metrics.completedJobs} ${t.common.completedThisMonth}`} delay={0.1} />
+        <StatCard title={t.dashboard.revenueToday} value={metrics.revenueToday} icon={DollarSign} format="currency" trend={comparison.revenueTrend} delay={0} />
+        <StatCard title={t.dashboard.revenueMonth} value={metrics.revenueMonth} icon={TrendingUp} format="currency" trend={comparison.revenueTrend} delay={0.05} />
+        <StatCard title={t.dashboard.openJobs} value={metrics.openJobs} icon={Briefcase} subtitle={`${metrics.completedJobs} ${t.common.completedThisMonth}`} trend={comparison.jobsTrend} delay={0.1} />
         <StatCard title={t.dashboard.pendingEstimates} value={metrics.pendingEstimates} icon={FileText} delay={0.15} />
       </div>
 
@@ -96,7 +98,7 @@ export default function DashboardPage() {
         <StatCard title={t.dashboard.laborCost} value={metrics.laborCost} icon={Users} format="currency" delay={0.2} />
         <StatCard title={t.dashboard.materialCost} value={metrics.materialCost} icon={Package} format="currency" delay={0.25} />
         <StatCard title={t.dashboard.fuelExpenses} value={metrics.fuelExpenses} icon={Fuel} format="currency" delay={0.3} />
-        <StatCard title={t.dashboard.profitMargin} value={metrics.profitMargin} icon={CheckCircle} format="percent" delay={0.35} />
+        <StatCard title={t.dashboard.profitMargin} value={metrics.profitMargin} icon={CheckCircle} format="percent" trend={comparison.profitTrend} delay={0.35} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

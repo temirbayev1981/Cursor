@@ -6,6 +6,8 @@ import {
   computeRevenueChart,
   filterJobsByDateRange,
   computeReportSummary,
+  computePeriodComparison,
+  computeRangeComparison,
   hasRevenueData,
   hasValueData,
 } from '@/lib/analytics'
@@ -96,5 +98,32 @@ describe('analytics', () => {
     expect(summary.jobs).toBe(2)
     expect(summary.revenue).toBe(800)
     expect(summary.profit).toBe(320)
+  })
+
+  it('computes month-over-month period comparison', () => {
+    const thisMonth = { ...job, id: 'current', created_at: new Date().toISOString(), completed_date: undefined, scheduled_date: undefined, revenue: 400 }
+    const lastMonthDate = new Date()
+    lastMonthDate.setMonth(lastMonthDate.getMonth() - 1)
+    const lastMonth = {
+      ...job,
+      id: 'previous',
+      created_at: lastMonthDate.toISOString(),
+      completed_date: undefined,
+      scheduled_date: undefined,
+      revenue: 200,
+    }
+    const comparison = computePeriodComparison([thisMonth, lastMonth])
+    expect(comparison.current.revenue).toBe(400)
+    expect(comparison.previous.revenue).toBe(200)
+    expect(comparison.revenueTrend).toBe(100)
+  })
+
+  it('computes range comparison against previous equal window', () => {
+    const current = { ...job, id: 'c1', created_at: '2026-05-01T10:00:00.000Z', completed_date: undefined, scheduled_date: undefined, revenue: 500 }
+    const previous = { ...job, id: 'p1', created_at: '2026-02-01T10:00:00.000Z', completed_date: undefined, scheduled_date: undefined, revenue: 250 }
+    const comparison = computeRangeComparison([current, previous], '2026-04-01', '2026-06-30')
+    expect(comparison.current.revenue).toBe(500)
+    expect(comparison.previous.revenue).toBe(250)
+    expect(comparison.revenueTrend).toBe(100)
   })
 })

@@ -82,7 +82,7 @@ export async function applyOfflineAction(
     return true
   }
 
-  if (action.type === 'update_job_status') {
+  if (action.type === 'update_job_status' || action.type === 'update_job') {
     const { job } = action.payload as { job: Job }
     await saveEntity('jobs', job)
     return true

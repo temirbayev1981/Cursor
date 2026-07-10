@@ -40,6 +40,106 @@ export function computeReportSummary(jobs: Job[]) {
   }
 }
 
+function percentChange(current: number, previous: number): number {
+  if (previous === 0) return current > 0 ? 100 : 0
+  return Math.round(((current - previous) / previous) * 1000) / 10
+}
+
+export interface PeriodComparison {
+  current: { revenue: number; profit: number; jobs: number }
+  previous: { revenue: number; profit: number; jobs: number }
+  revenueTrend: number
+  profitTrend: number
+  jobsTrend: number
+}
+
+export function computePeriodComparison(jobs: Job[], referenceDate = new Date()): PeriodComparison {
+  const currentMonth = referenceDate.getMonth()
+  const currentYear = referenceDate.getFullYear()
+  const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1
+  const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear
+
+  const inMonth = (job: Job, month: number, year: number) => {
+    const date = new Date(getJobReportDate(job))
+    return date.getMonth() === month && date.getFullYear() === year
+  }
+
+  const summarize = (list: Job[]) => ({
+    revenue: list.reduce((sum, job) => sum + job.revenue, 0),
+    profit: list.reduce((sum, job) => sum + job.profit, 0),
+    jobs: list.length,
+  })
+
+  const current = summarize(jobs.filter((job) => inMonth(job, currentMonth, currentYear)))
+  const previous = summarize(jobs.filter((job) => inMonth(job, previousMonth, previousYear)))
+
+  return {
+    current,
+    previous,
+    revenueTrend: percentChange(current.revenue, previous.revenue),
+    profitTrend: percentChange(current.profit, previous.profit),
+    jobsTrend: percentChange(current.jobs, previous.jobs),
+  }
+}
+
+export function computeRangeComparison(jobs: Job[], startDate: string, endDate: string): PeriodComparison {
+  const start = new Date(`${startDate}T00:00:00`)
+  const end = new Date(`${endDate}T23:59:59`)
+  const durationMs = end.getTime() - start.getTime()
+  const previousEnd = new Date(start.getTime() - 1)
+  const previousStart = new Date(previousEnd.getTime() - durationMs)
+
+  const inRange = (job: Job, from: Date, to: Date) => {
+    const date = new Date(getJobReportDate(job))
+    return date >= from && date <= to
+  }
+
+  const summarize = (list: Job[]) => ({
+    revenue: list.reduce((sum, job) => sum + job.revenue, 0),
+    profit: list.reduce((sum, job) => sum + job.profit, 0),
+    jobs: list.length,
+  })
+
+  const current = summarize(jobs.filter((job) => inRange(job, start, end)))
+  const previous = summarize(jobs.filter((job) => inRange(job, previousStart, previousEnd)))
+
+  return {
+    current,
+    previous,
+    revenueTrend: percentChange(current.revenue, previous.revenue),
+    profitTrend: percentChange(current.profit, previous.profit),
+    jobsTrend: percentChange(current.jobs, previous.jobs),
+  }
+}
+
+export function filterExpensesByDateRange(expenses: Expense[], startDate?: string, endDate?: string): Expense[] {
+  if (!startDate && !endDate) return expenses
+
+  const start = startDate ? new Date(`${startDate}T00:00:00`) : null
+  const end = endDate ? new Date(`${endDate}T23:59:59`) : null
+
+  return expenses.filter((expense) => {
+    const date = new Date(expense.date)
+    if (start && date < start) return false
+    if (end && date > end) return false
+    return true
+  })
+}
+
+export function filterFuelLogsByDateRange(fuelLogs: FuelLog[], startDate?: string, endDate?: string): FuelLog[] {
+  if (!startDate && !endDate) return fuelLogs
+
+  const start = startDate ? new Date(`${startDate}T00:00:00`) : null
+  const end = endDate ? new Date(`${endDate}T23:59:59`) : null
+
+  return fuelLogs.filter((log) => {
+    const date = new Date(log.date)
+    if (start && date < start) return false
+    if (end && date > end) return false
+    return true
+  })
+}
+
 function isToday(dateStr: string): boolean {
   const d = new Date(dateStr)
   const now = new Date()

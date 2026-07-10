@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
-import { Phone, Navigation, Camera, Clock, CheckCircle, Play, Square, PenLine, WifiOff, CloudOff } from 'lucide-react'
+import { Phone, Navigation, Camera, Clock, CheckCircle, Play, Square, WifiOff, CloudOff } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { JobStatusBadge, PriorityBadge } from '@/components/shared/status-badge'
-import { useJobs, useEmployees, useCustomers, useProperties, useUpdateJobStatus } from '@/hooks/use-entities'
+import { useJobs, useEmployees, useCustomers, useProperties, useUpdateJobStatus, useSaveJob } from '@/hooks/use-entities'
 import { useAuth } from '@/contexts/auth-context'
 import { useTranslation } from '@/contexts/locale-context'
 import { useOnlineStatus } from '@/hooks/use-online-status'
@@ -17,6 +17,7 @@ import { uploadJobPhoto } from '@/services/storage-service'
 import { resolveJobAddress } from '@/hooks/use-route-optimizer'
 import { buildGoogleMapsDirectionsUrl, geocodeAddressForRouting } from '@/lib/route-optimizer'
 import { fileToBase64 } from '@/lib/file-utils'
+import { JobNotesDialog } from '@/components/jobs/job-notes-dialog'
 import { toast } from 'sonner'
 import type { Job, JobStatus } from '@/types'
 
@@ -40,6 +41,7 @@ export default function TechnicianMobilePage() {
   const { data: customers = [] } = useCustomers()
   const { data: properties = [] } = useProperties()
   const updateStatus = useUpdateJobStatus()
+  const saveJob = useSaveJob()
   const [activeJobId, setActiveJobId] = useState<string | null>(null)
   const [timeEntries, setTimeEntries] = useState<LocalTimeEntry[]>([])
   const [gps, setGps] = useState<{ lat: number; lng: number } | null>(null)
@@ -118,6 +120,20 @@ export default function TechnicianMobilePage() {
     window.open(buildGoogleMapsDirectionsUrl([stop]), '_blank', 'noopener,noreferrer')
   }
 
+  const persistJobUpdate = (updated: Job, successMessage: string, offlineActionType: 'update_job' | 'update_job_status' = 'update_job') => {
+    upsertStore(STORE_KEYS.jobs, updated)
+    void qc.invalidateQueries({ queryKey: ['jobs', companyId] })
+
+    if (!online) {
+      queueOfflineAction(offlineActionType, { job: updated })
+      setPendingSync(getOfflineQueue().length)
+      toast.success(t.techMobile.offlineSaved)
+      return
+    }
+
+    saveJob.mutate(updated, { onSuccess: () => toast.success(successMessage) })
+  }
+
   const changeJobStatus = (job: Job, status: JobStatus) => {
     const updated: Job = {
       ...job,
@@ -125,13 +141,8 @@ export default function TechnicianMobilePage() {
       ...(status === 'completed' ? { completed_date: new Date().toISOString() } : {}),
     }
 
-    upsertStore(STORE_KEYS.jobs, updated)
-    void qc.invalidateQueries({ queryKey: ['jobs', companyId] })
-
     if (!online) {
-      queueOfflineAction('update_job_status', { job: updated })
-      setPendingSync(getOfflineQueue().length)
-      toast.success(t.techMobile.offlineSaved)
+      persistJobUpdate(updated, t.techMobile.statusUpdated, 'update_job_status')
       return
     }
 
@@ -139,6 +150,10 @@ export default function TechnicianMobilePage() {
       { job: updated, status },
       { onSuccess: () => toast.success(t.techMobile.statusUpdated) },
     )
+  }
+
+  const saveJobNotes = (job: Job, notes: string) => {
+    persistJobUpdate({ ...job, description: notes }, t.techMobile.notesSaved)
   }
 
   const queuePhotoUpload = async (file: File, jobId: string) => {
@@ -325,9 +340,11 @@ export default function TechnicianMobilePage() {
                       <Play className="h-4 w-4" />{t.techMobile.clockIn}
                     </Button>
                   )}
-                  <Button variant="outline" size="sm">
-                    <PenLine className="h-4 w-4" />{t.common.notes}
-                  </Button>
+                  <JobNotesDialog
+                    job={job}
+                    onSave={saveJobNotes}
+                    isSaving={saveJob.isPending}
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {job.status === 'scheduled' && (

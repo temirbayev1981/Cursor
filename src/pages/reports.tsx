@@ -9,6 +9,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   BarChart,
   Bar,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -20,13 +24,18 @@ import {
   computeServiceProfitability,
   computeTechnicianPerformance,
   computeReportSummary,
+  computeExpenseBreakdown,
+  computeRangeComparison,
   filterJobsByDateRange,
+  filterExpensesByDateRange,
+  filterFuelLogsByDateRange,
   hasRevenueData,
   hasProfitData,
   hasTechnicianData,
+  hasValueData,
 } from '@/lib/analytics'
 import { ChartEmpty } from '@/components/shared/chart-empty'
-import { useJobs, useCustomers, useEmployees } from '@/hooks/use-entities'
+import { useJobs, useCustomers, useEmployees, useExpenses, useFuelLogs } from '@/hooks/use-entities'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { formatCurrency } from '@/lib/utils'
 import { ProfitIndicator } from '@/components/shared/status-badge'
@@ -34,7 +43,9 @@ import { exportFullReport, exportReportPdf } from '@/lib/export'
 import { useTranslation } from '@/contexts/locale-context'
 import { subMonths, format } from 'date-fns'
 
-type ReportTab = 'financial' | 'profit' | 'technicians' | 'customers' | 'services'
+type ReportTab = 'financial' | 'profit' | 'technicians' | 'customers' | 'services' | 'expenses'
+
+const PIE_COLORS = ['#0ea5e9', '#fbbf24', '#22c55e', '#ef4444', '#8b5cf6', '#f97316']
 
 function defaultStartDate() {
   return format(subMonths(new Date(), 6), 'yyyy-MM-dd')
@@ -52,16 +63,36 @@ export default function ReportsPage() {
   const { data: jobs = [], isLoading: jobsLoading } = useJobs()
   const { data: customers = [], isLoading: custLoading } = useCustomers()
   const { data: employees = [] } = useEmployees()
+  const { data: expenses = [] } = useExpenses()
+  const { data: fuelLogs = [] } = useFuelLogs()
 
   const filteredJobs = useMemo(
     () => filterJobsByDateRange(jobs, startDate, endDate),
     [jobs, startDate, endDate],
   )
 
+  const filteredExpenses = useMemo(
+    () => filterExpensesByDateRange(expenses, startDate, endDate),
+    [expenses, startDate, endDate],
+  )
+
+  const filteredFuelLogs = useMemo(
+    () => filterFuelLogsByDateRange(fuelLogs, startDate, endDate),
+    [fuelLogs, startDate, endDate],
+  )
+
   const summary = useMemo(() => computeReportSummary(filteredJobs), [filteredJobs])
+  const comparison = useMemo(
+    () => computeRangeComparison(jobs, startDate, endDate),
+    [jobs, startDate, endDate],
+  )
   const revenueChart = useMemo(() => computeRevenueChart(filteredJobs), [filteredJobs])
   const serviceChart = useMemo(() => computeServiceProfitability(filteredJobs), [filteredJobs])
   const techChart = useMemo(() => computeTechnicianPerformance(filteredJobs, employees), [filteredJobs, employees])
+  const expenseChart = useMemo(
+    () => computeExpenseBreakdown(filteredJobs, filteredExpenses, filteredFuelLogs),
+    [filteredJobs, filteredExpenses, filteredFuelLogs],
+  )
 
   const dateRangeLabel = `${startDate} — ${endDate}`
 
@@ -71,6 +102,7 @@ export default function ReportsPage() {
     technicians: t.reports.technicians,
     customers: t.reports.customers,
     services: t.reports.services,
+    expenses: t.reports.expenses,
   }
 
   const handleExportPdf = () => {
@@ -162,6 +194,12 @@ export default function ReportsPage() {
               <p className="text-muted-foreground">{t.reports.margin}</p>
               <p className="font-semibold">{summary.margin}%</p>
             </div>
+            <div>
+              <p className="text-muted-foreground">{t.reports.vsPrevious}</p>
+              <p className={`font-semibold ${comparison.revenueTrend >= 0 ? 'text-success' : 'text-destructive'}`}>
+                {comparison.revenueTrend >= 0 ? '+' : ''}{comparison.revenueTrend}%
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -173,6 +211,7 @@ export default function ReportsPage() {
           <TabsTrigger value="technicians">{t.reports.technicians}</TabsTrigger>
           <TabsTrigger value="customers">{t.reports.customers}</TabsTrigger>
           <TabsTrigger value="services">{t.reports.services}</TabsTrigger>
+          <TabsTrigger value="expenses">{t.reports.expenses}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="financial">
@@ -284,6 +323,38 @@ export default function ReportsPage() {
                   <Bar dataKey="profit" fill="#22c55e" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+              ) : (
+                <ChartEmpty message={t.common.noData} height={350} />
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="expenses">
+          <Card>
+            <CardHeader><CardTitle>{t.reports.expenseBreakdown}</CardTitle></CardHeader>
+            <CardContent>
+              {hasValueData(expenseChart) ? (
+                <ResponsiveContainer width="100%" height={350}>
+                  <PieChart>
+                    <Pie
+                      data={expenseChart}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={70}
+                      outerRadius={110}
+                      paddingAngle={4}
+                      dataKey="value"
+                      nameKey="name"
+                    >
+                      {expenseChart.map((_, index) => (
+                        <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
               ) : (
                 <ChartEmpty message={t.common.noData} height={350} />
               )}
