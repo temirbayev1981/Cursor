@@ -5,6 +5,7 @@ import {
   DEMO_PROPERTIES, DEMO_EMPLOYEES, DEMO_MATERIALS, DEMO_VEHICLES, DEMO_EXPENSES, DEMO_SCHEDULE,
   DEMO_WORK_ORDERS, DEMO_SERVICES, DEMO_FUEL_LOGS,
 } from '@/data/mock-data'
+import { matchCustomerFromVendorPO } from '@/lib/vendor-po-customer-match'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
 
 type EntityMap = {
@@ -195,10 +196,17 @@ export async function createJobFromVendorPO(
       ? 'high' as const
       : po.priority.startsWith('P5') ? 'medium' as const : 'low' as const
 
+  const customers = await listEntities('customers', companyId)
+  const matched = matchCustomerFromVendorPO(po, customers)
+  const customerId = matched?.id
+    ?? customers.find((c) => c.type === 'property_management')?.id
+    ?? customers[0]?.id
+    ?? 'cust-001'
+
   const job: Job = {
     id: crypto.randomUUID(),
     company_id: companyId,
-    customer_id: 'cust-001',
+    customer_id: customerId,
     title: `${po.order_type}: ${po.work_summary}`,
     description: po.service_description,
     status: 'draft',

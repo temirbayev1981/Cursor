@@ -1,17 +1,36 @@
-import { Plus, AlertTriangle } from 'lucide-react'
+import { useState } from 'react'
+import { Plus, AlertTriangle, X } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { useMaterials } from '@/hooks/use-entities'
+import { MaterialForm } from '@/components/forms/material-form'
+import { useAuth } from '@/contexts/auth-context'
+import { useMaterials, useSaveMaterial } from '@/hooks/use-entities'
 import { formatCurrencyPrecise } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
+import { toast } from 'sonner'
+import type { Material } from '@/types'
 
 export default function MaterialsPage() {
   const { t } = useTranslation()
+  const { company } = useAuth()
+  const companyId = company?.id ?? 'comp-001'
+  const [showForm, setShowForm] = useState(false)
   const { data: materials = [], isLoading } = useMaterials()
+  const saveMaterial = useSaveMaterial()
   const lowStock = materials.filter((m) => m.quantity <= m.reorder_level)
+
+  const handleCreate = (material: Material) => {
+    saveMaterial.mutate(material, {
+      onSuccess: () => {
+        toast.success(t.common.save)
+        setShowForm(false)
+      },
+    })
+  }
 
   if (isLoading) return <TableSkeleton />
 
@@ -20,8 +39,20 @@ export default function MaterialsPage() {
       <PageHeader
         title={t.materials.title}
         description={t.materials.description}
-        actions={<Button><Plus className="h-4 w-4" />{t.materials.addMaterial}</Button>}
+        actions={<Button onClick={() => setShowForm(true)}><Plus className="h-4 w-4" />{t.materials.addMaterial}</Button>}
       />
+
+      {showForm && (
+        <Card className="mb-6">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">{t.materials.addMaterial}</CardTitle>
+            <Button variant="ghost" size="icon" onClick={() => setShowForm(false)}><X className="h-4 w-4" /></Button>
+          </CardHeader>
+          <CardContent>
+            <MaterialForm companyId={companyId} onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
+          </CardContent>
+        </Card>
+      )}
 
       {lowStock.length > 0 && (
         <div className="glass-card border-warning/30 p-4 mb-6 flex items-center gap-3">

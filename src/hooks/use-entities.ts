@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
 import { listEntities, saveEntity, createJobFromVendorPO, createEstimateFromJob, createInvoiceFromEstimate, createScheduleFromJob, importDemoSeedToSupabase, listFuelLogs } from '@/services/entity-service'
 import { recordInvoicePayment, sendInvoiceToCustomer } from '@/services/payment-service'
-import type { Job, Customer, Estimate, Invoice } from '@/types'
+import type { Job, Customer, Estimate, Invoice, Employee, Material, Vehicle, Expense } from '@/types'
 import type { VendorPORecord } from '@/types/vendor-po'
 
 function useCompanyId() {
@@ -190,6 +190,45 @@ export function useSaveProperty() {
   return useMutation({
     mutationFn: (property: import('@/types').Property) => saveEntity('properties', property),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['properties', companyId] }),
+  })
+}
+
+export function useSaveEmployee() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: (employee: Employee) => saveEntity('employees', employee),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['employees', companyId] }),
+  })
+}
+
+export function useSaveMaterial() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: (material: Material) => saveEntity('materials', material),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['materials', companyId] }),
+  })
+}
+
+export function useSaveVehicle() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: (vehicle: Vehicle) => saveEntity('vehicles', vehicle),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['vehicles', companyId] })
+      qc.invalidateQueries({ queryKey: ['fuelLogs', companyId] })
+    },
+  })
+}
+
+export function useSaveExpense() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: (expense: Expense) => saveEntity('expenses', expense),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['expenses', companyId] }),
   })
 }
 

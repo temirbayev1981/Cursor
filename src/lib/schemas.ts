@@ -78,3 +78,48 @@ export const onboardingCompanySchema = z.object({
   phone: z.string().min(7),
   address: z.string().min(5),
 })
+
+export const employeeSchema = z.object({
+  name: z.string().min(2),
+  role: z.string().min(2),
+  phone: z.string().optional(),
+  hourly_wage: z.coerce.number().min(0),
+  billing_rate: z.coerce.number().min(0),
+  skills: z.string().optional(),
+})
+
+export type EmployeeFormValues = z.infer<typeof employeeSchema>
+
+export const materialSchema = z.object({
+  name: z.string().min(2),
+  category: z.string().min(1),
+  supplier: z.string().min(1),
+  cost: z.coerce.number().min(0),
+  markup_percent: z.coerce.number().min(0).max(200),
+  quantity: z.coerce.number().min(0),
+  reorder_level: z.coerce.number().min(0),
+  unit: z.string().min(1),
+})
+
+export type MaterialFormValues = z.infer<typeof materialSchema>
+
+export const vehicleSchema = z.object({
+  name: z.string().min(2),
+  type: z.enum(['truck', 'van', 'trailer', 'car']),
+  make: z.string().min(1),
+  model: z.string().min(1),
+  year: z.coerce.number().min(1990).max(2030),
+  license_plate: z.string().min(2),
+  mileage: z.coerce.number().min(0),
+})
+
+export type VehicleFormValues = z.infer<typeof vehicleSchema>
+
+export const expenseSchema = z.object({
+  category: z.string().min(1),
+  description: z.string().min(2),
+  amount: z.coerce.number().min(0.01),
+  date: z.string().min(1),
+})
+
+export type ExpenseFormValues = z.infer<typeof expenseSchema>

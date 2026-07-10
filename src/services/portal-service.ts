@@ -57,7 +57,7 @@ export function clearPortalSession(): void {
 }
 
 export function isDemoPortalAccess(): boolean {
-  return sessionStorage.getItem('handymanos_portal_token') === 'demo'
+  return DEMO_MODE && sessionStorage.getItem('handymanos_portal_token') === 'demo'
 }
 
 export async function createPortalLink(

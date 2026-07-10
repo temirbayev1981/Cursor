@@ -1,18 +1,37 @@
-import { Plus } from 'lucide-react'
+import { useState } from 'react'
+import { Plus, X } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { useExpenses } from '@/hooks/use-entities'
+import { ExpenseForm } from '@/components/forms/expense-form'
+import { useAuth } from '@/contexts/auth-context'
+import { useExpenses, useSaveExpense } from '@/hooks/use-entities'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
+import { toast } from 'sonner'
+import type { Expense } from '@/types'
 
 export default function ExpensesPage() {
   const { t, locale } = useTranslation()
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
+  const { company } = useAuth()
+  const companyId = company?.id ?? 'comp-001'
+  const [showForm, setShowForm] = useState(false)
   const { data: expenses = [], isLoading } = useExpenses()
+  const saveExpense = useSaveExpense()
   const total = expenses.reduce((s, e) => s + e.amount, 0)
+
+  const handleCreate = (expense: Expense) => {
+    saveExpense.mutate(expense, {
+      onSuccess: () => {
+        toast.success(t.common.save)
+        setShowForm(false)
+      },
+    })
+  }
 
   if (isLoading) return <TableSkeleton />
 
@@ -21,8 +40,20 @@ export default function ExpensesPage() {
       <PageHeader
         title={t.expenses.title}
         description={t.expenses.description}
-        actions={<Button><Plus className="h-4 w-4" />{t.expenses.addExpense}</Button>}
+        actions={<Button onClick={() => setShowForm(true)}><Plus className="h-4 w-4" />{t.expenses.addExpense}</Button>}
       />
+
+      {showForm && (
+        <Card className="mb-6">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">{t.expenses.addExpense}</CardTitle>
+            <Button variant="ghost" size="icon" onClick={() => setShowForm(false)}><X className="h-4 w-4" /></Button>
+          </CardHeader>
+          <CardContent>
+            <ExpenseForm companyId={companyId} onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
+          </CardContent>
+        </Card>
+      )}
 
       <div className="glass-card p-5 mb-6 inline-block">
         <p className="text-sm text-muted-foreground">{t.expenses.totalMonth}</p>

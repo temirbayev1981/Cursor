@@ -1,21 +1,39 @@
-import { Plus, Fuel } from 'lucide-react'
+import { useState } from 'react'
+import { Plus, Fuel, X } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
 import { TableSkeleton } from '@/components/shared/skeleton'
-import { useVehicles, useFuelLogs } from '@/hooks/use-entities'
+import { VehicleForm } from '@/components/forms/vehicle-form'
+import { useAuth } from '@/contexts/auth-context'
+import { useVehicles, useFuelLogs, useSaveVehicle } from '@/hooks/use-entities'
 import { formatCurrencyPrecise, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
+import { toast } from 'sonner'
+import type { Vehicle } from '@/types'
 
 export default function VehiclesPage() {
   const { t, locale } = useTranslation()
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
+  const { company } = useAuth()
+  const companyId = company?.id ?? 'comp-001'
+  const [showForm, setShowForm] = useState(false)
   const { data: vehicles = [], isLoading: vehLoading } = useVehicles()
   const { data: fuelLogs = [], isLoading: fuelLoading } = useFuelLogs()
+  const saveVehicle = useSaveVehicle()
   const totalFuelCost = fuelLogs.reduce((s, l) => s + l.total_cost, 0)
   const totalMiles = fuelLogs.reduce((s, l) => s + l.miles, 0)
+
+  const handleCreate = (vehicle: Vehicle) => {
+    saveVehicle.mutate(vehicle, {
+      onSuccess: () => {
+        toast.success(t.common.save)
+        setShowForm(false)
+      },
+    })
+  }
 
   if (vehLoading || fuelLoading) return <TableSkeleton />
 
@@ -24,8 +42,20 @@ export default function VehiclesPage() {
       <PageHeader
         title={t.vehicles.title}
         description={t.vehicles.description}
-        actions={<Button><Plus className="h-4 w-4" />{t.vehicles.addVehicle}</Button>}
+        actions={<Button onClick={() => setShowForm(true)}><Plus className="h-4 w-4" />{t.vehicles.addVehicle}</Button>}
       />
+
+      {showForm && (
+        <Card className="mb-6">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">{t.vehicles.addVehicle}</CardTitle>
+            <Button variant="ghost" size="icon" onClick={() => setShowForm(false)}><X className="h-4 w-4" /></Button>
+          </CardHeader>
+          <CardContent>
+            <VehicleForm companyId={companyId} onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
