@@ -1,6 +1,6 @@
 # HandymanOS AI — Release 1.7.4
 
-**Status:** merged to `main` (tag **`v1.7.4`**, current package **1.7.5** post-release tooling).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.7.6`**, current package **1.7.6**).
 
 Consolidated **1.7.x** production release (stacked PRs #63–#68).
 
@@ -27,6 +27,14 @@ Consolidated **1.7.x** production release (stacked PRs #63–#68).
 - Localized audit log labels (EN/RU) in Settings → System
 - Additional audit events: bulk assign/schedule, sample import, plan upgrade, portal invoice payment
 - `deploy.yml` `VITE_APP_VERSION` synced with `package.json`
+
+### 1.7.5 — Post-release ops
+- POST_RELEASE.md checklist; deploy.yml dynamic `VITE_APP_VERSION`
+
+### 1.7.6 — Smoke & Stripe audit
+- Extended `smoke:supabase` (tables + RPCs); `supabase/UPGRADE.md`
+- Stripe webhook writes `invoice.payment` audit log
+- `release.yml` workflow on git tags
 
 ## Test coverage
 

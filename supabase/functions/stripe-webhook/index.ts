@@ -61,7 +61,7 @@ serve(async (req) => {
     if (invoiceId) {
       const { data: invoice } = await supabase
         .from('invoices')
-        .select('id, total, amount_paid')
+        .select('id, total, amount_paid, company_id')
         .eq('id', invoiceId)
         .single()
 
@@ -79,6 +79,15 @@ serve(async (req) => {
           paid_date: new Date().toISOString(),
           stripe_invoice_id: session.id,
         }).eq('id', invoiceId)
+
+        await supabase.from('audit_logs').insert({
+          id: crypto.randomUUID(),
+          company_id: invoice.company_id,
+          user_id: 'stripe',
+          action: 'invoice.payment',
+          entity_type: 'invoice',
+          entity_id: invoiceId,
+        })
       }
     }
   }

@@ -20,7 +20,7 @@ Without Supabase secrets, the **Deploy** workflow still passes (E2E uses mock ba
 ## 2. Supabase project
 
 1. Create project at [supabase.com](https://supabase.com)
-2. Run full `supabase/schema.sql` in SQL Editor
+2. Run full `supabase/schema.sql` in SQL Editor (see [supabase/UPGRADE.md](./supabase/UPGRADE.md) for version paths)
 3. Deploy Edge Functions (see [DEPLOYMENT.md](./DEPLOYMENT.md) §2–8)
 4. Set Edge Function secrets (`OPENAI_API_KEY`, `STRIPE_SECRET_KEY`, `RESEND_API_KEY`, etc.)
 
@@ -53,14 +53,14 @@ npm run smoke:supabase       # needs live Supabase in .env.local
 
 ## 7. Tags and rollback
 
-Current release tag: **`v1.7.4`**
+Current release tag: **`v1.7.6`**
 
 ```bash
-git tag -a v1.7.5 -m "HandymanOS AI 1.7.5"
-git push origin v1.7.5
+git tag -a v1.7.7 -m "HandymanOS AI 1.7.7"
+git push origin v1.7.7
 ```
 
-Rollback to pre-1.7.4: `git checkout v1.7.4` or reset `main` to tag (team policy).
+Rollback: `git checkout v1.7.6` or reset `main` to a prior tag (team policy).
 
 ## 8. Close stale PRs
 

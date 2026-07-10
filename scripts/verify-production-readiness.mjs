@@ -15,6 +15,7 @@ const e2eSpecs = readdirSync('e2e')
 
 const requiredFiles = [
   'supabase/schema.sql',
+  'supabase/UPGRADE.md',
   'RELEASE.md',
   'DEPLOYMENT.md',
   'MERGE.md',
@@ -102,7 +103,7 @@ for (const token of schemaChecks) {
 }
 
 const deployment = readFileSync('DEPLOYMENT.md', 'utf8')
-const deploymentChecks = ['verify:production', 'npm run test:e2e', 'team_invites', 'openai-proxy', 'MERGE.md', 'POST_RELEASE.md']
+const deploymentChecks = ['verify:production', 'npm run test:e2e', 'team_invites', 'openai-proxy', 'MERGE.md', 'POST_RELEASE.md', 'UPGRADE.md']
 console.log('\nDEPLOYMENT.md:')
 for (const token of deploymentChecks) {
   if (deployment.includes(token)) {

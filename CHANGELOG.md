@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.7.6] — 2026-07-10
+
+Supabase smoke expansion, Stripe webhook audit, release workflow.
+
+### Phase 77 — Production hardening
+- `smoke:supabase`: validates 8 tables + 5 portal/team RPCs
+- `supabase/UPGRADE.md`: schema upgrade paths (1.6→1.7, 1.7.x)
+- Stripe webhook: `invoice.payment` audit log on checkout complete
+- GitHub Actions: `release.yml` runs verify on version tags
+
 ## [1.7.5] — 2026-07-10
 
 Post-release ops and CI improvements.

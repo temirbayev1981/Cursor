@@ -19,6 +19,8 @@ VITE_SUPABASE_ANON_KEY=eyJ...
 
 5. In the app: **Settings → System → Import sample data** to seed customers, jobs, estimates, and invoices into Supabase.
 
+See [supabase/UPGRADE.md](./supabase/UPGRADE.md) when upgrading an existing database between releases.
+
 ### Hybrid offline cache
 
 When Supabase is configured, reads are mirrored to `localStorage` for PWA/offline resilience. Writes update both Supabase and the local cache. If the network fails, the app falls back to cached data.
@@ -290,7 +292,7 @@ npm run smoke:supabase
 # or: Actions → Supabase smoke → Run workflow
 ```
 
-Validates REST connectivity, `validate_portal_token` RPC, and `get_accessible_companies` RPC (re-apply `schema.sql` if RPC checks fail).
+Validates REST connectivity, required tables, and portal/multi-tenant RPCs (re-apply `schema.sql` if checks fail — see [supabase/UPGRADE.md](./supabase/UPGRADE.md)).
 
 ---
 
