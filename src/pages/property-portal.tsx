@@ -2,19 +2,33 @@ import { Plus, Clock, DollarSign, CheckCircle } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { DEMO_JOBS } from '@/data/mock-data'
+import { TableSkeleton } from '@/components/shared/skeleton'
+import { useJobs, useInvoices } from '@/hooks/use-entities'
 import { formatCurrency } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 
+const PORTAL_CUSTOMER_ID = 'cust-001'
+
 export default function PropertyPortalPage() {
   const { t } = useTranslation()
+  const { data: jobs = [], isLoading: jobsLoading } = useJobs()
+  const { data: invoices = [], isLoading: invLoading } = useInvoices()
+
+  const portalJobs = jobs.filter((j) => j.customer_id === PORTAL_CUSTOMER_ID)
+  const openRequests = portalJobs.filter((j) => ['draft', 'scheduled', 'in_progress'].includes(j.status)).length
+  const completed = portalJobs.filter((j) => j.status === 'completed').length
+  const monthlySpend = invoices
+    .filter((i) => i.customer_id === PORTAL_CUSTOMER_ID)
+    .reduce((s, i) => s + i.total, 0)
 
   const stats = [
-    { label: t.propertyPortal.openRequests, value: 3, icon: Clock },
-    { label: t.propertyPortal.completed, value: 12, icon: CheckCircle },
-    { label: t.propertyPortal.monthlySpend, value: formatCurrency(8450), icon: DollarSign },
+    { label: t.propertyPortal.openRequests, value: openRequests, icon: Clock },
+    { label: t.propertyPortal.completed, value: completed, icon: CheckCircle },
+    { label: t.propertyPortal.monthlySpend, value: formatCurrency(monthlySpend), icon: DollarSign },
     { label: t.propertyPortal.avgResponse, value: '4.2 hrs', icon: Clock },
   ]
+
+  if (jobsLoading || invLoading) return <div className="p-6"><TableSkeleton /></div>
 
   return (
     <div className="gradient-bg min-h-screen">
@@ -43,7 +57,7 @@ export default function PropertyPortalPage() {
 
         <h2 className="text-lg font-semibold mb-4">{t.propertyPortal.activeRequests}</h2>
         <div className="space-y-3">
-          {DEMO_JOBS.filter((j) => j.customer_id === 'cust-001').map((job) => (
+          {portalJobs.filter((j) => j.status !== 'completed').map((job) => (
             <Card key={job.id}>
               <CardContent className="p-4 flex items-center justify-between">
                 <div>

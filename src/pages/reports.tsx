@@ -13,11 +13,16 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import {
+  computeRevenueChart,
+  computeServiceProfitability,
+  computeTechnicianPerformance,
+} from '@/lib/analytics'
+import {
   REVENUE_CHART_DATA,
   SERVICE_PROFITABILITY,
   TECHNICIAN_PERFORMANCE,
 } from '@/data/mock-data'
-import { useJobs, useCustomers } from '@/hooks/use-entities'
+import { useJobs, useCustomers, useEmployees } from '@/hooks/use-entities'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { formatCurrency } from '@/lib/utils'
 import { ProfitIndicator } from '@/components/shared/status-badge'
@@ -27,6 +32,11 @@ export default function ReportsPage() {
   const { t } = useTranslation()
   const { data: jobs = [], isLoading: jobsLoading } = useJobs()
   const { data: customers = [], isLoading: custLoading } = useCustomers()
+  const { data: employees = [] } = useEmployees()
+
+  const revenueChart = computeRevenueChart(jobs)
+  const serviceChart = computeServiceProfitability(jobs)
+  const techChart = computeTechnicianPerformance(jobs, employees)
 
   if (jobsLoading || custLoading) return <TableSkeleton rows={6} cols={4} />
 
@@ -57,7 +67,7 @@ export default function ReportsPage() {
             <CardHeader><CardTitle>{t.reports.revenueReport}</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={REVENUE_CHART_DATA}>
+                <BarChart data={revenueChart.length > 1 ? revenueChart : REVENUE_CHART_DATA}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
                   <XAxis dataKey="name" stroke="#94a3b8" />
                   <YAxis stroke="#94a3b8" tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
@@ -109,7 +119,7 @@ export default function ReportsPage() {
             <CardHeader><CardTitle>{t.reports.techPerformance}</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={TECHNICIAN_PERFORMANCE}>
+                <BarChart data={techChart.length > 0 ? techChart : TECHNICIAN_PERFORMANCE}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
                   <XAxis dataKey="name" stroke="#94a3b8" />
                   <YAxis stroke="#94a3b8" />
@@ -143,7 +153,7 @@ export default function ReportsPage() {
             <CardHeader><CardTitle>{t.reports.serviceProfit}</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={SERVICE_PROFITABILITY}>
+                <BarChart data={serviceChart.length > 0 ? serviceChart : SERVICE_PROFITABILITY}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
                   <XAxis dataKey="name" stroke="#94a3b8" />
                   <YAxis stroke="#94a3b8" />

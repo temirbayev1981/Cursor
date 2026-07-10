@@ -6,8 +6,7 @@ import { TableSkeleton } from '@/components/shared/skeleton'
 import { EstimateStatusBadge } from '@/components/shared/status-badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { DEMO_SERVICES } from '@/data/mock-data'
-import { useEstimates, useJobs, useCustomers } from '@/hooks/use-entities'
+import { useEstimates, useJobs, useCustomers, useServices } from '@/hooks/use-entities'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { generateSmartEstimate } from '@/lib/ai'
 import { useTranslation } from '@/contexts/locale-context'
@@ -19,6 +18,7 @@ export default function EstimatesPage() {
   const { data: estimates = [], isLoading: estimatesLoading } = useEstimates()
   const { data: jobs = [], isLoading: jobsLoading } = useJobs()
   const { data: customers = [], isLoading: customersLoading } = useCustomers()
+  const { data: services = [] } = useServices()
 
   const smartEstimate = generateSmartEstimate(
     'Drywall Repair',
@@ -69,7 +69,7 @@ export default function EstimatesPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-3">
                 <h4 className="text-sm font-semibold">{t.estimates.serviceCatalog}</h4>
-                {DEMO_SERVICES.slice(0, 4).map((svc) => (
+                {services.slice(0, 4).map((svc) => (
                   <div key={svc.id} className="flex justify-between text-sm rounded-lg bg-secondary/30 p-3">
                     <span>{svc.name}</span>
                     <span className="text-muted-foreground">{svc.avg_labor_hours}{t.common.hours} · {formatCurrency(svc.suggested_price)}</span>

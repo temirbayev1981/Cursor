@@ -36,11 +36,54 @@ export default function OnboardingPage() {
     { title: t.onboarding.materials, description: t.onboarding.materialsDesc },
   ]
 
+  const [selectedServices, setSelectedServices] = useState<string[]>([])
+  const [employeeDraft, setEmployeeDraft] = useState({ name: '', role: '', hourly_wage: 25, billing_rate: 75 })
+  const [vehicleDraft, setVehicleDraft] = useState({ name: '', type: 'van', make_model: '', license_plate: '' })
+
+  const toggleService = (svc: string) => {
+    setSelectedServices((prev) => {
+      const next = prev.includes(svc) ? prev.filter((s) => s !== svc) : [...prev, svc]
+      setData((d) => ({
+        ...d,
+        services: next.map((name) => ({ name, category: name })),
+      }))
+      return next
+    })
+  }
+
+  const addEmployee = () => {
+    if (!employeeDraft.name) return
+    const emp = { ...employeeDraft, skills: [] as string[] }
+    setData((d) => ({ ...d, employees: [...d.employees, emp] }))
+    setEmployeeDraft({ name: '', role: '', hourly_wage: 25, billing_rate: 75 })
+  }
+
+  const addVehicle = () => {
+    if (!vehicleDraft.name) return
+    const [make = '', model = ''] = vehicleDraft.make_model.split(' ')
+    setData((d) => ({
+      ...d,
+      vehicles: [...d.vehicles, {
+        name: vehicleDraft.name,
+        type: vehicleDraft.type as import('@/types').Vehicle['type'],
+        make,
+        model,
+        license_plate: vehicleDraft.license_plate,
+      }],
+    }))
+    setVehicleDraft({ name: '', type: 'van', make_model: '', license_plate: '' })
+  }
+
   const progress = ((step + 1) / STEPS.length) * 100
 
   const handleComplete = async () => {
+    const payload: OnboardingData = {
+      ...data,
+      services: selectedServices.map((name) => ({ name, category: name })),
+      materials: t.onboarding.materialList.map((name) => ({ name, category: 'general' })),
+    }
     try {
-      await completeOnboarding(data)
+      await completeOnboarding(payload)
       toast.success(t.auth.completeSetup)
       navigate('/dashboard')
     } catch {
@@ -84,10 +127,10 @@ export default function OnboardingPage() {
                   <div className="space-y-4">
                     <h2 className="text-lg font-semibold">{t.onboarding.companyInfo}</h2>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="col-span-2"><Label>{t.onboarding.companyName}</Label><Input className="mt-1" placeholder="ProFix Handyman Services" onChange={(e) => setData({ ...data, company: { ...data.company, name: e.target.value } })} /></div>
-                      <div><Label>{t.auth.email}</Label><Input className="mt-1" type="email" placeholder="info@company.com" /></div>
-                      <div><Label>{t.onboarding.phone}</Label><Input className="mt-1" placeholder="(555) 123-4567" /></div>
-                      <div className="col-span-2"><Label>{t.onboarding.address}</Label><Input className="mt-1" placeholder="123 Main St, City, ST" /></div>
+                      <div className="col-span-2"><Label>{t.onboarding.companyName}</Label><Input className="mt-1" placeholder="ProFix Handyman Services" value={data.company.name} onChange={(e) => setData({ ...data, company: { ...data.company, name: e.target.value } })} /></div>
+                      <div><Label>{t.auth.email}</Label><Input className="mt-1" type="email" placeholder="info@company.com" value={data.company.email} onChange={(e) => setData({ ...data, company: { ...data.company, email: e.target.value } })} /></div>
+                      <div><Label>{t.onboarding.phone}</Label><Input className="mt-1" placeholder="(555) 123-4567" value={data.company.phone} onChange={(e) => setData({ ...data, company: { ...data.company, phone: e.target.value } })} /></div>
+                      <div className="col-span-2"><Label>{t.onboarding.address}</Label><Input className="mt-1" placeholder="123 Main St, City, ST" value={data.company.address} onChange={(e) => setData({ ...data, company: { ...data.company, address: e.target.value } })} /></div>
                     </div>
                   </div>
                 )}
@@ -96,8 +139,9 @@ export default function OnboardingPage() {
                     <h2 className="text-lg font-semibold">{t.onboarding.selectServices}</h2>
                     <div className="grid grid-cols-2 gap-3">
                       {t.onboarding.serviceList.map((svc) => (
-                        <button key={svc} className="rounded-lg border border-border p-3 text-sm text-left hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer">
-                          <Check className="h-4 w-4 text-primary mb-1" />
+                        <button key={svc} type="button" onClick={() => toggleService(svc)}
+                          className={`rounded-lg border p-3 text-sm text-left transition-colors cursor-pointer ${selectedServices.includes(svc) ? 'border-primary bg-primary/10' : 'border-border hover:border-primary hover:bg-primary/5'}`}>
+                          <Check className={`h-4 w-4 mb-1 ${selectedServices.includes(svc) ? 'text-primary' : 'text-muted-foreground'}`} />
                           {svc}
                         </button>
                       ))}
@@ -108,10 +152,10 @@ export default function OnboardingPage() {
                   <div className="space-y-4">
                     <h2 className="text-lg font-semibold">{t.onboarding.pricingConfig}</h2>
                     <div className="grid grid-cols-2 gap-4">
-                      <div><Label>{t.onboarding.hourlyRate}</Label><Input className="mt-1" type="number" defaultValue={75} /></div>
-                      <div><Label>{t.onboarding.emergencyMultiplier}</Label><Input className="mt-1" type="number" step="0.1" defaultValue={1.5} /></div>
-                      <div><Label>{t.onboarding.weekendMultiplier}</Label><Input className="mt-1" type="number" step="0.1" defaultValue={1.25} /></div>
-                      <div><Label>{t.onboarding.propertyMgmtDiscount}</Label><Input className="mt-1" type="number" defaultValue={10} /></div>
+                      <div><Label>{t.onboarding.hourlyRate}</Label><Input className="mt-1" type="number" value={data.pricing.hourly_rate} onChange={(e) => setData({ ...data, pricing: { ...data.pricing, hourly_rate: Number(e.target.value) } })} /></div>
+                      <div><Label>{t.onboarding.emergencyMultiplier}</Label><Input className="mt-1" type="number" step="0.1" value={data.pricing.emergency_multiplier} onChange={(e) => setData({ ...data, pricing: { ...data.pricing, emergency_multiplier: Number(e.target.value) } })} /></div>
+                      <div><Label>{t.onboarding.weekendMultiplier}</Label><Input className="mt-1" type="number" step="0.1" value={data.pricing.weekend_multiplier} onChange={(e) => setData({ ...data, pricing: { ...data.pricing, weekend_multiplier: Number(e.target.value) } })} /></div>
+                      <div><Label>{t.onboarding.propertyMgmtDiscount}</Label><Input className="mt-1" type="number" value={data.pricing.property_mgmt_discount * 100} onChange={(e) => setData({ ...data, pricing: { ...data.pricing, property_mgmt_discount: Number(e.target.value) / 100 } })} /></div>
                     </div>
                   </div>
                 )}
@@ -119,22 +163,27 @@ export default function OnboardingPage() {
                   <div className="space-y-4">
                     <h2 className="text-lg font-semibold">{t.onboarding.addEmployee}</h2>
                     <div className="grid grid-cols-2 gap-4">
-                      <div><Label>{t.onboarding.name}</Label><Input className="mt-1" placeholder="John Smith" /></div>
-                      <div><Label>{t.onboarding.role}</Label><Input className="mt-1" placeholder="Lead Technician" /></div>
-                      <div><Label>{t.onboarding.hourlyWage}</Label><Input className="mt-1" type="number" placeholder="25" /></div>
-                      <div><Label>{t.onboarding.billingRate}</Label><Input className="mt-1" type="number" placeholder="75" /></div>
+                      <div><Label>{t.onboarding.name}</Label><Input className="mt-1" placeholder="John Smith" value={employeeDraft.name} onChange={(e) => setEmployeeDraft({ ...employeeDraft, name: e.target.value })} /></div>
+                      <div><Label>{t.onboarding.role}</Label><Input className="mt-1" placeholder="Lead Technician" value={employeeDraft.role} onChange={(e) => setEmployeeDraft({ ...employeeDraft, role: e.target.value })} /></div>
+                      <div><Label>{t.onboarding.hourlyWage}</Label><Input className="mt-1" type="number" value={employeeDraft.hourly_wage} onChange={(e) => setEmployeeDraft({ ...employeeDraft, hourly_wage: Number(e.target.value) })} /></div>
+                      <div><Label>{t.onboarding.billingRate}</Label><Input className="mt-1" type="number" value={employeeDraft.billing_rate} onChange={(e) => setEmployeeDraft({ ...employeeDraft, billing_rate: Number(e.target.value) })} /></div>
                     </div>
+                    <Button type="button" variant="outline" size="sm" onClick={addEmployee}>{t.common.add}</Button>
+                    {data.employees.length > 0 && (
+                      <div className="text-sm text-muted-foreground">{data.employees.length} сотрудник(ов) добавлено</div>
+                    )}
                   </div>
                 )}
                 {step === 4 && (
                   <div className="space-y-4">
                     <h2 className="text-lg font-semibold">{t.onboarding.addVehicle}</h2>
                     <div className="grid grid-cols-2 gap-4">
-                      <div><Label>{t.onboarding.vehicleName}</Label><Input className="mt-1" placeholder="Service Van #1" /></div>
-                      <div><Label>{t.onboarding.type}</Label><Input className="mt-1" placeholder="Van" /></div>
-                      <div><Label>{t.onboarding.makeModel}</Label><Input className="mt-1" placeholder="Ford Transit" /></div>
-                      <div><Label>{t.onboarding.licensePlate}</Label><Input className="mt-1" placeholder="ABC-1234" /></div>
+                      <div><Label>{t.onboarding.vehicleName}</Label><Input className="mt-1" value={vehicleDraft.name} onChange={(e) => setVehicleDraft({ ...vehicleDraft, name: e.target.value })} /></div>
+                      <div><Label>{t.onboarding.type}</Label><Input className="mt-1" value={vehicleDraft.type} onChange={(e) => setVehicleDraft({ ...vehicleDraft, type: e.target.value })} /></div>
+                      <div><Label>{t.onboarding.makeModel}</Label><Input className="mt-1" value={vehicleDraft.make_model} onChange={(e) => setVehicleDraft({ ...vehicleDraft, make_model: e.target.value })} /></div>
+                      <div><Label>{t.onboarding.licensePlate}</Label><Input className="mt-1" value={vehicleDraft.license_plate} onChange={(e) => setVehicleDraft({ ...vehicleDraft, license_plate: e.target.value })} /></div>
                     </div>
+                    <Button type="button" variant="outline" size="sm" onClick={addVehicle}>{t.common.add}</Button>
                   </div>
                 )}
                 {step === 5 && (

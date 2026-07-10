@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
-import { listEntities, saveEntity, createJobFromVendorPO, createEstimateFromJob } from '@/services/entity-service'
+import { listEntities, saveEntity, createJobFromVendorPO, createEstimateFromJob, listFuelLogs } from '@/services/entity-service'
 import type { Job, Customer, Estimate, Invoice } from '@/types'
 import type { VendorPORecord } from '@/types/vendor-po'
 
@@ -57,6 +57,30 @@ export function useVehicles() {
 export function useExpenses() {
   const companyId = useCompanyId()
   return useQuery({ queryKey: ['expenses', companyId], queryFn: () => listEntities('expenses', companyId) })
+}
+
+export function useWorkOrders() {
+  const companyId = useCompanyId()
+  return useQuery({ queryKey: ['workOrders', companyId], queryFn: () => listEntities('workOrders', companyId) })
+}
+
+export function useServices() {
+  const companyId = useCompanyId()
+  return useQuery({ queryKey: ['services', companyId], queryFn: () => listEntities('services', companyId) })
+}
+
+export function useFuelLogs() {
+  const companyId = useCompanyId()
+  return useQuery({ queryKey: ['fuelLogs', companyId], queryFn: () => listFuelLogs(companyId) })
+}
+
+export function useSaveWorkOrder() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: (wo: import('@/types').WorkOrder) => saveEntity('workOrders', wo),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['workOrders', companyId] }),
+  })
 }
 
 export function useSaveCustomer() {

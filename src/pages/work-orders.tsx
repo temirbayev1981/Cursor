@@ -11,10 +11,13 @@ import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { VendorPOTable } from '@/components/vendor-po/vendor-po-table'
-import { DEMO_WORK_ORDERS } from '@/data/mock-data'
+import { useWorkOrders } from '@/hooks/use-entities'
+import { saveWorkOrderFromAI } from '@/services/entity-service'
+import { useAuth } from '@/contexts/auth-context'
 import { analyzeWorkOrderPDF, analyzeEmailWorkOrder, analyzePhoto } from '@/lib/ai'
 import { extractTextFromPdfFiles } from '@/lib/pdf-extract'
 import { isVendorPOText, parseVendorPOText } from '@/lib/vendor-po-parser'
+import { useQueryClient } from '@tanstack/react-query'
 import { useVendorPOs, useSaveVendorPOs, useDeleteVendorPO, useSeedVendorPOs } from '@/hooks/use-vendor-pos'
 import type { AIExtractedData } from '@/types'
 import { formatCurrency } from '@/lib/utils'
@@ -23,6 +26,8 @@ import { useTranslation } from '@/contexts/locale-context'
 
 export default function WorkOrdersPage() {
   const { t } = useTranslation()
+  const { company } = useAuth()
+  const companyId = company?.id ?? 'comp-001'
   const [analyzing, setAnalyzing] = useState(false)
   const [parsingPdf, setParsingPdf] = useState(false)
   const [extracted, setExtracted] = useState<AIExtractedData | null>(null)
@@ -33,7 +38,9 @@ export default function WorkOrdersPage() {
     'Repair drywall damage, replace door trim, paint bedroom wall. Unit 204, 123 Main Street.'
   )
 
+  const queryClient = useQueryClient()
   const { data: vendorPOs = [], isLoading } = useVendorPOs()
+  const { data: workOrders = [] } = useWorkOrders()
   const saveVendorPOs = useSaveVendorPOs()
   const deleteVendorPO = useDeleteVendorPO()
   const seedVendorPOs = useSeedVendorPOs()
@@ -58,6 +65,8 @@ export default function WorkOrdersPage() {
             ? await analyzePhoto(file)
             : await analyzeWorkOrderPDF(content)
       setExtracted(result)
+      await saveWorkOrderFromAI(companyId, type === 'email' ? 'email' : type === 'photo' ? 'photo' : 'pdf', content, result)
+      queryClient.invalidateQueries({ queryKey: ['workOrders', companyId] })
       toast.success(t.workOrders.analysisComplete)
     } catch {
       toast.error(t.workOrders.analysisFailed)
@@ -288,7 +297,7 @@ export default function WorkOrdersPage() {
 
         <TabsContent value="history">
           <div className="space-y-4">
-            {DEMO_WORK_ORDERS.map((wo) => (
+            {workOrders.map((wo) => (
               <Card key={wo.id}>
                 <CardContent className="p-4 flex items-center justify-between">
                   <div>

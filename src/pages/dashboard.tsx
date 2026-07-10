@@ -29,13 +29,19 @@ import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { JobStatusBadge, PriorityBadge } from '@/components/shared/status-badge'
 import {
-  DEMO_DASHBOARD,
+  computeDashboardMetrics,
+  computeRevenueChart,
+  computeExpenseBreakdown,
+  computeServiceProfitability,
+  computeTechnicianPerformance,
+} from '@/lib/analytics'
+import {
   REVENUE_CHART_DATA,
   EXPENSE_BREAKDOWN,
   SERVICE_PROFITABILITY,
   TECHNICIAN_PERFORMANCE,
 } from '@/data/mock-data'
-import { useJobs, useCustomers } from '@/hooks/use-entities'
+import { useJobs, useCustomers, useEstimates, useExpenses, useEmployees, useFuelLogs } from '@/hooks/use-entities'
 import { Skeleton } from '@/components/shared/skeleton'
 import { formatCurrency } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
@@ -60,18 +66,25 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
 
 export default function DashboardPage() {
   const { t } = useTranslation()
-  const metrics = DEMO_DASHBOARD
   const { data: jobs = [], isLoading: jobsLoading } = useJobs()
   const { data: customers = [], isLoading: customersLoading } = useCustomers()
+  const { data: estimates = [] } = useEstimates()
+  const { data: expenses = [] } = useExpenses()
+  const { data: employees = [] } = useEmployees()
+  const { data: fuelLogs = [] } = useFuelLogs()
+
+  const metrics = computeDashboardMetrics(jobs, estimates, expenses, fuelLogs)
+  const revenueChart = computeRevenueChart(jobs)
+  const expenseChart = computeExpenseBreakdown(jobs, expenses, fuelLogs)
+  const serviceChart = computeServiceProfitability(jobs)
+  const techChart = computeTechnicianPerformance(jobs, employees)
+
   const recentJobs = jobs.slice(0, 4)
   const recentJobsLoading = jobsLoading || customersLoading
 
   return (
     <div>
-      <PageHeader
-        title={t.dashboard.title}
-        description={t.dashboard.description}
-      />
+      <PageHeader title={t.dashboard.title} description={t.dashboard.description} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard title={t.dashboard.revenueToday} value={metrics.revenueToday} icon={DollarSign} format="currency" trend={12.5} delay={0} />
@@ -90,12 +103,10 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           <Card>
-            <CardHeader>
-              <CardTitle>{t.dashboard.revenueProfitTrends}</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle>{t.dashboard.revenueProfitTrends}</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={REVENUE_CHART_DATA}>
+                <AreaChart data={revenueChart.length > 1 ? revenueChart : REVENUE_CHART_DATA}>
                   <defs>
                     <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
@@ -121,23 +132,12 @@ export default function DashboardPage() {
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
           <Card>
-            <CardHeader>
-              <CardTitle>{t.dashboard.expenseBreakdown}</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle>{t.dashboard.expenseBreakdown}</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
-                  <Pie
-                    data={EXPENSE_BREAKDOWN}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={4}
-                    dataKey="value"
-                    nameKey="name"
-                  >
-                    {EXPENSE_BREAKDOWN.map((_, index) => (
+                  <Pie data={expenseChart.length > 0 ? expenseChart : EXPENSE_BREAKDOWN} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={4} dataKey="value" nameKey="name">
+                    {(expenseChart.length > 0 ? expenseChart : EXPENSE_BREAKDOWN).map((_, index) => (
                       <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                     ))}
                   </Pie>
@@ -153,12 +153,10 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
           <Card>
-            <CardHeader>
-              <CardTitle>{t.dashboard.profitableServices}</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle>{t.dashboard.profitableServices}</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={SERVICE_PROFITABILITY} layout="vertical">
+                <BarChart data={serviceChart.length > 0 ? serviceChart : SERVICE_PROFITABILITY} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
                   <XAxis type="number" stroke="#94a3b8" fontSize={12} tickFormatter={(v) => `$${(v / 1000).toFixed(1)}k`} />
                   <YAxis type="category" dataKey="name" stroke="#94a3b8" fontSize={12} width={80} />
@@ -172,12 +170,10 @@ export default function DashboardPage() {
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
           <Card>
-            <CardHeader>
-              <CardTitle>{t.dashboard.technicianPerformance}</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle>{t.dashboard.technicianPerformance}</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={TECHNICIAN_PERFORMANCE}>
+                <BarChart data={techChart.length > 0 ? techChart : TECHNICIAN_PERFORMANCE}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
                   <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
                   <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
@@ -191,32 +187,28 @@ export default function DashboardPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>{t.dashboard.recentJobs}</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle>{t.dashboard.recentJobs}</CardTitle></CardHeader>
         <CardContent>
           <div className="space-y-3">
             {recentJobsLoading ? (
-              Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full" />
-              ))
+              Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)
             ) : (
-            recentJobs.map((job) => {
-              const customer = customers.find((c) => c.id === job.customer_id)
-              return (
-                <div key={job.id} className="flex items-center justify-between rounded-lg bg-secondary/30 p-4">
-                  <div className="space-y-1">
-                    <p className="font-medium">{job.title}</p>
-                    <p className="text-sm text-muted-foreground">{customer?.name}</p>
+              recentJobs.map((job) => {
+                const customer = customers.find((c) => c.id === job.customer_id)
+                return (
+                  <div key={job.id} className="flex items-center justify-between rounded-lg bg-secondary/30 p-4">
+                    <div className="space-y-1">
+                      <p className="font-medium">{job.title}</p>
+                      <p className="text-sm text-muted-foreground">{customer?.name}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <PriorityBadge priority={job.priority} />
+                      <JobStatusBadge status={job.status} />
+                      <span className="text-sm font-semibold">{formatCurrency(job.revenue)}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <PriorityBadge priority={job.priority} />
-                    <JobStatusBadge status={job.status} />
-                    <span className="text-sm font-semibold">{formatCurrency(job.revenue)}</span>
-                  </div>
-                </div>
-              )
-            })
+                )
+              })
             )}
           </div>
         </CardContent>

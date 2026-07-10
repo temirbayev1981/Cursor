@@ -1,8 +1,9 @@
-import type { Job, Customer, Estimate, Invoice, Property, Employee, Material, Vehicle, Expense, ScheduleEvent } from '@/types'
+import type { Job, Customer, Estimate, Invoice, Property, Employee, Material, Vehicle, Expense, ScheduleEvent, WorkOrder, ServiceCatalogItem, FuelLog } from '@/types'
 import { loadStore, saveStore, upsertStore, removeFromStore, filterByCompany, STORE_KEYS } from '@/lib/data-store'
 import {
   DEMO_JOBS, DEMO_CUSTOMERS, DEMO_ESTIMATES, DEMO_INVOICES,
   DEMO_PROPERTIES, DEMO_EMPLOYEES, DEMO_MATERIALS, DEMO_VEHICLES, DEMO_EXPENSES, DEMO_SCHEDULE,
+  DEMO_WORK_ORDERS, DEMO_SERVICES, DEMO_FUEL_LOGS,
 } from '@/data/mock-data'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
 
@@ -17,6 +18,8 @@ type EntityMap = {
   vehicles: Vehicle
   expenses: Expense
   schedules: ScheduleEvent
+  workOrders: WorkOrder
+  services: ServiceCatalogItem
 }
 
 const SEED: Partial<Record<keyof EntityMap, unknown[]>> = {
@@ -30,6 +33,8 @@ const SEED: Partial<Record<keyof EntityMap, unknown[]>> = {
   vehicles: DEMO_VEHICLES,
   expenses: DEMO_EXPENSES,
   schedules: DEMO_SCHEDULE,
+  workOrders: DEMO_WORK_ORDERS,
+  services: DEMO_SERVICES,
 }
 
 const KEY_MAP: Record<keyof EntityMap, string> = {
@@ -43,6 +48,8 @@ const KEY_MAP: Record<keyof EntityMap, string> = {
   vehicles: STORE_KEYS.vehicles,
   expenses: STORE_KEYS.expenses,
   schedules: STORE_KEYS.schedules,
+  workOrders: STORE_KEYS.workOrders,
+  services: STORE_KEYS.services,
 }
 
 const TABLE_MAP: Record<keyof EntityMap, string> = {
@@ -56,6 +63,8 @@ const TABLE_MAP: Record<keyof EntityMap, string> = {
   vehicles: 'vehicles',
   expenses: 'expenses',
   schedules: 'schedule_events',
+  workOrders: 'work_orders',
+  services: 'service_catalog',
 }
 
 function ensureSeeded<K extends keyof EntityMap>(entity: K, companyId: string): EntityMap[K][] {
@@ -179,4 +188,39 @@ export async function logAudit(companyId: string, userId: string, action: string
   const logs = loadStore<typeof log>(STORE_KEYS.auditLogs)
   logs.unshift(log)
   saveStore(STORE_KEYS.auditLogs, logs.slice(0, 500))
+}
+
+function ensureFuelLogsSeeded(): FuelLog[] {
+  const seeded = localStorage.getItem(`${STORE_KEYS.fuelLogs}_seeded`)
+  let items = loadStore<FuelLog>(STORE_KEYS.fuelLogs)
+  if (!seeded && items.length === 0) {
+    items = DEMO_FUEL_LOGS
+    saveStore(STORE_KEYS.fuelLogs, items)
+    localStorage.setItem(`${STORE_KEYS.fuelLogs}_seeded`, 'true')
+  }
+  return items
+}
+
+export async function listFuelLogs(companyId: string): Promise<FuelLog[]> {
+  const vehicles = await listEntities('vehicles', companyId)
+  const vehicleIds = new Set(vehicles.map((v) => v.id))
+  return ensureFuelLogsSeeded().filter((f) => vehicleIds.has(f.vehicle_id))
+}
+
+export async function saveWorkOrderFromAI(
+  companyId: string,
+  source: WorkOrder['source'],
+  rawContent: string,
+  aiData: import('@/types').AIExtractedData
+): Promise<WorkOrder> {
+  const wo: WorkOrder = {
+    id: crypto.randomUUID(),
+    company_id: companyId,
+    source,
+    status: 'review',
+    raw_content: rawContent,
+    ai_extracted_data: aiData,
+    created_at: new Date().toISOString(),
+  }
+  return saveEntity('workOrders', wo)
 }
