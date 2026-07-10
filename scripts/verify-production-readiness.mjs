@@ -273,6 +273,21 @@ if (auditLabels.includes('STAFF_CUSTOMER_NOTIFY_AUDIT = true')) {
   ok = false
 }
 
+if (auditLabels.includes('NOTIFY_SKIPPED_TOAST_AUDIT = true')) {
+  console.log('✓ NOTIFY_SKIPPED_TOAST_AUDIT gate enabled')
+} else {
+  console.log('✗ NOTIFY_SKIPPED_TOAST_AUDIT must be true')
+  ok = false
+}
+
+const customerNotifySyncSpec = readFileSync('e2e/customer-notify-sync.spec.ts', 'utf8')
+if (customerNotifySyncSpec.includes('staff CRM email opt-out syncs to customer portal')) {
+  console.log('✓ customer-notify-sync E2E covers CRM → portal prefs')
+} else {
+  console.log('✗ customer-notify-sync E2E must cover CRM → portal prefs')
+  ok = false
+}
+
 const customerForm = readFileSync('src/components/forms/customer-form.tsx', 'utf8')
 if (customerForm.includes('customer-form-notify-email') && customerForm.includes('notification_preferences')) {
   console.log('✓ customer form exposes notification preference toggles')

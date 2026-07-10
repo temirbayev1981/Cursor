@@ -63,6 +63,7 @@ test.describe('Notification queue flows', () => {
     await scheduleForm.getByRole('button', { name: /запланировать заказ|schedule job/i }).click()
 
     await expect(page.getByText(/заказ добавлен в расписание|job added to schedule/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
     await expect(page.getByText(/Email.*очереди|email queued/i)).not.toBeVisible()
   })
 })

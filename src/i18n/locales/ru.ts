@@ -685,6 +685,7 @@ export const ru = {
       portal_notification_prefs_audit: 'Настройки уведомлений портала',
       notification_opt_out_audit: 'Opt-out уведомлений',
       staff_customer_notify_audit: 'Уведомления клиента (CRM)',
+      notify_skipped_toast_audit: 'Toast при пропуске уведомлений',
       multi_tenant: 'Мульти-тенант',
     },
     auditActions: {

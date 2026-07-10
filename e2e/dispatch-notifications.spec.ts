@@ -49,4 +49,31 @@ test.describe('Dispatch notifications', () => {
     await page.getByTestId('dispatch-bulk-sms').click()
     await expect(page.getByText(/массовое SMS|bulk SMS/i).first()).toBeVisible({ timeout: 5000 })
   })
+
+  test('status select to scheduled skips customer email when opted out', async ({ page }) => {
+    await page.evaluate(() => {
+      localStorage.setItem('handymanos_customer_notify_prefs_cust-001', JSON.stringify({ email: false, sms: false }))
+    })
+    await page.goto('/dispatch')
+    await page.getByTestId('dispatch-status-job-e2e-draft').click()
+    await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
+
+    await expect(page.getByText(/SMS.*очереди|SMS queued locally/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/Email.*очереди|email queued/i)).not.toBeVisible()
+  })
+
+  test('status select to in_progress skips ETA when customer email opted out', async ({ page }) => {
+    await page.evaluate(() => {
+      localStorage.setItem('handymanos_customer_notify_prefs_cust-001', JSON.stringify({ email: false, sms: false }))
+    })
+    await page.goto('/dispatch')
+    await page.getByTestId('dispatch-status-job-e2e-draft').click()
+    await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
+    await page.getByTestId('dispatch-status-job-e2e-draft').click()
+    await page.getByRole('option', { name: /в работе|in progress/i }).click()
+
+    await expect(page.getByText(/ETA.*пропущено|ETA skipped|email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/ETA.*очереди|ETA email queued/i)).not.toBeVisible()
+  })
 })
