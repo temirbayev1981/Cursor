@@ -6,6 +6,7 @@ import { formatCurrency } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useTranslation } from '@/contexts/locale-context'
 import { recordInvoicePayment } from '@/services/payment-service'
+import { logAudit } from '@/services/entity-service'
 import { startStripeCheckout } from '@/services/stripe-service'
 import type { Invoice } from '@/types'
 
@@ -42,6 +43,9 @@ export function StripePayButton({ invoice, customerEmail, portalToken, onSuccess
 
       if (!stripeConfigured) {
         await recordInvoicePayment(invoice, amount, 'cash', `manual_${Date.now()}`)
+        if (portalToken) {
+          void logAudit(invoice.company_id, invoice.customer_id, 'portal.invoice_payment', 'invoice', invoice.id)
+        }
         toast.success(t.invoices.paid, {
           description: `${formatCurrency(amount)} — ${invoice.invoice_number}`,
         })

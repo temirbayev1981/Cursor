@@ -1,7 +1,7 @@
 import { hasSupabase, isE2eMockBackend } from '@/lib/env'
 import { computePlatformHealth } from '@/lib/platform-health'
 import { TYPED_SUPABASE_QUERIES } from '@/lib/supabase-queries'
-import { MULTI_TENANT_SUPPORTED } from '@/services/company-service'
+import { MULTI_TENANT_SUPPORTED, MULTI_TENANT_MEMBERSHIP_RPC } from '@/services/company-service'
 import { PORTAL_RPC_ENFORCED } from '@/services/portal-data-service'
 
 export type AuditRecommendationId =
@@ -48,7 +48,7 @@ export function computePlatformAudit(): PlatformAuditReport {
     { id: 'offline_ready', label: 'Offline-ready PWA', ok: health.checks.find((c) => c.id === 'offline_sync')?.ok ?? false, weight: 0.5 },
     { id: 'typed_data', label: 'Type-safe Supabase queries', ok: liveBackend && TYPED_SUPABASE_QUERIES, weight: 1 },
     { id: 'portal_rpc', label: 'Portal server RPCs', ok: liveBackend && PORTAL_RPC_ENFORCED, weight: 0.5 },
-    { id: 'multi_tenant', label: 'Multi-company membership', ok: liveBackend && MULTI_TENANT_SUPPORTED, weight: 0.5 },
+    { id: 'multi_tenant', label: 'Multi-company membership', ok: liveBackend && MULTI_TENANT_SUPPORTED && Boolean(MULTI_TENANT_MEMBERSHIP_RPC), weight: 0.5 },
   ]
 
   const qualityWeight = qualityChecks.reduce((sum, check) => sum + check.weight, 0)

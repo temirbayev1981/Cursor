@@ -35,6 +35,17 @@ test.describe('Settings billing & team', () => {
     await expect(pending.getByText('e2e-invite@handyman.test').first()).toBeVisible()
     await expect(pending.getByText(/technician/i).first()).toBeVisible()
   })
+
+  test('system tab shows localized audit log after team invite', async ({ page }) => {
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /команда|team/i }).click()
+    await page.getByTestId('team-invite-email').fill('audit-log-e2e@test.com')
+    await page.getByTestId('team-invite-submit').click()
+    await expect(page.getByText(/ссылка-приглашение скопирована|invite link copied/i).first()).toBeVisible({ timeout: 10000 })
+
+    await page.getByRole('tab', { name: /system|система/i }).click()
+    await expect(page.getByText(/приглашение в команду отправлено|team invite sent/i).first()).toBeVisible({ timeout: 10000 })
+  })
 })
 
 test.describe('Dashboard analytics', () => {

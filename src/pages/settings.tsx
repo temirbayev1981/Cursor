@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Sun, Moon, Copy } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
 import { useTheme } from '@/contexts/theme-context'
 import { useTranslation } from '@/contexts/locale-context'
@@ -16,6 +17,7 @@ import { logAudit } from '@/services/entity-service'
 import { getNotificationQueue } from '@/services/notification-service'
 import { getErrorReports } from '@/lib/observability'
 import { computePlatformHealth } from '@/lib/platform-health'
+import { formatAuditAction } from '@/lib/audit-labels'
 import { computePlatformAudit } from '@/lib/platform-audit'
 import { computeSystemMetrics } from '@/lib/system-metrics'
 import { getStoredCompany } from '@/services/onboarding-service'
@@ -33,9 +35,14 @@ export default function SettingsPage() {
   const { company, user, updateCompanyDetails } = useAuth()
   const { t } = useTranslation()
   const { theme, setTheme } = useTheme()
+  const queryClient = useQueryClient()
   const stored = getStoredCompany()
   const base = stored ?? company
   const companyId = base?.id ?? 'comp-001'
+
+  const refreshAuditLogs = () => {
+    void queryClient.invalidateQueries({ queryKey: ['auditLogs', companyId] })
+  }
 
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState<UserRole>('technician')
@@ -77,11 +84,13 @@ export default function SettingsPage() {
     if (subscribed && ['starter', 'professional', 'enterprise'].includes(subscribed)) {
       void updateCompanySubscription(companyId, subscribed).then((updated) => {
         setCurrentPlan(updated.subscription_plan)
+        if (user) void logAudit(companyId, user.id, 'billing.plan_upgrade', 'company', subscribed)
+        refreshAuditLogs()
         toast.success(t.settings.planUpgraded.replace('{plan}', subscribed))
       })
       window.history.replaceState({}, '', '/settings')
     }
-  }, [companyId, t.settings.planUpgraded])
+  }, [companyId, t.settings.planUpgraded, user])
 
   const handleUpgrade = async (plan: SubscriptionPlan) => {
     if (plan === currentPlan) return
@@ -90,6 +99,8 @@ export default function SettingsPage() {
       const result = await startSubscriptionCheckout(plan, companyId)
       if (result === 'updated') {
         setCurrentPlan(plan)
+        if (user) void logAudit(companyId, user.id, 'billing.plan_upgrade', 'company', plan)
+        refreshAuditLogs()
         toast.success(t.settings.planUpgraded.replace('{plan}', plan))
       } else if (result === 'error') {
         toast.error(t.settings.checkoutFailed)
@@ -105,7 +116,10 @@ export default function SettingsPage() {
     try {
       const { url, invite } = await createTeamInvite(companyId, inviteEmail, inviteRole, user?.id)
       await navigator.clipboard.writeText(url)
-      if (user) void logAudit(companyId, user.id, 'team.invite_sent', 'team_invite', invite.id)
+      if (user) {
+        void logAudit(companyId, user.id, 'team.invite_sent', 'team_invite', invite.id)
+        refreshAuditLogs()
+      }
       toast.success(t.settings.inviteLinkCopied)
       setInviteEmail('')
       const invites = await listTeamInvites(companyId)
@@ -140,7 +154,10 @@ export default function SettingsPage() {
     setCompanySaving(true)
     try {
       await updateCompanyDetails(companyForm)
-      if (user) void logAudit(companyId, user.id, 'company.profile_update', 'company', companyId)
+      if (user) {
+        void logAudit(companyId, user.id, 'company.profile_update', 'company', companyId)
+        refreshAuditLogs()
+      }
       toast.success(t.settings.saveChanges)
     } catch {
       toast.error(t.settings.companySaveFailed)
@@ -422,7 +439,10 @@ export default function SettingsPage() {
                     variant="outline"
                     disabled={importSampleData.isPending}
                     onClick={() => importSampleData.mutate(undefined, {
-                      onSuccess: (r) => toast.success(`${t.settings.imported}: ${r.imported}`),
+                      onSuccess: (r) => {
+                        refreshAuditLogs()
+                        toast.success(`${t.settings.imported}: ${r.imported}`)
+                      },
                       onError: (e) => toast.error(e.message),
                     })}
                   >
@@ -438,8 +458,8 @@ export default function SettingsPage() {
                   <p className="text-muted-foreground">{t.common.noData}</p>
                 ) : (
                   auditLogs.slice(0, 20).map((log) => (
-                    <div key={log.id} className="rounded bg-secondary/30 p-2">
-                      <p className="font-medium">{log.action}</p>
+                    <div key={log.id} className="rounded bg-secondary/30 p-2" data-testid={`audit-log-${log.id}`}>
+                      <p className="font-medium">{formatAuditAction(log.action, t.settings.auditActions)}</p>
                       <p className="text-xs text-muted-foreground">
                         {log.entity_type} · {new Date(log.created_at).toLocaleString()}
                       </p>

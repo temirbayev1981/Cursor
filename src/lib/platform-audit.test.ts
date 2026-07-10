@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { computePlatformAudit } from './platform-audit'
 import { PORTAL_RPC_ENFORCED } from '@/services/portal-data-service'
 import { TYPED_SUPABASE_QUERIES } from '@/lib/supabase-queries'
-import { MULTI_TENANT_SUPPORTED } from '@/services/company-service'
+import { MULTI_TENANT_SUPPORTED, MULTI_TENANT_MEMBERSHIP_RPC } from '@/services/company-service'
 
 describe('platform-audit', () => {
   beforeEach(() => {
@@ -40,6 +40,7 @@ describe('platform-audit', () => {
     expect(PORTAL_RPC_ENFORCED).toBe(true)
     expect(TYPED_SUPABASE_QUERIES).toBe(true)
     expect(MULTI_TENANT_SUPPORTED).toBe(true)
+    expect(MULTI_TENANT_MEMBERSHIP_RPC).toBe('get_accessible_companies')
 
     const report = computePlatformAudit()
     const typed = report.checks.find((check) => check.id === 'typed_data')

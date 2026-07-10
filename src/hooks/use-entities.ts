@@ -162,19 +162,28 @@ export function useBulkUpdateJobStatus() {
 export function useBulkAssignTechnician() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
     mutationFn: async ({ jobs, technicianId }: { jobs: Job[]; technicianId: string }) => {
       for (const job of jobs) {
         await saveEntity('jobs', { ...job, assigned_technician_id: technicianId })
       }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs', companyId] }),
+    onSuccess: (_data, { jobs }) => {
+      if (user) {
+        for (const job of jobs) {
+          void logAudit(companyId, user.id, 'jobs.bulk_assign', 'job', job.id)
+        }
+      }
+      qc.invalidateQueries({ queryKey: ['jobs', companyId] })
+    },
   })
 }
 
 export function useBulkScheduleJobs() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
     mutationFn: async ({ jobs, technicianId }: { jobs: Job[]; technicianId: string }) => {
       const scheduledDate = new Date().toISOString()
@@ -187,7 +196,14 @@ export function useBulkScheduleJobs() {
         })
       }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs', companyId] }),
+    onSuccess: (_data, { jobs }) => {
+      if (user) {
+        for (const job of jobs) {
+          void logAudit(companyId, user.id, 'jobs.bulk_schedule', 'job', job.id)
+        }
+      }
+      qc.invalidateQueries({ queryKey: ['jobs', companyId] })
+    },
   })
 }
 
@@ -347,9 +363,11 @@ export function useCreateScheduleFromJob() {
 export function useImportSampleData() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
     mutationFn: () => importSampleData(companyId),
     onSuccess: () => {
+      if (user) void logAudit(companyId, user.id, 'sample.import', 'company', companyId)
       qc.invalidateQueries()
     },
   })

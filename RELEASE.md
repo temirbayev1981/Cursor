@@ -1,25 +1,40 @@
-# HandymanOS AI — Release 1.7.0
+# HandymanOS AI — Release 1.7.4
 
-Production-only release on **1.6.4**.
+Consolidated **1.7.x** production release (stacked PRs #63–#66).
 
-## What's new in 1.7.0
+## What's new since 1.6.4
 
-- **Supabase required** — no offline demo mode; configuration screen when env vars are missing
-- Real Supabase auth only (sign in / sign up / session restore)
-- E2E and unit tests use in-memory Supabase mock (`src/lib/e2e-mock-supabase.ts`)
-- Removed demo login hints, portal bypass, billing without Stripe, and sidebar demo banner
-- **Import sample data** in Settings → System (optional seed into live database)
-- Notification queue uses `queued` status instead of demo flag
+### 1.7.0 — Production-only
+- **Supabase required** — `DEMO_MODE` removed; `SupabaseRequiredScreen` when env vars missing
+- E2E/Vitest use in-memory Supabase mock (`VITE_E2E_MOCK_BACKEND`)
+- **Import sample data** in Settings → System
+
+### 1.7.1 — Audit P2
+- Portal RPC-only (no localStorage bypass on fetch or token validation)
+- Platform audit i18n; notification queue affects system metrics
+
+### 1.7.2 — Audit P3
+- Expanded `logAudit`: bulk cancel, invoice pay/send, company profile, portal actions
+- Portal hooks RPC-only (no `saveEntity` fallback)
+
+### 1.7.3 — E2E green
+- **138/138** Playwright tests passing
+- E2E mock composite upsert fix; manual portal pay without Stripe key
+
+### 1.7.4 — Audit P4 & release sync
+- Localized audit log labels (EN/RU) in Settings → System
+- Additional audit events: bulk assign/schedule, sample import, plan upgrade, portal invoice payment
+- `deploy.yml` `VITE_APP_VERSION` synced with `package.json`
 
 ## Test coverage
 
-- Unit: **87**
-- E2E: run `npm run test:e2e` (Playwright builds with mock backend)
+- Unit: **99+** (`npm test`)
+- E2E: **138/138** (`npm run test:e2e`)
 
 ## Deploy
 
 ```bash
-# Required in .env.local or GitHub Actions secrets
+# Required
 VITE_SUPABASE_URL=https://xxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJ...
 
@@ -28,10 +43,12 @@ npm run test
 npm run test:e2e
 
 git checkout main
-git merge cursor/remove-demo-production-only-1b4a
+# Merge chain: #63 → #64 → #65 → #66 → #67
 git push origin main
 ```
 
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for secrets, Edge Functions, and schema setup.
+
 ## Merge chain
 
-`#50` → … → `#62` (1.6.4) → **this release** (1.7.0)
+`#63` (1.7.0) → `#64` (1.7.1) → `#65` (1.7.2) → `#66` (1.7.3) → **#67** (1.7.4)

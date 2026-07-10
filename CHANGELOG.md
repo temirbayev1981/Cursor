@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.7.4] — 2026-07-10
+
+Audit P4: localized audit log, release sync.
+
+### Phase 73 — Audit P4 & release consolidation
+- Settings audit log: localized action labels (EN/RU)
+- Audit log: bulk assign/schedule, sample import, plan upgrade, portal invoice payment
+- Platform audit: `MULTI_TENANT_MEMBERSHIP_RPC` quality gate constant
+- `deploy.yml` VITE_APP_VERSION synced to 1.7.4
+- RELEASE.md consolidated for 1.7.x stack
+- E2E: localized audit log entry after team invite
+
 ## [1.7.3] — 2026-07-10
 
 E2E stabilization: mock backend fixes, locale switching, portal pay.
