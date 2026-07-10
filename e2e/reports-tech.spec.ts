@@ -42,7 +42,7 @@ test.describe('Reports and technician mobile', () => {
     await expect(page.getByText(/Clubhouse touch-up paint|Storefront door repair/i).first()).toBeVisible({ timeout: 10000 })
   })
 
-  test('settings integrations tab shows configure badges in demo', async ({ page }) => {
+  test('settings integrations tab shows configure badges', async ({ page }) => {
     await page.goto('/settings')
     await page.getByRole('tab', { name: /интеграции|integrations/i }).click()
     await expect(page.getByText(/^Stripe$/i)).toBeVisible()

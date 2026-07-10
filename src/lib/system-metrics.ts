@@ -22,8 +22,12 @@ export function computeSystemMetrics(now = Date.now()): SystemMetrics {
   const notificationQueueSize = getNotificationQueue().length
 
   let status: SystemHealthStatus = 'healthy'
-  if (errors.length > 10 || offlineQueueSize > 5 || errorsLast24h > 3) status = 'degraded'
-  if (errors.length > 25 || offlineQueueSize > 15 || errorsLast24h > 10) status = 'critical'
+  if (errors.length > 10 || offlineQueueSize > 5 || errorsLast24h > 3 || notificationQueueSize > 10) {
+    status = 'degraded'
+  }
+  if (errors.length > 25 || offlineQueueSize > 15 || errorsLast24h > 10 || notificationQueueSize > 25) {
+    status = 'critical'
+  }
 
   return {
     errorCount: errors.length,

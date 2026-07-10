@@ -285,7 +285,7 @@ Service worker (`public/sw.js`) is registered in production builds. Ensure your 
 
 - [ ] `npm run verify:production` passes locally
 - [ ] `supabase/schema.sql` applied
-- [ ] Demo data imported (or real data entered)
+- [ ] Sample data imported via Settings → System (or real data entered)
 - [ ] Stripe Edge Function deployed + `VITE_STRIPE_CHECKOUT_ENDPOINT` set
 - [ ] `stripe-webhook` deployed + Stripe webhook configured
 - [ ] `send-sms` deployed with Twilio secrets (or custom `VITE_SMS_WEBHOOK_URL`)

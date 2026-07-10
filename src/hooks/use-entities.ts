@@ -186,13 +186,22 @@ export function useBulkScheduleJobs() {
 export function useBulkDeleteJobs() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
     mutationFn: async (jobs: Job[]) => {
       for (const job of jobs) {
         await deleteEntity('jobs', job.id)
       }
+      return jobs
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs', companyId] }),
+    onSuccess: (jobs) => {
+      if (user) {
+        for (const job of jobs) {
+          void logAudit(companyId, user.id, 'jobs.bulk_delete', 'job', job.id)
+        }
+      }
+      qc.invalidateQueries({ queryKey: ['jobs', companyId] })
+    },
   })
 }
 

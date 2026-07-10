@@ -12,6 +12,7 @@ import { useTheme } from '@/contexts/theme-context'
 import { useTranslation } from '@/contexts/locale-context'
 import { hasStripe, hasGoogleMaps, hasOpenAI, hasSupabase, hasNotificationConfigured, hasSmsConfigured } from '@/lib/env'
 import { useImportSampleData, useAuditLogs } from '@/hooks/use-entities'
+import { logAudit } from '@/services/entity-service'
 import { getNotificationQueue } from '@/services/notification-service'
 import { getErrorReports } from '@/lib/observability'
 import { computePlatformHealth } from '@/lib/platform-health'
@@ -102,8 +103,9 @@ export default function SettingsPage() {
     if (!inviteEmail.includes('@')) return
     setInviteLoading(true)
     try {
-      const { url } = await createTeamInvite(companyId, inviteEmail, inviteRole, user?.id)
+      const { url, invite } = await createTeamInvite(companyId, inviteEmail, inviteRole, user?.id)
       await navigator.clipboard.writeText(url)
+      if (user) void logAudit(companyId, user.id, 'team.invite_sent', 'team_invite', invite.id)
       toast.success(t.settings.inviteLinkCopied)
       setInviteEmail('')
       const invites = await listTeamInvites(companyId)
@@ -345,12 +347,12 @@ export default function SettingsPage() {
                     <Badge variant={platformAudit.readyForProduction ? 'success' : 'outline'}>
                       {platformAudit.grade}
                     </Badge>
-                    <p className="text-sm text-muted-foreground mt-1">{platformAudit.summary}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{t.settings.auditSummary[platformAudit.summaryKey]}</p>
                   </div>
                 </div>
                 <ul className="text-sm space-y-1 text-muted-foreground">
-                  {platformAudit.recommendations.map((item) => (
-                    <li key={item}>• {item}</li>
+                  {platformAudit.recommendationIds.map((id) => (
+                    <li key={id}>• {t.settings.auditRecommendations[id]}</li>
                   ))}
                 </ul>
               </CardContent>
@@ -410,7 +412,7 @@ export default function SettingsPage() {
             </Card>
             {hasSupabase && (
               <Card className="md:col-span-2">
-                <CardHeader><CardTitle>Supabase</CardTitle></CardHeader>
+                <CardHeader><CardTitle>{t.settings.supabaseCard}</CardTitle></CardHeader>
                 <CardContent className="flex items-center justify-between gap-4">
                   <p className="text-sm text-muted-foreground">
                     {t.settings.importSampleDesc}
@@ -446,7 +448,7 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
             <Card>
-              <CardHeader><CardTitle>Notifications ({notifications.length})</CardTitle></CardHeader>
+              <CardHeader><CardTitle>{t.settings.notificationsPanel.replace('{count}', String(notifications.length))}</CardTitle></CardHeader>
               <CardContent className="space-y-2 text-sm">
                 {notifications.length === 0 ? <p className="text-muted-foreground">{t.settings.notificationQueueEmpty}</p> : notifications.map((n, i) => (
                   <div key={i} className="rounded bg-secondary/30 p-2">
@@ -457,7 +459,7 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
             <Card>
-              <CardHeader><CardTitle>Error reports ({errors.length})</CardTitle></CardHeader>
+              <CardHeader><CardTitle>{t.settings.errorReportsPanel.replace('{count}', String(errors.length))}</CardTitle></CardHeader>
               <CardContent className="space-y-2 text-sm">
                 {errors.length === 0 ? <p className="text-muted-foreground">{t.settings.noErrors}</p> : errors.map((e, i) => (
                   <div key={i} className="rounded bg-secondary/30 p-2">

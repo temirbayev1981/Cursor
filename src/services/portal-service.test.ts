@@ -44,4 +44,23 @@ describe('portal-service', () => {
     })
     expect(getPortalSession()).toBeNull()
   })
+
+  it('returns null for unknown portal token (RPC-only)', async () => {
+    const session = await validatePortalToken('totally-unknown-token-phase70')
+    expect(session).toBeNull()
+  })
+
+  it('does not accept local-only portal token when RPC rejects it', async () => {
+    localStorage.setItem('handymanos_portal_tokens', JSON.stringify([{
+      id: 'pt-local-only',
+      company_id: 'comp-001',
+      customer_id: 'cust-001',
+      portal_type: 'customer',
+      token: 'local-only-token-phase70',
+      expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
+      created_at: new Date().toISOString(),
+    }]))
+    const session = await validatePortalToken('local-only-token-phase70')
+    expect(session).toBeNull()
+  })
 })

@@ -1,6 +1,18 @@
-import { isE2eMockBackend } from '@/lib/env'
-import { isBackendConfigured } from '@/lib/supabase'
+import { hasSupabase, isE2eMockBackend } from '@/lib/env'
 import { computePlatformHealth } from '@/lib/platform-health'
+
+export type AuditRecommendationId =
+  | 'connect_supabase'
+  | 'configure_stripe'
+  | 'enable_email'
+  | 'enable_sms'
+  | 'configure_openai'
+  | 'configure_maps'
+  | 'offline_sync'
+  | 'observability'
+  | 'all_ready'
+
+export type AuditSummaryKey = 'ready' | 'needs_config'
 
 export interface PlatformAuditCheck {
   id: string
@@ -15,17 +27,17 @@ export interface PlatformAuditReport {
   integrationScore: number
   qualityScore: number
   checks: PlatformAuditCheck[]
-  recommendations: string[]
+  recommendationIds: AuditRecommendationId[]
+  summaryKey: AuditSummaryKey
   readyForProduction: boolean
-  summary: string
 }
 
 export function computePlatformAudit(): PlatformAuditReport {
   const health = computePlatformHealth()
   const localeConfigured = typeof localStorage !== 'undefined'
-    && Boolean(localStorage.getItem('handymanos_locale') || localStorage.getItem('handymanos_onboarding'))
+    && Boolean(localStorage.getItem('handymanos_locale'))
 
-  const liveBackend = isBackendConfigured && !isE2eMockBackend
+  const liveBackend = hasSupabase && !isE2eMockBackend
 
   const qualityChecks: PlatformAuditCheck[] = [
     { id: 'live_backend', label: 'Live backend', ok: liveBackend, weight: 1.5 },
@@ -54,22 +66,31 @@ export function computePlatformAudit(): PlatformAuditReport {
     score >= 6 ? 'C+' :
     'C'
 
-  const recommendations: string[] = []
-  if (!liveBackend) recommendations.push('Connect Supabase (VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY)')
+  const recommendationIds: AuditRecommendationId[] = []
+  if (!liveBackend) recommendationIds.push('connect_supabase')
   if (!health.checks.find((check) => check.id === 'stripe')?.ok) {
-    recommendations.push('Configure Stripe for online payments')
+    recommendationIds.push('configure_stripe')
   }
   if (!health.checks.find((check) => check.id === 'email')?.ok) {
-    recommendations.push('Enable email notifications (Resend or webhook)')
+    recommendationIds.push('enable_email')
+  }
+  if (!health.checks.find((check) => check.id === 'sms')?.ok) {
+    recommendationIds.push('enable_sms')
+  }
+  if (!health.checks.find((check) => check.id === 'openai')?.ok) {
+    recommendationIds.push('configure_openai')
+  }
+  if (!health.checks.find((check) => check.id === 'maps')?.ok) {
+    recommendationIds.push('configure_maps')
   }
   if (!health.checks.find((check) => check.id === 'offline_sync')?.ok) {
-    recommendations.push('Deploy with service worker for offline technician sync')
+    recommendationIds.push('offline_sync')
   }
   if (!health.checks.find((check) => check.id === 'observability')?.ok) {
-    recommendations.push('Configure Sentry or error webhook for production monitoring')
+    recommendationIds.push('observability')
   }
-  if (recommendations.length === 0) {
-    recommendations.push('Platform is production-ready — monitor Settings → System metrics')
+  if (recommendationIds.length === 0) {
+    recommendationIds.push('all_ready')
   }
 
   const readyForProduction = score >= 8.5 && hasSupabaseFromHealth(health.checks) && liveBackend
@@ -80,11 +101,9 @@ export function computePlatformAudit(): PlatformAuditReport {
     integrationScore,
     qualityScore,
     checks: [...health.checks.map((check) => ({ ...check, weight: check.weight * 0.7 })), ...qualityChecks],
-    recommendations,
+    recommendationIds,
+    summaryKey: readyForProduction ? 'ready' : 'needs_config',
     readyForProduction,
-    summary: readyForProduction
-      ? 'Production-ready SaaS platform with integrations and quality gates passed.'
-      : 'Configure live Supabase and integrations to reach production grade.',
   }
 }
 

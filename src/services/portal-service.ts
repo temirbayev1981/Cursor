@@ -94,32 +94,14 @@ export async function createPortalLink(
   return { token, url, expiresAt }
 }
 
-function sessionFromLocalToken(local: PortalToken): PortalSession {
-  return {
-    customerId: local.customer_id,
-    companyId: local.company_id,
-    portalType: local.portal_type,
-    expiresAt: new Date(local.expires_at).getTime(),
-    token: local.token,
-  }
-}
-
 export async function validatePortalToken(token: string): Promise<PortalSession | null> {
   if (!supabase) return null
 
   try {
     const { data, error } = await callRpc('validate_portal_token', { p_token: token })
-    if (error) return null
-    const rows = data
-    if (!rows || rows.length === 0) {
-      const local = loadStore<PortalToken>(TOKENS_KEY).find((t) => t.token === token)
-      if (local && new Date(local.expires_at).getTime() > Date.now()) {
-        return sessionFromLocalToken(local)
-      }
-      return null
-    }
+    if (error || !data || data.length === 0) return null
 
-    const row = rows[0]
+    const row = data[0]
     const cached: PortalToken = {
       id: crypto.randomUUID(),
       company_id: row.company_id,
@@ -140,10 +122,6 @@ export async function validatePortalToken(token: string): Promise<PortalSession 
       token,
     }
   } catch {
-    const local = loadStore<PortalToken>(TOKENS_KEY).find((t) => t.token === token)
-    if (local && new Date(local.expires_at).getTime() > Date.now()) {
-      return sessionFromLocalToken(local)
-    }
     return null
   }
 }

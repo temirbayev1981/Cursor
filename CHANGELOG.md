@@ -2,6 +2,20 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.7.1] — 2026-07-10
+
+Audit P2 fixes: portal security, audit i18n, metrics.
+
+### Phase 70 — Audit P2 fixes
+- Portal data: RPC-only fetch (no localStorage bypass on RPC failure)
+- Portal tokens: RPC-only validation (reject local-only tokens)
+- Platform audit: localized recommendations and summary keys
+- Platform health: offline_sync uses PWA support (not SW controller)
+- System metrics: notification queue affects health status
+- Settings System tab i18n (Supabase, notifications, error reports)
+- Audit log: team invites, invite accept, bulk job delete
+- Tests: portal bypass rejection, notification queue degraded, audit branches
+
 ## [1.7.0] — 2026-07-10
 
 Production-only release: demo mode removed, Supabase required.

@@ -1,52 +1,30 @@
 import type { Estimate, Invoice, Job } from '@/types'
 import { callRpc } from '@/lib/supabase-rpc'
-import { listEntities } from '@/services/entity-service'
 import { getPortalToken } from '@/services/portal-service'
 import type { PortalContext } from '@/types/portal'
 
 async function fetchPortalRows<T extends Estimate | Invoice | Job>(
   rpc: 'get_portal_estimates' | 'get_portal_invoices' | 'get_portal_jobs',
-  portal: PortalContext,
-  entity: 'estimates' | 'invoices' | 'jobs',
-  filter: (rows: T[]) => T[],
 ): Promise<T[]> {
   const token = getPortalToken()
   if (!token) return []
 
   const { data, error } = await callRpc(rpc, { p_token: token })
-  if (error || !data) {
-    const rows = await listEntities(entity, portal.companyId) as T[]
-    return filter(rows)
-  }
+  if (error || !data) return []
 
   return data as T[]
 }
 
-export async function fetchPortalEstimates(portal: PortalContext): Promise<Estimate[]> {
-  return fetchPortalRows(
-    'get_portal_estimates',
-    portal,
-    'estimates',
-    (rows) => rows.filter((row) => row.customer_id === portal.customerId),
-  )
+export async function fetchPortalEstimates(_portal: PortalContext): Promise<Estimate[]> {
+  return fetchPortalRows<Estimate>('get_portal_estimates')
 }
 
-export async function fetchPortalInvoices(portal: PortalContext): Promise<Invoice[]> {
-  return fetchPortalRows(
-    'get_portal_invoices',
-    portal,
-    'invoices',
-    (rows) => rows.filter((row) => row.customer_id === portal.customerId),
-  )
+export async function fetchPortalInvoices(_portal: PortalContext): Promise<Invoice[]> {
+  return fetchPortalRows<Invoice>('get_portal_invoices')
 }
 
-export async function fetchPortalJobs(portal: PortalContext): Promise<Job[]> {
-  return fetchPortalRows(
-    'get_portal_jobs',
-    portal,
-    'jobs',
-    (rows) => rows.filter((row) => row.customer_id === portal.customerId),
-  )
+export async function fetchPortalJobs(_portal: PortalContext): Promise<Job[]> {
+  return fetchPortalRows<Job>('get_portal_jobs')
 }
 
 export async function portalApproveEstimate(

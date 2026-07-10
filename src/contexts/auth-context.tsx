@@ -139,6 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     markOnboardingCompleteForInvitedMember(role)
     setOnboardingComplete(resolveOnboardingState(role, invitedCompany))
     await syncActiveCompanyToProfile(currentUser.id, invitedCompany.id)
+    await logAudit(invitedCompany.id, currentUser.id, 'invite.accept', 'team_invite', token.slice(0, 36))
   }
 
   const switchCompany = async (companyId: string) => {
