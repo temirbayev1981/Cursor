@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.12.0] — 2026-07-10
+
+Field-ops audit milestone kickoff.
+
+### Phase 119 — Field-ops milestone
+- Platform audit: `tech_offline_sync_audit`, `field_ops_milestone_audit` gates
+- Settings audit checklist exposes inventory, fleet, dispatch, and field-ops milestone checks
+- verify-production: technician offline sync and inventory audit log E2E gates
+- **230** E2E tests, **164** unit tests
+
 ## [1.11.2] — 2026-07-10
 
 Hub skip CSV summary and email channel export.

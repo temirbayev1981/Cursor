@@ -237,6 +237,57 @@ if (integrationProbeHistory.includes('syncIntegrationProbeHistoryToSupabase')) {
   ok = false
 }
 
+const inventoryService = readFileSync('src/services/inventory-service.ts', 'utf8')
+if (inventoryService.includes('INVENTORY_AUDIT = true')) {
+  console.log('✓ INVENTORY_AUDIT gate enabled')
+} else {
+  console.log('✗ INVENTORY_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('FLEET_AUDIT = true')) {
+  console.log('✓ FLEET_AUDIT gate enabled')
+} else {
+  console.log('✗ FLEET_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('DISPATCH_AUDIT = true')) {
+  console.log('✓ DISPATCH_AUDIT gate enabled')
+} else {
+  console.log('✗ DISPATCH_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('TECH_OFFLINE_SYNC_AUDIT = true')) {
+  console.log('✓ TECH_OFFLINE_SYNC_AUDIT gate enabled')
+} else {
+  console.log('✗ TECH_OFFLINE_SYNC_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('FIELD_OPS_MILESTONE_AUDIT = true')) {
+  console.log('✓ FIELD_OPS_MILESTONE_AUDIT gate enabled')
+} else {
+  console.log('✗ FIELD_OPS_MILESTONE_AUDIT must be true')
+  ok = false
+}
+
+const techOfflineE2e = readFileSync('e2e/tech-offline.spec.ts', 'utf8')
+if (techOfflineE2e.includes('saving job notes offline queues action and syncs when online')) {
+  console.log('✓ technician offline sync E2E coverage present')
+} else {
+  console.log('✗ technician offline sync E2E test required')
+  ok = false
+}
+
+if (auditExpanded.includes('inventory receive appears in audit log') && auditExpanded.includes('inventory apply appears in audit log')) {
+  console.log('✓ inventory audit log E2E coverage present')
+} else {
+  console.log('✗ inventory audit log E2E tests required')
+  ok = false
+}
+
 if (auditLabels.includes('NOTIFICATION_HUB_AUDIT = true')) {
   console.log('✓ NOTIFICATION_HUB_AUDIT gate enabled')
 } else {
@@ -635,6 +686,19 @@ if (settingsE2e.includes('platform-audit-check-notification_milestone_audit')) {
   console.log('✓ notification milestone audit E2E coverage present')
 } else {
   console.log('✗ notification milestone audit E2E visibility required')
+  ok = false
+}
+
+if (
+  settingsE2e.includes('platform-audit-check-inventory_audit')
+  && settingsE2e.includes('platform-audit-check-fleet_audit')
+  && settingsE2e.includes('platform-audit-check-dispatch_audit')
+  && settingsE2e.includes('platform-audit-check-tech_offline_sync_audit')
+  && settingsE2e.includes('platform-audit-check-field_ops_milestone_audit')
+) {
+  console.log('✓ field-ops milestone audit E2E coverage present')
+} else {
+  console.log('✗ field-ops milestone audit E2E visibility required')
   ok = false
 }
 

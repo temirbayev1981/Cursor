@@ -679,6 +679,8 @@ export const en: TranslationKeys = {
       fleet_audit: 'Fleet audit',
       expense_audit: 'Expense audit',
       fuel_log_audit: 'Fuel log audit',
+      tech_offline_sync_audit: 'Technician offline sync E2E',
+      field_ops_milestone_audit: 'Field-ops milestone complete',
       dispatch_audit: 'Dispatch audit',
       vendor_po_audit: 'Vendor PO audit',
       company_profile_audit: 'Company profile audit',
