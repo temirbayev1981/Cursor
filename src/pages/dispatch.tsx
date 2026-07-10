@@ -14,11 +14,13 @@ import { CSS } from '@dnd-kit/utilities'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { useJobs, useUpdateJobStatus } from '@/hooks/use-entities'
+import { useJobs, useUpdateJobStatus, useEmployees } from '@/hooks/use-entities'
 import { useTranslation } from '@/contexts/locale-context'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { PriorityBadge } from '@/components/shared/status-badge'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, formatDateTime } from '@/lib/utils'
+import { notifyTechnicianSms } from '@/services/notification-service'
+import { toast } from 'sonner'
 import type { Job, JobStatus } from '@/types'
 import { MapPin } from 'lucide-react'
 import { JobMap } from '@/components/maps/job-map'
@@ -49,12 +51,13 @@ function JobCard({ job }: { job: Job }) {
 export default function DispatchPage() {
   const { t } = useTranslation()
   const { data: jobs = [], isLoading } = useJobs()
+  const { data: employees = [] } = useEmployees()
   const updateStatus = useUpdateJobStatus()
   const [activeId, setActiveId] = useState<string | null>(null)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
   const handleDragStart = (e: DragStartEvent) => setActiveId(String(e.active.id))
-  const handleDragEnd = (e: DragEndEvent) => {
+  const handleDragEnd = async (e: DragEndEvent) => {
     setActiveId(null)
     const jobId = String(e.active.id)
     const newStatus = e.over?.id as JobStatus | undefined
@@ -62,6 +65,22 @@ export default function DispatchPage() {
     const job = jobs.find((j) => j.id === jobId)
     if (job && job.status !== newStatus) {
       updateStatus.mutate({ job, status: newStatus })
+      if (newStatus === 'scheduled' && job.assigned_technician_id) {
+        const tech = employees.find((emp) => emp.id === job.assigned_technician_id)
+        const phone = tech?.phone
+        if (phone) {
+          const when = job.scheduled_date ? formatDateTime(job.scheduled_date) : 'скоро'
+          const result = await notifyTechnicianSms(
+            phone,
+            `Новый заказ: ${job.title}. Запланирован на ${when}.`
+          )
+          if (result.demo) {
+            toast.info(`SMS (демо) → ${tech?.name}: ${job.title}`)
+          } else if (result.ok) {
+            toast.success(`SMS отправлено: ${tech?.name}`)
+          }
+        }
+      }
     }
   }
 

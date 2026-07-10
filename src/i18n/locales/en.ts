@@ -441,6 +441,12 @@ export const en: TranslationKeys = {
     arrival: 'Arrival',
     travelDistance: 'Travel Distance',
     onSite: 'On Site',
+    offline: 'Offline',
+    online: 'Online',
+    pendingSync: 'Pending sync',
+    offlineSaved: 'Saved offline — will sync when connected',
+    synced: 'Offline data synced',
+    noJobs: 'No assigned jobs',
   },
   propertyPortal: {
     title: 'Property Manager Portal',

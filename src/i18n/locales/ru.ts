@@ -439,6 +439,12 @@ export const ru = {
     arrival: 'Прибытие',
     travelDistance: 'Пройдено',
     onSite: 'На объекте',
+    offline: 'Офлайн',
+    online: 'Онлайн',
+    pendingSync: 'Ожидает синхронизации',
+    offlineSaved: 'Сохранено офлайн — синхронизация при подключении',
+    synced: 'Офлайн-данные синхронизированы',
+    noJobs: 'Нет назначенных заказов',
   },
   propertyPortal: {
     title: 'Портал управляющей компании',

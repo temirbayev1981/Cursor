@@ -175,6 +175,31 @@ export async function createEstimateFromJob(job: Job, companyId: string): Promis
   return saveEntity('estimates', estimate)
 }
 
+export async function createInvoiceFromEstimate(
+  estimate: Estimate,
+  companyId: string,
+  invoiceNumber: string
+): Promise<Invoice> {
+  const invoice: Invoice = {
+    id: crypto.randomUUID(),
+    company_id: companyId,
+    customer_id: estimate.customer_id,
+    job_id: estimate.job_id,
+    invoice_number: invoiceNumber,
+    status: 'draft',
+    subtotal: estimate.total,
+    tax: 0,
+    total: estimate.total,
+    amount_paid: 0,
+    due_date: new Date(Date.now() + 14 * 86400000).toISOString(),
+    line_items: estimate.line_items,
+    created_at: new Date().toISOString(),
+  }
+  await saveEntity('invoices', invoice)
+  await saveEntity('estimates', { ...estimate, status: 'approved' })
+  return invoice
+}
+
 export async function logAudit(companyId: string, userId: string, action: string, entityType: string, entityId: string) {
   const log = {
     id: crypto.randomUUID(),

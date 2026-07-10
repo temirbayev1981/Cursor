@@ -86,6 +86,7 @@ export interface Employee {
   id: string
   company_id: string
   profile_id?: string
+  phone?: string
   name: string
   role: string
   hourly_wage: number

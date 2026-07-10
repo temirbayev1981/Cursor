@@ -7,7 +7,12 @@
   "background_color": "#0a0e17",
   "theme_color": "#0ea5e9",
   "orientation": "portrait-primary",
+  "categories": ["business", "productivity"],
   "icons": [
-    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Мобильный мастер", "url": "/tech", "description": "Приложение техника" },
+    { "name": "Наряды", "url": "/work-orders", "description": "Vendor PO и наряды" }
   ]
 }

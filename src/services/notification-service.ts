@@ -66,13 +66,35 @@ export async function notifyInvoiceSent(customerEmail: string, invoiceNumber: st
   })
 }
 
-export async function notifyTechnicianSms(phone: string, message: string) {
+export async function notifyEstimateSent(customerEmail: string, title: string, total: number) {
   return sendNotification({
-    to: phone,
-    body: message,
-    channel: 'sms',
-    metadata: { type: 'technician_alert' },
+    to: customerEmail,
+    subject: `Смета: ${title}`,
+    body: `Вам отправлена смета «${title}» на сумму $${total.toFixed(2)}. Пожалуйста, ознакомьтесь и утвердите.`,
+    channel: 'email',
+    metadata: { type: 'estimate_sent' },
   })
+}
+
+export async function sendSms(to: string, body: string): Promise<{ ok: boolean; demo: boolean }> {
+  const smsWebhook = import.meta.env.VITE_SMS_WEBHOOK_URL as string | undefined
+  if (smsWebhook) {
+    try {
+      const res = await fetch(smsWebhook, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to, body, provider: 'twilio' }),
+      })
+      return { ok: res.ok, demo: false }
+    } catch {
+      return { ok: false, demo: false }
+    }
+  }
+  return sendNotification({ to, body, channel: 'sms', metadata: { provider: 'twilio-demo' } })
+}
+
+export async function notifyTechnicianSms(phone: string, message: string) {
+  return sendSms(phone, message)
 }
 
 export function getNotificationQueue(): NotificationPayload[] {

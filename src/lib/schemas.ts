@@ -31,6 +31,18 @@ export const invoiceSchema = z.object({
 
 export type InvoiceFormValues = z.infer<typeof invoiceSchema>
 
+export const estimateSchema = z.object({
+  title: z.string().min(3, 'Укажите название'),
+  customer_id: z.string().min(1, 'Выберите клиента'),
+  labor_hours: z.coerce.number().min(0.5).max(500),
+  labor_rate: z.coerce.number().min(0),
+  material_cost: z.coerce.number().min(0),
+  markup_percent: z.coerce.number().min(0).max(200),
+  valid_days: z.coerce.number().min(1).max(90),
+})
+
+export type EstimateFormValues = z.infer<typeof estimateSchema>
+
 export const onboardingCompanySchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),

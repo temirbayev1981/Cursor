@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Phone, Navigation, Camera, Clock, CheckCircle, Play, Square, PenLine } from 'lucide-react'
+import { Phone, Navigation, Camera, Clock, CheckCircle, Play, Square, PenLine, WifiOff, CloudOff } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -7,8 +7,10 @@ import { JobStatusBadge, PriorityBadge } from '@/components/shared/status-badge'
 import { useJobs, useEmployees } from '@/hooks/use-entities'
 import { useAuth } from '@/contexts/auth-context'
 import { useTranslation } from '@/contexts/locale-context'
+import { useOnlineStatus } from '@/hooks/use-online-status'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import { loadStore, saveStore, STORE_KEYS } from '@/lib/data-store'
+import { queueOfflineAction, getOfflineQueue, clearOfflineQueue } from '@/lib/pwa'
 import { toast } from 'sonner'
 
 interface TimeEntry {
@@ -23,25 +25,42 @@ interface TimeEntry {
 export default function TechnicianMobilePage() {
   const { t } = useTranslation()
   const { user } = useAuth()
+  const online = useOnlineStatus()
   const { data: jobs = [] } = useJobs()
   const { data: employees = [] } = useEmployees()
   const [activeJobId, setActiveJobId] = useState<string | null>(null)
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([])
   const [gps, setGps] = useState<{ lat: number; lng: number } | null>(null)
+  const [pendingSync, setPendingSync] = useState(0)
 
-  const tech = employees.find((e) => e.billing_rate > 0)
-  const myJobs = jobs.filter((j) =>
-    j.status === 'scheduled' || j.status === 'in_progress'
-  ).slice(0, 5)
+  const myEmployee =
+    employees.find((e) => e.profile_id === user?.id) ??
+    employees.find((e) => e.is_active && e.billing_rate > 0 && /technician/i.test(e.role))
+
+  const myJobs = jobs
+    .filter((j) => {
+      const assigned = !myEmployee || j.assigned_technician_id === myEmployee.id
+      return assigned && (j.status === 'scheduled' || j.status === 'in_progress')
+    })
+    .slice(0, 10)
 
   useEffect(() => {
     setTimeEntries(loadStore<TimeEntry>(STORE_KEYS.timeEntries))
+    setPendingSync(getOfflineQueue().length)
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition((pos) => {
         setGps({ lat: pos.coords.latitude, lng: pos.coords.longitude })
       })
     }
   }, [])
+
+  useEffect(() => {
+    if (online && getOfflineQueue().length > 0) {
+      clearOfflineQueue()
+      setPendingSync(0)
+      toast.info(t.techMobile.synced)
+    }
+  }, [online, t.techMobile.synced])
 
   const clockIn = (jobId: string) => {
     const entry: TimeEntry = {
@@ -55,7 +74,14 @@ export default function TechnicianMobilePage() {
     setTimeEntries(next)
     saveStore(STORE_KEYS.timeEntries, next)
     setActiveJobId(jobId)
-    toast.success('Отметка прихода записана')
+
+    if (!online) {
+      queueOfflineAction('clock_in', entry)
+      setPendingSync(getOfflineQueue().length)
+      toast.success(t.techMobile.offlineSaved)
+    } else {
+      toast.success(t.techMobile.clockIn)
+    }
   }
 
   const clockOut = () => {
@@ -66,17 +92,47 @@ export default function TechnicianMobilePage() {
     setTimeEntries(next)
     saveStore(STORE_KEYS.timeEntries, next)
     setActiveJobId(null)
+
+    if (!online) {
+      queueOfflineAction('clock_out', { job_id: activeJobId, end: new Date().toISOString() })
+      setPendingSync(getOfflineQueue().length)
+    }
     toast.success('Отметка ухода записана')
   }
 
   return (
     <div className="gradient-bg min-h-screen max-w-md mx-auto">
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border p-4">
-        <h1 className="text-lg font-bold">{t.techMobile.myJobs}</h1>
-        <p className="text-sm text-muted-foreground">{tech?.name ?? user?.full_name} · {t.techMobile.today}</p>
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <h1 className="text-lg font-bold">{t.techMobile.myJobs}</h1>
+            <p className="text-sm text-muted-foreground">
+              {myEmployee?.name ?? user?.full_name} · {t.techMobile.today}
+            </p>
+          </div>
+          <div className="flex flex-col items-end gap-1">
+            <Badge variant={online ? 'success' : 'destructive'} className="text-xs">
+              {online ? t.techMobile.online : <><WifiOff className="h-3 w-3 mr-1" />{t.techMobile.offline}</>}
+            </Badge>
+            {pendingSync > 0 && (
+              <Badge variant="outline" className="text-xs">
+                <CloudOff className="h-3 w-3 mr-1" />
+                {pendingSync} {t.techMobile.pendingSync}
+              </Badge>
+            )}
+          </div>
+        </div>
       </header>
 
       <div className="p-4 space-y-4">
+        {myJobs.length === 0 && (
+          <Card>
+            <CardContent className="p-6 text-center text-muted-foreground text-sm">
+              {t.techMobile.noJobs}
+            </CardContent>
+          </Card>
+        )}
+
         {myJobs.map((job) => (
           <Card key={job.id} className={activeJobId === job.id ? 'border-primary' : ''}>
             <CardContent className="p-4 space-y-3">

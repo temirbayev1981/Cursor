@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
-import { listEntities, saveEntity, createJobFromVendorPO, createEstimateFromJob, listFuelLogs } from '@/services/entity-service'
+import { listEntities, saveEntity, createJobFromVendorPO, createEstimateFromJob, createInvoiceFromEstimate, listFuelLogs } from '@/services/entity-service'
 import { recordInvoicePayment, sendInvoiceToCustomer } from '@/services/payment-service'
 import type { Job, Customer, Estimate, Invoice } from '@/types'
 import type { VendorPORecord } from '@/types/vendor-po'
@@ -159,6 +159,28 @@ export function useSendInvoice() {
     mutationFn: ({ invoice, email }: { invoice: Invoice; email: string }) =>
       sendInvoiceToCustomer(invoice, email),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['invoices', companyId] }),
+  })
+}
+
+export function useSaveEstimate() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: (estimate: Estimate) => saveEntity('estimates', estimate),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['estimates', companyId] }),
+  })
+}
+
+export function useConvertEstimateToInvoice() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: async ({ estimate, invoiceNumber }: { estimate: Estimate; invoiceNumber: string }) =>
+      createInvoiceFromEstimate(estimate, companyId, invoiceNumber),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['estimates', companyId] })
+      qc.invalidateQueries({ queryKey: ['invoices', companyId] })
+    },
   })
 }
 

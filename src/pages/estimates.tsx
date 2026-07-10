@@ -1,24 +1,36 @@
+import { Plus, Sparkles, FileSpreadsheet, Send, X } from 'lucide-react'
 import { useState } from 'react'
-import { Plus, Sparkles } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { EstimateStatusBadge } from '@/components/shared/status-badge'
+import { EstimateForm } from '@/components/forms/estimate-form'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useEstimates, useJobs, useCustomers, useServices } from '@/hooks/use-entities'
+import { useAuth } from '@/contexts/auth-context'
+import { useEstimates, useJobs, useCustomers, useServices, useSaveEstimate, useConvertEstimateToInvoice, useInvoices } from '@/hooks/use-entities'
+import { generateInvoiceNumber } from '@/services/payment-service'
+import { notifyEstimateSent } from '@/services/notification-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { generateSmartEstimate } from '@/lib/ai'
 import { useTranslation } from '@/contexts/locale-context'
+import { toast } from 'sonner'
+import type { Estimate } from '@/types'
 
 export default function EstimatesPage() {
   const { t, locale } = useTranslation()
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
   const [showEngine, setShowEngine] = useState(false)
+  const [showForm, setShowForm] = useState(false)
+  const { company } = useAuth()
+  const companyId = company?.id ?? 'comp-001'
   const { data: estimates = [], isLoading: estimatesLoading } = useEstimates()
   const { data: jobs = [], isLoading: jobsLoading } = useJobs()
   const { data: customers = [], isLoading: customersLoading } = useCustomers()
   const { data: services = [] } = useServices()
+  const { data: invoices = [] } = useInvoices()
+  const saveEstimate = useSaveEstimate()
+  const convertToInvoice = useConvertEstimateToInvoice()
 
   const smartEstimate = generateSmartEstimate(
     'Drywall Repair',
@@ -38,6 +50,30 @@ export default function EstimatesPage() {
     { label: t.estimates.propertyMgmt, rate: t.estimates.discount10 },
   ]
 
+  const handleCreate = (estimate: Estimate) => {
+    saveEstimate.mutate(estimate, {
+      onSuccess: () => {
+        toast.success(t.common.save)
+        setShowForm(false)
+      },
+    })
+  }
+
+  const handleSend = async (est: Estimate) => {
+    const customer = customers.find((c) => c.id === est.customer_id)
+    if (!customer?.email) return
+    await notifyEstimateSent(customer.email, est.title, est.total)
+    saveEstimate.mutate({ ...est, status: 'sent' })
+    toast.success(`Смета отправлена: ${customer.email}`)
+  }
+
+  const handleConvert = (est: Estimate) => {
+    convertToInvoice.mutate(
+      { estimate: est, invoiceNumber: generateInvoiceNumber(invoices) },
+      { onSuccess: () => toast.success('Счёт создан из сметы') }
+    )
+  }
+
   return (
     <div>
       <PageHeader
@@ -49,13 +85,25 @@ export default function EstimatesPage() {
               <Sparkles className="h-4 w-4" />
               {t.estimates.smartEngine}
             </Button>
-            <Button>
+            <Button onClick={() => setShowForm(true)}>
               <Plus className="h-4 w-4" />
               {t.estimates.newEstimate}
             </Button>
           </>
         }
       />
+
+      {showForm && (
+        <Card className="mb-6">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">{t.estimates.newEstimate}</CardTitle>
+            <Button variant="ghost" size="icon" onClick={() => setShowForm(false)}><X className="h-4 w-4" /></Button>
+          </CardHeader>
+          <CardContent>
+            <EstimateForm companyId={companyId} customers={customers} onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
+          </CardContent>
+        </Card>
+      )}
 
       {showEngine && (
         <Card className="mb-6 border-primary/30">
@@ -100,9 +148,9 @@ export default function EstimatesPage() {
       )}
 
       {estimatesLoading || jobsLoading || customersLoading ? (
-        <TableSkeleton cols={7} />
+        <TableSkeleton cols={8} />
       ) : (
-      <DataTable headers={[t.estimates.estimate, t.customers.customer, t.jobs.status, t.estimates.labor, t.estimates.materials, t.estimates.total, t.estimates.validUntil]}>
+      <DataTable headers={[t.estimates.estimate, t.customers.customer, t.jobs.status, t.estimates.labor, t.estimates.materials, t.estimates.total, t.estimates.validUntil, '']}>
         {estimates.map((est) => {
           const customer = customers.find((c) => c.id === est.customer_id)
           return (
@@ -114,6 +162,18 @@ export default function EstimatesPage() {
               <DataTableCell>{formatCurrency(est.material_cost)}</DataTableCell>
               <DataTableCell className="font-semibold">{formatCurrency(est.total)}</DataTableCell>
               <DataTableCell className="text-muted-foreground">{formatDate(est.valid_until, dateLocale)}</DataTableCell>
+              <DataTableCell>
+                <div className="flex gap-1">
+                  {est.status === 'draft' && (
+                    <Button size="sm" variant="ghost" onClick={() => handleSend(est)}><Send className="h-4 w-4" /></Button>
+                  )}
+                  {['sent', 'approved'].includes(est.status) && (
+                    <Button size="sm" variant="ghost" onClick={() => handleConvert(est)} title="Создать счёт">
+                      <FileSpreadsheet className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </DataTableCell>
             </DataTableRow>
           )
         })}
