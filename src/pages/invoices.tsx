@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Plus, Mail, X } from 'lucide-react'
+import { Plus, Mail, X, Download } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
 import { TableSkeleton } from '@/components/shared/skeleton'
@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { useInvoices, useCustomers, useSaveInvoice, useSendInvoice, usePayInvoice } from '@/hooks/use-entities'
 import { generateInvoiceNumber } from '@/services/payment-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { exportInvoicePdf } from '@/lib/export'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
@@ -83,6 +84,21 @@ export default function InvoicesPage() {
     })
   }
 
+  const handleExportPdf = (invoice: Invoice, customerName: string) => {
+    exportInvoicePdf({
+      invoiceNumber: invoice.invoice_number,
+      customerName,
+      status: invoice.status,
+      subtotal: invoice.subtotal,
+      tax: invoice.tax,
+      total: invoice.total,
+      amountPaid: invoice.amount_paid,
+      dueDate: invoice.due_date,
+      lineItems: invoice.line_items,
+      companyName: company?.name,
+    })
+  }
+
   return (
     <div>
       <PageHeader
@@ -109,10 +125,10 @@ export default function InvoicesPage() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6" data-testid="invoices-summary-stats">
         <div className="glass-card p-5">
           <p className="text-sm text-muted-foreground">{t.invoices.outstanding}</p>
-          <p className="text-2xl font-bold text-warning">{formatCurrency(outstanding)}</p>
+          <p className="text-2xl font-bold text-warning" data-testid="invoices-outstanding-total">{formatCurrency(outstanding)}</p>
         </div>
         <div className="glass-card p-5">
           <p className="text-sm text-muted-foreground">{t.invoices.paidMonth}</p>
@@ -139,6 +155,15 @@ export default function InvoicesPage() {
               <DataTableCell className="text-muted-foreground">{formatDate(inv.due_date, dateLocale)}</DataTableCell>
               <DataTableCell>
                 <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    title={t.common.exportPdf}
+                    onClick={() => handleExportPdf(inv, customer?.name ?? '')}
+                    data-testid={`invoice-export-pdf-${inv.id}`}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
                   {inv.status === 'draft' && (
                     <Button size="sm" variant="ghost" onClick={() => handleSend(inv)} data-testid={`invoice-send-${inv.id}`}>
                       <Mail className="h-4 w-4" />

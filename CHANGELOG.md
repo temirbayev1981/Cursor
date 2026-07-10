@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.5.1] — 2026-07-10
+
+Invoice PDF export and billing/work orders E2E.
+
+### Phase 57 — Invoice PDF & work orders E2E
+- `exportInvoicePdf()` with print-ready HTML preview
+- PDF export button on each invoice row
+- E2E: invoice PDF preview, summary stats, vendor PO batch UI (`invoice-pdf-workorders.spec.ts`)
+- `data-testid` on invoice export, outstanding total, vendor PO record count
+
 ## [1.5.0] — 2026-07-10
 
 Release consolidating Phases 50–55 (properties, technicians, dispatch, settings, onboarding, vendor PO).

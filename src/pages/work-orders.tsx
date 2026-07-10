@@ -190,7 +190,7 @@ export default function WorkOrdersPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
-                    {t.vendorPO.tableTitle}: <span className="font-medium text-foreground">{vendorPOs.length}</span>
+                    {t.vendorPO.tableTitle}: <span className="font-medium text-foreground" data-testid="vendor-po-record-count">{vendorPOs.length}</span>
                   </p>
                   <Button
                     variant="outline"

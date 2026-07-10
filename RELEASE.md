@@ -1,28 +1,18 @@
-# HandymanOS AI — Release 1.5.0
+# HandymanOS AI — Release 1.5.1
 
-Release consolidating Phases 50–55 on **1.4.7**.
+Invoice PDF export on **1.5.0**.
 
-## What's new in 1.5.0
+## What's new in 1.5.1
 
-- **Estimate PDF export** — print-ready preview per estimate row
-- E2E: estimate PDF title, total, line items (92 tests total)
-- Consolidates E2E coverage from Phases 50–55
-
-## Included since 1.4.2
-
-| Phase | Focus |
-|-------|--------|
-| 50 | Properties & inventory E2E |
-| 51 | Technicians, theme, reports E2E |
-| 52 | Dispatch DnD, AI chat, reports PDF |
-| 53 | Settings billing/team, dashboard |
-| 54 | Onboarding, invite errors, vendor export |
-| 55 | Vendor multi-site, search, invoice send |
+- `exportInvoicePdf()` — print-ready invoice preview with balance
+- PDF export button on each invoice row
+- E2E: invoice PDF, outstanding stats, vendor PO batch UI (96 tests total)
+- `data-testid` on invoice export, outstanding total, vendor PO count
 
 ## Test coverage
 
 - Unit: **83**
-- E2E: **92** (25 spec files)
+- E2E: **96** (26 spec files)
 
 ## Deploy
 
@@ -31,10 +21,10 @@ npm run verify:production
 npm run test:e2e
 
 git checkout main
-git merge cursor/phase-56-estimate-pdf-release-1b4a
+git merge cursor/phase-57-invoice-pdf-e2e-1b4a
 git push origin main
 ```
 
 ## Merge chain
 
-`#24` → … → `#48` → **#49**
+`#24` → … → `#49` → **#50**
