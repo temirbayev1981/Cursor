@@ -8,7 +8,7 @@ describe('platform-health', () => {
     expect(report.score).toBeLessThanOrEqual(10)
     expect(report.checks).toHaveLength(9)
     expect(report.checks.map((check) => check.id)).toEqual(
-      expect.arrayContaining(['data_mode', 'pwa', 'tech_link']),
+      expect.arrayContaining(['data_mode', 'pwa', 'offline_sync']),
     )
     expect(report.grade).toMatch(/^[A-C]\+?$/)
   })

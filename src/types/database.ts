@@ -238,6 +238,150 @@ export interface Database {
         Insert: Partial<Database['public']['Tables']['vendor_po_records']['Row']>
         Update: Partial<Database['public']['Tables']['vendor_po_records']['Row']>
       }
+      work_orders: {
+        Row: {
+          id: string
+          company_id: string
+          customer_id: string | null
+          property_id: string | null
+          source: string
+          status: string
+          raw_content: string | null
+          ai_extracted_data: Json | null
+          document_url: string | null
+          created_at: string
+        }
+        Insert: Partial<Database['public']['Tables']['work_orders']['Row']>
+        Update: Partial<Database['public']['Tables']['work_orders']['Row']>
+      }
+      service_catalog: {
+        Row: {
+          id: string
+          company_id: string
+          name: string
+          category: string
+          avg_labor_hours: number
+          difficulty: string
+          suggested_price: number
+          profit_margin: number
+          materials: string[]
+          tools: string[]
+          created_at: string
+        }
+        Insert: Partial<Database['public']['Tables']['service_catalog']['Row']>
+        Update: Partial<Database['public']['Tables']['service_catalog']['Row']>
+      }
+      job_tasks: {
+        Row: {
+          id: string
+          job_id: string
+          title: string
+          description: string | null
+          status: string
+          estimated_hours: number
+          actual_hours: number
+          sort_order: number
+          created_at: string
+        }
+        Insert: Partial<Database['public']['Tables']['job_tasks']['Row']>
+        Update: Partial<Database['public']['Tables']['job_tasks']['Row']>
+      }
+      payments: {
+        Row: {
+          id: string
+          invoice_id: string
+          amount: number
+          method: string
+          stripe_payment_id: string | null
+          created_at: string
+        }
+        Insert: Partial<Database['public']['Tables']['payments']['Row']>
+        Update: Partial<Database['public']['Tables']['payments']['Row']>
+      }
+      fuel_logs: {
+        Row: {
+          id: string
+          vehicle_id: string
+          date: string
+          miles: number
+          gallons: number
+          fuel_price: number
+          total_cost: number
+          job_id: string | null
+          created_at: string
+        }
+        Insert: Partial<Database['public']['Tables']['fuel_logs']['Row']>
+        Update: Partial<Database['public']['Tables']['fuel_logs']['Row']>
+      }
+      inventory: {
+        Row: {
+          id: string
+          material_id: string
+          job_id: string | null
+          quantity_change: number
+          transaction_type: string
+          notes: string | null
+          created_at: string
+        }
+        Insert: Partial<Database['public']['Tables']['inventory']['Row']>
+        Update: Partial<Database['public']['Tables']['inventory']['Row']>
+      }
+      documents: {
+        Row: {
+          id: string
+          company_id: string
+          entity_type: string
+          entity_id: string
+          name: string
+          file_url: string
+          file_type: string | null
+          created_at: string
+        }
+        Insert: Partial<Database['public']['Tables']['documents']['Row']>
+        Update: Partial<Database['public']['Tables']['documents']['Row']>
+      }
+      photos: {
+        Row: {
+          id: string
+          company_id: string
+          job_id: string | null
+          property_id: string | null
+          url: string
+          caption: string | null
+          ai_analysis: Json | null
+          created_at: string
+        }
+        Insert: Partial<Database['public']['Tables']['photos']['Row']>
+        Update: Partial<Database['public']['Tables']['photos']['Row']>
+      }
+      ai_results: {
+        Row: {
+          id: string
+          company_id: string
+          source_type: string
+          source_id: string | null
+          input_data: Json | null
+          output_data: Json
+          model: string | null
+          created_at: string
+        }
+        Insert: Partial<Database['public']['Tables']['ai_results']['Row']>
+        Update: Partial<Database['public']['Tables']['ai_results']['Row']>
+      }
+      notifications: {
+        Row: {
+          id: string
+          company_id: string
+          user_id: string | null
+          title: string
+          message: string
+          type: string
+          read: boolean
+          created_at: string
+        }
+        Insert: Partial<Database['public']['Tables']['notifications']['Row']>
+        Update: Partial<Database['public']['Tables']['notifications']['Row']>
+      }
       audit_logs: {
         Row: {
           id: string

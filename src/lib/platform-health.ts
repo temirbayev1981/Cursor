@@ -25,6 +25,10 @@ export interface PlatformHealthReport {
 export function computePlatformHealth(): PlatformHealthReport {
   const pwaSupported = typeof navigator !== 'undefined' && 'serviceWorker' in navigator
 
+  const swActive = typeof navigator !== 'undefined'
+    && 'serviceWorker' in navigator
+    && Boolean(navigator.serviceWorker.controller)
+
   const checks: PlatformHealthCheck[] = [
     { id: 'supabase', label: 'Supabase', ok: hasSupabase, weight: 2 },
     { id: 'data_mode', label: 'Live data mode', ok: !DEMO_MODE, weight: 1 },
@@ -34,7 +38,7 @@ export function computePlatformHealth(): PlatformHealthReport {
     { id: 'openai', label: 'OpenAI', ok: hasOpenAI, weight: 1 },
     { id: 'maps', label: 'Google Maps', ok: hasGoogleMaps, weight: 0.5 },
     { id: 'pwa', label: 'PWA', ok: pwaSupported, weight: 0.5 },
-    { id: 'tech_link', label: 'Employee profiles', ok: hasSupabase, weight: 0.5 },
+    { id: 'offline_sync', label: 'Offline sync', ok: swActive, weight: 0.5 },
   ]
 
   const totalWeight = checks.reduce((sum, check) => sum + check.weight, 0)

@@ -9,6 +9,20 @@ import {
 import { matchCustomerFromVendorPO } from '@/lib/vendor-po-customer-match'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
 
+type EntityTable =
+  | 'jobs'
+  | 'customers'
+  | 'estimates'
+  | 'invoices'
+  | 'properties'
+  | 'employees'
+  | 'materials'
+  | 'vehicles'
+  | 'expenses'
+  | 'schedule_events'
+  | 'work_orders'
+  | 'service_catalog'
+
 type EntityMap = {
   jobs: Job
   customers: Customer
@@ -61,7 +75,7 @@ const KEY_MAP: Record<keyof EntityMap, string> = {
   services: STORE_KEYS.services,
 }
 
-const TABLE_MAP: Record<keyof EntityMap, string> = {
+const TABLE_MAP: Record<keyof EntityMap, EntityTable> = {
   jobs: 'jobs',
   customers: 'customers',
   estimates: 'estimates',
@@ -76,26 +90,31 @@ const TABLE_MAP: Record<keyof EntityMap, string> = {
   services: 'service_catalog',
 }
 
-type SupabaseOps = {
-  from: (table: string) => {
-    select: (cols: string) => {
-      eq: (col: string, val: string) => {
-        order: (col: string, opts: { ascending: boolean }) => Promise<{ data: unknown[] | null; error: { message: string } | null }>
-      }
-    }
-    upsert: (row: unknown) => {
-      select: () => {
-        single: () => Promise<{ data: unknown; error: { message: string } | null }>
-      }
-    }
-    delete: () => {
-      eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>
-    }
-  }
+async function fetchCompanyEntities<T>(table: EntityTable, companyId: string): Promise<T[]> {
+  const { data, error } = await supabase!
+    .from(table)
+    .select('*')
+    .eq('company_id', companyId)
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return (data ?? []) as T[]
 }
 
-function getDb() {
-  return supabase as unknown as SupabaseOps
+async function upsertCompanyEntity<T>(table: EntityTable, item: T): Promise<T> {
+  const { data, error } = await supabase!
+    .from(table)
+    .upsert(item as never)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as T
+}
+
+async function deleteCompanyEntity(table: EntityTable, id: string): Promise<void> {
+  const { error } = await supabase!.from(table).delete().eq('id', id)
+  if (error) throw error
 }
 
 function ensureSeeded<K extends keyof EntityMap>(entity: K, companyId: string): EntityMap[K][] {
@@ -136,15 +155,7 @@ export async function listEntities<K extends keyof EntityMap>(entity: K, company
   }
 
   try {
-    const { data, error } = await getDb()
-      .from(TABLE_MAP[entity])
-      .select('*')
-      .eq('company_id', companyId)
-      .order('created_at', { ascending: false })
-
-    if (error) throw error
-
-    const items = (data ?? []) as EntityMap[K][]
+    const items = await fetchCompanyEntities<EntityMap[K]>(TABLE_MAP[entity], companyId)
     if (items.length > 0) {
       saveStore(KEY_MAP[entity], items)
       return items
@@ -164,14 +175,8 @@ export async function saveEntity<K extends keyof EntityMap>(entity: K, item: Ent
     return item
   }
 
-  const { data, error } = await getDb()
-    .from(TABLE_MAP[entity])
-    .upsert(item)
-    .select()
-    .single()
-
-  if (error) throw error
-  return data as EntityMap[K]
+  const data = await upsertCompanyEntity<EntityMap[K]>(TABLE_MAP[entity], item)
+  return data
 }
 
 export async function deleteEntity<K extends keyof EntityMap>(entity: K, id: string): Promise<void> {
@@ -181,8 +186,7 @@ export async function deleteEntity<K extends keyof EntityMap>(entity: K, id: str
     return
   }
 
-  const { error } = await getDb().from(TABLE_MAP[entity]).delete().eq('id', id)
-  if (error) throw error
+  await deleteCompanyEntity(TABLE_MAP[entity], id)
 }
 
 export async function importDemoSeedToSupabase(companyId: string): Promise<{ imported: number }> {
@@ -405,29 +409,30 @@ export async function savePayment(payment: Payment): Promise<Payment> {
 }
 
 export async function listPayments(companyId: string): Promise<Payment[]> {
-  const filterByCompanyInvoices = async (payments: Payment[]) => {
-    const invoices = await listEntities('invoices', companyId)
-    const invoiceIds = new Set(invoices.map((i) => i.id))
-    return payments.filter((p) => invoiceIds.has(p.invoice_id))
-  }
+  const invoices = await listEntities('invoices', companyId)
+  const invoiceIds = invoices.map((i) => i.id)
+  const filterByCompanyInvoices = (payments: Payment[]) =>
+    payments.filter((p) => invoiceIds.includes(p.invoice_id))
 
   if (DEMO_MODE || !supabase) {
-    return await filterByCompanyInvoices(loadStore<Payment>(STORE_KEYS.payments))
+    return filterByCompanyInvoices(loadStore<Payment>(STORE_KEYS.payments))
   }
+
+  if (invoiceIds.length === 0) return []
 
   try {
     const { data, error } = await supabase
       .from('payments')
       .select('*')
+      .in('invoice_id', invoiceIds)
       .order('created_at', { ascending: false })
 
     if (error) throw error
 
     const items = (data ?? []) as Payment[]
     if (items.length > 0) {
-      const scoped = await filterByCompanyInvoices(items)
-      saveStore(STORE_KEYS.payments, scoped)
-      return scoped
+      saveStore(STORE_KEYS.payments, items)
+      return items
     }
 
     return filterByCompanyInvoices(loadStore<Payment>(STORE_KEYS.payments))
@@ -464,26 +469,28 @@ export async function saveFuelLog(log: FuelLog): Promise<FuelLog> {
 
 export async function listFuelLogs(companyId: string): Promise<FuelLog[]> {
   const vehicles = await listEntities('vehicles', companyId)
-  const vehicleIds = new Set(vehicles.map((v) => v.id))
-  const filterByVehicles = (logs: FuelLog[]) => logs.filter((f) => vehicleIds.has(f.vehicle_id))
+  const vehicleIds = vehicles.map((v) => v.id)
+  const filterByVehicles = (logs: FuelLog[]) => logs.filter((f) => vehicleIds.includes(f.vehicle_id))
 
   if (DEMO_MODE || !supabase) {
     return filterByVehicles(ensureFuelLogsSeeded())
   }
 
+  if (vehicleIds.length === 0) return []
+
   try {
     const { data, error } = await supabase
       .from('fuel_logs')
       .select('*')
+      .in('vehicle_id', vehicleIds)
       .order('date', { ascending: false })
 
     if (error) throw error
 
     const items = (data ?? []) as FuelLog[]
     if (items.length > 0) {
-      const scoped = filterByVehicles(items)
-      saveStore(STORE_KEYS.fuelLogs, scoped)
-      return scoped
+      saveStore(STORE_KEYS.fuelLogs, items)
+      return items
     }
 
     return filterByVehicles(ensureFuelLogsSeeded())

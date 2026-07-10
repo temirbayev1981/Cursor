@@ -33,7 +33,7 @@ export async function getVendorPOs(companyId: string): Promise<VendorPORecord[]>
   }
 
   const { data, error } = await supabase
-    .from('vendor_po_records' as 'jobs')
+    .from('vendor_po_records')
     .select('*')
     .eq('company_id', companyId)
     .order('created_at', { ascending: false })
@@ -61,7 +61,7 @@ export async function saveVendorPO(input: VendorPOInput): Promise<VendorPORecord
   }
 
   const { data, error } = await supabase
-    .from('vendor_po_records' as 'jobs')
+    .from('vendor_po_records')
     .upsert(record as never, { onConflict: 'company_id,vendor_po_number' })
     .select()
     .single()
@@ -84,7 +84,7 @@ export async function deleteVendorPO(id: string): Promise<void> {
     return
   }
 
-  const { error } = await supabase.from('vendor_po_records' as 'jobs').delete().eq('id', id)
+  const { error } = await supabase.from('vendor_po_records').delete().eq('id', id)
   if (error) throw error
 }
 
@@ -101,12 +101,7 @@ export async function seedVendorPOs(records: VendorPORecord[]): Promise<void> {
     return
   }
 
-  const client = supabase as unknown as {
-    from: (table: string) => {
-      upsert: (data: unknown, options?: { onConflict?: string }) => Promise<{ error: { message: string } | null }>
-    }
-  }
-  const { error } = await client.from('vendor_po_records').upsert(records, {
+  const { error } = await supabase.from('vendor_po_records').upsert(records as never, {
     onConflict: 'company_id,vendor_po_number',
   })
   if (error) throw error

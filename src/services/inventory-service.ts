@@ -5,25 +5,27 @@ import { supabase, DEMO_MODE } from '@/lib/supabase'
 
 export async function listInventoryTransactions(companyId: string): Promise<InventoryTransaction[]> {
   const materials = await listEntities('materials', companyId)
-  const materialIds = new Set(materials.map((m) => m.id))
+  const materialIdList = materials.map((m) => m.id)
   const local = loadStore<InventoryTransaction>(STORE_KEYS.inventory)
-    .filter((t) => materialIds.has(t.material_id))
+    .filter((t) => materialIdList.includes(t.material_id))
 
   if (DEMO_MODE || !supabase) return local
+
+  if (materialIdList.length === 0) return local
 
   try {
     const { data, error } = await supabase
       .from('inventory')
       .select('*')
+      .in('material_id', materialIdList)
       .order('created_at', { ascending: false })
       .limit(200)
 
     if (error) throw error
     const items = (data ?? []) as InventoryTransaction[]
-    const scoped = items.filter((t) => materialIds.has(t.material_id))
-    if (scoped.length > 0) {
-      saveStore(STORE_KEYS.inventory, scoped)
-      return scoped
+    if (items.length > 0) {
+      saveStore(STORE_KEYS.inventory, items)
+      return items
     }
     return local
   } catch {
