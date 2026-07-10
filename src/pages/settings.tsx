@@ -16,9 +16,10 @@ import { getNotificationQueue } from '@/services/notification-service'
 import { getErrorReports } from '@/lib/observability'
 import { getStoredCompany } from '@/services/onboarding-service'
 import { createTeamInvite, listTeamInvites, type TeamInvite } from '@/services/invite-service'
+import { startSubscriptionCheckout, updateCompanySubscription, PLAN_PRICES } from '@/services/billing-service'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
-import type { UserRole } from '@/types'
+import type { UserRole, SubscriptionPlan } from '@/types'
 
 const INVITE_ROLES: UserRole[] = ['admin', 'dispatcher', 'technician', 'accountant']
 
@@ -36,6 +37,8 @@ export default function SettingsPage() {
   const [inviteRole, setInviteRole] = useState<UserRole>('technician')
   const [pendingInvites, setPendingInvites] = useState<TeamInvite[]>([])
   const [inviteLoading, setInviteLoading] = useState(false)
+  const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan>(base?.subscription_plan ?? 'professional')
+  const [upgradingPlan, setUpgradingPlan] = useState<SubscriptionPlan | null>(null)
 
   const [companyForm, setCompanyForm] = useState({
     name: base?.name ?? '',
@@ -58,6 +61,39 @@ export default function SettingsPage() {
     void listTeamInvites(companyId).then(setPendingInvites)
   }, [companyId])
 
+  useEffect(() => {
+    setCurrentPlan(base?.subscription_plan ?? 'professional')
+  }, [base?.subscription_plan])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const subscribed = params.get('subscription') as SubscriptionPlan | null
+    if (subscribed && ['starter', 'professional', 'enterprise'].includes(subscribed)) {
+      void updateCompanySubscription(companyId, subscribed).then((updated) => {
+        setCurrentPlan(updated.subscription_plan)
+        toast.success(locale === 'ru' ? `План обновлён: ${subscribed}` : `Plan upgraded: ${subscribed}`)
+      })
+      window.history.replaceState({}, '', '/settings')
+    }
+  }, [companyId, locale])
+
+  const handleUpgrade = async (plan: SubscriptionPlan) => {
+    if (plan === currentPlan) return
+    setUpgradingPlan(plan)
+    try {
+      const result = await startSubscriptionCheckout(plan, companyId)
+      if (result === 'demo') {
+        const updated = await updateCompanySubscription(companyId, plan)
+        setCurrentPlan(updated.subscription_plan)
+        toast.success(locale === 'ru' ? 'План обновлён (демо)' : 'Plan upgraded (demo)')
+      } else if (result === 'error') {
+        toast.error(locale === 'ru' ? 'Ошибка оплаты' : 'Checkout failed')
+      }
+    } finally {
+      setUpgradingPlan(null)
+    }
+  }
+
   const handleSendInvite = async () => {
     if (!inviteEmail.includes('@')) return
     setInviteLoading(true)
@@ -75,10 +111,10 @@ export default function SettingsPage() {
     }
   }
 
-  const plans = [
-    { key: 'starter' as const, price: 49, current: false },
-    { key: 'professional' as const, price: 99, current: true },
-    { key: 'enterprise' as const, price: 199, current: false },
+  const plans: { key: SubscriptionPlan; price: number }[] = [
+    { key: 'starter', price: PLAN_PRICES.starter },
+    { key: 'professional', price: PLAN_PRICES.professional },
+    { key: 'enterprise', price: PLAN_PRICES.enterprise },
   ]
 
   const getIntegrationStatus = (key: typeof INTEGRATION_KEYS[number]) => {
@@ -144,12 +180,13 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {plans.map((plan) => {
               const planData = t.settings.plans[plan.key]
+              const isCurrent = currentPlan === plan.key
               return (
-                <Card key={plan.key} className={plan.current ? 'border-primary' : ''}>
+                <Card key={plan.key} className={isCurrent ? 'border-primary' : ''}>
                   <CardContent className="p-5">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="font-semibold">{planData.name}</h3>
-                      {plan.current && <Badge>{t.common.current}</Badge>}
+                      {isCurrent && <Badge>{t.common.current}</Badge>}
                     </div>
                     <p className="text-3xl font-bold mb-4">${plan.price}<span className="text-sm text-muted-foreground">{t.common.perMonth}</span></p>
                     <ul className="space-y-2 text-sm text-muted-foreground mb-4">
@@ -157,7 +194,16 @@ export default function SettingsPage() {
                         <li key={f}>✓ {f}</li>
                       ))}
                     </ul>
-                    {!plan.current && <Button variant="outline" className="w-full">{t.common.upgrade}</Button>}
+                    {!isCurrent && (
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        disabled={upgradingPlan === plan.key}
+                        onClick={() => void handleUpgrade(plan.key)}
+                      >
+                        {upgradingPlan === plan.key ? '...' : t.common.upgrade}
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               )

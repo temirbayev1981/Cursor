@@ -56,14 +56,23 @@ The Edge Function template lives at `supabase/functions/create-checkout-session/
 supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...
 supabase secrets set SUPABASE_SERVICE_ROLE_KEY=eyJ...  # service role, auto-injected in hosted Supabase
 supabase functions deploy stripe-webhook --no-verify-jwt
+supabase functions deploy create-subscription-checkout
 ```
 
 In Stripe Dashboard → Webhooks, point to:
 `https://YOUR_PROJECT_REF.supabase.co/functions/v1/stripe-webhook`
 
-Events: `checkout.session.completed`
+Events: `checkout.session.completed` (handles invoice payments and SaaS subscription upgrades)
 
-The webhook updates `invoices` and inserts into `payments` using the service role.
+### SaaS subscription billing
+
+Settings → Billing uses `create-subscription-checkout` for Starter ($49), Professional ($99), Enterprise ($199) plans.
+
+Without Stripe keys, upgrades apply in demo mode (localStorage + Supabase `companies.subscription_plan`).
+
+```bash
+supabase functions deploy create-subscription-checkout
+```
 
 ---
 
@@ -85,7 +94,17 @@ SMS is triggered when dispatch moves a job to **scheduled**.
 
 ---
 
-## 4. Email (Resend Edge Function)
+## 4. Storage (photos & documents)
+
+The schema creates a `handymanos` storage bucket with company-scoped RLS policies.
+
+Technician mobile app uploads job photos via `storage-service.ts`. Demo mode uses blob URLs locally.
+
+Ensure the bucket exists after running `schema.sql` (Storage section at end of file).
+
+---
+
+## 5. Email (Resend Edge Function)
 
 ```bash
 supabase secrets set RESEND_API_KEY=re_...
@@ -113,7 +132,7 @@ Without a webhook, notifications queue in `localStorage` (Settings → System).
 
 ---
 
-## 5. OpenAI proxy (Edge Function)
+## 6. OpenAI proxy (Edge Function)
 
 Keeps the OpenAI API key server-side. Do **not** set `VITE_OPENAI_API_KEY` in production.
 
@@ -129,7 +148,7 @@ Requires an authenticated Supabase session (JWT). Legacy `VITE_OPENAI_API_KEY` s
 
 ---
 
-## 6. Portal magic links
+## 7. Portal magic links
 
 Generate links from **Customers** page (link icon) or via `createPortalLink` service.
 

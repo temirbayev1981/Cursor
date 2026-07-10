@@ -1,4 +1,4 @@
-import type { Job, Customer, Estimate, Invoice, Property, Employee, Material, Vehicle, Expense, ScheduleEvent, WorkOrder, ServiceCatalogItem, FuelLog, Payment } from '@/types'
+import type { Job, Customer, Estimate, Invoice, Property, Employee, Material, Vehicle, Expense, ScheduleEvent, WorkOrder, ServiceCatalogItem, FuelLog, Payment, TimeEntry } from '@/types'
 import { loadStore, saveStore, upsertStore, removeFromStore, filterByCompany, STORE_KEYS } from '@/lib/data-store'
 import {
   DEMO_JOBS, DEMO_CUSTOMERS, DEMO_ESTIMATES, DEMO_INVOICES,
@@ -465,6 +465,45 @@ export async function listFuelLogs(companyId: string): Promise<FuelLog[]> {
     return filterByVehicles(ensureFuelLogsSeeded())
   } catch {
     return filterByVehicles(ensureFuelLogsSeeded())
+  }
+}
+
+export async function saveTimeEntry(entry: TimeEntry): Promise<TimeEntry> {
+  upsertStore(STORE_KEYS.timeEntries, entry)
+
+  if (DEMO_MODE || !supabase) return entry
+
+  const { data, error } = await supabase
+    .from('time_entries')
+    .upsert(entry as never)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as unknown as TimeEntry
+}
+
+export async function listTimeEntries(companyId: string): Promise<TimeEntry[]> {
+  const local = loadStore<TimeEntry>(STORE_KEYS.timeEntries).filter((e) => e.company_id === companyId)
+
+  if (DEMO_MODE || !supabase) return local
+
+  try {
+    const { data, error } = await supabase
+      .from('time_entries')
+      .select('*')
+      .eq('company_id', companyId)
+      .order('start_time', { ascending: false })
+
+    if (error) throw error
+    const items = (data ?? []) as TimeEntry[]
+    if (items.length > 0) {
+      saveStore(STORE_KEYS.timeEntries, items)
+      return items
+    }
+    return local
+  } catch {
+    return local
   }
 }
 

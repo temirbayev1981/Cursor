@@ -47,6 +47,14 @@ serve(async (req) => {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
+
+    if (session.metadata?.type === 'saas_subscription' && session.metadata.company_id) {
+      await supabase.from('companies').update({
+        subscription_plan: session.metadata.subscription_plan,
+        stripe_customer_id: typeof session.customer === 'string' ? session.customer : session.customer?.id,
+      }).eq('id', session.metadata.company_id)
+    }
+
     const invoiceId = session.metadata?.invoice_id
     const paymentIntentId = typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id
 

@@ -8,6 +8,7 @@ const envSchema = z.object({
   VITE_OPENAI_API_KEY: z.string().optional(),
   VITE_OPENAI_PROXY_ENDPOINT: z.string().optional(),
   VITE_STRIPE_CHECKOUT_ENDPOINT: z.string().optional(),
+  VITE_STRIPE_SUBSCRIPTION_ENDPOINT: z.string().optional(),
   VITE_NOTIFICATION_WEBHOOK_URL: z.string().optional(),
   VITE_SMS_WEBHOOK_URL: z.string().optional(),
   VITE_SENTRY_DSN: z.string().optional(),
@@ -47,4 +48,9 @@ export function getSmsEndpoint(): string | undefined {
 export function getStripeCheckoutEndpoint(): string | undefined {
   return env.VITE_STRIPE_CHECKOUT_ENDPOINT
     ?? (hasSupabase ? `${getSupabaseFunctionsUrl()}/create-checkout-session` : undefined)
+}
+
+export function getStripeSubscriptionEndpoint(): string | undefined {
+  return env.VITE_STRIPE_SUBSCRIPTION_ENDPOINT
+    ?? (hasSupabase ? `${getSupabaseFunctionsUrl()}/create-subscription-checkout` : undefined)
 }

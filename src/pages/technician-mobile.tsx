@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Phone, Navigation, Camera, Clock, CheckCircle, Play, Square, PenLine, WifiOff, CloudOff } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -11,9 +11,11 @@ import { useOnlineStatus } from '@/hooks/use-online-status'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import { loadStore, saveStore, STORE_KEYS } from '@/lib/data-store'
 import { queueOfflineAction, getOfflineQueue, syncOfflineQueue } from '@/lib/pwa'
+import { applyOfflineAction } from '@/services/offline-sync-service'
+import { uploadJobPhoto } from '@/services/storage-service'
 import { toast } from 'sonner'
 
-interface TimeEntry {
+interface LocalTimeEntry {
   id: string
   job_id: string
   start: string
@@ -24,18 +26,28 @@ interface TimeEntry {
 
 export default function TechnicianMobilePage() {
   const { t } = useTranslation()
-  const { user } = useAuth()
+  const { user, company } = useAuth()
   const online = useOnlineStatus()
+  const companyId = company?.id ?? 'comp-001'
   const { data: jobs = [] } = useJobs()
   const { data: employees = [] } = useEmployees()
   const [activeJobId, setActiveJobId] = useState<string | null>(null)
-  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([])
+  const [timeEntries, setTimeEntries] = useState<LocalTimeEntry[]>([])
   const [gps, setGps] = useState<{ lat: number; lng: number } | null>(null)
   const [pendingSync, setPendingSync] = useState(0)
+  const [uploadingJobId, setUploadingJobId] = useState<string | null>(null)
+  const photoInputRef = useRef<HTMLInputElement>(null)
+  const photoJobRef = useRef<string | null>(null)
 
   const myEmployee =
     employees.find((e) => e.profile_id === user?.id) ??
     employees.find((e) => e.is_active && e.billing_rate > 0 && /technician/i.test(e.role))
+
+  const syncContext = {
+    companyId,
+    employeeId: myEmployee?.id,
+    profileId: user?.id,
+  }
 
   const myJobs = jobs
     .filter((j) => {
@@ -45,7 +57,7 @@ export default function TechnicianMobilePage() {
     .slice(0, 10)
 
   useEffect(() => {
-    setTimeEntries(loadStore<TimeEntry>(STORE_KEYS.timeEntries))
+    setTimeEntries(loadStore<LocalTimeEntry>(STORE_KEYS.timeEntries))
     setPendingSync(getOfflineQueue().length)
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition((pos) => {
@@ -58,38 +70,20 @@ export default function TechnicianMobilePage() {
     if (!online || getOfflineQueue().length === 0) return
 
     void (async () => {
-      const { processed } = await syncOfflineQueue(async (action) => {
-        if (action.type === 'clock_in') {
-          const entry = action.payload as TimeEntry
-          const existing = loadStore<TimeEntry>(STORE_KEYS.timeEntries)
-          if (!existing.some((e) => e.id === entry.id)) {
-            saveStore(STORE_KEYS.timeEntries, [entry, ...existing])
-            setTimeEntries([entry, ...existing])
-          }
-          return true
-        }
-        if (action.type === 'clock_out') {
-          const { job_id, end } = action.payload as { job_id: string; end: string }
-          const existing = loadStore<TimeEntry>(STORE_KEYS.timeEntries)
-          const next = existing.map((e) =>
-            e.job_id === job_id && !e.end ? { ...e, end } : e
-          )
-          saveStore(STORE_KEYS.timeEntries, next)
-          setTimeEntries(next)
-          return true
-        }
-        return true
-      })
+      const { processed } = await syncOfflineQueue((action) =>
+        applyOfflineAction(action, syncContext)
+      )
 
+      setTimeEntries(loadStore<LocalTimeEntry>(STORE_KEYS.timeEntries))
       setPendingSync(getOfflineQueue().length)
       if (processed > 0) {
         toast.info(t.techMobile.synced)
       }
     })()
-  }, [online, t.techMobile.synced])
+  }, [online, t.techMobile.synced, companyId, myEmployee?.id, user?.id])
 
   const clockIn = (jobId: string) => {
-    const entry: TimeEntry = {
+    const entry: LocalTimeEntry = {
       id: crypto.randomUUID(),
       job_id: jobId,
       start: new Date().toISOString(),
@@ -106,28 +100,67 @@ export default function TechnicianMobilePage() {
       setPendingSync(getOfflineQueue().length)
       toast.success(t.techMobile.offlineSaved)
     } else {
+      void applyOfflineAction({ id: entry.id, type: 'clock_in', payload: entry, created_at: entry.start }, syncContext)
       toast.success(t.techMobile.clockIn)
     }
   }
 
   const clockOut = () => {
     if (!activeJobId) return
+    const end = new Date().toISOString()
     const next = timeEntries.map((e) =>
-      e.job_id === activeJobId && !e.end ? { ...e, end: new Date().toISOString() } : e
+      e.job_id === activeJobId && !e.end ? { ...e, end } : e
     )
     setTimeEntries(next)
     saveStore(STORE_KEYS.timeEntries, next)
     setActiveJobId(null)
 
     if (!online) {
-      queueOfflineAction('clock_out', { job_id: activeJobId, end: new Date().toISOString() })
+      queueOfflineAction('clock_out', { job_id: activeJobId, end })
       setPendingSync(getOfflineQueue().length)
+    } else {
+      void applyOfflineAction(
+        { id: crypto.randomUUID(), type: 'clock_out', payload: { job_id: activeJobId, end }, created_at: end },
+        syncContext
+      )
     }
     toast.success('Отметка ухода записана')
   }
 
+  const openPhotoPicker = (jobId: string) => {
+    photoJobRef.current = jobId
+    photoInputRef.current?.click()
+  }
+
+  const handlePhotoSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    const jobId = photoJobRef.current
+    e.target.value = ''
+    if (!file || !jobId) return
+
+    setUploadingJobId(jobId)
+    try {
+      await uploadJobPhoto(file, companyId, jobId)
+      toast.success(t.common.photo ?? 'Photo saved')
+    } catch {
+      toast.error('Upload failed')
+    } finally {
+      setUploadingJobId(null)
+      photoJobRef.current = null
+    }
+  }
+
   return (
     <div className="gradient-bg min-h-screen max-w-md mx-auto">
+      <input
+        ref={photoInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => void handlePhotoSelected(e)}
+      />
+
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border p-4">
         <div className="flex items-center justify-between gap-2">
           <div>
@@ -183,7 +216,12 @@ export default function TechnicianMobilePage() {
                 <Button variant="outline" size="sm" onClick={() => window.open('https://maps.google.com')}>
                   <Navigation className="h-4 w-4" />{t.common.navigate}
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={uploadingJobId === job.id}
+                  onClick={() => openPhotoPicker(job.id)}
+                >
                   <Camera className="h-4 w-4" />{t.common.photo}
                 </Button>
               </div>

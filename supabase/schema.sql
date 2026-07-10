@@ -664,3 +664,54 @@ $$;
 
 GRANT EXECUTE ON FUNCTION validate_portal_token(TEXT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION get_team_invite(TEXT) TO anon, authenticated;
+
+-- Time entries (technician clock in/out)
+CREATE TABLE time_entries (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+  employee_id UUID REFERENCES employees(id),
+  profile_id UUID REFERENCES profiles(id),
+  start_time TIMESTAMPTZ NOT NULL,
+  end_time TIMESTAMPTZ,
+  lat DECIMAL(10,8),
+  lng DECIMAL(11,8),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_time_entries_company ON time_entries(company_id);
+CREATE INDEX idx_time_entries_job ON time_entries(job_id);
+
+ALTER TABLE time_entries ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Company members can manage time entries" ON time_entries
+  FOR ALL USING (company_id = get_user_company_id());
+
+-- Storage bucket for job photos and documents
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('handymanos', 'handymanos', true)
+ON CONFLICT (id) DO NOTHING;
+
+CREATE POLICY "Company members can read files" ON storage.objects
+  FOR SELECT USING (
+    bucket_id = 'handymanos'
+    AND (storage.foldername(name))[1] = get_user_company_id()::text
+  );
+
+CREATE POLICY "Company members can upload files" ON storage.objects
+  FOR INSERT WITH CHECK (
+    bucket_id = 'handymanos'
+    AND (storage.foldername(name))[1] = get_user_company_id()::text
+  );
+
+CREATE POLICY "Company members can update files" ON storage.objects
+  FOR UPDATE USING (
+    bucket_id = 'handymanos'
+    AND (storage.foldername(name))[1] = get_user_company_id()::text
+  );
+
+CREATE POLICY "Company members can delete files" ON storage.objects
+  FOR DELETE USING (
+    bucket_id = 'handymanos'
+    AND (storage.foldername(name))[1] = get_user_company_id()::text
+  );

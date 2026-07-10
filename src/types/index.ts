@@ -285,6 +285,28 @@ export interface FuelLog {
   job_id?: string
 }
 
+export interface TimeEntry {
+  id: string
+  company_id: string
+  job_id: string
+  employee_id?: string
+  profile_id?: string
+  start_time: string
+  end_time?: string
+  lat?: number
+  lng?: number
+  created_at: string
+}
+
+export interface JobPhoto {
+  id: string
+  company_id: string
+  job_id: string
+  url: string
+  caption?: string
+  created_at: string
+}
+
 export interface Expense {
   id: string
   company_id: string
