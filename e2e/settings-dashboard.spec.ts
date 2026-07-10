@@ -91,6 +91,11 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('platform-audit-check-portal_email_opt_out_badge_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-notification_hub_sms_skip_csv_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-notification_hub_skip_summary_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-notification_hub_dispatch_email_skip_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-notification_hub_scheduling_email_skip_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-notification_hub_eta_email_skip_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-notification_hub_invoice_email_skip_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-notification_milestone_audit')).toBeVisible()
     await expect(page.getByTestId('notification-hub')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history-entry-0')).toBeVisible()
@@ -295,6 +300,45 @@ test.describe('Settings billing & team', () => {
     await scheduleForm.getByRole('combobox').nth(1).click()
     await page.getByRole('option', { name: /Marcus Thompson/i }).click()
     await scheduleForm.getByRole('button', { name: /запланировать заказ|schedule job/i }).click()
+    await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /system|система/i }).click()
+    await page.getByTestId('notification-hub-filter-skipped').click()
+    await expect(page.getByText(/workorders@abcprop\.com/i).first()).toBeVisible()
+    await expect(page.getByText(/отключил email|opted out/i).first()).toBeVisible()
+  })
+
+  test('notification hub shows dispatch ETA email opt-out skip', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await clearNotificationQueue(page)
+    await page.evaluate(() => {
+      localStorage.setItem('handymanos_customer_notify_prefs_cust-001', JSON.stringify({ email: false, sms: true }))
+    })
+    await seedDraftJob(page, true)
+    await page.goto('/dispatch')
+    await page.getByTestId('dispatch-status-job-e2e-draft').click()
+    await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
+    await page.getByTestId('dispatch-status-job-e2e-draft').click()
+    await page.getByRole('option', { name: /в работе|in progress/i }).click()
+    await expect(page.getByText(/ETA.*пропущено|ETA skipped|email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /system|система/i }).click()
+    await page.getByTestId('notification-hub-filter-skipped').click()
+    await expect(page.getByText(/workorders@abcprop\.com/i).first()).toBeVisible()
+    await expect(page.getByText(/отключил email|opted out/i).first()).toBeVisible()
+  })
+
+  test('notification hub shows invoice email opt-out skip', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await clearNotificationQueue(page)
+    await page.evaluate(() => {
+      localStorage.setItem('handymanos_customer_notify_prefs_cust-001', JSON.stringify({ email: false, sms: true }))
+    })
+    await seedDraftInvoice(page)
+    await page.goto('/invoices')
+    await page.getByTestId('invoice-send-inv-e2e-draft').click()
     await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')

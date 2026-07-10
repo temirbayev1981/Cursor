@@ -30,6 +30,10 @@ No schema changes required. Update frontend deploy and optional:
 - `npm run smoke:supabase` (expanded table/RPC checks)
 - Stripe webhook redeploy if using `stripe-webhook` audit logging
 
+## From 1.10.17 → 1.11.0
+
+No schema changes. Notification milestone E2E and audit gates complete.
+
 ## From 1.10.16 → 1.10.17
 
 No schema changes. Hub E2E coverage for dispatch/scheduling email opt-out skips.

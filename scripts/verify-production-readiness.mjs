@@ -458,6 +458,35 @@ if (auditLabels.includes('NOTIFICATION_HUB_SCHEDULING_EMAIL_SKIP_AUDIT = true'))
   ok = false
 }
 
+if (auditLabels.includes('NOTIFICATION_HUB_ETA_EMAIL_SKIP_AUDIT = true')) {
+  console.log('✓ NOTIFICATION_HUB_ETA_EMAIL_SKIP_AUDIT gate enabled')
+} else {
+  console.log('✗ NOTIFICATION_HUB_ETA_EMAIL_SKIP_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('NOTIFICATION_HUB_INVOICE_EMAIL_SKIP_AUDIT = true')) {
+  console.log('✓ NOTIFICATION_HUB_INVOICE_EMAIL_SKIP_AUDIT gate enabled')
+} else {
+  console.log('✗ NOTIFICATION_HUB_INVOICE_EMAIL_SKIP_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('NOTIFICATION_MILESTONE_AUDIT = true')) {
+  console.log('✓ NOTIFICATION_MILESTONE_AUDIT gate enabled')
+} else {
+  console.log('✗ NOTIFICATION_MILESTONE_AUDIT must be true')
+  ok = false
+}
+
+const notificationGateCount = (auditLabels.match(/export const NOTIFICATION_\w+_AUDIT = true/g) ?? []).length
+if (notificationGateCount >= 14) {
+  console.log(`✓ ${notificationGateCount} notification audit gates enabled`)
+} else {
+  console.log(`✗ expected at least 14 notification audit gates, found ${notificationGateCount}`)
+  ok = false
+}
+
 const notificationsE2e = readFileSync('e2e/notifications.spec.ts', 'utf8')
 if (notificationsE2e.includes('scheduling skips customer SMS when opted out') && notificationsE2e.includes('scheduling queues customer SMS when enabled')) {
   console.log('✓ scheduling customer SMS E2E coverage present')
@@ -550,6 +579,27 @@ if (settingsE2e.includes('notification hub shows scheduling email opt-out skip')
   console.log('✓ hub scheduling email skip E2E coverage present')
 } else {
   console.log('✗ hub scheduling email skip E2E test required')
+  ok = false
+}
+
+if (settingsE2e.includes('notification hub shows dispatch ETA email opt-out skip')) {
+  console.log('✓ hub dispatch ETA email skip E2E coverage present')
+} else {
+  console.log('✗ hub dispatch ETA email skip E2E test required')
+  ok = false
+}
+
+if (settingsE2e.includes('notification hub shows invoice email opt-out skip')) {
+  console.log('✓ hub invoice email skip E2E coverage present')
+} else {
+  console.log('✗ hub invoice email skip E2E test required')
+  ok = false
+}
+
+if (settingsE2e.includes('platform-audit-check-notification_milestone_audit')) {
+  console.log('✓ notification milestone audit E2E coverage present')
+} else {
+  console.log('✗ notification milestone audit E2E visibility required')
   ok = false
 }
 

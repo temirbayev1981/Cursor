@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.10.17
+# HandymanOS AI — Release 1.11.0
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.17`**, current package **1.10.17**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.11.0`**, current package **1.11.0**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -130,6 +130,11 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Locale-aware notification templates; observability probe gate uses live results
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
+
+### 1.11.0 — Notification milestone
+- Full hub email/SMS skip visibility across dispatch, scheduling, estimate, invoice, and ETA flows
+- Portal ↔ CRM notification prefs sync with opt-out badges
+- Platform audit `notification_milestone_audit` gate; **228** E2E tests
 
 ### 1.10.17 — Hub dispatch & scheduling email skip
 - Hub Skipped tab E2E for dispatch scheduled and scheduling email opt-out

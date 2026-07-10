@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.11.0] — 2026-07-10
+
+Notification milestone complete.
+
+### Phase 116 — Notification milestone wrap-up
+- E2E: hub Skipped tab shows dispatch ETA and invoice email opt-out entries
+- Platform audit: `notification_hub_eta_email_skip_audit`, `notification_hub_invoice_email_skip_audit`, `notification_milestone_audit` gates
+- Settings audit checklist exposes all notification milestone checks
+- **228** E2E tests, **161** unit tests
+
 ## [1.10.17] — 2026-07-10
 
 Hub dispatch and scheduling email skip visibility.
