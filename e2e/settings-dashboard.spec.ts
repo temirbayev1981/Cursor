@@ -260,6 +260,50 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByText(/отключил SMS|opted out of SMS/i).first()).toBeVisible()
   })
 
+  test('notification hub shows dispatch scheduled email opt-out skip', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await clearNotificationQueue(page)
+    await page.evaluate(() => {
+      localStorage.setItem('handymanos_customer_notify_prefs_cust-001', JSON.stringify({ email: false, sms: true }))
+    })
+    await seedDraftJob(page, true)
+    await page.goto('/dispatch')
+    await page.getByTestId('dispatch-status-job-e2e-draft').click()
+    await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
+    await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /system|система/i }).click()
+    await page.getByTestId('notification-hub-filter-skipped').click()
+    await expect(page.getByText(/workorders@abcprop\.com/i).first()).toBeVisible()
+    await expect(page.getByText(/отключил email|opted out/i).first()).toBeVisible()
+  })
+
+  test('notification hub shows scheduling email opt-out skip', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await clearNotificationQueue(page)
+    await page.evaluate(() => {
+      localStorage.setItem('handymanos_customer_notify_prefs_cust-001', JSON.stringify({ email: false, sms: true }))
+    })
+    await seedDraftJob(page)
+    await page.goto('/scheduling')
+    await page.getByRole('button', { name: /запланировать заказ|schedule job/i }).click()
+
+    const scheduleForm = page.locator('form').filter({ has: page.getByText(/^Заказ$|^Job$/i) })
+    await scheduleForm.getByRole('combobox').first().click()
+    await page.getByRole('option', { name: /E2E Draft Job for Scheduling/i }).click()
+    await scheduleForm.getByRole('combobox').nth(1).click()
+    await page.getByRole('option', { name: /Marcus Thompson/i }).click()
+    await scheduleForm.getByRole('button', { name: /запланировать заказ|schedule job/i }).click()
+    await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /system|система/i }).click()
+    await page.getByTestId('notification-hub-filter-skipped').click()
+    await expect(page.getByText(/workorders@abcprop\.com/i).first()).toBeVisible()
+    await expect(page.getByText(/отключил email|opted out/i).first()).toBeVisible()
+  })
+
   test('notification hub exports and clears skip log', async ({ page }) => {
     await loginAsOwner(page, 'ru')
     await page.evaluate(() => {

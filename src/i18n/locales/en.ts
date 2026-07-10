@@ -720,6 +720,8 @@ export const en: TranslationKeys = {
       portal_email_opt_out_badge_audit: 'Portal email opt-out badge sync',
       notification_hub_sms_skip_csv_audit: 'Hub SMS skip CSV export',
       notification_hub_skip_summary_audit: 'Hub skip summary breakdown',
+      notification_hub_dispatch_email_skip_audit: 'Hub dispatch email skip',
+      notification_hub_scheduling_email_skip_audit: 'Hub scheduling email skip',
       multi_tenant: 'Multi-tenant',
     },
     auditActions: {

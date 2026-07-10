@@ -718,6 +718,8 @@ export const ru = {
       portal_email_opt_out_badge_audit: 'Синхронизация email-бейджа портала',
       notification_hub_sms_skip_csv_audit: 'Экспорт CSV SMS skip в hub',
       notification_hub_skip_summary_audit: 'Сводка skip в hub (email/SMS)',
+      notification_hub_dispatch_email_skip_audit: 'Hub: email skip в диспетчерской',
+      notification_hub_scheduling_email_skip_audit: 'Hub: email skip в расписании',
       multi_tenant: 'Мульти-тенант',
     },
     auditActions: {

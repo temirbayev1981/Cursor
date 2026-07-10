@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.10.17] — 2026-07-10
+
+Hub dispatch and scheduling email skip visibility.
+
+### Phase 115 — Hub email skip coverage
+- E2E: hub Skipped tab shows dispatch scheduled email opt-out entry
+- E2E: hub Skipped tab shows scheduling email opt-out entry
+- Platform audit: `notification_hub_dispatch_email_skip_audit`, `notification_hub_scheduling_email_skip_audit` gates
+- **226** E2E tests, **161** unit tests
+
 ## [1.10.16] — 2026-07-10
 
 Notification hub skip summary with email/SMS breakdown.
