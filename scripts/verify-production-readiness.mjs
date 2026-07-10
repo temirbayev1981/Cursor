@@ -7,6 +7,7 @@ const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
 console.log(`HandymanOS AI v${pkg.version} — production readiness check\n`)
 
 const deployWorkflow = readFileSync('.github/workflows/deploy.yml', 'utf8')
+const ciWorkflow = readFileSync('.github/workflows/ci.yml', 'utf8')
 
 const e2eSpecs = readdirSync('e2e')
   .filter((name) => name.endsWith('.spec.ts'))
@@ -1003,6 +1004,41 @@ if (changelog.includes(`[${pkg.version}]`)) {
   console.log(`✓ CHANGELOG.md has [${pkg.version}] entry`)
 } else {
   console.log(`✗ CHANGELOG.md must include [${pkg.version}] entry`)
+  ok = false
+}
+
+console.log('\nCI workflows:')
+if (ciWorkflow.includes('matrix') && ciWorkflow.includes('shard') && ciWorkflow.includes('--shard=${{ matrix.shard }}/4')) {
+  console.log('✓ CI E2E sharding (4 parallel jobs) configured')
+} else {
+  console.log('✗ ci.yml must shard Playwright E2E across 4 matrix jobs')
+  ok = false
+}
+
+if (ciWorkflow.includes('supabase-smoke') && ciWorkflow.includes('smoke:supabase')) {
+  console.log('✓ CI Supabase smoke job present on main')
+} else {
+  console.log('✗ ci.yml must include supabase-smoke job')
+  ok = false
+}
+
+if (deployWorkflow.includes('smoke:supabase') && !deployWorkflow.includes('continue-on-error')) {
+  console.log('✓ deploy.yml Supabase smoke runs without continue-on-error')
+} else if (deployWorkflow.includes('continue-on-error')) {
+  console.log('✗ deploy.yml smoke:supabase must not use continue-on-error')
+  ok = false
+} else {
+  console.log('✗ deploy.yml must run smoke:supabase')
+  ok = false
+}
+
+const nightlySmoke = existsSync('.github/workflows/supabase-smoke.yml')
+  ? readFileSync('.github/workflows/supabase-smoke.yml', 'utf8')
+  : ''
+if (nightlySmoke.includes('schedule:') && nightlySmoke.includes("cron: '0 6 * * *'")) {
+  console.log('✓ nightly Supabase smoke schedule configured')
+} else {
+  console.log('✗ supabase-smoke.yml must include daily cron schedule')
   ok = false
 }
 

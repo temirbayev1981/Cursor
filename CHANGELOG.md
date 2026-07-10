@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.13.1] — 2026-07-10
+
+CI hardening: E2E sharding and Supabase smoke.
+
+### Phase 127 — CI E2E sharding & live smoke
+- CI: Playwright E2E split across 4 parallel shard jobs (~4× faster)
+- CI: `supabase-smoke` job on `main` when secrets are set
+- Nightly `supabase-smoke.yml` cron schedule (06:00 UTC)
+- Deploy: smoke step no longer `continue-on-error` (fails when live smoke fails)
+- verify-production: CI sharding and smoke workflow gates
+- **230** E2E tests, **164** unit tests
+
 ## [1.13.0] — 2026-07-10
 
 Field-ops milestone wrap-up with computed gates.

@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.13.0
+# HandymanOS AI — Release 1.13.1
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.13.0`**, current package **1.13.0**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.13.1`**, current package **1.13.1**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -130,6 +130,10 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Locale-aware notification templates; observability probe gate uses live results
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
+
+### 1.13.1 — CI E2E sharding & Supabase smoke
+- Playwright E2E sharded across 4 parallel CI jobs
+- Supabase smoke on `main` push + nightly cron; deploy smoke fails on live errors
 
 ### 1.13.0 — Field-ops milestone wrap-up
 - `FIELD_OPS_MILESTONE_AUDIT` computed from core sub-gates (inventory, fleet, expense, fuel, dispatch, offline sync)
