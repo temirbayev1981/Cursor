@@ -90,6 +90,8 @@ const schemaChecks = [
   'portal_submit_review',
   'team_invites',
   'portal_tokens',
+  'integration_probe_runs',
+  'notification_preferences',
 ]
 
 console.log('\nSchema objects:')
@@ -223,6 +225,28 @@ if (integrationProbeHistory.includes('saveIntegrationProbeHistory')) {
   console.log('✓ integration-probe-history persists operator probe runs')
 } else {
   console.log('✗ integration-probe-history must expose saveIntegrationProbeHistory')
+  ok = false
+}
+
+if (integrationProbeHistory.includes('syncIntegrationProbeHistoryToSupabase')) {
+  console.log('✓ integration-probe-history syncs probe runs to Supabase')
+} else {
+  console.log('✗ integration-probe-history must sync probe runs to Supabase')
+  ok = false
+}
+
+if (auditLabels.includes('NOTIFICATION_HUB_AUDIT = true')) {
+  console.log('✓ NOTIFICATION_HUB_AUDIT gate enabled')
+} else {
+  console.log('✗ NOTIFICATION_HUB_AUDIT must be true')
+  ok = false
+}
+
+const notificationService = readFileSync('src/services/notification-service.ts', 'utf8')
+if (notificationService.includes('getNotificationQueueFiltered') && notificationService.includes('retryFailedNotifications')) {
+  console.log('✓ notification-service exposes hub filter and retry')
+} else {
+  console.log('✗ notification-service must expose hub filter and retry')
   ok = false
 }
 

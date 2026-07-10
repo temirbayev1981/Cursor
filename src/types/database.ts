@@ -53,6 +53,7 @@ export interface Database {
           address: string
           type: string
           notes: string | null
+          notification_preferences: Json | null
           total_revenue: number
           job_count: number
           created_at: string
@@ -405,6 +406,18 @@ export interface Database {
         }
         Insert: Partial<Database['public']['Tables']['audit_logs']['Row']>
         Update: Partial<Database['public']['Tables']['audit_logs']['Row']>
+      }
+      integration_probe_runs: {
+        Row: {
+          id: string
+          company_id: string
+          checked_at: string
+          results: Json
+          summary: Json
+          created_at: string
+        }
+        Insert: Partial<Database['public']['Tables']['integration_probe_runs']['Row']>
+        Update: Partial<Database['public']['Tables']['integration_probe_runs']['Row']>
       }
       portal_tokens: {
         Row: {

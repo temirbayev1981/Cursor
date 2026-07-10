@@ -65,6 +65,7 @@ CREATE TABLE customers (
   address TEXT,
   type customer_type DEFAULT 'residential',
   notes TEXT,
+  notification_preferences JSONB DEFAULT '{"email": true, "sms": false}'::jsonb,
   total_revenue DECIMAL(12,2) DEFAULT 0,
   job_count INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -354,6 +355,16 @@ CREATE TABLE notifications (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Integration probe history (operator cloud sync)
+CREATE TABLE integration_probe_runs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  checked_at TIMESTAMPTZ NOT NULL,
+  results JSONB NOT NULL DEFAULT '{}',
+  summary JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Audit Logs
 CREATE TABLE audit_logs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -380,6 +391,8 @@ CREATE INDEX idx_materials_company ON materials(company_id);
 CREATE INDEX idx_schedule_events_company ON schedule_events(company_id);
 CREATE INDEX idx_schedule_events_time ON schedule_events(start_time, end_time);
 CREATE INDEX idx_audit_logs_company ON audit_logs(company_id);
+CREATE INDEX idx_integration_probe_runs_company ON integration_probe_runs(company_id);
+CREATE INDEX idx_integration_probe_runs_checked ON integration_probe_runs(checked_at DESC);
 
 -- Row Level Security
 ALTER TABLE companies ENABLE ROW LEVEL SECURITY;
@@ -404,6 +417,7 @@ ALTER TABLE photos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE integration_probe_runs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE service_catalog ENABLE ROW LEVEL SECURITY;
 ALTER TABLE company_members ENABLE ROW LEVEL SECURITY;
 
@@ -481,6 +495,12 @@ CREATE POLICY "Company members can view audit logs" ON audit_logs
   FOR SELECT USING (company_id = get_user_company_id());
 
 CREATE POLICY "Company members can insert audit logs" ON audit_logs
+  FOR INSERT WITH CHECK (company_id = get_user_company_id());
+
+CREATE POLICY "Company members can view probe runs" ON integration_probe_runs
+  FOR SELECT USING (company_id = get_user_company_id());
+
+CREATE POLICY "Company members can insert probe runs" ON integration_probe_runs
   FOR INSERT WITH CHECK (company_id = get_user_company_id());
 
 CREATE POLICY "Company members can manage payments" ON payments

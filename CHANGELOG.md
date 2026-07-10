@@ -2,6 +2,21 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.10.0] — 2026-07-10
+
+Audit recommendations roadmap — operator tooling, notifications hub, dispatch alerts, portal prefs.
+
+### Phase 98 — Recommendations roadmap
+- `verify:operator` script with Supabase + edge function smoke in CI (`SMOKE_EDGE_FUNCTIONS=1`)
+- Settings → System: notification hub (filter email/SMS, status badges, retry failed, flush)
+- Platform audit alert when score &lt; 8.5; service worker first-visit hint
+- Probe history sync to Supabase `integration_probe_runs` with merged local/cloud load
+- Dispatch: bulk SMS to scheduled technicians; customer ETA email on `in_progress`
+- Customer portal: email/SMS notification preference toggles; `notifyJobScheduled` respects prefs
+- Schema: `integration_probe_runs` table, `customers.notification_preferences` JSONB
+- Platform audit: `notification_hub_audit` quality gate
+- **186** E2E tests, **140** unit tests
+
 ## [1.9.5] — 2026-07-10
 
 System audit fixes and operator UX improvements.

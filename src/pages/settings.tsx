@@ -14,15 +14,16 @@ import { useTranslation } from '@/contexts/locale-context'
 import { hasStripe, hasGoogleMaps, hasOpenAI, hasSupabase, hasNotificationConfigured, hasSmsConfigured, hasObservability } from '@/lib/env'
 import { useImportSampleData, useAuditLogs } from '@/hooks/use-entities'
 import { logAudit } from '@/services/entity-service'
-import { getNotificationQueue, flushNotificationQueue } from '@/services/notification-service'
+import { NotificationHubPanel } from '@/components/settings/notification-hub-panel'
 import { getErrorReports } from '@/lib/observability'
 import { computePlatformHealth } from '@/lib/platform-health'
 import { formatAuditAction, countUniqueAuditActions, AUDIT_ACTION_COUNT } from '@/lib/audit-labels'
 import { computePlatformAudit } from '@/lib/platform-audit'
 import {
   getLatestIntegrationProbeHistory,
-  loadIntegrationProbeHistory,
+  loadIntegrationProbeHistoryMerged,
   saveIntegrationProbeHistory,
+  syncIntegrationProbeHistoryToSupabase,
   type IntegrationProbeHistoryEntry,
 } from '@/lib/integration-probe-history'
 import { INTEGRATION_PROBE_IDS, probeIntegrationsForSettings, probesToRecord, summarizeIntegrationProbes } from '@/lib/integration-probe-ui'
@@ -62,7 +63,7 @@ export default function SettingsPage() {
   const [integrationProbes, setIntegrationProbes] = useState<Record<string, boolean | null>>({})
   const [probesLoading, setProbesLoading] = useState(false)
   const [probesRefreshKey, setProbesRefreshKey] = useState(0)
-  const [probeHistory, setProbeHistory] = useState<IntegrationProbeHistoryEntry[]>(() => loadIntegrationProbeHistory())
+  const [probeHistory, setProbeHistory] = useState<IntegrationProbeHistoryEntry[]>([])
   const [serviceWorkerReady, setServiceWorkerReady] = useState(isServiceWorkerRegistered)
   const [metricsRevision, setMetricsRevision] = useState(0)
 
@@ -94,21 +95,27 @@ export default function SettingsPage() {
   }, [base?.subscription_plan])
 
   useEffect(() => {
+    void loadIntegrationProbeHistoryMerged(companyId).then(setProbeHistory)
+  }, [companyId])
+
+  useEffect(() => {
     let cancelled = false
     setProbesLoading(true)
     void probeIntegrationsForSettings()
-      .then((results) => {
+      .then(async (results) => {
         if (cancelled) return
         const record = probesToRecord(results)
         setIntegrationProbes(record)
-        saveIntegrationProbeHistory(record)
-        setProbeHistory(loadIntegrationProbeHistory())
+        const entry = saveIntegrationProbeHistory(record)
+        await syncIntegrationProbeHistoryToSupabase(companyId, entry)
+        const merged = await loadIntegrationProbeHistoryMerged(companyId)
+        if (!cancelled) setProbeHistory(merged)
       })
       .finally(() => {
         if (!cancelled) setProbesLoading(false)
       })
     return () => { cancelled = true }
-  }, [probesRefreshKey])
+  }, [companyId, probesRefreshKey])
 
   const refreshIntegrationProbes = () => {
     setProbesRefreshKey((key) => key + 1)
@@ -222,7 +229,6 @@ export default function SettingsPage() {
     }
   }
 
-  const notifications = getNotificationQueue().slice(0, 5)
   const errors = getErrorReports().slice(0, 5)
   const healthOptions = useMemo(
     () => ({
@@ -237,16 +243,7 @@ export default function SettingsPage() {
   const systemMetrics = useMemo(() => computeSystemMetrics(), [metricsRevision])
   const { data: auditLogs = [] } = useAuditLogs()
 
-  const refreshNotifications = () => {
-    void flushNotificationQueue().then((sent) => {
-      setMetricsRevision((n) => n + 1)
-      if (sent > 0) {
-        toast.success(t.settings.notificationQueueFlushed.replace('{count}', String(sent)))
-      } else {
-        toast.info(t.settings.notificationQueueFlushPending)
-      }
-    })
-  }
+  const refreshSystemMetrics = () => setMetricsRevision((n) => n + 1)
 
   const systemStatusLabel = {
     healthy: t.settings.systemHealthy,
@@ -472,6 +469,19 @@ export default function SettingsPage() {
             <Card className="md:col-span-2">
               <CardHeader><CardTitle>{t.settings.platformAudit}</CardTitle></CardHeader>
               <CardContent className="space-y-3">
+                {platformAudit.score < 8.5 && (
+                  <p
+                    className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                    data-testid="platform-audit-low-score"
+                  >
+                    {t.settings.platformAuditLowScore}
+                  </p>
+                )}
+                {!serviceWorkerReady && (
+                  <p className="rounded-lg border border-border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground" data-testid="sw-first-visit-hint">
+                    {t.settings.swFirstVisitHint}
+                  </p>
+                )}
                 <div className="flex items-center gap-4">
                   <div className="text-3xl font-bold">{platformAudit.score}/10</div>
                   <div>
@@ -658,29 +668,7 @@ export default function SettingsPage() {
                 )}
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
-                <CardTitle>{t.settings.notificationsPanel.replace('{count}', String(notifications.length))}</CardTitle>
-                {systemMetrics.notificationQueueSize > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    data-testid="notification-queue-flush"
-                    onClick={() => refreshNotifications()}
-                  >
-                    {t.settings.notificationQueueFlush}
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                {notifications.length === 0 ? <p className="text-muted-foreground">{t.settings.notificationQueueEmpty}</p> : notifications.map((n, i) => (
-                  <div key={i} className="rounded bg-secondary/30 p-2">
-                    <Badge variant="outline" className="mb-1">{n.channel}</Badge>
-                    <p className="truncate">{n.subject ?? n.body}</p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+            <NotificationHubPanel onQueueChange={refreshSystemMetrics} />
             <Card>
               <CardHeader><CardTitle>{t.settings.errorReportsPanel.replace('{count}', String(errors.length))}</CardTitle></CardHeader>
               <CardContent className="space-y-2 text-sm">
