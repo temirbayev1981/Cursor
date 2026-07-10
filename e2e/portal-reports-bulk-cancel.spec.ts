@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { loginAsOwner, seedBulkDraftJobs } from './helpers/auth'
+import { loginAsOwner, resetEstimateStatus, seedBulkDraftJobs, seedOnHoldJob } from './helpers/auth'
 
 test.describe('Property portal English', () => {
   test.beforeEach(async ({ page }) => {
@@ -89,6 +89,98 @@ test.describe('Customer portal English', () => {
     await expect(page.getByTestId('customer-portal-title')).toHaveText('Customer Portal')
     await expect(page.getByTestId('customer-portal-estimates-heading')).toHaveText('Your Estimates')
     await expect(page.getByText(/Bathroom Fixture/i).first()).toBeVisible()
+  })
+
+  test('customer portal approves estimate in English', async ({ page }) => {
+    await page.goto('/portal/customer')
+    await resetEstimateStatus(page, 'est-004', 'sent')
+    await page.reload()
+    await page.getByTestId('portal-estimate-approve-est-004').click()
+    await expect(page.getByText('Estimate approved').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/approved/i).first()).toBeVisible()
+  })
+
+  test('customer portal declines estimate in English', async ({ page }) => {
+    await page.goto('/portal/customer')
+    await resetEstimateStatus(page, 'est-004', 'sent')
+    await page.reload()
+    await page.getByTestId('portal-estimate-decline-est-004').click()
+    await expect(page.getByText('Estimate declined').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/declined|rejected/i).first()).toBeVisible()
+  })
+})
+
+test.describe('Report PDF profit tab', () => {
+  test('Russian locale exports job profitability labels', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await page.goto('/reports')
+    await page.getByTestId('reports-tab-profit').click()
+
+    const popupPromise = page.waitForEvent('popup')
+    await page.getByTestId('reports-export-pdf').click()
+    const popup = await popupPromise
+
+    await expect(popup.locator('body')).toContainText(/Прибыльность заказов/i)
+    await expect(popup.locator('body')).toContainText(/Затраты/i)
+    await popup.close()
+  })
+
+  test('English locale exports job profitability labels', async ({ page }) => {
+    await loginAsOwner(page, 'en')
+    await page.goto('/reports')
+    await page.getByTestId('reports-tab-profit').click()
+
+    const popupPromise = page.waitForEvent('popup')
+    await page.getByTestId('reports-export-pdf').click()
+    const popup = await popupPromise
+
+    await expect(popup.locator('body')).toContainText(/Job Profitability/i)
+    await expect(popup.locator('body')).toContainText(/Costs/i)
+    await popup.close()
+  })
+})
+
+test.describe('Report PDF financial tab', () => {
+  test('Russian locale exports revenue by month labels', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await page.goto('/reports')
+    await page.getByTestId('reports-tab-financial').click()
+
+    const popupPromise = page.waitForEvent('popup')
+    await page.getByTestId('reports-export-pdf').click()
+    const popup = await popupPromise
+
+    await expect(popup.locator('body')).toContainText(/Выручка по месяцам/i)
+    await expect(popup.locator('body')).toContainText(/Месяц/i)
+    await popup.close()
+  })
+
+  test('English locale exports revenue by month labels', async ({ page }) => {
+    await loginAsOwner(page, 'en')
+    await page.goto('/reports')
+    await page.getByTestId('reports-tab-financial').click()
+
+    const popupPromise = page.waitForEvent('popup')
+    await page.getByTestId('reports-export-pdf').click()
+    const popup = await popupPromise
+
+    await expect(popup.locator('body')).toContainText(/Revenue by month/i)
+    await expect(popup.locator('body')).toContainText(/Month/i)
+    await popup.close()
+  })
+})
+
+test.describe('Jobs on-hold tab', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await seedOnHoldJob(page)
+  })
+
+  test('on-hold tab filters to paused jobs only', async ({ page }) => {
+    await page.goto('/jobs')
+    await page.getByTestId('jobs-tab-on-hold').click()
+    await expect(page.getByText('E2E On Hold Job').first()).toBeVisible()
+    await expect(page.getByText('E2E Bulk Draft A')).toHaveCount(0)
   })
 })
 

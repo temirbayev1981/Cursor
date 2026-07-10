@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.6.0] — 2026-07-10
+
+Report profit/financial PDF i18n, jobs on-hold tab, portal EN approve/decline.
+
+### Phase 64 — Profit PDF, on-hold tab & portal EN actions
+- Jobs page «Приостановленные» / «On Hold» filter tab with `jobs-tab-on-hold`
+- Reports profit/financial tab testids for PDF export E2E
+- E2E helpers `seedOnHoldJob()` and `resetEstimateStatus()`
+- E2E: profit/financial PDF i18n, customer portal EN approve/decline, on-hold tab filter
+
 ## [1.5.7] — 2026-07-10
 
 Cancelled jobs tab, report services/customers PDF i18n, customer portal EN.

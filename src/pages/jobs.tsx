@@ -168,6 +168,7 @@ export default function JobsPage() {
             <TabsTrigger value="in_progress">{t.jobs.inProgress}</TabsTrigger>
             <TabsTrigger value="completed">{t.jobs.completed}</TabsTrigger>
             <TabsTrigger value="draft">{t.jobs.draft}</TabsTrigger>
+            <TabsTrigger value="on_hold" data-testid="jobs-tab-on-hold">{t.jobs.onHold}</TabsTrigger>
             <TabsTrigger value="cancelled" data-testid="jobs-tab-cancelled">{t.jobs.cancelled}</TabsTrigger>
           </TabsList>
         </Tabs>

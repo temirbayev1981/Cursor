@@ -205,6 +205,7 @@ export const en: TranslationKeys = {
     bulkScheduled: 'Scheduled {count} jobs',
     bulkCancel: 'Cancel',
     bulkCancelled: 'Cancelled {count} jobs',
+    onHold: 'On Hold',
     cancelled: 'Cancelled',
   },
   workOrders: {

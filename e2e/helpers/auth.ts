@@ -179,6 +179,47 @@ export async function seedDraftInvoice(page: Page) {
 }
 
 /** Seeds two draft jobs for bulk status E2E. */
+/** Resets a demo estimate status in localStorage for portal E2E isolation. */
+export async function resetEstimateStatus(page: Page, estimateId: string, status: string) {
+  await page.evaluate(({ id, nextStatus }) => {
+    const estimates = JSON.parse(localStorage.getItem('handymanos_estimates') || '[]') as Array<Record<string, unknown>>
+    const idx = estimates.findIndex((e) => e.id === id)
+    if (idx >= 0) estimates[idx] = { ...estimates[idx], status: nextStatus }
+    localStorage.setItem('handymanos_estimates', JSON.stringify(estimates))
+  }, { id: estimateId, nextStatus: status })
+}
+
+/** Seeds an on-hold job for jobs filter tab E2E. */
+export async function seedOnHoldJob(page: Page) {
+  await page.evaluate(() => {
+    const jobs = JSON.parse(localStorage.getItem('handymanos_jobs') || '[]') as Array<Record<string, unknown>>
+    const job = {
+      id: 'job-e2e-on-hold',
+      company_id: 'comp-001',
+      customer_id: 'cust-001',
+      title: 'E2E On Hold Job',
+      description: 'On-hold filter tab E2E test job',
+      status: 'on_hold',
+      priority: 'low',
+      estimated_hours: 3,
+      actual_hours: 0,
+      revenue: 180,
+      labor_cost: 0,
+      material_cost: 0,
+      fuel_cost: 0,
+      overhead_cost: 0,
+      profit: 0,
+      profit_margin: 0,
+      created_at: new Date().toISOString(),
+    }
+    const idx = jobs.findIndex((j) => j.id === 'job-e2e-on-hold')
+    if (idx >= 0) jobs[idx] = job
+    else jobs.push(job)
+    localStorage.setItem('handymanos_jobs', JSON.stringify(jobs))
+  })
+  await page.reload()
+}
+
 export async function seedBulkDraftJobs(page: Page) {
   await page.evaluate(() => {
     const jobs = JSON.parse(localStorage.getItem('handymanos_jobs') || '[]') as Array<Record<string, unknown>>

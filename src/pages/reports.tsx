@@ -225,8 +225,8 @@ export default function ReportsPage() {
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ReportTab)}>
         <TabsList className="mb-6">
-          <TabsTrigger value="financial">{t.reports.financial}</TabsTrigger>
-          <TabsTrigger value="profit">{t.reports.profit}</TabsTrigger>
+          <TabsTrigger value="financial" data-testid="reports-tab-financial">{t.reports.financial}</TabsTrigger>
+          <TabsTrigger value="profit" data-testid="reports-tab-profit">{t.reports.profit}</TabsTrigger>
           <TabsTrigger value="technicians" data-testid="reports-tab-technicians">{t.reports.technicians}</TabsTrigger>
           <TabsTrigger value="customers" data-testid="reports-tab-customers">{t.reports.customers}</TabsTrigger>
           <TabsTrigger value="services" data-testid="reports-tab-services">{t.reports.services}</TabsTrigger>
