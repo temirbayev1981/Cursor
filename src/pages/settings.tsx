@@ -26,7 +26,7 @@ import type { UserRole, SubscriptionPlan } from '@/types'
 
 const INVITE_ROLES: UserRole[] = ['admin', 'dispatcher', 'technician', 'accountant']
 
-const INTEGRATION_KEYS = ['stripe', 'maps', 'openai', 'supabase', 'email'] as const
+const INTEGRATION_KEYS = ['stripe', 'maps', 'openai', 'supabase', 'email', 'sms'] as const
 
 export default function SettingsPage() {
   const { company, user, updateCompanyDetails } = useAuth()
@@ -56,7 +56,8 @@ export default function SettingsPage() {
     maps: hasGoogleMaps ? 'connected' : 'configure',
     openai: hasOpenAI ? 'connected' : 'configure',
     supabase: hasSupabase ? 'connected' : 'configure',
-    email: hasNotificationConfigured || hasSmsConfigured ? 'connected' : 'configure',
+    email: hasNotificationConfigured ? 'connected' : 'configure',
+    sms: hasSmsConfigured ? 'connected' : 'configure',
   }
 
   const importDemoSeed = useImportDemoSeed()
@@ -234,20 +235,14 @@ export default function SettingsPage() {
         <TabsContent value="integrations">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {INTEGRATION_KEYS.map((key) => {
-              const labels: Record<typeof key, { name: string; desc: string }> = {
-                stripe: { name: 'Stripe', desc: 'Online payments' },
-                maps: { name: 'Google Maps', desc: 'Routing & dispatch map' },
-                openai: { name: 'OpenAI', desc: 'AI work order parsing' },
-                supabase: { name: 'Supabase', desc: 'Database & auth' },
-                email: { name: 'Email/SMS', desc: 'Customer notifications' },
-              }
+              const card = t.settings.integrationCards[key]
               const status = integrationStatus[key]
               return (
                 <Card key={key}>
                   <CardContent className="p-5 flex items-center justify-between">
                     <div>
-                      <p className="font-medium">{labels[key].name}</p>
-                      <p className="text-sm text-muted-foreground">{labels[key].desc}</p>
+                      <p className="font-medium">{card.name}</p>
+                      <p className="text-sm text-muted-foreground">{card.desc}</p>
                     </div>
                     <Badge variant={status === 'connected' ? 'success' : 'outline'}>{getIntegrationStatus(key)}</Badge>
                   </CardContent>

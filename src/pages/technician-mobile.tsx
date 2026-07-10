@@ -281,6 +281,7 @@ export default function TechnicianMobilePage() {
         accept="image/*"
         capture="environment"
         className="hidden"
+        data-testid="tech-photo-input"
         onChange={(e) => void handlePhotoSelected(e)}
       />
 

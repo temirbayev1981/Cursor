@@ -62,6 +62,9 @@ export function computePlatformAudit(): PlatformAuditReport {
   if (!health.checks.find((check) => check.id === 'offline_sync')?.ok) {
     recommendations.push('Deploy with service worker for offline technician sync')
   }
+  if (!health.checks.find((check) => check.id === 'observability')?.ok) {
+    recommendations.push('Configure Sentry or error webhook for production monitoring')
+  }
   if (recommendations.length === 0) {
     recommendations.push('Platform is production-ready — monitor Settings → System metrics')
   }

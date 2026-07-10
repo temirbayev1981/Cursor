@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.3.1] — 2026-07-10
+
+Field ops completion and production audit parity.
+
+### Phase 42 — Offline photo & platform audit
+- E2E: offline photo upload → `photo_upload` queue → sync (5/5 offline actions covered)
+- Unit tests: `storage-service` demo upload + `listJobPhotos`
+- Platform health: observability check (`VITE_SENTRY_DSN` / `VITE_ERROR_WEBHOOK_URL`)
+- Platform audit recommends observability when unset
+- Settings integrations: i18n labels, separate Email/SMS cards
+- E2E: Settings → Integrations tab configure badges in demo
+
 ## [1.3.0] — 2026-07-10
 
 Release consolidating Phases 36–41 (field ops hardening, offline sync, dispatch, error paths).

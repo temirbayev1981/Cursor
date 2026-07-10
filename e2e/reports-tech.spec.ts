@@ -47,6 +47,14 @@ test.describe('Reports and technician mobile', () => {
     await expect(page.getByText(/Clubhouse touch-up paint|Storefront door repair/i).first()).toBeVisible({ timeout: 10000 })
   })
 
+  test('settings integrations tab shows configure badges in demo', async ({ page }) => {
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /интеграции|integrations/i }).click()
+    await expect(page.getByText(/^Stripe$/i)).toBeVisible()
+    await expect(page.getByText(/^Supabase$/i)).toBeVisible()
+    await expect(page.getByText(/настроить|configure/i).first()).toBeVisible()
+  })
+
   test('settings system tab shows metrics', async ({ page }) => {
     await page.goto('/settings')
     await page.getByRole('tab', { name: /system|система/i }).click()

@@ -111,4 +111,31 @@ test.describe('Technician mobile offline sync', () => {
     })
     await expect(page.getByText(/ожидает синхронизации|pending sync/i)).toHaveCount(0)
   })
+
+  test('photo upload offline queues action and syncs when online', async ({ page, context }) => {
+    await page.goto('/tech')
+    await expect(page.getByText(/E2E Offline Tech Job/i)).toBeVisible()
+
+    await setPageOffline(page, context)
+
+    const fileChooserPromise = page.waitForEvent('filechooser')
+    await page.getByRole('button', { name: /^фото$|^photo$/i }).first().click()
+    const fileChooser = await fileChooserPromise
+    await fileChooser.setFiles('e2e/fixtures/sample.png')
+
+    await expect(page.getByText(/в очереди на синхронизацию|queued for sync/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/1.*ожидает синхронизации|1.*pending sync/i).first()).toBeVisible()
+
+    const queueLen = await page.evaluate(() => {
+      const queue = JSON.parse(localStorage.getItem('handymanos_offline_queue') || '[]') as Array<{ type: string }>
+      return queue.filter((a) => a.type === 'photo_upload').length
+    })
+    expect(queueLen).toBe(1)
+
+    await setPageOnline(page, context)
+    await expect(page.getByText(/офлайн-данные синхронизированы|offline data synced/i).first()).toBeVisible({
+      timeout: 10000,
+    })
+    await expect(page.getByText(/ожидает синхронизации|pending sync/i)).toHaveCount(0)
+  })
 })
