@@ -1,5 +1,6 @@
 import type { AIExtractedData } from '@/types'
-import { hasOpenAI, env } from '@/lib/env'
+import { hasOpenAI, env, getOpenAIEndpoint } from '@/lib/env'
+import { getSupabaseAuthHeaders } from '@/lib/supabase'
 
 const REPAIR_PATTERNS: Record<string, { tasks: string[]; materials: string[]; hours: number }> = {
   drywall: {
@@ -36,12 +37,35 @@ const REPAIR_PATTERNS: Record<string, { tasks: string[]; materials: string[]; ho
 
 async function callOpenAI(systemPrompt: string, userContent: string): Promise<string | null> {
   if (!hasOpenAI) return null
+
+  const proxyEndpoint = getOpenAIEndpoint()
+  const legacyKey = env.VITE_OPENAI_API_KEY
+
   try {
+    if (proxyEndpoint) {
+      const headers = await getSupabaseAuthHeaders()
+      const res = await fetch(proxyEndpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          system: systemPrompt,
+          user: userContent.slice(0, 8000),
+          model: 'gpt-4o-mini',
+          temperature: 0.3,
+        }),
+      })
+      if (!res.ok) return null
+      const json = await res.json() as { content?: string | null }
+      return json.content ?? null
+    }
+
+    if (!legacyKey) return null
+
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${env.VITE_OPENAI_API_KEY}`,
+        Authorization: `Bearer ${legacyKey}`,
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',

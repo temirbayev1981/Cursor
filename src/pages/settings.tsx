@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Sun, Moon } from 'lucide-react'
-import { useState } from 'react'
+import { Sun, Moon, Copy } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/auth-context'
 import { useTheme } from '@/contexts/theme-context'
 import { useTranslation } from '@/contexts/locale-context'
@@ -15,16 +15,27 @@ import { useImportDemoSeed } from '@/hooks/use-entities'
 import { getNotificationQueue } from '@/services/notification-service'
 import { getErrorReports } from '@/lib/observability'
 import { getStoredCompany } from '@/services/onboarding-service'
+import { createTeamInvite, listTeamInvites, type TeamInvite } from '@/services/invite-service'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
+import type { UserRole } from '@/types'
+
+const INVITE_ROLES: UserRole[] = ['admin', 'dispatcher', 'technician', 'accountant']
 
 const INTEGRATION_KEYS = ['stripe', 'maps', 'openai', 'supabase', 'email'] as const
 
 export default function SettingsPage() {
-  const { company } = useAuth()
+  const { company, user } = useAuth()
   const { t, locale } = useTranslation()
   const { theme, setTheme } = useTheme()
   const stored = getStoredCompany()
   const base = stored ?? company
+  const companyId = base?.id ?? 'comp-001'
+
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState<UserRole>('technician')
+  const [pendingInvites, setPendingInvites] = useState<TeamInvite[]>([])
+  const [inviteLoading, setInviteLoading] = useState(false)
 
   const [companyForm, setCompanyForm] = useState({
     name: base?.name ?? '',
@@ -42,6 +53,27 @@ export default function SettingsPage() {
   }
 
   const importDemoSeed = useImportDemoSeed()
+
+  useEffect(() => {
+    void listTeamInvites(companyId).then(setPendingInvites)
+  }, [companyId])
+
+  const handleSendInvite = async () => {
+    if (!inviteEmail.includes('@')) return
+    setInviteLoading(true)
+    try {
+      const { url } = await createTeamInvite(companyId, inviteEmail, inviteRole, user?.id)
+      await navigator.clipboard.writeText(url)
+      toast.success(t.settings.inviteLinkCopied)
+      setInviteEmail('')
+      const invites = await listTeamInvites(companyId)
+      setPendingInvites(invites)
+    } catch {
+      toast.error(locale === 'ru' ? 'Ошибка приглашения' : 'Invite failed')
+    } finally {
+      setInviteLoading(false)
+    }
+  }
 
   const plans = [
     { key: 'starter' as const, price: 49, current: false },
@@ -160,19 +192,84 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="team">
-          <Card>
-            <CardHeader><CardTitle>{t.settings.rolesPermissions}</CardTitle></CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {t.settings.roles.map((role, index) => (
-                  <div key={role} className="flex items-center justify-between rounded-lg bg-secondary/30 p-3">
-                    <span className="font-medium">{role}</span>
-                    <span className="text-sm text-muted-foreground">{getRoleDescription(index)}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader><CardTitle>{t.settings.inviteMember}</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label>{t.settings.inviteEmail}</Label>
+                  <Input
+                    className="mt-1"
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    placeholder="tech@company.com"
+                  />
+                </div>
+                <div>
+                  <Label>{t.settings.inviteRole}</Label>
+                  <Select value={inviteRole} onValueChange={(v) => setInviteRole(v as UserRole)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {INVITE_ROLES.map((role) => (
+                        <SelectItem key={role} value={role}>{role}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button onClick={() => void handleSendInvite()} disabled={inviteLoading || !inviteEmail.includes('@')}>
+                  {t.settings.sendInvite}
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader><CardTitle>{t.settings.pendingInvites}</CardTitle></CardHeader>
+              <CardContent className="space-y-2">
+                {pendingInvites.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">{t.settings.noPendingInvites}</p>
+                ) : (
+                  pendingInvites.map((inv) => (
+                    <div key={inv.id} className="flex items-center justify-between rounded-lg bg-secondary/30 p-3 text-sm">
+                      <div>
+                        <p className="font-medium">{inv.email}</p>
+                        <p className="text-muted-foreground">
+                          {inv.role} · {t.settings.inviteExpires} {new Date(inv.expires_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          const url = `${window.location.origin}/login?invite=${inv.token}`
+                          void navigator.clipboard.writeText(url)
+                          toast.success(t.settings.inviteLinkCopied)
+                        }}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="lg:col-span-2">
+              <CardHeader><CardTitle>{t.settings.rolesPermissions}</CardTitle></CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {t.settings.roles.map((role, index) => (
+                    <div key={role} className="flex items-center justify-between rounded-lg bg-secondary/30 p-3">
+                      <span className="font-medium">{role}</span>
+                      <span className="text-sm text-muted-foreground">{getRoleDescription(index)}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="system">

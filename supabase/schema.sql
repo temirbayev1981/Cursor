@@ -589,3 +589,78 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Portal magic links (customer / property manager access)
+CREATE TABLE portal_tokens (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+  portal_type TEXT NOT NULL CHECK (portal_type IN ('customer', 'property')),
+  token TEXT NOT NULL UNIQUE,
+  email TEXT,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_portal_tokens_company ON portal_tokens(company_id);
+CREATE INDEX idx_portal_tokens_token ON portal_tokens(token);
+
+ALTER TABLE portal_tokens ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Company members can manage portal tokens" ON portal_tokens
+  FOR ALL USING (company_id = get_user_company_id());
+
+-- Team invites
+CREATE TABLE team_invites (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  email TEXT NOT NULL,
+  role user_role NOT NULL DEFAULT 'technician',
+  token TEXT NOT NULL UNIQUE,
+  invited_by UUID REFERENCES profiles(id),
+  expires_at TIMESTAMPTZ NOT NULL,
+  accepted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_team_invites_company ON team_invites(company_id);
+CREATE INDEX idx_team_invites_token ON team_invites(token);
+
+ALTER TABLE team_invites ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Company members can manage team invites" ON team_invites
+  FOR ALL USING (company_id = get_user_company_id());
+
+-- Public token validation (no auth required — used by portal access page)
+CREATE OR REPLACE FUNCTION validate_portal_token(p_token TEXT)
+RETURNS TABLE (customer_id UUID, portal_type TEXT, company_id UUID)
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+AS $$
+  SELECT customer_id, portal_type, company_id
+  FROM portal_tokens
+  WHERE token = p_token AND expires_at > NOW()
+$$;
+
+CREATE OR REPLACE FUNCTION get_team_invite(p_token TEXT)
+RETURNS TABLE (
+  email TEXT,
+  role user_role,
+  company_id UUID,
+  company_name TEXT,
+  expires_at TIMESTAMPTZ,
+  accepted_at TIMESTAMPTZ
+)
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+AS $$
+  SELECT ti.email, ti.role, ti.company_id, c.name AS company_name, ti.expires_at, ti.accepted_at
+  FROM team_invites ti
+  JOIN companies c ON c.id = ti.company_id
+  WHERE ti.token = p_token
+$$;
+
+GRANT EXECUTE ON FUNCTION validate_portal_token(TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION get_team_invite(TEXT) TO anon, authenticated;

@@ -1,4 +1,4 @@
-import { Plus, Search, X } from 'lucide-react'
+import { Plus, Search, X, Link2 } from 'lucide-react'
 import { useState } from 'react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
@@ -14,6 +14,7 @@ import { formatCurrency } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { toast } from 'sonner'
 import type { Customer } from '@/types'
+import { createPortalLink } from '@/services/portal-service'
 
 const CUSTOMER_TYPE_KEYS = ['residential', 'commercial', 'property_management'] as const
 
@@ -49,6 +50,16 @@ export default function CustomersPage() {
     })
   }
 
+  const handlePortalLink = async (customer: Customer, portalType: 'customer' | 'property') => {
+    try {
+      const { url } = await createPortalLink(companyId, customer.id, portalType, customer.email)
+      await navigator.clipboard.writeText(url)
+      toast.success(t.customers.portalLinkCopied)
+    } catch {
+      toast.error(locale === 'ru' ? 'Не удалось создать ссылку' : 'Failed to create link')
+    }
+  }
+
   return (
     <div>
       <PageHeader
@@ -74,7 +85,7 @@ export default function CustomersPage() {
         <Input placeholder={t.customers.search} className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
-      <DataTable headers={[t.customers.customer, t.customers.type, t.customers.contact, t.customers.jobs, t.customers.revenue, t.common.since]}>
+      <DataTable headers={[t.customers.customer, t.customers.type, t.customers.contact, t.customers.jobs, t.customers.revenue, t.common.since, '']}>
         {filtered.map((customer) => (
           <DataTableRow key={customer.id}>
             <DataTableCell>
@@ -96,6 +107,16 @@ export default function CustomersPage() {
             <DataTableCell className="font-medium">{formatCurrency(customer.total_revenue)}</DataTableCell>
             <DataTableCell className="text-muted-foreground">
               {new Date(customer.created_at).toLocaleDateString(dateLocale)}
+            </DataTableCell>
+            <DataTableCell>
+              <Button
+                variant="ghost"
+                size="icon"
+                title={t.customers.copyPortalLink}
+                onClick={() => void handlePortalLink(customer, customer.type === 'property_management' ? 'property' : 'customer')}
+              >
+                <Link2 className="h-4 w-4" />
+              </Button>
             </DataTableCell>
           </DataTableRow>
         ))}

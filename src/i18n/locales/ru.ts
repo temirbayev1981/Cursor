@@ -75,6 +75,9 @@ export const ru = {
     welcome: 'Добро пожаловать в HandymanOS AI',
     setupDesc: 'Настроим ваш бизнес за несколько шагов',
     completeSetup: 'Завершить настройку',
+    inviteBanner: 'Вас пригласили в команду',
+    inviteRole: 'Роль',
+    acceptInvite: 'Примите приглашение, зарегистрировавшись',
   },
   onboarding: {
     company: 'Компания',
@@ -260,6 +263,8 @@ export const ru = {
     residential: 'частный',
     commercial: 'коммерческий',
     property_management: 'управляющая компания',
+    copyPortalLink: 'Скопировать ссылку на портал',
+    portalLinkCopied: 'Ссылка на портал скопирована (действует 7 дней)',
   },
   properties: {
     title: 'Объекты',
@@ -416,6 +421,14 @@ export const ru = {
       quickbooks: { name: 'QuickBooks', desc: 'Синхронизация учёта' },
     },
     roles: ['Владелец', 'Администратор', 'Диспетчер', 'Мастер', 'Бухгалтер', 'Клиент'],
+    inviteMember: 'Пригласить в команду',
+    inviteEmail: 'Email сотрудника',
+    inviteRole: 'Роль',
+    sendInvite: 'Отправить приглашение',
+    inviteLinkCopied: 'Ссылка-приглашение скопирована',
+    pendingInvites: 'Ожидающие приглашения',
+    noPendingInvites: 'Нет активных приглашений',
+    inviteExpires: 'Истекает',
   },
   status: {
     job: {

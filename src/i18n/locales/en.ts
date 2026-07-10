@@ -77,6 +77,9 @@ export const en: TranslationKeys = {
     welcome: 'Welcome to HandymanOS AI',
     setupDesc: "Let's set up your business in a few steps",
     completeSetup: 'Complete Setup',
+    inviteBanner: 'You have been invited to join a team',
+    inviteRole: 'Role',
+    acceptInvite: 'Accept the invite by signing up below',
   },
   onboarding: {
     company: 'Company',
@@ -262,6 +265,8 @@ export const en: TranslationKeys = {
     residential: 'residential',
     commercial: 'commercial',
     property_management: 'property management',
+    copyPortalLink: 'Copy portal link',
+    portalLinkCopied: 'Portal link copied (valid 7 days)',
   },
   properties: {
     title: 'Properties',
@@ -418,6 +423,14 @@ export const en: TranslationKeys = {
       quickbooks: { name: 'QuickBooks', desc: 'Accounting sync' },
     },
     roles: ['Owner', 'Admin', 'Dispatcher', 'Technician', 'Accountant', 'Customer'],
+    inviteMember: 'Invite team member',
+    inviteEmail: 'Employee email',
+    inviteRole: 'Role',
+    sendInvite: 'Send invite',
+    inviteLinkCopied: 'Invite link copied',
+    pendingInvites: 'Pending invites',
+    noPendingInvites: 'No active invites',
+    inviteExpires: 'Expires',
   },
   status: {
     job: {

@@ -11,6 +11,7 @@ import { CommandPalette } from '@/components/shared/command-palette'
 import { AppLayout } from '@/components/layout/app-layout'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { canAccess, getDefaultRoute } from '@/lib/permissions'
+import { getPortalSession, isDemoPortalAccess } from '@/services/portal-service'
 import type { UserRole } from '@/types'
 import LoginPage from '@/pages/login'
 import OnboardingPage from '@/pages/onboarding'
@@ -34,6 +35,7 @@ const AIAssistantPage = lazy(() => import('@/pages/ai-assistant'))
 const SettingsPage = lazy(() => import('@/pages/settings'))
 const PropertyPortalPage = lazy(() => import('@/pages/property-portal'))
 const CustomerPortalPage = lazy(() => import('@/pages/customer-portal'))
+const PortalAccessPage = lazy(() => import('@/pages/portal-access'))
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 60_000, retry: 1 } },
@@ -80,11 +82,13 @@ function TechnicianRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-function PortalRoute({ children }: { children: React.ReactNode }) {
+function PortalRoute({ children, portalType }: { children: React.ReactNode; portalType: 'customer' | 'property' }) {
   const { isAuthenticated, isLoading, user } = useAuth()
-  const portalToken = sessionStorage.getItem('handymanos_portal_token')
+  const session = getPortalSession()
   if (isLoading) return <PageLoader />
-  if (portalToken === 'demo' || (isAuthenticated && user?.role === 'customer')) return <>{children}</>
+  if (isDemoPortalAccess()) return <>{children}</>
+  if (session?.portalType === portalType) return <>{children}</>
+  if (isAuthenticated && user?.role === 'customer') return <>{children}</>
   return <Navigate to="/login?portal=1" replace />
 }
 
@@ -95,8 +99,9 @@ function AppRoutes() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/tech" element={<TechnicianRoute><TechnicianMobilePage /></TechnicianRoute>} />
-        <Route path="/portal/property" element={<PortalRoute><PropertyPortalPage /></PortalRoute>} />
-        <Route path="/portal/customer" element={<PortalRoute><CustomerPortalPage /></PortalRoute>} />
+        <Route path="/portal/access" element={<PortalAccessPage />} />
+        <Route path="/portal/property" element={<PortalRoute portalType="property"><PropertyPortalPage /></PortalRoute>} />
+        <Route path="/portal/customer" element={<PortalRoute portalType="customer"><CustomerPortalPage /></PortalRoute>} />
         <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
           <Route path="/dashboard" element={<RoleRoute module="dashboard"><DashboardPage /></RoleRoute>} />
           <Route path="/jobs" element={<RoleRoute module="jobs"><JobsPage /></RoleRoute>} />

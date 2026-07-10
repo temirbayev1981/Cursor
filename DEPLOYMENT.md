@@ -113,7 +113,43 @@ Without a webhook, notifications queue in `localStorage` (Settings → System).
 
 ---
 
-## 5. Production auth flow
+## 5. OpenAI proxy (Edge Function)
+
+Keeps the OpenAI API key server-side. Do **not** set `VITE_OPENAI_API_KEY` in production.
+
+```bash
+supabase secrets set OPENAI_API_KEY=sk-...
+supabase functions deploy openai-proxy
+```
+
+When Supabase is configured, the app auto-routes AI requests to:
+`{SUPABASE_URL}/functions/v1/openai-proxy`
+
+Requires an authenticated Supabase session (JWT). Legacy `VITE_OPENAI_API_KEY` still works in demo/dev but is not recommended.
+
+---
+
+## 6. Portal magic links
+
+Generate links from **Customers** page (link icon) or via `createPortalLink` service.
+
+- Customer portal: `/portal/access?token=...` → redirects to `/portal/customer`
+- Property manager portal: same flow with `portal_type: property`
+
+Tokens are stored in `portal_tokens` (7-day expiry). Demo mode uses localStorage.
+
+---
+
+## 7. Team invites
+
+**Settings → Team** — invite by email and role. Link format:
+`/login?invite=TOKEN`
+
+On signup, the user joins the existing company with the invited role (`team_invites` table).
+
+---
+
+## 8. Production auth flow
 
 1. User signs up → `registerUserWithCompany` creates auth user, company, and owner profile
 2. SQL trigger `handle_new_user` ensures a profile row exists as fallback
@@ -122,17 +158,18 @@ Without a webhook, notifications queue in `localStorage` (Settings → System).
 
 ---
 
-## 6. Optional integrations
+## 9. Optional integrations
 
 | Variable | Service |
 |----------|---------|
-| `VITE_OPENAI_API_KEY` | AI work order parsing & assistant |
+| `VITE_OPENAI_PROXY_ENDPOINT` | Override OpenAI Edge Function URL |
+| `VITE_OPENAI_API_KEY` | Legacy browser-side OpenAI (not recommended) |
 | `VITE_GOOGLE_MAPS_API_KEY` | Dispatch map & route links |
 | `VITE_SENTRY_DSN` | Error monitoring |
 
 ---
 
-## 7. Build & deploy frontend
+## 10. Build & deploy frontend
 
 ```bash
 npm run build
@@ -143,7 +180,7 @@ Set all `VITE_*` env vars in your hosting provider.
 
 ---
 
-## 8. E2E tests (CI)
+## 11. E2E tests (CI)
 
 ```bash
 npm run test:e2e
@@ -153,7 +190,7 @@ Playwright builds the app, runs smoke tests and portal tests against `http://127
 
 ---
 
-## 9. PWA
+## 12. PWA
 
 Service worker (`public/sw.js`) is registered in production builds. Ensure your host serves `/sw.js` and `/manifest.json` with correct cache headers.
 
@@ -167,5 +204,6 @@ Service worker (`public/sw.js`) is registered in production builds. Ensure your 
 - [ ] `stripe-webhook` deployed + Stripe webhook configured
 - [ ] `send-sms` deployed with Twilio secrets (or custom `VITE_SMS_WEBHOOK_URL`)
 - [ ] `send-notification` deployed with Resend (or custom `VITE_NOTIFICATION_WEBHOOK_URL`)
-- [ ] Frontend deployed with all env vars
+- [ ] `openai-proxy` deployed with `OPENAI_API_KEY` secret
+- [ ] `portal_tokens` / `team_invites` tables applied (in schema.sql)
 - [ ] `npm run test:e2e` passes in CI

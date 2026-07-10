@@ -12,7 +12,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   onboardingComplete: boolean
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string, fullName: string) => Promise<void>
+  signUp: (email: string, password: string, fullName: string, inviteToken?: string) => Promise<void>
   signOut: () => Promise<void>
   completeOnboarding: (data?: OnboardingData) => Promise<void>
   hasRole: (...roles: UserRole[]) => boolean
@@ -72,8 +72,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { restoreSession() }, [restoreSession])
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string, inviteToken?: string) => {
     if (DEMO_MODE) {
+      if (inviteToken) {
+        const { registerUserWithInvite } = await import('@/services/auth-service')
+        const { profile, company: invitedCompany } = await registerUserWithInvite(email, password, fullName, inviteToken)
+        localStorage.setItem('handymanos_auth', 'true')
+        setUser(profile)
+        setCompany(invitedCompany)
+        setOnboardingComplete(localStorage.getItem('handymanos_onboarding') === 'complete')
+        return
+      }
       localStorage.setItem('handymanos_auth', 'true')
       setUser({ ...DEMO_USER, email, full_name: fullName })
       setCompany(getStoredCompany() ?? DEMO_COMPANY)
@@ -81,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    const { profile, company: newCompany } = await registerUserWithCompany(email, password, fullName)
+    const { profile, company: newCompany } = await registerUserWithCompany(email, password, fullName, inviteToken)
     setUser(profile)
     setCompany(newCompany)
     setOnboardingComplete(false)

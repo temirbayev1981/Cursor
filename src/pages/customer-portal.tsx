@@ -1,26 +1,29 @@
 import { Star } from 'lucide-react'
+import { Navigate } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { EstimateStatusBadge } from '@/components/shared/status-badge'
 import { StripePayButton } from '@/components/payments/stripe-pay-button'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { useEstimates, useInvoices, useSaveEstimate } from '@/hooks/use-entities'
+import { usePortalContext } from '@/hooks/use-portal-context'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { toast } from 'sonner'
 import type { Estimate } from '@/types'
 
-const PORTAL_CUSTOMER_ID = 'cust-002'
-
 export default function CustomerPortalPage() {
   const { t, locale } = useTranslation()
+  const portal = usePortalContext('customer')
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
   const { data: estimates = [], isLoading: estLoading } = useEstimates()
   const { data: invoices = [], isLoading: invLoading } = useInvoices()
   const saveEstimate = useSaveEstimate()
 
-  const myEstimates = estimates.filter((e) => e.customer_id === PORTAL_CUSTOMER_ID)
-  const myInvoices = invoices.filter((i) => i.customer_id === PORTAL_CUSTOMER_ID)
+  if (!portal) return <Navigate to="/login?portal=1" replace />
+
+  const myEstimates = estimates.filter((e) => e.customer_id === portal.customerId)
+  const myInvoices = invoices.filter((i) => i.customer_id === portal.customerId)
 
   const updateEstimateStatus = (est: Estimate, status: Estimate['status']) => {
     saveEstimate.mutate(
@@ -40,7 +43,7 @@ export default function CustomerPortalPage() {
       <div className="max-w-3xl mx-auto p-6">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold">{t.customerPortal.title}</h1>
-          <p className="text-muted-foreground">Sarah Johnson</p>
+          <p className="text-muted-foreground">{portal.customerName}</p>
         </div>
 
         <h2 className="text-lg font-semibold mb-4">{t.customerPortal.yourEstimates}</h2>

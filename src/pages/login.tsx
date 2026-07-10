@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Zap, Mail, Lock, ArrowRight, User } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -7,11 +7,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/contexts/auth-context'
 import { useTranslation } from '@/contexts/locale-context'
 import { LanguageSwitcher } from '@/components/shared/language-switcher'
 import { DEMO_MODE } from '@/lib/supabase'
+import { getTeamInvitePreview } from '@/services/invite-service'
 import { toast } from 'sonner'
+import type { UserRole } from '@/types'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('owner@profixhandyman.com')
@@ -24,6 +27,19 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const isPortal = searchParams.get('portal') === '1'
+  const inviteToken = searchParams.get('invite') ?? undefined
+  const [invitePreview, setInvitePreview] = useState<{ email: string; role: UserRole } | null>(null)
+
+  useEffect(() => {
+    if (!inviteToken) return
+    void getTeamInvitePreview(inviteToken).then((preview) => {
+      if (preview) {
+        setInvitePreview({ email: preview.email, role: preview.role })
+        setEmail(preview.email)
+        setMode('signup')
+      }
+    })
+  }, [inviteToken])
 
   const handlePortalDemo = () => {
     sessionStorage.setItem('handymanos_portal_token', 'demo')
@@ -35,7 +51,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       if (mode === 'signup') {
-        await signUp(email, password, fullName || email.split('@')[0])
+        await signUp(email, password, fullName || email.split('@')[0], inviteToken)
         toast.success(locale === 'ru' ? 'Аккаунт создан' : 'Account created')
       } else {
         await signIn(email, password)
@@ -73,6 +89,15 @@ export default function LoginPage() {
             <CardDescription className="pt-2">{mode === 'signin' ? t.auth.signInDesc : (locale === 'ru' ? 'Создайте аккаунт компании' : 'Create your company account')}</CardDescription>
           </CardHeader>
           <CardContent>
+            {invitePreview && (
+              <div className="mb-4 rounded-lg bg-primary/10 p-3 text-sm">
+                <p className="font-medium">{t.auth.inviteBanner}</p>
+                <p className="text-muted-foreground mt-1">
+                  {t.auth.inviteRole}: <Badge variant="outline">{invitePreview.role}</Badge>
+                </p>
+                <p className="text-muted-foreground mt-1">{t.auth.acceptInvite}</p>
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === 'signup' && (
                 <div>

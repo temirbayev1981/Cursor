@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Navigate } from 'react-router-dom'
 import { Plus, Clock, DollarSign, CheckCircle, X } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { useJobs, useInvoices, useSaveJob } from '@/hooks/use-entities'
+import { usePortalContext } from '@/hooks/use-portal-context'
 import { useAuth } from '@/contexts/auth-context'
 import { formatCurrency } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
@@ -19,8 +21,9 @@ const PORTAL_CUSTOMER_ID = 'cust-001'
 
 export default function PropertyPortalPage() {
   const { t } = useTranslation()
+  const portal = usePortalContext('property')
   const { company } = useAuth()
-  const companyId = company?.id ?? 'comp-001'
+  const companyId = portal?.companyId ?? company?.id ?? 'comp-001'
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -30,11 +33,11 @@ export default function PropertyPortalPage() {
   const { data: invoices = [], isLoading: invLoading } = useInvoices()
   const saveJob = useSaveJob()
 
-  const portalJobs = jobs.filter((j) => j.customer_id === PORTAL_CUSTOMER_ID)
+  const portalJobs = jobs.filter((j) => j.customer_id === (portal?.customerId ?? PORTAL_CUSTOMER_ID))
   const openRequests = portalJobs.filter((j) => ['draft', 'scheduled', 'in_progress'].includes(j.status)).length
   const completed = portalJobs.filter((j) => j.status === 'completed').length
   const monthlySpend = invoices
-    .filter((i) => i.customer_id === PORTAL_CUSTOMER_ID)
+    .filter((i) => i.customer_id === (portal?.customerId ?? PORTAL_CUSTOMER_ID))
     .reduce((s, i) => s + i.total, 0)
 
   const stats = [
@@ -50,7 +53,7 @@ export default function PropertyPortalPage() {
     const job: Job = {
       id: crypto.randomUUID(),
       company_id: companyId,
-      customer_id: PORTAL_CUSTOMER_ID,
+      customer_id: portal?.customerId ?? PORTAL_CUSTOMER_ID,
       title,
       description,
       status: 'draft',
@@ -78,6 +81,7 @@ export default function PropertyPortalPage() {
     })
   }
 
+  if (!portal) return <Navigate to="/login?portal=1" replace />
   if (jobsLoading || invLoading) return <div className="p-6"><TableSkeleton /></div>
 
   return (
