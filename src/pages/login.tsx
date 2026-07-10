@@ -24,7 +24,7 @@ export default function LoginPage() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [loading, setLoading] = useState(false)
   const { signIn, signUp, acceptInvite } = useAuth()
-  const { t, locale } = useTranslation()
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const isPortal = searchParams.get('portal') === '1'
@@ -56,17 +56,15 @@ export default function LoginPage() {
         : await signIn(email, password)
 
       if (inviteToken && mode === 'signin') {
-        await acceptInvite(inviteToken)
+        await acceptInvite(inviteToken, authState.profile)
       }
 
-      toast.success(mode === 'signup'
-        ? (locale === 'ru' ? 'Аккаунт создан' : 'Account created')
-        : (locale === 'ru' ? 'Вход выполнен' : 'Signed in'))
+      toast.success(mode === 'signup' ? t.auth.accountCreated : t.auth.signedIn)
       navigate(resolvePostAuthRoute(inviteToken && mode === 'signin'
         ? { role: invitePreview?.role ?? authState.role, onboardingComplete: true }
         : authState))
     } catch {
-      toast.error(locale === 'ru' ? 'Ошибка авторизации' : 'Auth error')
+      toast.error(t.auth.authError)
     } finally {
       setLoading(false)
     }
@@ -90,10 +88,10 @@ export default function LoginPage() {
             <Tabs value={mode} onValueChange={(v) => setMode(v as typeof mode)}>
               <TabsList className="w-full">
                 <TabsTrigger value="signin" className="flex-1">{t.auth.signIn}</TabsTrigger>
-                <TabsTrigger value="signup" className="flex-1">{locale === 'ru' ? 'Регистрация' : 'Sign up'}</TabsTrigger>
+                <TabsTrigger value="signup" className="flex-1">{t.auth.signUp}</TabsTrigger>
               </TabsList>
             </Tabs>
-            <CardDescription className="pt-2">{mode === 'signin' ? t.auth.signInDesc : (locale === 'ru' ? 'Создайте аккаунт компании' : 'Create your company account')}</CardDescription>
+            <CardDescription className="pt-2">{mode === 'signin' ? t.auth.signInDesc : t.auth.signUpDesc}</CardDescription>
           </CardHeader>
           <CardContent>
             {invitePreview && (
@@ -109,7 +107,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === 'signup' && (
                 <div>
-                  <Label>{locale === 'ru' ? 'Имя' : 'Full name'}</Label>
+                  <Label>{t.auth.fullName}</Label>
                   <div className="relative mt-1">
                     <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="pl-10" required />
@@ -131,7 +129,7 @@ export default function LoginPage() {
                 </div>
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? t.common.signingIn : mode === 'signup' ? (locale === 'ru' ? 'Зарегистрироваться' : 'Sign up') : t.auth.signInBtn}
+                {loading ? t.common.signingIn : mode === 'signup' ? t.auth.signUpBtn : t.auth.signInBtn}
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </form>

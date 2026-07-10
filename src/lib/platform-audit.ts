@@ -30,6 +30,7 @@ export function computePlatformAudit(): PlatformAuditReport {
     { id: 'offline_ready', label: 'Offline-ready PWA', ok: health.checks.find((c) => c.id === 'offline_sync')?.ok ?? false, weight: 0.5 },
     { id: 'typed_data', label: 'Type-safe Supabase queries', ok: !DEMO_MODE, weight: 1 },
     { id: 'portal_rpc', label: 'Portal server RPCs', ok: !DEMO_MODE, weight: 0.5 },
+    { id: 'multi_tenant', label: 'Multi-company membership', ok: !DEMO_MODE, weight: 0.5 },
   ]
 
   const qualityWeight = qualityChecks.reduce((sum, check) => sum + check.weight, 0)

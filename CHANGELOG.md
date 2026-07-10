@@ -4,6 +4,13 @@ All notable changes to HandymanOS AI are documented here.
 
 ## [Unreleased]
 
+### Phase 31 — Login i18n, audit gate, invite E2E
+- Login page auth strings moved to i18n (EN/RU)
+- Platform audit quality gate: multi-company membership
+- Fix: accept invite after sign-in uses session profile (React state race)
+- E2E: existing user signs in with invite to join another company
+- README and RELEASE.md updated for v1.2.1
+
 ## [1.2.1] — 2026-07-10
 
 ### Phase 30 — Multi-company invites & production verification

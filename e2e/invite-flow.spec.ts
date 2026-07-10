@@ -42,4 +42,31 @@ test.describe('Team invite flow', () => {
     await expect(page).toHaveURL(/\/tech/, { timeout: 10000 })
     await expect(page.getByRole('heading', { name: /мои заказы|my jobs/i })).toBeVisible()
   })
+
+  test('existing user signs in with invite to join another company', async ({ page }) => {
+    const inviteToken = 'existing-user-invite-phase31'
+    await page.addInitScript((token) => {
+      localStorage.setItem('handymanos_team_invites', JSON.stringify([{
+        id: 'inv-existing',
+        company_id: 'comp-002',
+        email: 'owner@profixhandyman.com',
+        role: 'dispatcher',
+        token,
+        expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
+        created_at: new Date().toISOString(),
+      }]))
+      localStorage.setItem('handymanos_onboarding', 'complete')
+    }, inviteToken)
+
+    await page.goto(`/login?invite=${inviteToken}`)
+    await expect(page.getByText(/пригласили|invited/i).first()).toBeVisible()
+
+    await page.getByRole('tab', { name: /вход|sign in/i }).click()
+    await page.locator('input[type="email"]').fill('owner@profixhandyman.com')
+    await page.locator('input[type="password"]').fill('demo1234')
+    await page.getByRole('button', { name: /войти|sign in/i }).click()
+
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
+    await expect(page.getByRole('combobox')).toContainText(/Sunrise Property Services/i, { timeout: 5000 })
+  })
 })

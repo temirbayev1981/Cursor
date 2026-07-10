@@ -1,4 +1,4 @@
-import type { UserRole } from '@/types'
+import type { UserRole, Profile } from '@/types'
 import { isTechOnboardingPending } from '@/services/tech-onboarding-service'
 
 const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
@@ -31,6 +31,7 @@ export function shouldSkipOnboardingForRole(role: UserRole): boolean {
 export interface PostAuthState {
   role: UserRole
   onboardingComplete: boolean
+  profile?: Pick<Profile, 'id' | 'email'>
 }
 
 export function resolvePostAuthRoute({ role, onboardingComplete }: PostAuthState): string {

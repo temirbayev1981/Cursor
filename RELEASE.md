@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.2.0
+# HandymanOS AI — Release 1.2.1
 
-Consolidates Phases 25–29 (audit polish through portal reviews and release hardening).
+Consolidates Phases 25–30 (audit polish through multi-company invites).
 
 ## What's included
 
@@ -8,7 +8,9 @@ Consolidates Phases 25–29 (audit polish through portal reviews and release har
 - Portal security: RPCs, scoped data, invite/checkout/storage hardening
 - Production settings sync, distributed rate limits, `company_members` multi-tenant
 - Notification bell, `@sentry/react`, customer portal reviews
+- Multi-company: invite existing users, company switcher, `get_accessible_companies` RPC
 - Dispatch/scheduling i18n, USD currency labels
+- `npm run verify:production` readiness script
 - CI: lint, unit tests, E2E (Playwright), GitHub Pages deploy
 
 ## GitHub repository secrets (production deploy)
@@ -33,6 +35,7 @@ Without Supabase secrets, GitHub Pages deploys in **demo mode** (fully functiona
 ## Release checklist
 
 ```bash
+npm run verify:production
 npm run verify:release
 npm run test:e2e
 
@@ -49,7 +52,7 @@ supabase functions deploy stripe-webhook --no-verify-jwt
 
 # Merge to main triggers deploy workflow
 git checkout main
-git merge cursor/phase-29-release-consolidation-1b4a
+git merge cursor/phase-31-i18n-audit-e2e-1b4a
 git push origin main
 ```
 

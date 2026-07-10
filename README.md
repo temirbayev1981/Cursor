@@ -43,9 +43,18 @@ npm run dev
 
 # Build for production
 npm run build
+
+# Verify release & production readiness
+npm run verify:release
+npm run verify:production
+
+# Run E2E tests
+npm run test:e2e
 ```
 
 Open [http://localhost:5173](http://localhost:5173) and sign in with any credentials in demo mode.
+
+**Current version:** 1.2.1 — see [RELEASE.md](./RELEASE.md) and [CHANGELOG.md](./CHANGELOG.md).
 
 Copy `.env.example` to `.env.local` to connect Supabase, Stripe, and other integrations.
 
