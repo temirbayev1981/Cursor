@@ -14,7 +14,7 @@ import { useIsMobileNav } from '@/hooks/use-media-query'
 import { addDays, format, startOfWeek, isSameDay } from 'date-fns'
 import { useTranslation } from '@/contexts/locale-context'
 import { toast } from 'sonner'
-import { notifyJobScheduled, flushNotificationQueue, notifyResultMessage } from '@/services/notification-service'
+import { notifyJobScheduled, flushNotificationQueue, notifyResultMessage, notifyCustomerJobScheduledSms } from '@/services/notification-service'
 import { formatDateTime } from '@/lib/utils'
 import { useDateLocale } from '@/hooks/use-date-locale'
 import { cn } from '@/lib/utils'
@@ -91,6 +91,20 @@ export default function SchedulingPage() {
             if (feedback.type === 'success') toast.success(feedback.message)
             else if (feedback.type === 'info') toast.info(feedback.message)
             else toast.error(feedback.message)
+          }
+
+          if (customer?.phone) {
+            const when = formatDateTime(start.toISOString(), dateLocale)
+            const smsResult = await notifyCustomerJobScheduledSms(customer.phone, job.title, when, customer.id, customer)
+            const smsFeedback = notifyResultMessage(
+              smsResult,
+              t.scheduling.smsSent.replace('{phone}', customer.phone),
+              t.scheduling.smsQueued.replace('{phone}', customer.phone),
+              t.common.notificationFailed,
+              t.scheduling.smsSkipped.replace('{phone}', customer.phone),
+            )
+            if (smsFeedback.type === 'success') toast.success(smsFeedback.message)
+            else if (smsFeedback.type === 'info') toast.info(smsFeedback.message)
           }
 
           const flushed = await flushNotificationQueue()

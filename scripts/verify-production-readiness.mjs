@@ -339,6 +339,13 @@ if (auditLabels.includes('NOTIFICATION_HUB_SKIP_OPS_AUDIT = true')) {
   ok = false
 }
 
+if (auditLabels.includes('CUSTOMER_SMS_OPT_OUT_AUDIT = true')) {
+  console.log('✓ CUSTOMER_SMS_OPT_OUT_AUDIT gate enabled')
+} else {
+  console.log('✗ CUSTOMER_SMS_OPT_OUT_AUDIT must be true')
+  ok = false
+}
+
 const customerForm = readFileSync('src/components/forms/customer-form.tsx', 'utf8')
 if (customerForm.includes('customer-form-notify-email') && customerForm.includes('notification_preferences')) {
   console.log('✓ customer form exposes notification preference toggles')
@@ -348,6 +355,12 @@ if (customerForm.includes('customer-form-notify-email') && customerForm.includes
 }
 
 const notificationService = readFileSync('src/services/notification-service.ts', 'utf8')
+if (notificationService.includes('notifyCustomerJobScheduledSms') && notificationService.includes('skipCustomerSms')) {
+  console.log('✓ notification-service applies SMS opt-out for customer notifications')
+} else {
+  console.log('✗ notification-service must apply SMS opt-out for customer notifications')
+  ok = false
+}
 if (notificationService.includes('result.skipped')) {
   console.log('✓ notifyResultMessage handles skipped notifications')
 } else {

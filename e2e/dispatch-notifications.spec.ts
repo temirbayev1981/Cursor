@@ -76,4 +76,31 @@ test.describe('Dispatch notifications', () => {
     await expect(page.getByText(/ETA.*пропущено|ETA skipped|email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
     await expect(page.getByText(/ETA.*очереди|ETA email queued/i)).not.toBeVisible()
   })
+
+  test('status select to scheduled skips customer SMS when opted out', async ({ page }) => {
+    await page.goto('/dispatch')
+    await page.getByTestId('dispatch-status-job-e2e-draft').click()
+    await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
+
+    await expect(page.getByText(/SMS.*пропущено|SMS skipped|opt-out/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
+  })
+
+  test('status select to scheduled queues customer SMS when enabled', async ({ page }) => {
+    await page.goto('/customers')
+    await page.getByTestId('customer-edit-cust-001').click()
+    const smsToggle = page.getByTestId('customer-form-notify-sms')
+    if ((await smsToggle.getAttribute('data-state')) !== 'checked') {
+      await smsToggle.click()
+    }
+    await page.getByTestId('customer-form-submit').click()
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await page.goto('/dispatch')
+    await page.getByTestId('dispatch-status-job-e2e-draft').click()
+    await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
+
+    await expect(page.getByText(/SMS клиенту.*очереди|Customer SMS queued/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
+  })
 })

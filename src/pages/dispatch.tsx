@@ -23,7 +23,7 @@ import { useOptimizedRoute } from '@/hooks/use-route-optimizer'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { PriorityBadge } from '@/components/shared/status-badge'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
-import { notifyTechnicianSms, notifyJobScheduled, notifyCustomerEta, notifyBulkTechnicianSms, notifyResultMessage } from '@/services/notification-service'
+import { notifyTechnicianSms, notifyJobScheduled, notifyCustomerEta, notifyCustomerJobScheduledSms, notifyCustomerEtaSms, notifyBulkTechnicianSms, notifyResultMessage } from '@/services/notification-service'
 import { logAudit } from '@/services/entity-service'
 import { useAuth } from '@/contexts/auth-context'
 import { toast } from 'sonner'
@@ -194,6 +194,20 @@ export default function DispatchPage() {
           else if (emailFeedback.type === 'info') toast.info(emailFeedback.message)
           else toast.error(emailFeedback.message)
         }
+
+        if (customer?.phone) {
+          const when = job.scheduled_date ? formatDateTime(job.scheduled_date) : t.dispatch.soon
+          const smsResult = await notifyCustomerJobScheduledSms(customer.phone, job.title, when, customer.id, customer)
+          const smsFeedback = notifyResultMessage(
+            smsResult,
+            t.dispatch.customerSmsSent.replace('{phone}', customer.phone),
+            t.dispatch.customerSmsQueued.replace('{phone}', customer.phone),
+            t.common.notificationFailed,
+            t.dispatch.customerSmsSkipped.replace('{phone}', customer.phone),
+          )
+          if (smsFeedback.type === 'success') toast.success(smsFeedback.message)
+          else if (smsFeedback.type === 'info') toast.info(smsFeedback.message)
+        }
       }
 
       if (newStatus === 'in_progress') {
@@ -211,6 +225,20 @@ export default function DispatchPage() {
           if (etaFeedback.type === 'success') toast.success(etaFeedback.message)
           else if (etaFeedback.type === 'info') toast.info(etaFeedback.message)
           else toast.error(etaFeedback.message)
+        }
+
+        if (customer?.phone) {
+          const eta = t.dispatch.etaDefault
+          const etaSmsResult = await notifyCustomerEtaSms(customer.phone, job.title, eta, customer.id, customer)
+          const etaSmsFeedback = notifyResultMessage(
+            etaSmsResult,
+            t.dispatch.customerEtaSmsSent.replace('{phone}', customer.phone),
+            t.dispatch.customerEtaSmsQueued.replace('{phone}', customer.phone),
+            t.common.notificationFailed,
+            t.dispatch.customerEtaSmsSkipped.replace('{phone}', customer.phone),
+          )
+          if (etaSmsFeedback.type === 'success') toast.success(etaSmsFeedback.message)
+          else if (etaSmsFeedback.type === 'info') toast.info(etaSmsFeedback.message)
         }
       }
     },

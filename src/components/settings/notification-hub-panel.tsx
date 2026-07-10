@@ -155,7 +155,11 @@ export function NotificationHubPanel({ onQueueChange }: NotificationHubPanelProp
                       </Badge>
                     </div>
                     <p className="truncate">{skip.subject ?? skip.body}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{t.settings.notificationHubSkipReason}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {skip.channel === 'sms'
+                        ? t.settings.notificationHubSkipReasonSms
+                        : t.settings.notificationHubSkipReasonEmail}
+                    </p>
                   </div>
                 ))
               : queueItems.map((item) => {

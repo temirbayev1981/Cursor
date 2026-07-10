@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.10.7
+# HandymanOS AI — Release 1.10.8
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.7`**, current package **1.10.7**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.8`**, current package **1.10.8**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -130,6 +130,11 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Locale-aware notification templates; observability probe gate uses live results
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
+
+### 1.10.8 — Customer SMS opt-out
+- Dispatch/scheduling customer SMS with `customerAllowsNotification` SMS gate
+- Hub skipped reason labels per channel (email/SMS)
+- Platform audit `customer_sms_opt_out_audit` gate
 
 ### 1.10.7 — Skip log operator ops
 - Hub export/clear skip log CSV for operators
