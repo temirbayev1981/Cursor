@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/contexts/auth-context'
 import { useInvoices, useCustomers, useSaveInvoice, useSendInvoice, usePayInvoice } from '@/hooks/use-entities'
 import { generateInvoiceNumber } from '@/services/payment-service'
+import { notifyInvoiceSentSms, notifyResultMessage } from '@/services/notification-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { exportInvoicePdf } from '@/lib/export'
 import { useTranslation } from '@/contexts/locale-context'
@@ -80,11 +81,30 @@ export default function InvoicesPage() {
     const customer = customers.find((c) => c.id === invoice.customer_id)
     if (!customer?.email) return
     sendInvoice.mutate({ invoice, email: customer.email, customer }, {
-      onSuccess: ({ notification }) => {
+      onSuccess: async ({ notification }) => {
         if (notification.skipped) {
           toast.info(t.invoices.invoiceSentSkipped.replace('{email}', customer.email))
         } else {
           toast.success(t.invoices.invoiceSent.replace('{email}', customer.email))
+        }
+
+        if (customer.phone) {
+          const smsResult = await notifyInvoiceSentSms(
+            customer.phone,
+            invoice.invoice_number,
+            invoice.total,
+            customer.id,
+            customer,
+          )
+          const smsFeedback = notifyResultMessage(
+            smsResult,
+            t.invoices.smsSent.replace('{phone}', customer.phone),
+            t.invoices.smsQueued.replace('{phone}', customer.phone),
+            t.common.notificationFailed,
+            t.invoices.smsSkipped.replace('{phone}', customer.phone),
+          )
+          if (smsFeedback.type === 'success') toast.success(smsFeedback.message)
+          else if (smsFeedback.type === 'info') toast.info(smsFeedback.message)
         }
       },
     })

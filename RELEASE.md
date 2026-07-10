@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.10.9
+# HandymanOS AI — Release 1.10.10
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.9`**, current package **1.10.9**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.10`**, current package **1.10.10**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -130,6 +130,10 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Locale-aware notification templates; observability probe gate uses live results
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
+
+### 1.10.10 — Estimate & invoice SMS opt-out
+- Estimate/invoice send flows include customer SMS with opt-out gate
+- Platform audit `estimate_invoice_sms_audit` gate
 
 ### 1.10.9 — Scheduling SMS E2E
 - Scheduling page customer SMS skip/queue E2E coverage

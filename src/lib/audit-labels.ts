@@ -157,6 +157,9 @@ export const CUSTOMER_SMS_OPT_OUT_AUDIT = true as const
 /** Scheduling page E2E covers customer SMS skip and queue flows. */
 export const SCHEDULING_CUSTOMER_SMS_AUDIT = true as const
 
+/** Estimate and invoice sends respect customer SMS opt-out. */
+export const ESTIMATE_INVOICE_SMS_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }

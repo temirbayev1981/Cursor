@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.10.10] — 2026-07-10
+
+Estimate and invoice customer SMS with opt-out respect.
+
+### Phase 108 — Estimate & invoice SMS opt-out
+- `notifyEstimateSentSms` / `notifyInvoiceSentSms` with SMS templates (EN/RU)
+- Estimates and invoices pages send customer SMS when phone present
+- E2E: estimate/invoice SMS skip (default) and estimate SMS queued when enabled
+- Platform audit: `estimate_invoice_sms_audit` gate
+- **209** E2E tests, **160** unit tests
+
 ## [1.10.9] — 2026-07-10
 
 Scheduling customer SMS E2E and hub SMS skip visibility.

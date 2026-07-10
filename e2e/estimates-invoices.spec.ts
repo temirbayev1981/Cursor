@@ -48,6 +48,30 @@ test.describe('Estimates & invoices', () => {
     await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
   })
 
+  test('send draft estimate skips customer SMS when opted out', async ({ page }) => {
+    await page.goto('/estimates')
+    await page.getByTestId('estimate-send-est-003').click()
+    await expect(page.getByText(/смета отправлена|estimate sent/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/SMS.*отключён|SMS disabled/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/567.*8901|\(555\) 567-8901/).first()).toBeVisible()
+  })
+
+  test('send draft estimate queues customer SMS when enabled', async ({ page }) => {
+    await page.goto('/customers')
+    await page.getByTestId('customer-edit-cust-004').click()
+    const smsToggle = page.getByTestId('customer-form-notify-sms')
+    if ((await smsToggle.getAttribute('data-state')) !== 'checked') {
+      await smsToggle.click()
+    }
+    await page.getByTestId('customer-form-submit').click()
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await page.goto('/estimates')
+    await page.getByTestId('estimate-send-est-003').click()
+    await expect(page.getByText(/SMS.*очереди|SMS queued/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/567.*8901|\(555\) 567-8901/).first()).toBeVisible()
+  })
+
   test('convert sent estimate to invoice', async ({ page }) => {
     await page.goto('/estimates')
     await expect(page.getByText('Leaking Faucet Repair').first()).toBeVisible()

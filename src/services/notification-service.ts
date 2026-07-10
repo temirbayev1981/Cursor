@@ -29,6 +29,9 @@ const NOTIFY_TEMPLATES = {
     bulkTechSms: (count: number) => `You have ${count} job(s) scheduled today. Check HandymanOS for details.`,
     jobScheduledSms: (title: string, when: string) => `HandymanOS: "${title}" scheduled for ${when}.`,
     jobEtaSms: (title: string, eta: string) => `HandymanOS: Technician en route for "${title}". ETA: ${eta}.`,
+    estimateSentSms: (title: string, total: number) =>
+      `HandymanOS: Estimate "${title}" for $${total.toFixed(2)} sent. Please review.`,
+    invoiceSentSms: (num: string, amount: number) => `HandymanOS: Invoice ${num} for $${amount.toFixed(2)} issued.`,
   },
   ru: {
     jobScheduledSubject: (title: string) => `Заказ запланирован: ${title}`,
@@ -43,6 +46,9 @@ const NOTIFY_TEMPLATES = {
     bulkTechSms: (count: number) => `У вас ${count} заказ(ов) на сегодня. Подробности в HandymanOS.`,
     jobScheduledSms: (title: string, when: string) => `HandymanOS: «${title}» запланирован на ${when}.`,
     jobEtaSms: (title: string, eta: string) => `HandymanOS: мастер в пути по заказу «${title}». ETA: ${eta}.`,
+    estimateSentSms: (title: string, total: number) =>
+      `HandymanOS: смета «${title}» на $${total.toFixed(2)} отправлена. Ознакомьтесь и утвердите.`,
+    invoiceSentSms: (num: string, amount: number) => `HandymanOS: счёт ${num} на $${amount.toFixed(2)} выставлен.`,
   },
 } as const
 
@@ -317,6 +323,36 @@ export async function notifyCustomerEtaSms(
   const body = tpl.jobEtaSms(jobTitle, eta)
   if (customerId && !customerAllowsNotification(customerId, 'sms', customer)) {
     return skipCustomerSms(phone, body, { type: 'job_eta_sms', customer_id: customerId })
+  }
+  return sendSms(phone, body)
+}
+
+export async function notifyEstimateSentSms(
+  phone: string,
+  title: string,
+  total: number,
+  customerId?: string,
+  customer?: Pick<Customer, 'notification_preferences'>,
+) {
+  const tpl = notifyTemplates()
+  const body = tpl.estimateSentSms(title, total)
+  if (customerId && !customerAllowsNotification(customerId, 'sms', customer)) {
+    return skipCustomerSms(phone, body, { type: 'estimate_sent_sms', customer_id: customerId })
+  }
+  return sendSms(phone, body)
+}
+
+export async function notifyInvoiceSentSms(
+  phone: string,
+  invoiceNumber: string,
+  amount: number,
+  customerId?: string,
+  customer?: Pick<Customer, 'notification_preferences'>,
+) {
+  const tpl = notifyTemplates()
+  const body = tpl.invoiceSentSms(invoiceNumber, amount)
+  if (customerId && !customerAllowsNotification(customerId, 'sms', customer)) {
+    return skipCustomerSms(phone, body, { type: 'invoice_sent_sms', customer_id: customerId })
   }
   return sendSms(phone, body)
 }
