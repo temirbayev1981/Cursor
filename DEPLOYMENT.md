@@ -159,7 +159,7 @@ Tokens are stored in `portal_tokens` (7-day expiry). Demo mode uses localStorage
 
 ---
 
-## 7. Team invites
+## 8. Team invites
 
 **Settings → Team** — invite by email and role. Link format:
 `/login?invite=TOKEN`
@@ -168,7 +168,7 @@ On signup, the user joins the existing company with the invited role (`team_invi
 
 ---
 
-## 8. Production auth flow
+## 9. Production auth flow
 
 1. User signs up → `registerUserWithCompany` creates auth user, company, and owner profile
 2. SQL trigger `handle_new_user` ensures a profile row exists as fallback
@@ -177,7 +177,7 @@ On signup, the user joins the existing company with the invited role (`team_invi
 
 ---
 
-## 9. Optional integrations
+## 10. Optional integrations
 
 | Variable | Service |
 |----------|---------|
@@ -188,7 +188,7 @@ On signup, the user joins the existing company with the invited role (`team_invi
 
 ---
 
-## 10. Build & deploy frontend
+## 11. Build & deploy frontend
 
 ```bash
 npm run build
@@ -199,7 +199,7 @@ Set all `VITE_*` env vars in your hosting provider.
 
 ---
 
-## 11. E2E tests (CI)
+## 12. E2E tests (CI)
 
 ```bash
 npm run test:e2e
@@ -209,7 +209,7 @@ Playwright builds the app, runs smoke tests and portal tests against `http://127
 
 ---
 
-## 12. PWA
+## 13. PWA
 
 Service worker (`public/sw.js`) is registered in production builds. Ensure your host serves `/sw.js` and `/manifest.json` with correct cache headers.
 

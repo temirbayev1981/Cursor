@@ -47,8 +47,9 @@ test.describe('Reports and technician mobile', () => {
 
   test('settings system tab shows metrics', async ({ page }) => {
     await page.goto('/settings')
-    await page.getByRole('tab', { name: /system/i }).click()
+    await page.getByRole('tab', { name: /system|система/i }).click()
     await expect(page.getByText(/system metrics|системные метрики/i).first()).toBeVisible()
+    await expect(page.getByText(/platform audit|аудит платформы/i).first()).toBeVisible()
     await expect(page.getByText(/offline queue|офлайн-очередь/i).first()).toBeVisible()
   })
 })

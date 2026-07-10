@@ -15,6 +15,7 @@ import { useImportDemoSeed, useAuditLogs } from '@/hooks/use-entities'
 import { getNotificationQueue } from '@/services/notification-service'
 import { getErrorReports } from '@/lib/observability'
 import { computePlatformHealth } from '@/lib/platform-health'
+import { computePlatformAudit } from '@/lib/platform-audit'
 import { computeSystemMetrics } from '@/lib/system-metrics'
 import { getStoredCompany } from '@/services/onboarding-service'
 import { createTeamInvite, listTeamInvites, type TeamInvite } from '@/services/invite-service'
@@ -141,6 +142,7 @@ export default function SettingsPage() {
   const notifications = getNotificationQueue().slice(0, 5)
   const errors = getErrorReports().slice(0, 5)
   const platformHealth = computePlatformHealth()
+  const platformAudit = computePlatformAudit()
   const systemMetrics = computeSystemMetrics()
   const { data: auditLogs = [] } = useAuditLogs()
 
@@ -160,7 +162,7 @@ export default function SettingsPage() {
           <TabsTrigger value="billing">{t.settings.billing}</TabsTrigger>
           <TabsTrigger value="integrations">{t.settings.integrations}</TabsTrigger>
           <TabsTrigger value="team">{t.settings.team}</TabsTrigger>
-          <TabsTrigger value="system">System</TabsTrigger>
+          <TabsTrigger value="system">{t.settings.systemTab}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="company">
@@ -332,6 +334,25 @@ export default function SettingsPage() {
         <TabsContent value="system">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="md:col-span-2">
+              <CardHeader><CardTitle>{t.settings.platformAudit}</CardTitle></CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center gap-4">
+                  <div className="text-3xl font-bold">{platformAudit.score}/10</div>
+                  <div>
+                    <Badge variant={platformAudit.readyForProduction ? 'success' : 'outline'}>
+                      {platformAudit.grade}
+                    </Badge>
+                    <p className="text-sm text-muted-foreground mt-1">{platformAudit.summary}</p>
+                  </div>
+                </div>
+                <ul className="text-sm space-y-1 text-muted-foreground">
+                  {platformAudit.recommendations.map((item) => (
+                    <li key={item}>• {item}</li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+            <Card className="md:col-span-2">
               <CardHeader><CardTitle>{t.settings.platformHealth}</CardTitle></CardHeader>
               <CardContent className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex items-center gap-4">
@@ -389,19 +410,17 @@ export default function SettingsPage() {
                 <CardHeader><CardTitle>Supabase</CardTitle></CardHeader>
                 <CardContent className="flex items-center justify-between gap-4">
                   <p className="text-sm text-muted-foreground">
-                    {locale === 'ru'
-                      ? 'Импорт демо-данных в подключённую базу Supabase (клиенты, заказы, сметы, счета).'
-                      : 'Import demo data into your connected Supabase database (customers, jobs, estimates, invoices).'}
+                    {t.settings.importDemoDesc}
                   </p>
                   <Button
                     variant="outline"
                     disabled={importDemoSeed.isPending}
                     onClick={() => importDemoSeed.mutate(undefined, {
-                      onSuccess: (r) => toast.success(`${locale === 'ru' ? 'Импортировано' : 'Imported'}: ${r.imported}`),
+                      onSuccess: (r) => toast.success(`${t.settings.imported}: ${r.imported}`),
                       onError: (e) => toast.error(e.message),
                     })}
                   >
-                    {locale === 'ru' ? 'Импорт демо-данных' : 'Import demo data'}
+                    {t.settings.importDemoData}
                   </Button>
                 </CardContent>
               </Card>
@@ -426,7 +445,7 @@ export default function SettingsPage() {
             <Card>
               <CardHeader><CardTitle>Notifications ({notifications.length})</CardTitle></CardHeader>
               <CardContent className="space-y-2 text-sm">
-                {notifications.length === 0 ? <p className="text-muted-foreground">Очередь пуста</p> : notifications.map((n, i) => (
+                {notifications.length === 0 ? <p className="text-muted-foreground">{t.settings.notificationQueueEmpty}</p> : notifications.map((n, i) => (
                   <div key={i} className="rounded bg-secondary/30 p-2">
                     <Badge variant="outline" className="mb-1">{n.channel}</Badge>
                     <p className="truncate">{n.subject ?? n.body}</p>
@@ -437,7 +456,7 @@ export default function SettingsPage() {
             <Card>
               <CardHeader><CardTitle>Error reports ({errors.length})</CardTitle></CardHeader>
               <CardContent className="space-y-2 text-sm">
-                {errors.length === 0 ? <p className="text-muted-foreground">Нет ошибок</p> : errors.map((e, i) => (
+                {errors.length === 0 ? <p className="text-muted-foreground">{t.settings.noErrors}</p> : errors.map((e, i) => (
                   <div key={i} className="rounded bg-secondary/30 p-2">
                     <p className="font-medium truncate">{e.message}</p>
                     <p className="text-xs text-muted-foreground">{e.timestamp}</p>

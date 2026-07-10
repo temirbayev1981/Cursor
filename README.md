@@ -47,6 +47,8 @@ npm run build
 
 Open [http://localhost:5173](http://localhost:5173) and sign in with any credentials in demo mode.
 
+Copy `.env.example` to `.env.local` to connect Supabase, Stripe, and other integrations.
+
 ## Demo Mode
 
 Without Supabase credentials, the app runs in **demo mode** with realistic sample data. To connect a live backend, see [DEPLOYMENT.md](./DEPLOYMENT.md).
@@ -87,9 +89,14 @@ supabase/
 | `/reports` | Analytics |
 | `/ai-assistant` | AI business consultant |
 | `/settings` | Configuration |
+| `/onboarding` | Owner setup wizard (6 steps) |
+| `/tech-onboarding` | Technician lite setup (invite flow) |
 | `/tech` | Mobile technician view |
+| `/portal/access` | Portal magic-link entry |
 | `/portal/property` | Property manager portal |
 | `/portal/customer` | Customer portal |
+
+See [CHANGELOG.md](./CHANGELOG.md) for release history.
 
 ## Security
 

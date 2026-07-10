@@ -41,6 +41,20 @@ describe('analytics', () => {
     expect(metrics.completedJobs).toBe(1)
   })
 
+  it('reduces profit margin when overhead expenses exist', () => {
+    const without = computeDashboardMetrics([job], [], [], [])
+    const withExpense = computeDashboardMetrics([job], [], [{
+      id: 'exp-1',
+      company_id: 'c1',
+      category: 'Overhead',
+      description: 'Insurance',
+      amount: 100,
+      date: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+    }], [])
+    expect(withExpense.profitMargin).toBeLessThan(without.profitMargin)
+  })
+
   it('groups service profitability by keyword', () => {
     const chart = computeServiceProfitability([job])
     const drywall = chart.find((c) => c.name === 'Drywall')

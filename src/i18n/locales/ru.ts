@@ -470,6 +470,13 @@ export const ru = {
     offlineQueue: 'Офлайн-очередь',
     notificationQueue: 'Очередь уведомлений',
     lastError: 'Последняя ошибка',
+    systemTab: 'Система',
+    platformAudit: 'Аудит платформы',
+    importDemoData: 'Импорт демо-данных',
+    importDemoDesc: 'Импорт демо-данных в подключённую базу Supabase (клиенты, заказы, сметы, счета).',
+    imported: 'Импортировано',
+    notificationQueueEmpty: 'Очередь пуста',
+    noErrors: 'Нет ошибок',
   },
   status: {
     job: {

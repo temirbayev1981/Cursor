@@ -168,7 +168,10 @@ export function computeDashboardMetrics(
   const materialCost = monthJobs.reduce((s, j) => s + j.material_cost, 0)
   const fuelExpenses = fuelLogs.filter((f) => isThisMonth(f.date)).reduce((s, f) => s + f.total_cost, 0)
     + monthJobs.reduce((s, j) => s + j.fuel_cost, 0)
-  const totalProfit = monthJobs.reduce((s, j) => s + j.profit, 0)
+  const monthExpenses = expenses
+    .filter((e) => isThisMonth(e.date))
+    .reduce((sum, expense) => sum + expense.amount, 0)
+  const totalProfit = monthJobs.reduce((sum, job) => sum + job.profit, 0) - monthExpenses
   const profitMargin = revenueMonth > 0 ? (totalProfit / revenueMonth) * 100 : 0
 
   return {

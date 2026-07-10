@@ -472,6 +472,13 @@ export const en: TranslationKeys = {
     offlineQueue: 'Offline queue',
     notificationQueue: 'Notification queue',
     lastError: 'Last error',
+    systemTab: 'System',
+    platformAudit: 'Platform audit',
+    importDemoData: 'Import demo data',
+    importDemoDesc: 'Import demo data into your connected Supabase database (customers, jobs, estimates, invoices).',
+    imported: 'Imported',
+    notificationQueueEmpty: 'Queue is empty',
+    noErrors: 'No errors',
   },
   status: {
     job: {
