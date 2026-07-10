@@ -56,6 +56,8 @@ Open [http://localhost:5173](http://localhost:5173) and sign in with any credent
 
 **Current version:** 1.6.3 — see [RELEASE.md](./RELEASE.md) and [CHANGELOG.md](./CHANGELOG.md).
 
+📖 **Полное руководство по системе (функционал, модули, роли, интеграции):** [INSTRUCTIONS.md](./INSTRUCTIONS.md)
+
 Copy `.env.example` to `.env.local` to connect Supabase, Stripe, and other integrations.
 
 ## Demo Mode
@@ -63,6 +65,8 @@ Copy `.env.example` to `.env.local` to connect Supabase, Stripe, and other integ
 Without Supabase credentials, the app runs in **demo mode** with realistic sample data. To connect a live backend, see [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ## Project Structure
+
+Подробное описание каждого модуля, ролей и возможностей — в [INSTRUCTIONS.md](./INSTRUCTIONS.md).
 
 ```
 src/
@@ -116,6 +120,7 @@ See [CHANGELOG.md](./CHANGELOG.md) for release history.
 | E2E smoke tests | `npm run test:e2e` |
 | Platform audit | Settings → System (score ≥ 8.5 with live integrations) |
 | Deploy guide | [DEPLOYMENT.md](./DEPLOYMENT.md) |
+| User & system guide | [INSTRUCTIONS.md](./INSTRUCTIONS.md) |
 | Release checklist | [RELEASE.md](./RELEASE.md) |
 
 Current version: **1.6.3**
