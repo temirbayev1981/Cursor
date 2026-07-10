@@ -8,12 +8,17 @@ import { LanguageSwitcher } from '@/components/shared/language-switcher'
 import { NotificationBell } from '@/components/layout/notification-bell'
 import { useIsMobileNav } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'
+import { prefetchChartBundles } from '@/lib/chart-prefetch'
 
 export function AppLayout() {
   const isMobileNav = useIsMobileNav()
   const location = useLocation()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+
+  useEffect(() => {
+    prefetchChartBundles()
+  }, [])
 
   useEffect(() => {
     setMobileNavOpen(false)

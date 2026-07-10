@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.13.2
+# HandymanOS AI — Release 1.13.3
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.13.2`**, current package **1.13.2**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.13.3`**, current package **1.13.3**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -130,6 +130,11 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Locale-aware notification templates; observability probe gate uses live results
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
+
+### 1.13.3 — Chart prefetch & registry E2E sync
+- Prefetch recharts/dashboard/reports on app shell load
+- Registry keys must match audit-expanded E2E coverage 1:1
+- Nightly smoke runs operator readiness when secrets are set
 
 ### 1.13.2 — Lazy chunks & audit action registry
 - PDF and Excel libraries load on demand (smaller initial bundle)
