@@ -118,6 +118,11 @@ export const en: TranslationKeys = {
     materialsPreloaded: "We've pre-loaded common materials. You can customize later.",
     serviceList: ['Drywall Repair', 'Painting', 'Plumbing', 'Electrical', 'Door Installation', 'Fixture Install', 'Rental Turnover', 'General Maintenance'],
     materialList: ['Joint Compound', 'Interior Paint', 'Door Trim', 'Plumber Tape', 'Sandpaper'],
+    companyNameRequired: 'Enter a company name (at least 2 characters)',
+    servicesRequired: 'Select at least one service',
+    saveFailed: 'Failed to save setup',
+    employeesAdded: '{count} employee(s) added',
+    draftSaved: 'Progress saved automatically',
   },
   dashboard: {
     title: 'Executive Dashboard',
@@ -442,6 +447,10 @@ export const en: TranslationKeys = {
     pendingInvites: 'Pending invites',
     noPendingInvites: 'No active invites',
     inviteExpires: 'Expires',
+    platformHealth: 'Platform readiness',
+    platformScore: 'Score',
+    productionReady: 'Production ready',
+    needsConfiguration: 'Needs configuration',
   },
   status: {
     job: {

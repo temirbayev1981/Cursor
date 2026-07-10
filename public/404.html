@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HandymanOS AI</title>
+    <script>
+      // GitHub Pages SPA fallback
+      const segment = 1
+      const path = location.pathname.split('/').slice(segment).join('/')
+      const base = location.pathname.split('/').slice(0, segment + 1).join('/')
+      location.replace(base + '/?p=' + encodeURIComponent(path) + location.search + location.hash)
+    </script>
+  </head>
+  <body></body>
+</html>

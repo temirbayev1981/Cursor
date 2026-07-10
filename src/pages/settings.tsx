@@ -14,6 +14,7 @@ import { hasStripe, hasGoogleMaps, hasOpenAI, hasSupabase, hasNotificationConfig
 import { useImportDemoSeed } from '@/hooks/use-entities'
 import { getNotificationQueue } from '@/services/notification-service'
 import { getErrorReports } from '@/lib/observability'
+import { computePlatformHealth } from '@/lib/platform-health'
 import { getStoredCompany } from '@/services/onboarding-service'
 import { createTeamInvite, listTeamInvites, type TeamInvite } from '@/services/invite-service'
 import { startSubscriptionCheckout, updateCompanySubscription, PLAN_PRICES } from '@/services/billing-service'
@@ -138,6 +139,7 @@ export default function SettingsPage() {
 
   const notifications = getNotificationQueue().slice(0, 5)
   const errors = getErrorReports().slice(0, 5)
+  const platformHealth = computePlatformHealth()
 
   return (
     <div>
@@ -320,6 +322,31 @@ export default function SettingsPage() {
 
         <TabsContent value="system">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="md:col-span-2">
+              <CardHeader><CardTitle>{t.settings.platformHealth}</CardTitle></CardHeader>
+              <CardContent className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="text-4xl font-bold">{platformHealth.score}/10</div>
+                  <div>
+                    <Badge variant={platformHealth.readyForProduction ? 'success' : 'outline'}>
+                      {platformHealth.grade}
+                    </Badge>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {platformHealth.readyForProduction
+                        ? t.settings.productionReady
+                        : t.settings.needsConfiguration}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {platformHealth.checks.map((check) => (
+                    <Badge key={check.id} variant={check.ok ? 'success' : 'outline'}>
+                      {check.label}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
             {hasSupabase && (
               <Card className="md:col-span-2">
                 <CardHeader><CardTitle>Supabase</CardTitle></CardHeader>

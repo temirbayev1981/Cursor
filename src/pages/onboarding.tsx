@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Zap, ArrowRight, ArrowLeft, Check } from 'lucide-react'
@@ -12,18 +12,21 @@ import { useTranslation } from '@/contexts/locale-context'
 import { LanguageSwitcher } from '@/components/shared/language-switcher'
 import { toast } from 'sonner'
 import type { OnboardingData } from '@/types'
+import { loadOnboardingData, saveOnboardingData } from '@/services/onboarding-service'
+
+const EMPTY_ONBOARDING: OnboardingData = {
+  company: { name: '', email: '', phone: '', address: '' },
+  services: [],
+  pricing: { hourly_rate: 75, emergency_multiplier: 1.5, weekend_multiplier: 1.25, property_mgmt_discount: 0.1 },
+  employees: [],
+  vehicles: [],
+  materials: [],
+}
 
 export default function OnboardingPage() {
   const { t } = useTranslation()
   const [step, setStep] = useState(0)
-  const [data, setData] = useState<OnboardingData>({
-    company: { name: '', email: '', phone: '', address: '' },
-    services: [],
-    pricing: { hourly_rate: 75, emergency_multiplier: 1.5, weekend_multiplier: 1.25, property_mgmt_discount: 0.1 },
-    employees: [],
-    vehicles: [],
-    materials: [],
-  })
+  const [data, setData] = useState<OnboardingData>(() => loadOnboardingData() ?? EMPTY_ONBOARDING)
   const { completeOnboarding } = useAuth()
   const navigate = useNavigate()
 
@@ -36,7 +39,11 @@ export default function OnboardingPage() {
     { title: t.onboarding.materials, description: t.onboarding.materialsDesc },
   ]
 
-  const [selectedServices, setSelectedServices] = useState<string[]>([])
+  const [selectedServices, setSelectedServices] = useState<string[]>(() =>
+    (loadOnboardingData()?.services ?? [])
+      .map((service) => service.name)
+      .filter((name): name is string => Boolean(name)),
+  )
   const [employeeDraft, setEmployeeDraft] = useState({ name: '', role: '', hourly_wage: 25, billing_rate: 75 })
   const [vehicleDraft, setVehicleDraft] = useState({ name: '', type: 'van', make_model: '', license_plate: '' })
 
@@ -76,6 +83,28 @@ export default function OnboardingPage() {
 
   const progress = ((step + 1) / STEPS.length) * 100
 
+  useEffect(() => {
+    saveOnboardingData({
+      ...data,
+      services: selectedServices.map((name) => ({ name, category: name })),
+    })
+  }, [data, selectedServices])
+
+  const canProceed = () => {
+    if (step === 0) return (data.company.name ?? '').trim().length >= 2
+    if (step === 1) return selectedServices.length > 0
+    return true
+  }
+
+  const goNext = () => {
+    if (!canProceed()) {
+      if (step === 0) toast.error(t.onboarding.companyNameRequired)
+      if (step === 1) toast.error(t.onboarding.servicesRequired)
+      return
+    }
+    setStep(step + 1)
+  }
+
   const handleComplete = async () => {
     const payload: OnboardingData = {
       ...data,
@@ -87,7 +116,7 @@ export default function OnboardingPage() {
       toast.success(t.auth.completeSetup)
       navigate('/dashboard')
     } catch {
-      toast.error('Ошибка сохранения')
+      toast.error(t.onboarding.saveFailed)
     }
   }
 
@@ -170,7 +199,9 @@ export default function OnboardingPage() {
                     </div>
                     <Button type="button" variant="outline" size="sm" onClick={addEmployee}>{t.common.add}</Button>
                     {data.employees.length > 0 && (
-                      <div className="text-sm text-muted-foreground">{data.employees.length} сотрудник(ов) добавлено</div>
+                      <div className="text-sm text-muted-foreground">
+                        {t.onboarding.employeesAdded.replace('{count}', String(data.employees.length))}
+                      </div>
                     )}
                   </div>
                 )}
@@ -208,7 +239,7 @@ export default function OnboardingPage() {
                 <ArrowLeft className="h-4 w-4" />{t.common.back}
               </Button>
               {step < STEPS.length - 1 ? (
-                <Button onClick={() => setStep(step + 1)}>
+                <Button onClick={goNext} disabled={!canProceed()}>
                   {t.common.next}<ArrowRight className="h-4 w-4" />
                 </Button>
               ) : (

@@ -126,6 +126,11 @@ function AppRoutes() {
   )
 }
 
+function routerBasename() {
+  const base = import.meta.env.BASE_URL ?? '/'
+  return base === '/' ? undefined : base.replace(/\/$/, '')
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
@@ -134,7 +139,7 @@ export default function App() {
           <LocaleProvider>
             <AuthProvider>
               <WorkflowProvider>
-                <BrowserRouter>
+                <BrowserRouter basename={routerBasename()}>
                   <AppRoutes />
                   <CommandPalette />
                   <Toaster theme="dark" position="top-right" richColors />

@@ -13,6 +13,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   </head>
   <body>
+    <script>
+      ;(function () {
+        var params = new URLSearchParams(window.location.search)
+        var path = params.get('p')
+        if (!path) return
+        var base = window.location.pathname.replace(/\/$/, '')
+        var next = (base ? base + '/' : '/') + path.replace(/^\//, '')
+        window.history.replaceState(null, '', next + window.location.hash)
+      })()
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

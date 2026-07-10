@@ -25,4 +25,13 @@ test.describe('Reports and technician mobile', () => {
     await expect(page.getByRole('heading', { name: /мои заказы|my jobs/i })).toBeVisible()
     await expect(page.getByText(/сегодня|today/i)).toBeVisible()
   })
+
+  test('technician can open job notes dialog', async ({ page }) => {
+    await page.goto('/tech')
+    const notesButton = page.getByRole('button', { name: /заметки|notes/i }).first()
+    if (await notesButton.count() === 0) return
+    await notesButton.click()
+    await expect(page.getByPlaceholder(/заметки с объекта|field notes/i)).toBeVisible()
+    await page.getByRole('button', { name: /сохранить|save/i }).click()
+  })
 })
