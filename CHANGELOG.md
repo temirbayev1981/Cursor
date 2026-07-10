@@ -4,6 +4,15 @@ All notable changes to HandymanOS AI are documented here.
 
 ## [Unreleased]
 
+## [1.2.1] — 2026-07-10
+
+### Phase 30 — Multi-company invites & production verification
+- Existing users can sign in with invite link to join additional companies
+- `acceptInviteForCurrentUser` + demo `company_memberships` localStorage
+- `addCompanyMembership` tracked in company switcher
+- `npm run verify:production` readiness script (schema + release gate)
+- E2E: company switcher changes active tenant
+
 ## [1.2.0] — 2026-07-10
 
 Release consolidating Phases 25–29.

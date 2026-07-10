@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { DEMO_COMPANY, DEMO_COMPANY_B } from '@/data/mock-data'
-import { listAccessibleCompanies, registerCompany, setActiveCompany, resolveActiveCompany, fetchAccessibleCompanies, updateCompanyProfile } from './company-service'
+import { listAccessibleCompanies, registerCompany, setActiveCompany, resolveActiveCompany, fetchAccessibleCompanies, updateCompanyProfile, addCompanyMembership } from './company-service'
 
 describe('company-service', () => {
   beforeEach(() => {
@@ -26,6 +26,12 @@ describe('company-service', () => {
   it('fetchAccessibleCompanies returns demo registry in demo mode', async () => {
     const companies = await fetchAccessibleCompanies()
     expect(companies.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('addCompanyMembership exposes invited company in demo list', () => {
+    addCompanyMembership('user-999', 'comp-002', 'dispatcher')
+    const companies = listAccessibleCompanies('user-999')
+    expect(companies.some((company) => company.id === 'comp-002')).toBe(true)
   })
 
   it('updateCompanyProfile updates local storage in demo mode', async () => {

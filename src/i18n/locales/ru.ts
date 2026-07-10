@@ -81,6 +81,7 @@ export const ru = {
     inviteBanner: 'Вас пригласили в команду',
     inviteRole: 'Роль',
     acceptInvite: 'Примите приглашение, зарегистрировавшись',
+    acceptInviteSignIn: 'Уже есть аккаунт? Войдите, чтобы принять приглашение.',
     portalDemoAccess: 'Демо-доступ к порталу клиента',
   },
   techOnboarding: {

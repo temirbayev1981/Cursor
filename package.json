@@ -1,7 +1,7 @@
 {
   "name": "handymanos-ai",
   "private": true,
-  "version": "1.2.0",
+  "version": "1.2.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "verify:release": "node scripts/verify-release.mjs",
+    "verify:production": "node scripts/verify-production-readiness.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

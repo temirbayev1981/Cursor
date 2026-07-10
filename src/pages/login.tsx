@@ -23,7 +23,7 @@ export default function LoginPage() {
   const [fullName, setFullName] = useState('')
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [loading, setLoading] = useState(false)
-  const { signIn, signUp } = useAuth()
+  const { signIn, signUp, acceptInvite } = useAuth()
   const { t, locale } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -54,10 +54,17 @@ export default function LoginPage() {
       const authState = mode === 'signup'
         ? await signUp(email, password, fullName || email.split('@')[0], inviteToken)
         : await signIn(email, password)
+
+      if (inviteToken && mode === 'signin') {
+        await acceptInvite(inviteToken)
+      }
+
       toast.success(mode === 'signup'
         ? (locale === 'ru' ? 'Аккаунт создан' : 'Account created')
         : (locale === 'ru' ? 'Вход выполнен' : 'Signed in'))
-      navigate(resolvePostAuthRoute(authState))
+      navigate(resolvePostAuthRoute(inviteToken && mode === 'signin'
+        ? { role: invitePreview?.role ?? authState.role, onboardingComplete: true }
+        : authState))
     } catch {
       toast.error(locale === 'ru' ? 'Ошибка авторизации' : 'Auth error')
     } finally {
@@ -96,6 +103,7 @@ export default function LoginPage() {
                   {t.auth.inviteRole}: <Badge variant="outline">{invitePreview.role}</Badge>
                 </p>
                 <p className="text-muted-foreground mt-1">{t.auth.acceptInvite}</p>
+                <p className="text-muted-foreground mt-2 text-xs">{t.auth.acceptInviteSignIn}</p>
               </div>
             )}
             <form onSubmit={handleSubmit} className="space-y-4">

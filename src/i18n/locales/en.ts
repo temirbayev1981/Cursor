@@ -83,6 +83,7 @@ export const en: TranslationKeys = {
     inviteBanner: 'You have been invited to join a team',
     inviteRole: 'Role',
     acceptInvite: 'Accept the invite by signing up below',
+    acceptInviteSignIn: 'Already have an account? Sign in to accept the invite.',
     portalDemoAccess: 'Demo customer portal access',
   },
   techOnboarding: {

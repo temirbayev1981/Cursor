@@ -2,9 +2,10 @@ import type { Company, Profile, UserRole, Employee } from '@/types'
 import type { Json } from '@/types/database'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
 import { insertRows, upsertRows } from '@/lib/supabase-queries'
-import { DEMO_COMPANY } from '@/data/mock-data'
+import { DEMO_COMPANY, DEMO_COMPANY_B } from '@/data/mock-data'
 import { shouldSkipOnboardingForRole } from '@/lib/permissions'
 import { getTeamInvitePreview, acceptTeamInvite } from '@/services/invite-service'
+import { addCompanyMembership, registerCompany } from '@/services/company-service'
 import { setTechOnboardingPending } from '@/services/tech-onboarding-service'
 import { loadStore, STORE_KEYS } from '@/lib/data-store'
 import { saveEntity } from '@/services/entity-service'
@@ -41,6 +42,9 @@ async function ensureEmployeeForInvite(
 }
 
 function getStoredCompanyForInvite(companyId: string): Company {
+  if (companyId === DEMO_COMPANY_B.id) return DEMO_COMPANY_B
+  if (companyId === DEMO_COMPANY.id) return DEMO_COMPANY
+
   try {
     const raw = localStorage.getItem('handymanos_company')
     if (raw) {
@@ -51,6 +55,48 @@ function getStoredCompanyForInvite(companyId: string): Company {
     // ignore
   }
   return { ...DEMO_COMPANY, id: companyId }
+}
+
+export async function acceptInviteForCurrentUser(
+  profileId: string,
+  email: string,
+  inviteToken: string,
+): Promise<{ company: Company; role: UserRole }> {
+  const preview = await getTeamInvitePreview(inviteToken)
+  if (!preview) throw new Error('Invalid or expired invite')
+  if (preview.email.toLowerCase() !== email.toLowerCase().trim()) {
+    throw new Error('Email does not match invite')
+  }
+
+  const invite = await acceptTeamInvite(inviteToken)
+  if (!invite) throw new Error('Failed to accept invite')
+
+  addCompanyMembership(profileId, invite.company_id, invite.role)
+
+  if (DEMO_MODE) {
+    const company = getStoredCompanyForInvite(invite.company_id)
+    registerCompany(company)
+    return { company, role: invite.role }
+  }
+
+  if (!supabase) throw new Error('Supabase not configured')
+
+  const { data: company } = await supabase
+    .from('companies')
+    .select('*')
+    .eq('id', invite.company_id)
+    .single()
+
+  const { data: profileRow } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', profileId)
+    .single()
+
+  return {
+    company: (company as unknown as Company) ?? getStoredCompanyForInvite(invite.company_id),
+    role: ((profileRow as Profile | null)?.role ?? invite.role) as UserRole,
+  }
 }
 
 export async function registerUserWithInvite(
@@ -77,9 +123,12 @@ export async function registerUserWithInvite(
       role: invite.role,
       created_at: new Date().toISOString(),
     }
+    addCompanyMembership(profile.id, invite.company_id, invite.role)
+    const company = getStoredCompanyForInvite(invite.company_id)
+    registerCompany(company)
     await ensureEmployeeForInvite(profile.id, invite.company_id, fullName, invite.role)
     if (invite.role === 'technician') setTechOnboardingPending(true)
-    return { profile, company: getStoredCompanyForInvite(invite.company_id) }
+    return { profile, company }
   }
 
   if (!supabase) throw new Error('Supabase not configured')

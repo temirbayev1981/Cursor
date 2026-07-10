@@ -3,7 +3,7 @@ import type { Profile, Company, UserRole, OnboardingData } from '@/types'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
 import { DEMO_COMPANY } from '@/data/mock-data'
 import { getStoredCompany, persistOnboarding } from '@/services/onboarding-service'
-import { registerUserWithCompany, loadUserSession, markOnboardingCompleteForInvitedMember, resolveOnboardingState } from '@/services/auth-service'
+import { registerUserWithCompany, loadUserSession, markOnboardingCompleteForInvitedMember, resolveOnboardingState, acceptInviteForCurrentUser } from '@/services/auth-service'
 import { type PostAuthState } from '@/lib/permissions'
 import { resolveActiveCompany, setActiveCompany, registerCompany, listAccessibleCompanies, fetchAccessibleCompanies, syncActiveCompanyToProfile, updateCompanyProfile, type CompanyProfilePatch } from '@/services/company-service'
 import { logAudit } from '@/services/entity-service'
@@ -19,6 +19,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string, inviteToken?: string) => Promise<PostAuthState>
   signOut: () => Promise<void>
   completeOnboarding: (data?: OnboardingData) => Promise<void>
+  acceptInvite: (token: string) => Promise<void>
   updateCompanyDetails: (patch: CompanyProfilePatch) => Promise<void>
   switchCompany: (companyId: string) => Promise<void>
   hasRole: (...roles: UserRole[]) => boolean
@@ -169,10 +170,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setCompany(updated)
   }
 
+  const acceptInvite = async (token: string) => {
+    if (!user) throw new Error('Not authenticated')
+    const { company: invitedCompany, role } = await acceptInviteForCurrentUser(user.id, user.email, token)
+    registerCompany(invitedCompany)
+    setActiveCompany(invitedCompany)
+    setCompany(invitedCompany)
+    setUser({ ...user, company_id: invitedCompany.id, role })
+    markOnboardingCompleteForInvitedMember(role)
+    setOnboardingComplete(resolveOnboardingState(role, invitedCompany))
+    await syncActiveCompanyToProfile(user.id, invitedCompany.id)
+  }
+
   const switchCompany = async (companyId: string) => {
     if (!user) return
     const accessible = DEMO_MODE
-      ? listAccessibleCompanies()
+      ? listAccessibleCompanies(user.id)
       : await fetchAccessibleCompanies(user)
     const nextCompany = accessible.find((item) => item.id === companyId)
     if (!nextCompany) return
@@ -196,7 +209,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{
       user, company, isLoading, isAuthenticated: !!user, onboardingComplete,
-      signIn, signUp, signOut, completeOnboarding, updateCompanyDetails, switchCompany, hasRole,
+      signIn, signUp, signOut, completeOnboarding, acceptInvite, updateCompanyDetails, switchCompany, hasRole,
     }}>
       {children}
     </AuthContext.Provider>
