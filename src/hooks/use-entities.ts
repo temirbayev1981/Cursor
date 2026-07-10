@@ -295,8 +295,8 @@ export function useSendInvoice() {
   const companyId = useCompanyId()
   const { user } = useAuth()
   return useMutation({
-    mutationFn: ({ invoice, email }: { invoice: Invoice; email: string }) =>
-      sendInvoiceToCustomer(invoice, email),
+    mutationFn: ({ invoice, email, customer }: { invoice: Invoice; email: string; customer?: Customer }) =>
+      sendInvoiceToCustomer(invoice, email, invoice.customer_id, customer),
     onSuccess: (_data, { invoice }) => {
       if (user) void logAudit(companyId, user.id, 'invoice.sent', 'invoice', invoice.id)
       qc.invalidateQueries({ queryKey: ['invoices', companyId] })

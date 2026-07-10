@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.10.2] — 2026-07-10
+
+Consistent customer email opt-out across all notification flows.
+
+### Phase 100 — Notification opt-out consistency
+- `notifyEstimateSent` / `notifyInvoiceSent` respect customer email preferences
+- `NotificationResult.skipped` flag; invoices/estimates show opt-out toast
+- E2E: notification hub filters, invoice send opt-out
+- Platform audit: `notification_opt_out_audit` gate
+- **192** E2E tests, **144** unit tests
+
 ## [1.10.1] — 2026-07-10
 
 Portal notification prefs RPC sync, scheduling opt-out, and v1.10 E2E coverage.

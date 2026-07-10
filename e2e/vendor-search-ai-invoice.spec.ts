@@ -64,4 +64,14 @@ test.describe('Global search & invoice send', () => {
     await page.getByTestId('invoice-send-inv-e2e-draft').click()
     await expect(page.getByText(/счёт отправлен.*workorders@abcprop\.com/i).first()).toBeVisible({ timeout: 10000 })
   })
+
+  test('send draft invoice skips email when customer opted out', async ({ page }) => {
+    await seedDraftInvoice(page)
+    await page.evaluate(() => {
+      localStorage.setItem('handymanos_customer_notify_prefs_cust-001', JSON.stringify({ email: false, sms: false }))
+    })
+    await page.goto('/invoices')
+    await page.getByTestId('invoice-send-inv-e2e-draft').click()
+    await expect(page.getByText(/email disabled|email отключён/i).first()).toBeVisible({ timeout: 5000 })
+  })
 })

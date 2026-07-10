@@ -133,6 +133,9 @@ export const NOTIFICATION_HUB_AUDIT = true as const
 /** Customer portal notification preferences sync via portal RPCs. */
 export const PORTAL_NOTIFICATION_PREFS_AUDIT = true as const
 
+/** Estimate and invoice notifications respect customer email opt-out. */
+export const NOTIFICATION_OPT_OUT_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }

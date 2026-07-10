@@ -4,7 +4,7 @@ import { PORTAL_RPC_ENFORCED } from '@/services/portal-data-service'
 import { STRIPE_WEBHOOK_AUDIT } from '@/services/billing-service'
 import { INVENTORY_AUDIT } from '@/services/inventory-service'
 import { ONBOARDING_AUDIT } from '@/services/onboarding-service'
-import { AUDIT_E2E_FULL_COVERAGE, AUDIT_I18N_COVERAGE, BILLING_PLAN_AUDIT, BULK_OPS_AUDIT, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, ENTITY_UPDATE_AUDIT, ESTIMATE_CREATE_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INTEGRATION_PROBES_AUDIT, INTEGRATION_PROBE_HISTORY_AUDIT, INTEGRATION_PROBE_UI_AUDIT, INVOICE_AUDIT, INVITE_AUDIT, NOTIFICATION_HUB_AUDIT, OBSERVABILITY_PROBE_AUDIT, PORTAL_AUDIT, PORTAL_NOTIFICATION_PREFS_AUDIT, PORTAL_REQUESTS_AUDIT, PWA_SW_OFFLINE_AUDIT, SAMPLE_IMPORT_AUDIT, TEAM_INVITE_AUDIT, VENDOR_PO_AUDIT } from '@/lib/audit-labels'
+import { AUDIT_E2E_FULL_COVERAGE, AUDIT_I18N_COVERAGE, BILLING_PLAN_AUDIT, BULK_OPS_AUDIT, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, ENTITY_UPDATE_AUDIT, ESTIMATE_CREATE_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INTEGRATION_PROBES_AUDIT, INTEGRATION_PROBE_HISTORY_AUDIT, INTEGRATION_PROBE_UI_AUDIT, INVOICE_AUDIT, INVITE_AUDIT, NOTIFICATION_HUB_AUDIT, NOTIFICATION_OPT_OUT_AUDIT, OBSERVABILITY_PROBE_AUDIT, PORTAL_AUDIT, PORTAL_NOTIFICATION_PREFS_AUDIT, PORTAL_REQUESTS_AUDIT, PWA_SW_OFFLINE_AUDIT, SAMPLE_IMPORT_AUDIT, TEAM_INVITE_AUDIT, VENDOR_PO_AUDIT } from '@/lib/audit-labels'
 import { TYPED_SUPABASE_QUERIES } from '@/lib/supabase-queries'
 import { MULTI_TENANT_SUPPORTED, MULTI_TENANT_MEMBERSHIP_RPC } from '@/services/company-service'
 
@@ -71,6 +71,7 @@ describe('platform-audit', () => {
     expect(INTEGRATION_PROBE_HISTORY_AUDIT).toBe(true)
     expect(NOTIFICATION_HUB_AUDIT).toBe(true)
     expect(PORTAL_NOTIFICATION_PREFS_AUDIT).toBe(true)
+    expect(NOTIFICATION_OPT_OUT_AUDIT).toBe(true)
     expect(TYPED_SUPABASE_QUERIES).toBe(true)
     expect(MULTI_TENANT_SUPPORTED).toBe(true)
     expect(MULTI_TENANT_MEMBERSHIP_RPC).toBe('get_accessible_companies')
@@ -105,6 +106,7 @@ describe('platform-audit', () => {
     const integrationProbeHistoryAudit = report.checks.find((check) => check.id === 'integration_probe_history_audit')
     const notificationHubAudit = report.checks.find((check) => check.id === 'notification_hub_audit')
     const portalNotificationPrefsAudit = report.checks.find((check) => check.id === 'portal_notification_prefs_audit')
+    const notificationOptOutAudit = report.checks.find((check) => check.id === 'notification_opt_out_audit')
     const observabilityProbeAudit = report.checks.find((check) => check.id === 'observability_probe_audit')
     const pwaSwOfflineAudit = report.checks.find((check) => check.id === 'pwa_sw_offline_audit')
     const multi = report.checks.find((check) => check.id === 'multi_tenant')
@@ -139,6 +141,7 @@ describe('platform-audit', () => {
     expect(integrationProbeHistoryAudit?.ok).toBe(Boolean(liveBackend?.ok))
     expect(notificationHubAudit?.ok).toBe(Boolean(liveBackend?.ok))
     expect(portalNotificationPrefsAudit?.ok).toBe(Boolean(liveBackend?.ok))
+    expect(notificationOptOutAudit?.ok).toBe(Boolean(liveBackend?.ok))
     expect(observabilityProbeAudit?.ok).toBe(Boolean(liveBackend?.ok))
     expect(pwaSwOfflineAudit?.ok).toBe(Boolean(liveBackend?.ok) && Boolean(report.checks.find((c) => c.id === 'offline_sync')?.ok))
     expect(multi?.ok).toBe(Boolean(liveBackend?.ok))
