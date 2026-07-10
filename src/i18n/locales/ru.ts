@@ -708,6 +708,8 @@ export const ru = {
       scheduling_customer_sms_audit: 'E2E SMS клиента в расписании',
       estimate_invoice_sms_audit: 'Opt-out SMS сметы и счёта',
       dispatch_eta_sms_audit: 'E2E ETA SMS в диспетчерской',
+      portal_sms_notify_sync_audit: 'Синхронизация SMS портал ↔ CRM',
+      notification_hub_estimate_invoice_sms_skip_audit: 'Hub: SMS skip сметы/счёта',
       multi_tenant: 'Мульти-тенант',
     },
     auditActions: {

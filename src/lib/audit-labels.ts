@@ -163,6 +163,12 @@ export const ESTIMATE_INVOICE_SMS_AUDIT = true as const
 /** Dispatch in_progress ETA SMS E2E covers skip and queue flows. */
 export const DISPATCH_ETA_SMS_AUDIT = true as const
 
+/** Portal SMS notification preferences sync bidirectionally with staff CRM. */
+export const PORTAL_SMS_NOTIFY_SYNC_AUDIT = true as const
+
+/** Notification hub Skipped tab shows estimate and invoice SMS opt-out entries. */
+export const NOTIFICATION_HUB_ESTIMATE_INVOICE_SMS_SKIP_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }

@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.10.12] — 2026-07-10
+
+Portal SMS prefs sync and hub estimate/invoice SMS skip log.
+
+### Phase 110 — Portal SMS sync & hub SMS skip sources
+- E2E: staff CRM ↔ portal SMS notification preference sync (cust-002)
+- E2E: hub Skipped tab shows estimate and invoice SMS opt-out entries
+- Platform audit: `portal_sms_notify_sync_audit`, `notification_hub_estimate_invoice_sms_skip_audit` gates
+- **216** E2E tests, **160** unit tests
+
 ## [1.10.11] — 2026-07-10
 
 Dispatch ETA SMS E2E and invoice SMS queue coverage.

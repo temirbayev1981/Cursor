@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.10.11
+# HandymanOS AI — Release 1.10.12
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.11`**, current package **1.10.11**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.12`**, current package **1.10.12**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -130,6 +130,11 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Locale-aware notification templates; observability probe gate uses live results
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
+
+### 1.10.12 — Portal SMS sync & hub SMS skip sources
+- Bidirectional portal ↔ staff CRM SMS prefs E2E
+- Hub Skipped tab E2E for estimate and invoice SMS opt-out
+- Platform audit `portal_sms_notify_sync_audit`, `notification_hub_estimate_invoice_sms_skip_audit` gates
 
 ### 1.10.11 — Dispatch ETA SMS E2E
 - Dispatch in_progress ETA SMS skip/queue E2E
