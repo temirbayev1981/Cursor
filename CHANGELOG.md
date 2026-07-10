@@ -2,14 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
-## [Unreleased]
+## [1.2.4] — 2026-07-10
 
-### Phase 35 — Production hardening
-- `verify:production` expanded: Edge Functions, schema tokens, DEPLOYMENT.md, E2E specs
-- CI workflow runs `npm run verify:production`
-- DEPLOYMENT.md: GitHub secrets table, 1.2.x upgrade path, existing-user invite flow
-- E2E: scheduling demo email notification (`e2e/notifications.spec.ts`)
-- Shared E2E helper `e2e/helpers/auth.ts`
+Performance and PWA polish.
+
+### Phase 36 — PWA & bundle splitting
+- Vite manual chunks: motion, router, query, radix, icons, react-vendor, dnd-kit, date-fns
+- Service worker cache bump (`handymanos-v2`)
+- E2E: manifest.json + service worker registration (`e2e/pwa.spec.ts`)
+- Unit tests for offline queue (`src/lib/pwa.test.ts`)
+- `verify:production` checks PWA assets
 
 ## [1.2.3] — 2026-07-10
 

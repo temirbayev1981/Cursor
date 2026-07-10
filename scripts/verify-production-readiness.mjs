@@ -15,6 +15,9 @@ const requiredFiles = [
   'src/i18n/ai-fallbacks.ts',
   'e2e/i18n-ai-vendor.spec.ts',
   'e2e/notifications.spec.ts',
+  'e2e/pwa.spec.ts',
+  'public/manifest.json',
+  'public/sw.js',
   'supabase/functions/create-checkout-session/index.ts',
   'supabase/functions/_shared/rate-limit.ts',
 ]

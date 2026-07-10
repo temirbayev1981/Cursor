@@ -1,23 +1,20 @@
-# HandymanOS AI — Release 1.2.3
+# HandymanOS AI — Release 1.2.4
 
-Production hardening on top of **1.2.2** (Phases 31–34).
+Performance and PWA polish on **1.2.3**.
 
-## What's new in 1.2.3
+## What's new in 1.2.4
 
-- Expanded `npm run verify:production` (Edge Functions, schema, E2E specs, DEPLOYMENT.md)
+- Vite bundle splitting: main chunk ~176 KB (was ~569 KB)
+- Service worker cache `handymanos-v2`
+- E2E: PWA manifest + service worker registration (23 tests total)
+- Unit tests for offline queue
+
+## Prior releases (1.2.3)
+
+- Expanded `npm run verify:production` (Edge Functions, schema, E2E specs)
 - CI runs `verify:production` on every push/PR
-- DEPLOYMENT.md: GitHub secrets reference, existing-user invite sign-in, upgrade notes
-- E2E: scheduling queues demo email notification (21 tests total)
-- Shared Playwright auth helper
-
-## Prior releases (1.2.2)
-
-Everything from **1.2.1**, plus:
-
-- Login i18n, invite sign-in race fix, platform audit multi-tenant gate
-- `useDateLocale` hook; settings/route optimizer/toast i18n
-- AI assistant fallback responses externalized (`src/i18n/ai-fallbacks.ts`)
-- Vendor PO table: compliance checklist, job creation toasts (EN/RU)
+- DEPLOYMENT.md: GitHub secrets, existing-user invite sign-in
+- E2E: scheduling demo email notification
 
 ## GitHub repository secrets (production deploy)
 

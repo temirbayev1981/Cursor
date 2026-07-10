@@ -18,6 +18,7 @@ export default defineConfig({
     },
   },
   build: {
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -35,6 +36,30 @@ export default defineConfig({
           }
           if (id.includes('node_modules/@supabase')) {
             return 'supabase'
+          }
+          if (id.includes('node_modules/framer-motion')) {
+            return 'motion'
+          }
+          if (id.includes('node_modules/date-fns')) {
+            return 'date-fns'
+          }
+          if (id.includes('node_modules/@dnd-kit')) {
+            return 'dnd-kit'
+          }
+          if (id.includes('node_modules/react-router') || id.includes('node_modules/@remix-run/router')) {
+            return 'router'
+          }
+          if (id.includes('node_modules/@tanstack/react-query')) {
+            return 'query'
+          }
+          if (id.includes('node_modules/lucide-react')) {
+            return 'icons'
+          }
+          if (id.includes('node_modules/@radix-ui')) {
+            return 'radix'
+          }
+          if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) {
+            return 'react-vendor'
           }
         },
       },
