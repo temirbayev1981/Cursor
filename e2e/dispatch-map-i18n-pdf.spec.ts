@@ -27,6 +27,19 @@ test.describe('Dispatch job map', () => {
     await expect(page.getByTestId('dispatch-job-map-fallback')).toContainText(/set VITE_GOOGLE_MAPS_API_KEY/i)
     await expect(page.getByRole('link', { name: /123 Main Street/i }).first()).toBeVisible()
   })
+
+  test('route optimizer panel shows English labels and open maps link', async ({ page }) => {
+    await loginAsOwner(page, 'en')
+    await seedScheduledRouteJob(page)
+    await page.goto('/dispatch')
+
+    const panel = page.getByTestId('route-optimizer-panel')
+    await expect(panel.getByText('Route Optimization').first()).toBeVisible()
+    await expect(panel.getByText('E2E Scheduled Route Job').first()).toBeVisible()
+    await expect(panel.getByText(/stops/i).first()).toBeVisible()
+    await expect(page.getByTestId('route-optimizer-open-maps')).toHaveText('Open in Google Maps')
+    await expect(page.getByTestId('route-optimizer-open-maps')).toHaveAttribute('href', /google\.com\/maps/)
+  })
 })
 
 test.describe('Invoice PDF i18n', () => {

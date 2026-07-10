@@ -61,6 +61,7 @@ export function PortalReviewForm({ disabled, onSubmit }: PortalReviewFormProps) 
         className="w-full"
         disabled={disabled || rating < 1}
         onClick={() => onSubmit(rating, comment.trim())}
+        data-testid="portal-review-submit"
       >
         {t.customerPortal.submitReview}
       </Button>

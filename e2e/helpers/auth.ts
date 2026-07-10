@@ -253,6 +253,13 @@ export async function seedBulkDraftJobs(page: Page) {
   await page.reload()
 }
 
+/** Clears demo portal review flag so review E2E can run again. */
+export async function clearPortalReview(page: Page, customerId = 'cust-002') {
+  await page.evaluate((id) => {
+    localStorage.removeItem(`handymanos_portal_review_${id}`)
+  }, customerId)
+}
+
 /** Seeds unpaid invoice for demo customer portal (cust-002). */
 export async function seedPortalCustomerInvoice(page: Page) {
   await page.evaluate(() => {

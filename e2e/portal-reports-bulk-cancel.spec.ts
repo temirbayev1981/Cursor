@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { loginAsOwner, resetEstimateStatus, seedBulkDraftJobs, seedOnHoldJob, seedPortalCustomerInvoice } from './helpers/auth'
+import { loginAsOwner, clearPortalReview, resetEstimateStatus, seedBulkDraftJobs, seedOnHoldJob, seedPortalCustomerInvoice } from './helpers/auth'
 
 test.describe('Property portal English', () => {
   test.beforeEach(async ({ page }) => {
@@ -116,6 +116,18 @@ test.describe('Customer portal English', () => {
     await expect(page.getByText('INV-PORTAL-E2E').first()).toBeVisible()
     await page.getByTestId('invoice-pay-inv-portal-e2e').click()
     await expect(page.getByTestId('invoice-pay-inv-portal-e2e')).not.toBeVisible({ timeout: 15000 })
+  })
+
+  test('customer portal submits review in English', async ({ page }) => {
+    await page.goto('/portal/customer')
+    await clearPortalReview(page)
+    await page.reload()
+    await page.getByTestId('customer-portal-leave-review').click()
+    await page.getByRole('button', { name: '5' }).click()
+    await page.locator('#portal-review-comment').fill('Great work, very responsive team.')
+    await page.getByTestId('portal-review-submit').click()
+    await expect(page.getByText('Thank you for your review!').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText('Thanks — you already left a review')).toBeVisible()
   })
 })
 

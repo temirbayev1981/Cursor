@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.6.3] — 2026-07-10
+
+Portal review EN and route optimizer i18n E2E.
+
+### Phase 67 — Portal review & route optimizer EN
+- Customer portal review form testids
+- Route optimizer open maps link testid
+- `clearPortalReview()` E2E helper
+- E2E: portal review EN, dispatch route optimizer EN
+
 ## [1.6.2] — 2026-07-10
 
 Portal invoices EN, dispatch map i18n, jobs bulk on-hold.

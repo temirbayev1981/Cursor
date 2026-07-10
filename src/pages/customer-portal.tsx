@@ -174,7 +174,7 @@ export default function CustomerPortalPage() {
               />
             ) : (
               <div className="flex justify-center">
-                <Button variant="outline" onClick={() => setShowReviewForm(true)}>
+                <Button variant="outline" onClick={() => setShowReviewForm(true)} data-testid="customer-portal-leave-review">
                   {t.customerPortal.leaveReview}
                 </Button>
               </div>

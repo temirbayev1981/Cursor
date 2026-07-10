@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { clearPortalReview } from './helpers/auth'
 
 test.describe('Portals', () => {
   test.beforeEach(async ({ page }) => {
@@ -8,10 +9,9 @@ test.describe('Portals', () => {
   })
 
   test('customer portal review submission', async ({ page }) => {
-    await page.addInitScript(() => {
-      localStorage.removeItem('handymanos_portal_review_cust-002')
-    })
     await page.goto('/portal/customer')
+    await clearPortalReview(page)
+    await page.reload()
     await page.getByRole('button', { name: /оставить отзыв|leave a review/i }).click()
     await page.getByRole('button', { name: '5' }).click()
     await page.locator('#portal-review-comment').fill('Excellent service, very professional.')

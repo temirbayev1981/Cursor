@@ -77,7 +77,7 @@ export function RouteOptimizerPanel({
           </div>
         ))}
         <Button variant="outline" className="w-full" size="sm" asChild>
-          <a href={mapsUrl} target="_blank" rel="noreferrer">
+          <a href={mapsUrl} target="_blank" rel="noreferrer" data-testid="route-optimizer-open-maps">
             {t.scheduling.openMaps}
           </a>
         </Button>
