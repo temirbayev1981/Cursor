@@ -673,6 +673,7 @@ export const ru = {
       integration_probe_ui_audit: 'UI проб интеграций',
       integration_probe_history_audit: 'История проб',
       notification_hub_audit: 'Центр уведомлений',
+      portal_notification_prefs_audit: 'Настройки уведомлений портала',
       multi_tenant: 'Мульти-тенант',
     },
     auditActions: {

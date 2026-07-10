@@ -88,6 +88,8 @@ const schemaChecks = [
   'check_rate_limit',
   'get_accessible_companies',
   'portal_submit_review',
+  'portal_get_notification_preferences',
+  'portal_update_notification_preferences',
   'team_invites',
   'portal_tokens',
   'integration_probe_runs',
@@ -239,6 +241,21 @@ if (auditLabels.includes('NOTIFICATION_HUB_AUDIT = true')) {
   console.log('✓ NOTIFICATION_HUB_AUDIT gate enabled')
 } else {
   console.log('✗ NOTIFICATION_HUB_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('PORTAL_NOTIFICATION_PREFS_AUDIT = true')) {
+  console.log('✓ PORTAL_NOTIFICATION_PREFS_AUDIT gate enabled')
+} else {
+  console.log('✗ PORTAL_NOTIFICATION_PREFS_AUDIT must be true')
+  ok = false
+}
+
+const portalDataService = readFileSync('src/services/portal-data-service.ts', 'utf8')
+if (portalDataService.includes('portalUpdateNotificationPreferences')) {
+  console.log('✓ portal-data-service syncs notification preferences via RPC')
+} else {
+  console.log('✗ portal-data-service must expose portal notification preference RPCs')
   ok = false
 }
 

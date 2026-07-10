@@ -501,6 +501,14 @@ export interface Database {
         Args: { p_token: string; p_rating: number; p_comment?: string | null }
         Returns: boolean
       }
+      portal_get_notification_preferences: {
+        Args: { p_token: string }
+        Returns: Json
+      }
+      portal_update_notification_preferences: {
+        Args: { p_token: string; p_email: boolean; p_sms: boolean }
+        Returns: boolean
+      }
       get_team_invite: {
         Args: { p_token: string }
         Returns: Array<{

@@ -65,6 +65,7 @@ export interface Customer {
   address: string
   type: 'residential' | 'commercial' | 'property_management'
   notes?: string
+  notification_preferences?: { email?: boolean; sms?: boolean } | null
   total_revenue: number
   job_count: number
   created_at: string

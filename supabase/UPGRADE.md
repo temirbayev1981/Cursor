@@ -30,6 +30,11 @@ No schema changes required. Update frontend deploy and optional:
 - `npm run smoke:supabase` (expanded table/RPC checks)
 - Stripe webhook redeploy if using `stripe-webhook` audit logging
 
+## From 1.10.0 → 1.10.1
+
+1. Re-run **`schema.sql`** (adds portal notification preference RPCs)
+2. Redeploy frontend (portal prefs sync, scheduling locale dates)
+
 ## From 1.9.5 → 1.10.0
 
 Schema additions for operator tooling and customer notification prefs:

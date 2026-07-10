@@ -675,6 +675,7 @@ export const en: TranslationKeys = {
       integration_probe_ui_audit: 'Integration probe UI',
       integration_probe_history_audit: 'Probe history',
       notification_hub_audit: 'Notification hub',
+      portal_notification_prefs_audit: 'Portal notify prefs',
       multi_tenant: 'Multi-tenant',
     },
     auditActions: {

@@ -392,6 +392,31 @@ function handleRpc(fn: string, args: Record<string, unknown>): { data: unknown; 
     return { data: true, error: null }
   }
 
+  if (fn === 'portal_get_notification_preferences') {
+    const token = String(args.p_token ?? '')
+    const portal = portalTokenRow(token)
+    if (!portal) return { data: null, error: null }
+    const customers = loadTable('customers')
+    const customer = customers.find((c) => c.id === portal.customer_id)
+    const prefs = customer?.notification_preferences ?? { email: true, sms: false }
+    return { data: prefs, error: null }
+  }
+
+  if (fn === 'portal_update_notification_preferences') {
+    const token = String(args.p_token ?? '')
+    const portal = portalTokenRow(token)
+    if (!portal) return { data: false, error: null }
+    const customers = loadTable('customers')
+    const idx = customers.findIndex((c) => c.id === portal.customer_id)
+    if (idx < 0) return { data: false, error: null }
+    customers[idx] = {
+      ...customers[idx],
+      notification_preferences: { email: args.p_email, sms: args.p_sms },
+    }
+    saveTable('customers', customers)
+    return { data: true, error: null }
+  }
+
   return { data: null, error: null }
 }
 

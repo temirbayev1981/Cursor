@@ -1,4 +1,5 @@
 import type { Estimate, Invoice, Job } from '@/types'
+import type { CustomerNotificationPreferences } from '@/lib/customer-notification-prefs'
 import { callRpc } from '@/lib/supabase-rpc'
 import { getPortalToken } from '@/services/portal-service'
 import type { PortalContext } from '@/types/portal'
@@ -94,4 +95,32 @@ export async function portalSubmitReview(
   }
 
   return false
+}
+
+export async function portalGetNotificationPreferences(): Promise<CustomerNotificationPreferences | null> {
+  const token = getPortalToken()
+  if (!token) return null
+
+  const { data, error } = await callRpc('portal_get_notification_preferences', { p_token: token })
+  if (error || !data) return null
+
+  const prefs = data as { email?: boolean; sms?: boolean }
+  return {
+    email: prefs.email ?? true,
+    sms: prefs.sms ?? false,
+  }
+}
+
+export async function portalUpdateNotificationPreferences(
+  prefs: CustomerNotificationPreferences,
+): Promise<boolean> {
+  const token = getPortalToken()
+  if (!token) return false
+
+  const { data, error } = await callRpc('portal_update_notification_preferences', {
+    p_token: token,
+    p_email: prefs.email,
+    p_sms: prefs.sms,
+  })
+  return !error && Boolean(data)
 }

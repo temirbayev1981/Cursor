@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import {
   customerAllowsNotification,
   getCustomerNotificationPreferences,
+  resolveCustomerNotificationPreferences,
   saveCustomerNotificationPreferences,
 } from './customer-notification-prefs'
 
@@ -23,5 +24,14 @@ describe('customer-notification-prefs', () => {
     expect(getCustomerNotificationPreferences(customerId)).toEqual({ email: false, sms: true })
     expect(customerAllowsNotification(customerId, 'email')).toBe(false)
     expect(customerAllowsNotification(customerId, 'sms')).toBe(true)
+  })
+
+  it('prefers customer entity notification_preferences over localStorage', () => {
+    saveCustomerNotificationPreferences(customerId, { email: true, sms: true })
+    const prefs = resolveCustomerNotificationPreferences(customerId, {
+      notification_preferences: { email: false, sms: false },
+    })
+    expect(prefs).toEqual({ email: false, sms: false })
+    expect(customerAllowsNotification(customerId, 'email', { notification_preferences: { email: false } })).toBe(false)
   })
 })

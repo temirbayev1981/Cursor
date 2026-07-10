@@ -54,14 +54,14 @@ npm run smoke:supabase       # needs live Supabase in .env.local
 
 ## 7. Tags and rollback
 
-Current release tag: **`v1.10.0`**
+Current release tag: **`v1.10.1`**
 
 ```bash
-git tag -a v1.10.0 -m "HandymanOS AI 1.10.0"
-git push origin v1.10.0
+git tag -a v1.10.1 -m "HandymanOS AI 1.10.1"
+git push origin v1.10.1
 ```
 
-Rollback: `git checkout v1.10.0` or reset `main` to a prior tag (team policy).
+Rollback: `git checkout v1.10.1` or reset `main` to a prior tag (team policy).
 
 ## 8. Close stale PRs
 

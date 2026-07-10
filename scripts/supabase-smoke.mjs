@@ -40,6 +40,8 @@ const REQUIRED_RPCS = [
   ['get_team_invite', { p_token: 'smoke-invalid-invite' }],
   ['get_portal_estimates', { p_token: 'smoke-invalid-token' }],
   ['portal_submit_review', { p_token: 'smoke-invalid-token', p_rating: 1, p_comment: null }],
+  ['portal_get_notification_preferences', { p_token: 'smoke-invalid-token' }],
+  ['portal_update_notification_preferences', { p_token: 'smoke-invalid-token', p_email: true, p_sms: false }],
 ]
 
 const EDGE_FUNCTIONS = [

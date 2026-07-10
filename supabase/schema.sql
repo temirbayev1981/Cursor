@@ -842,6 +842,51 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION portal_get_notification_preferences(p_token TEXT)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  pt portal_tokens%ROWTYPE;
+  prefs JSONB;
+BEGIN
+  SELECT * INTO pt FROM portal_tokens WHERE token = p_token AND expires_at > NOW();
+  IF NOT FOUND THEN RETURN NULL; END IF;
+  IF pt.portal_type <> 'customer' THEN RETURN NULL; END IF;
+
+  SELECT notification_preferences INTO prefs FROM customers WHERE id = pt.customer_id;
+  RETURN COALESCE(prefs, '{"email": true, "sms": false}'::jsonb);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION portal_update_notification_preferences(
+  p_token TEXT,
+  p_email BOOLEAN,
+  p_sms BOOLEAN
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  pt portal_tokens%ROWTYPE;
+BEGIN
+  SELECT * INTO pt FROM portal_tokens WHERE token = p_token AND expires_at > NOW();
+  IF NOT FOUND THEN RETURN FALSE; END IF;
+  IF pt.portal_type <> 'customer' THEN RETURN FALSE; END IF;
+
+  UPDATE customers
+  SET notification_preferences = jsonb_build_object('email', p_email, 'sms', p_sms),
+      updated_at = NOW()
+  WHERE id = pt.customer_id AND company_id = pt.company_id;
+
+  RETURN FOUND;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION get_team_invite(p_token TEXT)
 RETURNS TABLE (
   email TEXT,
@@ -868,6 +913,8 @@ GRANT EXECUTE ON FUNCTION get_portal_jobs(TEXT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION portal_update_estimate_status(TEXT, UUID, TEXT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION portal_submit_job_request(TEXT, TEXT, TEXT, TEXT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION portal_submit_review(TEXT, INTEGER, TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION portal_get_notification_preferences(TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION portal_update_notification_preferences(TEXT, BOOLEAN, BOOLEAN) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION get_team_invite(TEXT) TO anon, authenticated;
 
 -- Accept invite: mark accepted and link profile to company (bypasses team_invites RLS)
