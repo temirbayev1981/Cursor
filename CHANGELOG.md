@@ -4,6 +4,13 @@ All notable changes to HandymanOS AI are documented here.
 
 ## [Unreleased]
 
+### Phase 32 — i18n cleanup
+- `useDateLocale` hook centralizes `ru-RU` / `en-US` formatting
+- Settings: theme labels, billing/invite/company toasts moved to i18n
+- Route optimizer panel, technician onboarding, customers, invoices, materials toasts
+- Language switcher labels in i18n
+- `notifyResultMessage` accepts translated error string from callers
+
 ### Phase 31 — Login i18n, audit gate, invite E2E
 - Login page auth strings moved to i18n (EN/RU)
 - Platform audit quality gate: multi-company membership

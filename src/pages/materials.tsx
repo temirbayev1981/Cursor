@@ -13,12 +13,13 @@ import { useAuth } from '@/contexts/auth-context'
 import { useMaterials, useSaveMaterial, useInventoryTransactionsList, useReceiveStock } from '@/hooks/use-entities'
 import { formatCurrencyPrecise, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
+import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
 import type { Material } from '@/types'
 
 export default function MaterialsPage() {
-  const { t, locale } = useTranslation()
-  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
+  const { t } = useTranslation()
+  const dateLocale = useDateLocale()
   const { company } = useAuth()
   const companyId = company?.id ?? 'comp-001'
   const [showForm, setShowForm] = useState(false)

@@ -14,13 +14,14 @@ import { useAuth } from '@/contexts/auth-context'
 import { useJobs, useCustomers, useEmployees, useSaveJob } from '@/hooks/use-entities'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
+import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
 import { JobMaterialUsageDialog } from '@/components/inventory/job-material-usage-dialog'
 import type { Job } from '@/types'
 
 export default function JobsPage() {
-  const { t, locale } = useTranslation()
-  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
+  const { t } = useTranslation()
+  const dateLocale = useDateLocale()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [showForm, setShowForm] = useState(false)

@@ -30,7 +30,7 @@ const INTEGRATION_KEYS = ['stripe', 'maps', 'openai', 'supabase', 'email'] as co
 
 export default function SettingsPage() {
   const { company, user, updateCompanyDetails } = useAuth()
-  const { t, locale } = useTranslation()
+  const { t } = useTranslation()
   const { theme, setTheme } = useTheme()
   const stored = getStoredCompany()
   const base = stored ?? company
@@ -75,11 +75,11 @@ export default function SettingsPage() {
     if (subscribed && ['starter', 'professional', 'enterprise'].includes(subscribed)) {
       void updateCompanySubscription(companyId, subscribed).then((updated) => {
         setCurrentPlan(updated.subscription_plan)
-        toast.success(locale === 'ru' ? `План обновлён: ${subscribed}` : `Plan upgraded: ${subscribed}`)
+        toast.success(t.settings.planUpgraded.replace('{plan}', subscribed))
       })
       window.history.replaceState({}, '', '/settings')
     }
-  }, [companyId, locale])
+  }, [companyId, t.settings.planUpgraded])
 
   const handleUpgrade = async (plan: SubscriptionPlan) => {
     if (plan === currentPlan) return
@@ -89,9 +89,9 @@ export default function SettingsPage() {
       if (result === 'demo') {
         const updated = await updateCompanySubscription(companyId, plan)
         setCurrentPlan(updated.subscription_plan)
-        toast.success(locale === 'ru' ? 'План обновлён (демо)' : 'Plan upgraded (demo)')
+        toast.success(t.settings.planUpgradedDemo)
       } else if (result === 'error') {
-        toast.error(locale === 'ru' ? 'Ошибка оплаты' : 'Checkout failed')
+        toast.error(t.settings.checkoutFailed)
       }
     } finally {
       setUpgradingPlan(null)
@@ -109,7 +109,7 @@ export default function SettingsPage() {
       const invites = await listTeamInvites(companyId)
       setPendingInvites(invites)
     } catch {
-      toast.error(locale === 'ru' ? 'Ошибка приглашения' : 'Invite failed')
+      toast.error(t.settings.inviteFailed)
     } finally {
       setInviteLoading(false)
     }
@@ -140,7 +140,7 @@ export default function SettingsPage() {
       await updateCompanyDetails(companyForm)
       toast.success(t.settings.saveChanges)
     } catch {
-      toast.error(locale === 'ru' ? 'Не удалось сохранить компанию' : 'Failed to save company')
+      toast.error(t.settings.companySaveFailed)
     } finally {
       setCompanySaving(false)
     }
@@ -182,9 +182,9 @@ export default function SettingsPage() {
               <div><Label>{t.onboarding.address}</Label><Input className="mt-1" value={companyForm.address} onChange={(e) => setCompanyForm({ ...companyForm, address: e.target.value })} /></div>
               <div className="flex items-center justify-between rounded-lg bg-secondary/30 p-4">
                 <div>
-                  <p className="font-medium">{theme === 'dark' ? (locale === 'ru' ? 'Тёмная тема' : 'Dark mode') : (locale === 'ru' ? 'Светлая тема' : 'Light mode')}</p>
+                  <p className="font-medium">{theme === 'dark' ? t.settings.themeDark : t.settings.themeLight}</p>
                   <p className="text-sm text-muted-foreground">
-                    {theme === 'dark' ? (locale === 'ru' ? 'Переключить на светлую тему' : 'Switch to light theme') : (locale === 'ru' ? 'Переключить на тёмную тему' : 'Switch to dark theme')}
+                    {theme === 'dark' ? t.settings.themeSwitchToLight : t.settings.themeSwitchToDark}
                   </p>
                 </div>
                 <Button variant="outline" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>

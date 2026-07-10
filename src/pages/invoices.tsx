@@ -14,6 +14,7 @@ import { useInvoices, useCustomers, useSaveInvoice, useSendInvoice, usePayInvoic
 import { generateInvoiceNumber } from '@/services/payment-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
+import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
 import type { Invoice } from '@/types'
 
@@ -24,8 +25,8 @@ function isThisMonth(dateStr: string): boolean {
 }
 
 export default function InvoicesPage() {
-  const { t, locale } = useTranslation()
-  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
+  const { t } = useTranslation()
+  const dateLocale = useDateLocale()
   const [searchParams, setSearchParams] = useSearchParams()
   const [showForm, setShowForm] = useState(false)
   const { company } = useAuth()
@@ -50,13 +51,13 @@ export default function InvoicesPage() {
       { invoice, amount: invoice.total - invoice.amount_paid },
       {
         onSuccess: () => {
-          toast.success(locale === 'ru' ? 'Оплата получена' : 'Payment received')
+          toast.success(t.invoices.paymentReceived)
           setSearchParams({}, { replace: true })
           refetch()
         },
       }
     )
-  }, [searchParams, invoices, payInvoice, setSearchParams, refetch, locale])
+  }, [searchParams, invoices, payInvoice, setSearchParams, refetch, t.invoices.paymentReceived])
 
   const outstanding = invoices.filter((i) => i.status !== 'paid').reduce((s, i) => s + (i.total - i.amount_paid), 0)
   const paidMonth = invoices

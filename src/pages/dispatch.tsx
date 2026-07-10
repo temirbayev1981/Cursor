@@ -53,7 +53,7 @@ function JobCard({ job }: { job: Job }) {
 }
 
 export default function DispatchPage() {
-  const { t, locale } = useTranslation()
+  const { t } = useTranslation()
   const { user, company } = useAuth()
   const { data: jobs = [], isLoading } = useJobs()
   const { data: employees = [] } = useEmployees()
@@ -87,9 +87,9 @@ export default function DispatchPage() {
           )
           const feedback = notifyResultMessage(
             result,
-            locale,
             t.dispatch.smsSent.replace('{name}', tech?.name ?? ''),
             t.dispatch.smsDemo.replace('{name}', tech?.name ?? '').replace('{title}', job.title),
+            t.common.notificationFailed,
           )
           if (feedback.type === 'success') toast.success(feedback.message)
           else if (feedback.type === 'info') toast.info(feedback.message)
@@ -101,9 +101,9 @@ export default function DispatchPage() {
           const emailResult = await notifyJobScheduled(customer.email, job.title, when)
           const emailFeedback = notifyResultMessage(
             emailResult,
-            locale,
             t.dispatch.customerEmailSent.replace('{email}', customer.email),
             t.dispatch.customerEmailDemo.replace('{email}', customer.email),
+            t.common.notificationFailed,
           )
           if (emailFeedback.type === 'success') toast.success(emailFeedback.message)
           else if (emailFeedback.type === 'info') toast.info(emailFeedback.message)

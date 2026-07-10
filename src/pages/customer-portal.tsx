@@ -18,14 +18,15 @@ import { clearPortalSession, getPortalToken } from '@/services/portal-service'
 import { hasPortalReview } from '@/services/portal-data-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
+import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
 import type { Estimate } from '@/types'
 
 export default function CustomerPortalPage() {
-  const { t, locale } = useTranslation()
+  const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const portal = usePortalContext('customer')
-  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
+  const dateLocale = useDateLocale()
   const { data: myEstimates = [], isLoading: estLoading } = usePortalEstimates('customer')
   const { data: myInvoices = [], isLoading: invLoading } = usePortalInvoices('customer')
   const estimateAction = usePortalEstimateAction()

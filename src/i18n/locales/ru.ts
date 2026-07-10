@@ -48,6 +48,7 @@ export const ru = {
     errorTitle: 'Что-то пошло не так',
     errorUnknown: 'Неизвестная ошибка',
     reload: 'Перезагрузить',
+    notificationFailed: 'Не удалось отправить уведомление',
   },
   nav: {
     dashboard: 'Панель',
@@ -99,6 +100,8 @@ export const ru = {
     skillsHint: 'Выберите навыки (необязательно)',
     finish: 'Начать работу',
     complete: 'Профиль сохранён — добро пожаловать!',
+    namePhoneRequired: 'Заполните имя и телефон',
+    saveFailed: 'Ошибка сохранения',
   },
   onboarding: {
     company: 'Компания',
@@ -291,6 +294,7 @@ export const ru = {
     property_management: 'управляющая компания',
     copyPortalLink: 'Скопировать ссылку на портал',
     portalLinkCopied: 'Ссылка на портал скопирована (действует 7 дней)',
+    linkFailed: 'Не удалось создать ссылку',
   },
   properties: {
     title: 'Объекты',
@@ -330,6 +334,10 @@ export const ru = {
     emailSent: 'Email отправлен: {email}',
     emailDemo: 'Email (демо) → {email}',
     queueFlushed: 'Отправлено из очереди: {count}',
+    noRoutingJobs: 'Нет запланированных заказов для маршрута',
+    routeStops: 'остановок',
+    routeSavings: 'Экономия ~{savedMiles} миль и ~{savedMinutes} мин ({totalMiles} миль всего)',
+    routeTotal: 'Маршрут: {totalMiles} миль',
   },
   dispatch: {
     title: 'Диспетчерская',
@@ -371,6 +379,8 @@ export const ru = {
     receiveStock: 'Приход на склад',
     recentTransactions: 'Последние операции',
     receive: 'Принять',
+    deducted: 'Материалы списаны',
+    deductionFailed: 'Ошибка списания',
   },
   vehicles: {
     title: 'Транспорт и топливо',
@@ -415,6 +425,7 @@ export const ru = {
     paid: 'Оплачено',
     dueDate: 'Срок оплаты',
     payNow: 'Оплатить',
+    paymentReceived: 'Оплата получена',
   },
   reports: {
     title: 'Отчёты',
@@ -449,6 +460,12 @@ export const ru = {
     q2: 'Сколько брать за замену двери?',
     q3: 'Какой мастер самый прибыльный?',
     q4: 'Как увеличить прибыль?',
+  },
+  localeSwitcher: {
+    switchToEn: 'Switch to English',
+    switchToRu: 'Переключить на русский',
+    russian: 'Русский',
+    english: 'English',
   },
   header: {
     notifications: 'Уведомления',
@@ -509,6 +526,15 @@ export const ru = {
     imported: 'Импортировано',
     notificationQueueEmpty: 'Очередь пуста',
     noErrors: 'Нет ошибок',
+    planUpgraded: 'План обновлён: {plan}',
+    planUpgradedDemo: 'План обновлён (демо)',
+    checkoutFailed: 'Ошибка оплаты',
+    inviteFailed: 'Ошибка приглашения',
+    companySaveFailed: 'Не удалось сохранить компанию',
+    themeDark: 'Тёмная тема',
+    themeLight: 'Светлая тема',
+    themeSwitchToLight: 'Переключить на светлую тему',
+    themeSwitchToDark: 'Переключить на тёмную тему',
   },
   status: {
     job: {

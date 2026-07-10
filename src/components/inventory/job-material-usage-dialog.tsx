@@ -16,7 +16,7 @@ interface JobMaterialUsageDialogProps {
 }
 
 export function JobMaterialUsageDialog({ job, companyId }: JobMaterialUsageDialogProps) {
-  const { t, locale } = useTranslation()
+  const { t } = useTranslation()
   const { data: materials = [] } = useMaterials()
   const recordUsage = useInventoryTransactions()
   const [open, setOpen] = useState(false)
@@ -29,12 +29,12 @@ export function JobMaterialUsageDialog({ job, companyId }: JobMaterialUsageDialo
       { companyId, jobId: job.id, items: [{ materialId, quantity }] },
       {
         onSuccess: () => {
-          toast.success(locale === 'ru' ? 'Материалы списаны' : 'Materials deducted')
+          toast.success(t.materials.deducted)
           setOpen(false)
           setMaterialId('')
           setQuantity(1)
         },
-        onError: () => toast.error(locale === 'ru' ? 'Ошибка списания' : 'Deduction failed'),
+        onError: () => toast.error(t.materials.deductionFailed),
       }
     )
   }

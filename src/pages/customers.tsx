@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { useCustomers, useSaveCustomer } from '@/hooks/use-entities'
 import { formatCurrency } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
+import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
 import type { Customer } from '@/types'
 import { createPortalLink } from '@/services/portal-service'
@@ -19,8 +20,8 @@ import { createPortalLink } from '@/services/portal-service'
 const CUSTOMER_TYPE_KEYS = ['residential', 'commercial', 'property_management'] as const
 
 export default function CustomersPage() {
-  const { t, locale } = useTranslation()
-  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
+  const { t } = useTranslation()
+  const dateLocale = useDateLocale()
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
   const { company } = useAuth()
@@ -56,7 +57,7 @@ export default function CustomersPage() {
       await navigator.clipboard.writeText(url)
       toast.success(t.customers.portalLinkCopied)
     } catch {
-      toast.error(locale === 'ru' ? 'Не удалось создать ссылку' : 'Failed to create link')
+      toast.error(t.customers.linkFailed)
     }
   }
 

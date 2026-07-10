@@ -50,6 +50,7 @@ export const en: TranslationKeys = {
     errorTitle: 'Something went wrong',
     errorUnknown: 'Unknown error',
     reload: 'Reload',
+    notificationFailed: 'Failed to send notification',
   },
   nav: {
     dashboard: 'Dashboard',
@@ -101,6 +102,8 @@ export const en: TranslationKeys = {
     skillsHint: 'Select your skills (optional)',
     finish: 'Start working',
     complete: 'Profile saved — welcome aboard!',
+    namePhoneRequired: 'Enter your name and phone',
+    saveFailed: 'Failed to save profile',
   },
   onboarding: {
     company: 'Company',
@@ -293,6 +296,7 @@ export const en: TranslationKeys = {
     property_management: 'property management',
     copyPortalLink: 'Copy portal link',
     portalLinkCopied: 'Portal link copied (valid 7 days)',
+    linkFailed: 'Failed to create link',
   },
   properties: {
     title: 'Properties',
@@ -332,6 +336,10 @@ export const en: TranslationKeys = {
     emailSent: 'Email sent: {email}',
     emailDemo: 'Email (demo) → {email}',
     queueFlushed: 'Sent from queue: {count}',
+    noRoutingJobs: 'No scheduled jobs for routing',
+    routeStops: 'stops',
+    routeSavings: 'Saves ~{savedMiles} miles and ~{savedMinutes} min ({totalMiles} mi total)',
+    routeTotal: 'Route: {totalMiles} miles',
   },
   dispatch: {
     title: 'Dispatch Board',
@@ -373,6 +381,8 @@ export const en: TranslationKeys = {
     receiveStock: 'Receive stock',
     recentTransactions: 'Recent transactions',
     receive: 'Receive',
+    deducted: 'Materials deducted',
+    deductionFailed: 'Deduction failed',
   },
   vehicles: {
     title: 'Vehicles & Fuel',
@@ -417,6 +427,7 @@ export const en: TranslationKeys = {
     paid: 'Paid',
     dueDate: 'Due Date',
     payNow: 'Pay Now',
+    paymentReceived: 'Payment received',
   },
   reports: {
     title: 'Reports',
@@ -451,6 +462,12 @@ export const en: TranslationKeys = {
     q2: 'How much should I charge for replacing a door?',
     q3: 'Which technician is most profitable?',
     q4: 'How can I increase profit?',
+  },
+  localeSwitcher: {
+    switchToEn: 'Switch to English',
+    switchToRu: 'Переключить на русский',
+    russian: 'Русский',
+    english: 'English',
   },
   header: {
     notifications: 'Notifications',
@@ -511,6 +528,15 @@ export const en: TranslationKeys = {
     imported: 'Imported',
     notificationQueueEmpty: 'Queue is empty',
     noErrors: 'No errors',
+    planUpgraded: 'Plan upgraded: {plan}',
+    planUpgradedDemo: 'Plan upgraded (demo)',
+    checkoutFailed: 'Checkout failed',
+    inviteFailed: 'Invite failed',
+    companySaveFailed: 'Failed to save company',
+    themeDark: 'Dark mode',
+    themeLight: 'Light mode',
+    themeSwitchToLight: 'Switch to light theme',
+    themeSwitchToDark: 'Switch to dark theme',
   },
   status: {
     job: {

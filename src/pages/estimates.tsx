@@ -14,12 +14,13 @@ import { notifyEstimateSent } from '@/services/notification-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { generateSmartEstimate } from '@/lib/ai'
 import { useTranslation } from '@/contexts/locale-context'
+import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
 import type { Estimate } from '@/types'
 
 export default function EstimatesPage() {
-  const { t, locale } = useTranslation()
-  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
+  const { t } = useTranslation()
+  const dateLocale = useDateLocale()
   const [showEngine, setShowEngine] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const { company } = useAuth()

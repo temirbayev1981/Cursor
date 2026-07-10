@@ -22,7 +22,7 @@ export function RouteOptimizerPanel({
   mapsUrl,
   jobCount,
 }: RouteOptimizerPanelProps) {
-  const { t, locale } = useTranslation()
+  const { t } = useTranslation()
 
   if (jobCount === 0) {
     return (
@@ -35,12 +35,19 @@ export function RouteOptimizerPanel({
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            {locale === 'ru' ? 'Нет запланированных заказов для маршрута' : 'No scheduled jobs for routing'}
+            {t.scheduling.noRoutingJobs}
           </p>
         </CardContent>
       </Card>
     )
   }
+
+  const routeSummary = savedMiles > 0
+    ? t.scheduling.routeSavings
+      .replace('{savedMiles}', savedMiles.toFixed(1))
+      .replace('{savedMinutes}', String(savedMinutes))
+      .replace('{totalMiles}', totalMiles.toFixed(1))
+    : t.scheduling.routeTotal.replace('{totalMiles}', totalMiles.toFixed(1))
 
   return (
     <Card>
@@ -50,19 +57,11 @@ export function RouteOptimizerPanel({
             <Navigation className="h-4 w-4" />
             {t.scheduling.routeOptimization}
           </span>
-          <Badge variant="outline">{jobCount} {locale === 'ru' ? 'остановок' : 'stops'}</Badge>
+          <Badge variant="outline">{jobCount} {t.scheduling.routeStops}</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p className="text-sm text-muted-foreground">
-          {savedMiles > 0
-            ? (locale === 'ru'
-              ? `Экономия ~${savedMiles.toFixed(1)} миль и ~${savedMinutes} мин (${totalMiles.toFixed(1)} миль всего)`
-              : `Saves ~${savedMiles.toFixed(1)} miles and ~${savedMinutes} min (${totalMiles.toFixed(1)} mi total)`)
-            : (locale === 'ru'
-              ? `Маршрут: ${totalMiles.toFixed(1)} миль`
-              : `Route: ${totalMiles.toFixed(1)} miles`)}
-        </p>
+        <p className="text-sm text-muted-foreground">{routeSummary}</p>
         {stops.map((stop, i) => (
           <div key={stop.id} className="flex items-start gap-3 text-sm">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">

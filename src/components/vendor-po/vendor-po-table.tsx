@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { VendorPORecord } from '@/types/vendor-po'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
+import { useDateLocale } from '@/hooks/use-date-locale'
 import { useWorkflow } from '@/contexts/workflow-context'
 import { useAuth } from '@/contexts/auth-context'
 import { exportVendorPOsToExcel, groupVendorPOsByAddress } from '@/lib/export'
@@ -27,12 +28,12 @@ const COMPLIANCE_ITEMS = [
 ]
 
 export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps) {
-  const { t, locale } = useTranslation()
+  const { t } = useTranslation()
   const { runVendorPOWorkflow, isRunning } = useWorkflow()
   const { company, user } = useAuth()
   const navigate = useNavigate()
   const [selected, setSelected] = useState<VendorPORecord | null>(null)
-  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
+  const dateLocale = useDateLocale()
 
   const addressGroups = groupVendorPOsByAddress(records)
   const multiSiteAddresses = [...addressGroups.entries()].filter(([, v]) => v.length > 1)

@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils'
 import type { ScheduleFormValues } from '@/lib/schemas'
 
 export default function SchedulingPage() {
-  const { t, locale } = useTranslation()
+  const { t } = useTranslation()
   const isMobile = useIsMobileNav()
   const [view, setView] = useState<'day' | 'week' | 'month'>(() =>
     typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches ? 'day' : 'week',
@@ -80,9 +80,9 @@ export default function SchedulingPage() {
             const result = await notifyJobScheduled(customer.email, job.title, when)
             const feedback = notifyResultMessage(
               result,
-              locale,
               t.scheduling.emailSent.replace('{email}', customer.email),
               t.scheduling.emailDemo.replace('{email}', customer.email),
+              t.common.notificationFailed,
             )
             if (feedback.type === 'success') toast.success(feedback.message)
             else if (feedback.type === 'info') toast.info(feedback.message)

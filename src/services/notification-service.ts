@@ -167,14 +167,11 @@ export async function flushNotificationQueue(): Promise<number> {
 
 export function notifyResultMessage(
   result: NotificationResult,
-  locale: 'ru' | 'en',
   success: string,
-  demo: string
+  demo: string,
+  failed: string
 ): { type: 'success' | 'info' | 'error'; message: string } {
   if (result.ok && result.demo) return { type: 'info', message: demo }
   if (result.ok) return { type: 'success', message: success }
-  return {
-    type: 'error',
-    message: locale === 'ru' ? 'Не удалось отправить уведомление' : 'Failed to send notification',
-  }
+  return { type: 'error', message: failed }
 }
