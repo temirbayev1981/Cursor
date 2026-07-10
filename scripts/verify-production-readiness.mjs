@@ -259,6 +259,20 @@ if (auditLabels.includes('DISPATCH_AUDIT = true')) {
   ok = false
 }
 
+if (auditLabels.includes('EXPENSE_AUDIT = true')) {
+  console.log('✓ EXPENSE_AUDIT gate enabled')
+} else {
+  console.log('✗ EXPENSE_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('FUEL_LOG_AUDIT = true')) {
+  console.log('✓ FUEL_LOG_AUDIT gate enabled')
+} else {
+  console.log('✗ FUEL_LOG_AUDIT must be true')
+  ok = false
+}
+
 if (auditLabels.includes('TECH_OFFLINE_SYNC_AUDIT = true')) {
   console.log('✓ TECH_OFFLINE_SYNC_AUDIT gate enabled')
 } else {
@@ -285,6 +299,13 @@ if (auditExpanded.includes('inventory receive appears in audit log') && auditExp
   console.log('✓ inventory audit log E2E coverage present')
 } else {
   console.log('✗ inventory audit log E2E tests required')
+  ok = false
+}
+
+if (auditExpanded.includes('expense create appears in audit log') && auditExpanded.includes('fuel log create appears in audit log')) {
+  console.log('✓ expense and fuel log audit E2E coverage present')
+} else {
+  console.log('✗ expense and fuel log audit E2E tests required')
   ok = false
 }
 
@@ -692,6 +713,8 @@ if (settingsE2e.includes('platform-audit-check-notification_milestone_audit')) {
 if (
   settingsE2e.includes('platform-audit-check-inventory_audit')
   && settingsE2e.includes('platform-audit-check-fleet_audit')
+  && settingsE2e.includes('platform-audit-check-expense_audit')
+  && settingsE2e.includes('platform-audit-check-fuel_log_audit')
   && settingsE2e.includes('platform-audit-check-dispatch_audit')
   && settingsE2e.includes('platform-audit-check-tech_offline_sync_audit')
   && settingsE2e.includes('platform-audit-check-field_ops_milestone_audit')

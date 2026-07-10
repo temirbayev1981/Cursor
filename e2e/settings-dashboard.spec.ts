@@ -70,6 +70,8 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('platform-audit-check-pwa_sw_offline_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-inventory_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-fleet_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-expense_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-fuel_log_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-dispatch_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-tech_offline_sync_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-field_ops_milestone_audit')).toBeVisible()

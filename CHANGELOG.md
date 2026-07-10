@@ -2,6 +2,15 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.12.1] — 2026-07-10
+
+Field-ops expense and fuel log audit visibility.
+
+### Phase 120 — Expense & fuel log audit gates
+- Settings audit checklist exposes `expense_audit` and `fuel_log_audit` checks
+- verify-production: `EXPENSE_AUDIT`, `FUEL_LOG_AUDIT` gates and audit-expanded E2E coverage
+- **230** E2E tests, **164** unit tests
+
 ## [1.12.0] — 2026-07-10
 
 Field-ops audit milestone kickoff.
