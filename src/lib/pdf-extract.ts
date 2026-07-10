@@ -1,9 +1,21 @@
-import * as pdfjsLib from 'pdfjs-dist'
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+type PdfJsModule = typeof import('pdfjs-dist')
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker
+let pdfjsReady: Promise<PdfJsModule> | null = null
+
+async function getPdfjs(): Promise<PdfJsModule> {
+  if (!pdfjsReady) {
+    pdfjsReady = (async () => {
+      const pdfjsLib = await import('pdfjs-dist')
+      const worker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url')
+      pdfjsLib.GlobalWorkerOptions.workerSrc = worker.default
+      return pdfjsLib
+    })()
+  }
+  return pdfjsReady
+}
 
 export async function extractTextFromPdf(file: File): Promise<string> {
+  const pdfjsLib = await getPdfjs()
   const buffer = await file.arrayBuffer()
   const pdf = await pdfjsLib.getDocument({ data: buffer }).promise
   const pages: string[] = []

@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.13.2] — 2026-07-10
+
+Lazy bundle loading and audit action registry.
+
+### Phase 128 — Performance & audit registry
+- `pdf-extract.ts` lazy-loads `pdfjs-dist` only on PDF upload
+- `export.ts` lazy-loads `xlsx` only on Excel export click
+- `audit-action-registry.ts` — single source of truth for audit action keys
+- verify-production: lazy-load and registry gates
+- **230** E2E tests, **167** unit tests
+
 ## [1.13.1] — 2026-07-10
 
 CI hardening: E2E sharding and Supabase smoke.
