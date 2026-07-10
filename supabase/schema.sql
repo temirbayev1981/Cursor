@@ -79,6 +79,7 @@ CREATE TABLE employees (
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   profile_id UUID REFERENCES profiles(id),
   name TEXT NOT NULL,
+  phone TEXT,
   role TEXT NOT NULL,
   hourly_wage DECIMAL(8,2) NOT NULL,
   billing_rate DECIMAL(8,2) DEFAULT 0,
@@ -402,8 +403,20 @@ $$ LANGUAGE SQL SECURITY DEFINER STABLE;
 CREATE POLICY "Users can view own company" ON companies
   FOR SELECT USING (id = get_user_company_id());
 
+CREATE POLICY "Authenticated users can create company" ON companies
+  FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Company members can update company" ON companies
+  FOR UPDATE USING (id = get_user_company_id());
+
 CREATE POLICY "Company members can view profiles" ON profiles
-  FOR SELECT USING (company_id = get_user_company_id());
+  FOR SELECT USING (company_id = get_user_company_id() OR id = auth.uid());
+
+CREATE POLICY "Users can insert own profile" ON profiles
+  FOR INSERT WITH CHECK (id = auth.uid());
+
+CREATE POLICY "Users can update own profile" ON profiles
+  FOR UPDATE USING (id = auth.uid());
 
 CREATE POLICY "Company members can view customers" ON customers
   FOR ALL USING (company_id = get_user_company_id());
@@ -444,8 +457,13 @@ CREATE POLICY "Company members can manage schedule" ON schedule_events
 CREATE POLICY "Company members can view audit logs" ON audit_logs
   FOR SELECT USING (company_id = get_user_company_id());
 
+CREATE POLICY "Company members can insert audit logs" ON audit_logs
+  FOR INSERT WITH CHECK (company_id = get_user_company_id());
+
 CREATE POLICY "Company members can manage payments" ON payments
-  FOR ALL USING (company_id = get_user_company_id());
+  FOR ALL USING (
+    invoice_id IN (SELECT id FROM invoices WHERE company_id = get_user_company_id())
+  );
 
 CREATE POLICY "Company members can manage inventory" ON inventory
   FOR ALL USING (company_id = get_user_company_id());

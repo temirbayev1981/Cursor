@@ -10,3 +10,14 @@ export const supabase = isSupabaseConfigured
   : null
 
 export const DEMO_MODE = !isSupabaseConfigured
+
+export async function getSupabaseAuthHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (!supabase) return headers
+
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session?.access_token) {
+    headers.Authorization = `Bearer ${session.access_token}`
+  }
+  return headers
+}

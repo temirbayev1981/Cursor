@@ -10,7 +10,7 @@ import { useTranslation } from '@/contexts/locale-context'
 import { useOnlineStatus } from '@/hooks/use-online-status'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import { loadStore, saveStore, STORE_KEYS } from '@/lib/data-store'
-import { queueOfflineAction, getOfflineQueue, clearOfflineQueue } from '@/lib/pwa'
+import { queueOfflineAction, getOfflineQueue, syncOfflineQueue } from '@/lib/pwa'
 import { toast } from 'sonner'
 
 interface TimeEntry {
@@ -55,11 +55,37 @@ export default function TechnicianMobilePage() {
   }, [])
 
   useEffect(() => {
-    if (online && getOfflineQueue().length > 0) {
-      clearOfflineQueue()
-      setPendingSync(0)
-      toast.info(t.techMobile.synced)
-    }
+    if (!online || getOfflineQueue().length === 0) return
+
+    void (async () => {
+      const { processed } = await syncOfflineQueue(async (action) => {
+        if (action.type === 'clock_in') {
+          const entry = action.payload as TimeEntry
+          const existing = loadStore<TimeEntry>(STORE_KEYS.timeEntries)
+          if (!existing.some((e) => e.id === entry.id)) {
+            saveStore(STORE_KEYS.timeEntries, [entry, ...existing])
+            setTimeEntries([entry, ...existing])
+          }
+          return true
+        }
+        if (action.type === 'clock_out') {
+          const { job_id, end } = action.payload as { job_id: string; end: string }
+          const existing = loadStore<TimeEntry>(STORE_KEYS.timeEntries)
+          const next = existing.map((e) =>
+            e.job_id === job_id && !e.end ? { ...e, end } : e
+          )
+          saveStore(STORE_KEYS.timeEntries, next)
+          setTimeEntries(next)
+          return true
+        }
+        return true
+      })
+
+      setPendingSync(getOfflineQueue().length)
+      if (processed > 0) {
+        toast.info(t.techMobile.synced)
+      }
+    })()
   }, [online, t.techMobile.synced])
 
   const clockIn = (jobId: string) => {

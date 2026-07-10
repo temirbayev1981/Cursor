@@ -1,15 +1,21 @@
-// Email notifications via Resend
+// Email notifications via Resend (requires authenticated user)
 // Deploy: supabase functions deploy send-notification
-// Secrets: RESEND_API_KEY, RESEND_FROM_EMAIL
+// Secrets: RESEND_API_KEY, RESEND_FROM_EMAIL, SUPABASE_URL, SUPABASE_ANON_KEY
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { handleCors, jsonResponse } from '../_shared/cors.ts'
+import { verifyAuth } from '../_shared/auth.ts'
 
 serve(async (req) => {
   const cors = handleCors(req)
   if (cors) return cors
 
   try {
+    const auth = await verifyAuth(req)
+    if (!auth) {
+      return jsonResponse({ error: 'Unauthorized' }, 401)
+    }
+
     const apiKey = Deno.env.get('RESEND_API_KEY')
     const fromEmail = Deno.env.get('RESEND_FROM_EMAIL') ?? 'HandymanOS <onboarding@resend.dev>'
 

@@ -1,15 +1,21 @@
-// Twilio SMS relay
+// Twilio SMS relay (requires authenticated user)
 // Deploy: supabase functions deploy send-sms
-// Secrets: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER
+// Secrets: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER, SUPABASE_URL, SUPABASE_ANON_KEY
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
-import { corsHeaders, handleCors, jsonResponse } from '../_shared/cors.ts'
+import { handleCors, jsonResponse } from '../_shared/cors.ts'
+import { verifyAuth } from '../_shared/auth.ts'
 
 serve(async (req) => {
   const cors = handleCors(req)
   if (cors) return cors
 
   try {
+    const auth = await verifyAuth(req)
+    if (!auth) {
+      return jsonResponse({ error: 'Unauthorized' }, 401)
+    }
+
     const accountSid = Deno.env.get('TWILIO_ACCOUNT_SID')
     const authToken = Deno.env.get('TWILIO_AUTH_TOKEN')
     const fromNumber = Deno.env.get('TWILIO_PHONE_NUMBER')

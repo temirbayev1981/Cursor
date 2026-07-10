@@ -1,4 +1,4 @@
-import type { Job, Customer, Estimate, Invoice, Property, Employee, Material, Vehicle, Expense, ScheduleEvent, WorkOrder, ServiceCatalogItem, FuelLog } from '@/types'
+import type { Job, Customer, Estimate, Invoice, Property, Employee, Material, Vehicle, Expense, ScheduleEvent, WorkOrder, ServiceCatalogItem, FuelLog, Payment } from '@/types'
 import { loadStore, saveStore, upsertStore, removeFromStore, filterByCompany, STORE_KEYS } from '@/lib/data-store'
 import {
   DEMO_JOBS, DEMO_CUSTOMERS, DEMO_ESTIMATES, DEMO_INVOICES,
@@ -177,7 +177,9 @@ export async function importDemoSeedToSupabase(companyId: string): Promise<{ imp
     }
   }
 
-  saveStore(STORE_KEYS.fuelLogs, DEMO_FUEL_LOGS)
+  for (const log of DEMO_FUEL_LOGS) {
+    await saveFuelLog(log)
+  }
   localStorage.setItem(`${STORE_KEYS.fuelLogs}_seeded`, 'true')
 
   return { imported }
@@ -297,8 +299,18 @@ export async function createScheduleFromJob(
   return event
 }
 
+type AuditLog = {
+  id: string
+  company_id: string
+  user_id: string
+  action: string
+  entity_type: string
+  entity_id: string
+  created_at: string
+}
+
 export async function logAudit(companyId: string, userId: string, action: string, entityType: string, entityId: string) {
-  const log = {
+  const log: AuditLog = {
     id: crypto.randomUUID(),
     company_id: companyId,
     user_id: userId,
@@ -307,9 +319,89 @@ export async function logAudit(companyId: string, userId: string, action: string
     entity_id: entityId,
     created_at: new Date().toISOString(),
   }
-  const logs = loadStore<typeof log>(STORE_KEYS.auditLogs)
+  const logs = loadStore<AuditLog>(STORE_KEYS.auditLogs)
   logs.unshift(log)
   saveStore(STORE_KEYS.auditLogs, logs.slice(0, 500))
+
+  if (DEMO_MODE || !supabase) return
+
+  try {
+    await supabase.from('audit_logs').insert(log as never)
+  } catch {
+    // local cache remains authoritative offline
+  }
+}
+
+export async function listAuditLogs(companyId: string): Promise<AuditLog[]> {
+  if (DEMO_MODE || !supabase) {
+    return loadStore<AuditLog>(STORE_KEYS.auditLogs).filter((l) => l.company_id === companyId)
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('audit_logs')
+      .select('*')
+      .eq('company_id', companyId)
+      .order('created_at', { ascending: false })
+      .limit(500)
+
+    if (error) throw error
+    const items = (data ?? []) as AuditLog[]
+    if (items.length > 0) {
+      saveStore(STORE_KEYS.auditLogs, items)
+      return items
+    }
+    return loadStore<AuditLog>(STORE_KEYS.auditLogs).filter((l) => l.company_id === companyId)
+  } catch {
+    return loadStore<AuditLog>(STORE_KEYS.auditLogs).filter((l) => l.company_id === companyId)
+  }
+}
+
+export async function savePayment(payment: Payment): Promise<Payment> {
+  upsertStore(STORE_KEYS.payments, payment)
+
+  if (DEMO_MODE || !supabase) return payment
+
+  const { data, error } = await supabase
+    .from('payments')
+    .upsert(payment as never)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as unknown as Payment
+}
+
+export async function listPayments(companyId: string): Promise<Payment[]> {
+  const filterByCompanyInvoices = async (payments: Payment[]) => {
+    const invoices = await listEntities('invoices', companyId)
+    const invoiceIds = new Set(invoices.map((i) => i.id))
+    return payments.filter((p) => invoiceIds.has(p.invoice_id))
+  }
+
+  if (DEMO_MODE || !supabase) {
+    return await filterByCompanyInvoices(loadStore<Payment>(STORE_KEYS.payments))
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('payments')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+
+    const items = (data ?? []) as Payment[]
+    if (items.length > 0) {
+      const scoped = await filterByCompanyInvoices(items)
+      saveStore(STORE_KEYS.payments, scoped)
+      return scoped
+    }
+
+    return filterByCompanyInvoices(loadStore<Payment>(STORE_KEYS.payments))
+  } catch {
+    return filterByCompanyInvoices(loadStore<Payment>(STORE_KEYS.payments))
+  }
 }
 
 function ensureFuelLogsSeeded(): FuelLog[] {
@@ -323,10 +415,49 @@ function ensureFuelLogsSeeded(): FuelLog[] {
   return items
 }
 
+export async function saveFuelLog(log: FuelLog): Promise<FuelLog> {
+  upsertStore(STORE_KEYS.fuelLogs, log)
+
+  if (DEMO_MODE || !supabase) return log
+
+  const { data, error } = await supabase
+    .from('fuel_logs')
+    .upsert(log as never)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as unknown as FuelLog
+}
+
 export async function listFuelLogs(companyId: string): Promise<FuelLog[]> {
   const vehicles = await listEntities('vehicles', companyId)
   const vehicleIds = new Set(vehicles.map((v) => v.id))
-  return ensureFuelLogsSeeded().filter((f) => vehicleIds.has(f.vehicle_id))
+  const filterByVehicles = (logs: FuelLog[]) => logs.filter((f) => vehicleIds.has(f.vehicle_id))
+
+  if (DEMO_MODE || !supabase) {
+    return filterByVehicles(ensureFuelLogsSeeded())
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('fuel_logs')
+      .select('*')
+      .order('date', { ascending: false })
+
+    if (error) throw error
+
+    const items = (data ?? []) as FuelLog[]
+    if (items.length > 0) {
+      const scoped = filterByVehicles(items)
+      saveStore(STORE_KEYS.fuelLogs, scoped)
+      return scoped
+    }
+
+    return filterByVehicles(ensureFuelLogsSeeded())
+  } catch {
+    return filterByVehicles(ensureFuelLogsSeeded())
+  }
 }
 
 export async function saveWorkOrderFromAI(

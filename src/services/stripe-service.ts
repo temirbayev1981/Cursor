@@ -1,4 +1,5 @@
 import { hasStripe, env, getStripeCheckoutEndpoint } from '@/lib/env'
+import { getSupabaseAuthHeaders } from '@/lib/supabase'
 
 type StripeInstance = {
   redirectToCheckout: (opts: { sessionId: string }) => Promise<{ error?: { message: string } }>
@@ -32,9 +33,10 @@ export async function startStripeCheckout(params: {
   }
 
   try {
+    const headers = await getSupabaseAuthHeaders()
     const res = await fetch(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         invoice_id: params.invoiceId,
         invoice_number: params.invoiceNumber,

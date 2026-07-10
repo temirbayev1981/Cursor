@@ -1,4 +1,5 @@
 import { getNotificationEndpoint, getSmsEndpoint } from '@/lib/env'
+import { getSupabaseAuthHeaders } from '@/lib/supabase'
 
 export type NotificationChannel = 'email' | 'sms' | 'push'
 
@@ -30,9 +31,10 @@ export async function sendNotification(payload: NotificationPayload): Promise<{ 
 
   if (webhook) {
     try {
+      const headers = await getSupabaseAuthHeaders()
       const res = await fetch(webhook, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(payload),
       })
       return { ok: res.ok, demo: false }
@@ -82,9 +84,10 @@ export async function sendSms(to: string, body: string): Promise<{ ok: boolean; 
   const smsWebhook = getSmsEndpoint()
   if (smsWebhook) {
     try {
+      const headers = await getSupabaseAuthHeaders()
       const res = await fetch(smsWebhook, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ to, body, provider: 'twilio' }),
       })
       return { ok: res.ok, demo: false }

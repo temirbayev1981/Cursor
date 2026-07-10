@@ -1,9 +1,7 @@
 import type { Invoice, Payment } from '@/types'
-import { loadStore, saveStore } from '@/lib/data-store'
-import { saveEntity } from '@/services/entity-service'
+import { loadStore, STORE_KEYS } from '@/lib/data-store'
+import { saveEntity, savePayment } from '@/services/entity-service'
 import { notifyInvoiceSent } from '@/services/notification-service'
-
-const PAYMENTS_KEY = 'handymanos_payments'
 
 export async function recordInvoicePayment(
   invoice: Invoice,
@@ -20,9 +18,7 @@ export async function recordInvoicePayment(
     created_at: new Date().toISOString(),
   }
 
-  const payments = loadStore<Payment>(PAYMENTS_KEY)
-  payments.unshift(payment)
-  saveStore(PAYMENTS_KEY, payments)
+  await savePayment(payment)
 
   const newPaid = invoice.amount_paid + amount
   const updated: Invoice = {
@@ -36,11 +32,11 @@ export async function recordInvoicePayment(
 }
 
 export function getPaymentsForInvoice(invoiceId: string): Payment[] {
-  return loadStore<Payment>(PAYMENTS_KEY).filter((p) => p.invoice_id === invoiceId)
+  return loadStore<Payment>(STORE_KEYS.payments).filter((p) => p.invoice_id === invoiceId)
 }
 
 export function getAllPayments(): Payment[] {
-  return loadStore<Payment>(PAYMENTS_KEY)
+  return loadStore<Payment>(STORE_KEYS.payments)
 }
 
 export async function sendInvoiceToCustomer(invoice: Invoice, customerEmail: string): Promise<Invoice> {
