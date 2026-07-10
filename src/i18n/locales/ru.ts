@@ -340,6 +340,7 @@ export const ru = {
     notifyEmail: 'Email-уведомления',
     notifySms: 'SMS-уведомления',
     emailOptOut: 'Email выкл.',
+    smsOptOut: 'SMS выкл.',
   },
   properties: {
     title: 'Объекты',
@@ -710,6 +711,8 @@ export const ru = {
       dispatch_eta_sms_audit: 'E2E ETA SMS в диспетчерской',
       portal_sms_notify_sync_audit: 'Синхронизация SMS портал ↔ CRM',
       notification_hub_estimate_invoice_sms_skip_audit: 'Hub: SMS skip сметы/счёта',
+      staff_customer_sms_badge_audit: 'Бейдж SMS opt-out в CRM',
+      notification_hub_eta_sms_skip_audit: 'Hub: ETA SMS skip в диспетчерской',
       multi_tenant: 'Мульти-тенант',
     },
     auditActions: {

@@ -127,6 +127,15 @@ export default function CustomersPage() {
                     {t.customers.emailOptOut}
                   </Badge>
                 )}
+                {!customerAllowsNotification(customer.id, 'sms', customer) && (
+                  <Badge
+                    variant="secondary"
+                    className="mt-1 text-xs"
+                    data-testid={`customer-sms-optout-${customer.id}`}
+                  >
+                    {t.customers.smsOptOut}
+                  </Badge>
+                )}
               </div>
             </DataTableCell>
             <DataTableCell>

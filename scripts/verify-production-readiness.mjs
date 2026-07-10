@@ -381,6 +381,20 @@ if (auditLabels.includes('NOTIFICATION_HUB_ESTIMATE_INVOICE_SMS_SKIP_AUDIT = tru
   ok = false
 }
 
+if (auditLabels.includes('STAFF_CUSTOMER_SMS_BADGE_AUDIT = true')) {
+  console.log('✓ STAFF_CUSTOMER_SMS_BADGE_AUDIT gate enabled')
+} else {
+  console.log('✗ STAFF_CUSTOMER_SMS_BADGE_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('NOTIFICATION_HUB_ETA_SMS_SKIP_AUDIT = true')) {
+  console.log('✓ NOTIFICATION_HUB_ETA_SMS_SKIP_AUDIT gate enabled')
+} else {
+  console.log('✗ NOTIFICATION_HUB_ETA_SMS_SKIP_AUDIT must be true')
+  ok = false
+}
+
 const notificationsE2e = readFileSync('e2e/notifications.spec.ts', 'utf8')
 if (notificationsE2e.includes('scheduling skips customer SMS when opted out') && notificationsE2e.includes('scheduling queues customer SMS when enabled')) {
   console.log('✓ scheduling customer SMS E2E coverage present')
@@ -426,6 +440,28 @@ if (settingsE2e.includes('notification hub shows estimate SMS opt-out skip') && 
   console.log('✓ hub estimate/invoice SMS skip E2E coverage present')
 } else {
   console.log('✗ hub estimate/invoice SMS skip E2E tests required')
+  ok = false
+}
+if (settingsE2e.includes('notification hub shows dispatch ETA SMS opt-out skip')) {
+  console.log('✓ hub dispatch ETA SMS skip E2E coverage present')
+} else {
+  console.log('✗ hub dispatch ETA SMS skip E2E test required')
+  ok = false
+}
+
+const jobsCustomersE2e = readFileSync('e2e/jobs-customers.spec.ts', 'utf8')
+if (jobsCustomersE2e.includes('customer-sms-optout') && jobsCustomersE2e.includes('customers table shows SMS opt-out badge')) {
+  console.log('✓ staff CRM SMS opt-out badge E2E coverage present')
+} else {
+  console.log('✗ staff CRM SMS opt-out badge E2E tests required')
+  ok = false
+}
+
+const customersPage = readFileSync('src/pages/customers.tsx', 'utf8')
+if (customersPage.includes('customer-sms-optout') && customersPage.includes("customerAllowsNotification(customer.id, 'sms'")) {
+  console.log('✓ customers table exposes SMS opt-out badge')
+} else {
+  console.log('✗ customers table must expose SMS opt-out badge')
   ok = false
 }
 

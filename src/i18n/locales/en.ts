@@ -342,6 +342,7 @@ export const en: TranslationKeys = {
     notifyEmail: 'Email updates',
     notifySms: 'SMS updates',
     emailOptOut: 'Email off',
+    smsOptOut: 'SMS off',
   },
   properties: {
     title: 'Properties',
@@ -712,6 +713,8 @@ export const en: TranslationKeys = {
       dispatch_eta_sms_audit: 'Dispatch ETA SMS E2E',
       portal_sms_notify_sync_audit: 'Portal SMS notify sync',
       notification_hub_estimate_invoice_sms_skip_audit: 'Hub estimate/invoice SMS skip',
+      staff_customer_sms_badge_audit: 'Staff CRM SMS opt-out badge',
+      notification_hub_eta_sms_skip_audit: 'Hub dispatch ETA SMS skip',
       multi_tenant: 'Multi-tenant',
     },
     auditActions: {
