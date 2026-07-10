@@ -16,12 +16,11 @@ import {
   computeRevenueChart,
   computeServiceProfitability,
   computeTechnicianPerformance,
+  hasRevenueData,
+  hasProfitData,
+  hasTechnicianData,
 } from '@/lib/analytics'
-import {
-  REVENUE_CHART_DATA,
-  SERVICE_PROFITABILITY,
-  TECHNICIAN_PERFORMANCE,
-} from '@/data/mock-data'
+import { ChartEmpty } from '@/components/shared/chart-empty'
 import { useJobs, useCustomers, useEmployees } from '@/hooks/use-entities'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { formatCurrency } from '@/lib/utils'
@@ -71,8 +70,9 @@ export default function ReportsPage() {
           <Card>
             <CardHeader><CardTitle>{t.reports.revenueReport}</CardTitle></CardHeader>
             <CardContent>
+              {hasRevenueData(revenueChart) ? (
               <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={revenueChart.length > 1 ? revenueChart : REVENUE_CHART_DATA}>
+                <BarChart data={revenueChart}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
                   <XAxis dataKey="name" stroke="#94a3b8" />
                   <YAxis stroke="#94a3b8" tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
@@ -81,6 +81,9 @@ export default function ReportsPage() {
                   <Bar dataKey="profit" fill="#22c55e" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+              ) : (
+                <ChartEmpty message={t.common.noData} height={350} />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -123,8 +126,9 @@ export default function ReportsPage() {
           <Card>
             <CardHeader><CardTitle>{t.reports.techPerformance}</CardTitle></CardHeader>
             <CardContent>
+              {hasTechnicianData(techChart) ? (
               <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={techChart.length > 0 ? techChart : TECHNICIAN_PERFORMANCE}>
+                <BarChart data={techChart}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
                   <XAxis dataKey="name" stroke="#94a3b8" />
                   <YAxis stroke="#94a3b8" />
@@ -133,6 +137,9 @@ export default function ReportsPage() {
                   <Bar dataKey="jobs" fill="#0ea5e9" name={t.nav.jobs} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+              ) : (
+                <ChartEmpty message={t.common.noData} height={350} />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -157,8 +164,9 @@ export default function ReportsPage() {
           <Card>
             <CardHeader><CardTitle>{t.reports.serviceProfit}</CardTitle></CardHeader>
             <CardContent>
+              {hasProfitData(serviceChart) ? (
               <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={serviceChart.length > 0 ? serviceChart : SERVICE_PROFITABILITY}>
+                <BarChart data={serviceChart}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
                   <XAxis dataKey="name" stroke="#94a3b8" />
                   <YAxis stroke="#94a3b8" />
@@ -166,6 +174,9 @@ export default function ReportsPage() {
                   <Bar dataKey="profit" fill="#22c55e" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+              ) : (
+                <ChartEmpty message={t.common.noData} height={350} />
+              )}
             </CardContent>
           </Card>
         </TabsContent>

@@ -131,3 +131,19 @@ export function computeTechnicianPerformance(jobs: Job[], employees: Employee[])
     .filter((p) => (p.revenue ?? 0) > 0)
     .sort((a, b) => (b.revenue ?? 0) - (a.revenue ?? 0))
 }
+
+export function hasRevenueData(chart: ChartDataPoint[]): boolean {
+  return chart.some((p) => (p.revenue ?? 0) > 0 || (p.profit ?? 0) > 0)
+}
+
+export function hasValueData(chart: ChartDataPoint[]): boolean {
+  return chart.some((p) => (p.value ?? 0) > 0)
+}
+
+export function hasProfitData(chart: ChartDataPoint[]): boolean {
+  return chart.some((p) => (p.profit ?? 0) > 0 || (p.jobs ?? 0) > 0)
+}
+
+export function hasTechnicianData(chart: ChartDataPoint[]): boolean {
+  return chart.some((p) => (p.revenue ?? 0) > 0 || (p.jobs ?? 0) > 0)
+}

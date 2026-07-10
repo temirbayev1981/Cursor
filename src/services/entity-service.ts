@@ -67,6 +67,28 @@ const TABLE_MAP: Record<keyof EntityMap, string> = {
   services: 'service_catalog',
 }
 
+type SupabaseOps = {
+  from: (table: string) => {
+    select: (cols: string) => {
+      eq: (col: string, val: string) => {
+        order: (col: string, opts: { ascending: boolean }) => Promise<{ data: unknown[] | null; error: { message: string } | null }>
+      }
+    }
+    upsert: (row: unknown) => {
+      select: () => {
+        single: () => Promise<{ data: unknown; error: { message: string } | null }>
+      }
+    }
+    delete: () => {
+      eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>
+    }
+  }
+}
+
+function getDb() {
+  return supabase as unknown as SupabaseOps
+}
+
 function ensureSeeded<K extends keyof EntityMap>(entity: K, companyId: string): EntityMap[K][] {
   const key = KEY_MAP[entity]
   const seeded = localStorage.getItem(`${key}_seeded`)
@@ -79,40 +101,86 @@ function ensureSeeded<K extends keyof EntityMap>(entity: K, companyId: string): 
   return filterByCompany(items, companyId)
 }
 
+function loadLocalEntities<K extends keyof EntityMap>(entity: K, companyId: string): EntityMap[K][] {
+  return filterByCompany(loadStore<EntityMap[K]>(KEY_MAP[entity]), companyId)
+}
+
 export async function listEntities<K extends keyof EntityMap>(entity: K, companyId: string): Promise<EntityMap[K][]> {
   if (DEMO_MODE || !supabase) {
     return ensureSeeded(entity, companyId)
   }
-  const client = supabase as unknown as {
-    from: (t: string) => { select: (s: string) => { eq: (c: string, v: string) => { order: (c: string, o: object) => Promise<{ data: EntityMap[K][] | null; error: { message: string } | null }> } } }
+
+  try {
+    const { data, error } = await getDb()
+      .from(TABLE_MAP[entity])
+      .select('*')
+      .eq('company_id', companyId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+
+    const items = (data ?? []) as EntityMap[K][]
+    if (items.length > 0) {
+      saveStore(KEY_MAP[entity], items)
+      return items
+    }
+
+    return loadLocalEntities(entity, companyId)
+  } catch {
+    const local = loadLocalEntities(entity, companyId)
+    return local.length > 0 ? local : ensureSeeded(entity, companyId)
   }
-  const { data, error } = await client.from(TABLE_MAP[entity]).select('*').eq('company_id', companyId).order('created_at', { ascending: false })
-  if (error) throw error
-  return data ?? []
 }
 
 export async function saveEntity<K extends keyof EntityMap>(entity: K, item: EntityMap[K]): Promise<EntityMap[K]> {
+  upsertStore(KEY_MAP[entity], item)
+
   if (DEMO_MODE || !supabase) {
-    return upsertStore(KEY_MAP[entity], item)
+    return item
   }
-  const client = supabase as unknown as {
-    from: (t: string) => { upsert: (d: unknown) => { select: () => { single: () => Promise<{ data: EntityMap[K]; error: { message: string } | null }> } } }
-  }
-  const { data, error } = await client.from(TABLE_MAP[entity]).upsert(item).select().single()
+
+  const { data, error } = await getDb()
+    .from(TABLE_MAP[entity])
+    .upsert(item)
+    .select()
+    .single()
+
   if (error) throw error
-  return data
+  return data as EntityMap[K]
 }
 
 export async function deleteEntity<K extends keyof EntityMap>(entity: K, id: string): Promise<void> {
+  removeFromStore(KEY_MAP[entity], id)
+
   if (DEMO_MODE || !supabase) {
-    removeFromStore(KEY_MAP[entity], id)
     return
   }
-  const client = supabase as unknown as {
-    from: (t: string) => { delete: () => { eq: (c: string, v: string) => Promise<{ error: { message: string } | null }> } }
-  }
-  const { error } = await client.from(TABLE_MAP[entity]).delete().eq('id', id)
+
+  const { error } = await getDb().from(TABLE_MAP[entity]).delete().eq('id', id)
   if (error) throw error
+}
+
+export async function importDemoSeedToSupabase(companyId: string): Promise<{ imported: number }> {
+  if (!supabase) {
+    throw new Error('Supabase is not configured')
+  }
+
+  let imported = 0
+  const entities = Object.keys(SEED) as (keyof EntityMap)[]
+
+  for (const entity of entities) {
+    const seedItems = SEED[entity] as EntityMap[typeof entity][]
+    const items = seedItems.map((i) => ({ ...i, company_id: companyId }))
+    for (const item of items) {
+      await saveEntity(entity, item)
+      imported++
+    }
+  }
+
+  saveStore(STORE_KEYS.fuelLogs, DEMO_FUEL_LOGS)
+  localStorage.setItem(`${STORE_KEYS.fuelLogs}_seeded`, 'true')
+
+  return { imported }
 }
 
 export async function createJobFromVendorPO(

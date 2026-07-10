@@ -3,6 +3,8 @@ import {
   computeDashboardMetrics,
   computeServiceProfitability,
   computeTechnicianPerformance,
+  hasRevenueData,
+  hasValueData,
 } from '@/lib/analytics'
 import type { Job, Employee } from '@/types'
 
@@ -59,5 +61,13 @@ describe('analytics', () => {
     const assigned = { ...job, assigned_technician_id: 'e1' }
     const perf = computeTechnicianPerformance([assigned], [emp])
     expect(perf[0]?.revenue).toBe(500)
+  })
+
+  it('detects empty vs populated chart data', () => {
+    const chart = computeServiceProfitability([job])
+    expect(hasRevenueData([{ name: 'Jan', revenue: 0, profit: 0 }])).toBe(false)
+    expect(hasRevenueData(chart)).toBe(true)
+    expect(hasValueData([{ name: 'Labor', value: 0 }])).toBe(false)
+    expect(hasValueData([{ name: 'Labor', value: 100 }])).toBe(true)
   })
 })

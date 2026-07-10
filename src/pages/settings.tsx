@@ -10,7 +10,8 @@ import { useState } from 'react'
 import { useAuth } from '@/contexts/auth-context'
 import { useTheme } from '@/contexts/theme-context'
 import { useTranslation } from '@/contexts/locale-context'
-import { hasStripe, hasGoogleMaps, hasOpenAI, hasSupabase } from '@/lib/env'
+import { hasStripe, hasGoogleMaps, hasOpenAI, hasSupabase, hasSms, hasNotificationWebhook } from '@/lib/env'
+import { useImportDemoSeed } from '@/hooks/use-entities'
 import { getNotificationQueue } from '@/services/notification-service'
 import { getErrorReports } from '@/lib/observability'
 import { getStoredCompany } from '@/services/onboarding-service'
@@ -37,8 +38,10 @@ export default function SettingsPage() {
     maps: hasGoogleMaps ? 'connected' : 'configure',
     openai: hasOpenAI ? 'connected' : 'configure',
     supabase: hasSupabase ? 'connected' : 'configure',
-    email: 'configure',
+    email: hasNotificationWebhook || hasSms ? 'connected' : 'configure',
   }
+
+  const importDemoSeed = useImportDemoSeed()
 
   const plans = [
     { key: 'starter' as const, price: 49, current: false },
@@ -174,6 +177,28 @@ export default function SettingsPage() {
 
         <TabsContent value="system">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {hasSupabase && (
+              <Card className="md:col-span-2">
+                <CardHeader><CardTitle>Supabase</CardTitle></CardHeader>
+                <CardContent className="flex items-center justify-between gap-4">
+                  <p className="text-sm text-muted-foreground">
+                    {locale === 'ru'
+                      ? 'Импорт демо-данных в подключённую базу Supabase (клиенты, заказы, сметы, счета).'
+                      : 'Import demo data into your connected Supabase database (customers, jobs, estimates, invoices).'}
+                  </p>
+                  <Button
+                    variant="outline"
+                    disabled={importDemoSeed.isPending}
+                    onClick={() => importDemoSeed.mutate(undefined, {
+                      onSuccess: (r) => toast.success(`${locale === 'ru' ? 'Импортировано' : 'Imported'}: ${r.imported}`),
+                      onError: (e) => toast.error(e.message),
+                    })}
+                  >
+                    {locale === 'ru' ? 'Импорт демо-данных' : 'Import demo data'}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
             <Card>
               <CardHeader><CardTitle>Notifications ({notifications.length})</CardTitle></CardHeader>
               <CardContent className="space-y-2 text-sm">

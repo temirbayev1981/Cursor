@@ -7,6 +7,9 @@ const envSchema = z.object({
   VITE_GOOGLE_MAPS_API_KEY: z.string().optional(),
   VITE_OPENAI_API_KEY: z.string().optional(),
   VITE_STRIPE_CHECKOUT_ENDPOINT: z.string().optional(),
+  VITE_NOTIFICATION_WEBHOOK_URL: z.string().optional(),
+  VITE_SMS_WEBHOOK_URL: z.string().optional(),
+  VITE_SENTRY_DSN: z.string().optional(),
 })
 
 export const env = envSchema.parse(import.meta.env)
@@ -15,3 +18,5 @@ export const hasSupabase = Boolean(env.VITE_SUPABASE_URL && env.VITE_SUPABASE_AN
 export const hasStripe = Boolean(env.VITE_STRIPE_PUBLISHABLE_KEY)
 export const hasGoogleMaps = Boolean(env.VITE_GOOGLE_MAPS_API_KEY)
 export const hasOpenAI = Boolean(env.VITE_OPENAI_API_KEY)
+export const hasNotificationWebhook = Boolean(env.VITE_NOTIFICATION_WEBHOOK_URL)
+export const hasSms = Boolean(env.VITE_SMS_WEBHOOK_URL)

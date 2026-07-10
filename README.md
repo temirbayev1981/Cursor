@@ -49,16 +49,7 @@ Open [http://localhost:5173](http://localhost:5173) and sign in with any credent
 
 ## Demo Mode
 
-Without Supabase credentials, the app runs in **demo mode** with realistic sample data. To connect a live backend:
-
-1. Create a Supabase project at [supabase.com](https://supabase.com)
-2. Run `supabase/schema.sql` in the SQL Editor
-3. Copy `.env.example` to `.env` and add your keys:
-
-```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-```
+Without Supabase credentials, the app runs in **demo mode** with realistic sample data. To connect a live backend, see [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ## Project Structure
 

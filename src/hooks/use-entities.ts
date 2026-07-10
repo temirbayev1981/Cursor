@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
-import { listEntities, saveEntity, createJobFromVendorPO, createEstimateFromJob, createInvoiceFromEstimate, createScheduleFromJob, listFuelLogs } from '@/services/entity-service'
+import { listEntities, saveEntity, createJobFromVendorPO, createEstimateFromJob, createInvoiceFromEstimate, createScheduleFromJob, importDemoSeedToSupabase, listFuelLogs } from '@/services/entity-service'
 import { recordInvoicePayment, sendInvoiceToCustomer } from '@/services/payment-service'
 import type { Job, Customer, Estimate, Invoice } from '@/types'
 import type { VendorPORecord } from '@/types/vendor-po'
@@ -213,6 +213,17 @@ export function useCreateScheduleFromJob() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['schedules', companyId] })
       qc.invalidateQueries({ queryKey: ['jobs', companyId] })
+    },
+  })
+}
+
+export function useImportDemoSeed() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: () => importDemoSeedToSupabase(companyId),
+    onSuccess: () => {
+      qc.invalidateQueries()
     },
   })
 }

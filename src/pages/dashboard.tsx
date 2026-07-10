@@ -34,13 +34,12 @@ import {
   computeExpenseBreakdown,
   computeServiceProfitability,
   computeTechnicianPerformance,
+  hasRevenueData,
+  hasValueData,
+  hasProfitData,
+  hasTechnicianData,
 } from '@/lib/analytics'
-import {
-  REVENUE_CHART_DATA,
-  EXPENSE_BREAKDOWN,
-  SERVICE_PROFITABILITY,
-  TECHNICIAN_PERFORMANCE,
-} from '@/data/mock-data'
+import { ChartEmpty } from '@/components/shared/chart-empty'
 import { useJobs, useCustomers, useEstimates, useExpenses, useEmployees, useFuelLogs } from '@/hooks/use-entities'
 import { Skeleton } from '@/components/shared/skeleton'
 import { formatCurrency } from '@/lib/utils'
@@ -105,8 +104,9 @@ export default function DashboardPage() {
           <Card>
             <CardHeader><CardTitle>{t.dashboard.revenueProfitTrends}</CardTitle></CardHeader>
             <CardContent>
+              {hasRevenueData(revenueChart) ? (
               <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={revenueChart.length > 1 ? revenueChart : REVENUE_CHART_DATA}>
+                <AreaChart data={revenueChart}>
                   <defs>
                     <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
@@ -126,6 +126,9 @@ export default function DashboardPage() {
                   <Area type="monotone" dataKey="profit" name={t.dashboard.profit} stroke="#22c55e" fill="url(#profitGrad)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
+              ) : (
+                <ChartEmpty message={t.common.noData} height={300} />
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -134,10 +137,11 @@ export default function DashboardPage() {
           <Card>
             <CardHeader><CardTitle>{t.dashboard.expenseBreakdown}</CardTitle></CardHeader>
             <CardContent>
+              {hasValueData(expenseChart) ? (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
-                  <Pie data={expenseChart.length > 0 ? expenseChart : EXPENSE_BREAKDOWN} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={4} dataKey="value" nameKey="name">
-                    {(expenseChart.length > 0 ? expenseChart : EXPENSE_BREAKDOWN).map((_, index) => (
+                  <Pie data={expenseChart} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={4} dataKey="value" nameKey="name">
+                    {expenseChart.map((_, index) => (
                       <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                     ))}
                   </Pie>
@@ -145,6 +149,9 @@ export default function DashboardPage() {
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
+              ) : (
+                <ChartEmpty message={t.common.noData} height={300} />
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -155,8 +162,9 @@ export default function DashboardPage() {
           <Card>
             <CardHeader><CardTitle>{t.dashboard.profitableServices}</CardTitle></CardHeader>
             <CardContent>
+              {hasProfitData(serviceChart) ? (
               <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={serviceChart.length > 0 ? serviceChart : SERVICE_PROFITABILITY} layout="vertical">
+                <BarChart data={serviceChart} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
                   <XAxis type="number" stroke="#94a3b8" fontSize={12} tickFormatter={(v) => `$${(v / 1000).toFixed(1)}k`} />
                   <YAxis type="category" dataKey="name" stroke="#94a3b8" fontSize={12} width={80} />
@@ -164,6 +172,9 @@ export default function DashboardPage() {
                   <Bar dataKey="profit" fill="#0ea5e9" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+              ) : (
+                <ChartEmpty message={t.common.noData} height={280} />
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -172,8 +183,9 @@ export default function DashboardPage() {
           <Card>
             <CardHeader><CardTitle>{t.dashboard.technicianPerformance}</CardTitle></CardHeader>
             <CardContent>
+              {hasTechnicianData(techChart) ? (
               <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={techChart.length > 0 ? techChart : TECHNICIAN_PERFORMANCE}>
+                <BarChart data={techChart}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
                   <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
                   <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
@@ -181,6 +193,9 @@ export default function DashboardPage() {
                   <Bar dataKey="revenue" name={t.dashboard.revenue} fill="#fbbf24" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+              ) : (
+                <ChartEmpty message={t.common.noData} height={280} />
+              )}
             </CardContent>
           </Card>
         </motion.div>
