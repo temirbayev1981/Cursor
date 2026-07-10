@@ -188,7 +188,7 @@ export default function SettingsPage() {
                     {theme === 'dark' ? t.settings.themeSwitchToLight : t.settings.themeSwitchToDark}
                   </p>
                 </div>
-                <Button variant="outline" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+                <Button variant="outline" size="icon" data-testid="theme-toggle" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
                   {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 </Button>
               </div>

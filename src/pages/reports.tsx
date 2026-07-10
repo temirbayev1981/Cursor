@@ -143,10 +143,10 @@ export default function ReportsPage() {
         description={t.reports.description}
         actions={
           <>
-            <Button variant="outline" onClick={handleExportPdf}>
+            <Button variant="outline" data-testid="reports-export-pdf" onClick={handleExportPdf}>
               <Download className="h-4 w-4" />{t.common.exportPdf}
             </Button>
-            <Button variant="outline" onClick={() => exportFullReport(filteredJobs, customers, employees)}>
+            <Button variant="outline" data-testid="reports-export-csv" onClick={() => exportFullReport(filteredJobs, customers, employees)}>
               <FileSpreadsheet className="h-4 w-4" />{t.common.exportCsv}
             </Button>
           </>

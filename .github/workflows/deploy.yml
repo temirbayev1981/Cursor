@@ -44,7 +44,7 @@ jobs:
           VITE_SMS_WEBHOOK_URL: ${{ secrets.VITE_SMS_WEBHOOK_URL }}
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
           VITE_ERROR_WEBHOOK_URL: ${{ secrets.VITE_ERROR_WEBHOOK_URL }}
-          VITE_APP_VERSION: 1.4.2
+          VITE_APP_VERSION: 1.4.3
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - uses: actions/upload-pages-artifact@v3

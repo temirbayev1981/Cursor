@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.4.3] — 2026-07-10
+
+Technicians, theme toggle, and reports export E2E.
+
+### Phase 51 — Technicians, theme & reports E2E
+- E2E: technicians demo cards, create technician (`technicians-theme-reports.spec.ts`)
+- E2E: settings + command palette theme toggle
+- E2E: reports technicians tab, CSV export download
+- `data-testid` on employee form, theme toggle, report export buttons
+
 ## [1.4.2] — 2026-07-10
 
 Properties and job inventory E2E.
