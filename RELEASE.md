@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.9.2
+# HandymanOS AI — Release 1.9.3
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.9.2`**, current package **1.9.2**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.9.3`**, current package **1.9.3**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -116,9 +116,14 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Async service worker registration; honest offline_sync requires active SW
 - Platform audit `pwa_sw_offline_audit` gate; Settings refreshes on SW ready
 
+### 1.9.3 — Integration probe UI
+- Live probe badges in Settings → Integrations (production + E2E synthetic probes)
+- Probe summary banner and refresh button
+- Platform audit `integration_probe_ui_audit` gate
+
 ## Test coverage
 
-- Unit: **124** (`npm test`)
+- Unit: **128** (`npm test`)
 - E2E: **185/185** (`npm run test:e2e`)
 
 ## Deploy

@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.9.3] — 2026-07-10
+
+Live integration probe UI in Settings and E2E.
+
+### Phase 95 — Integration probe UI
+- `probeIntegrationsForSettings()` — live probes in production, synthetic probes in E2E mock
+- Settings → Integrations: probe summary banner, refresh button, Live badges in E2E
+- Platform audit: `integration_probe_ui_audit` quality gate
+- `verify:production` checks `INTEGRATION_PROBE_UI_AUDIT` and probe UI module
+- **185** E2E tests, **128** unit tests
+
 ## [1.9.2] — 2026-07-10
 
 Sentry DSN probe and honest service worker offline gate.

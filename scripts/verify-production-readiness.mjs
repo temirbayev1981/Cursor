@@ -191,6 +191,21 @@ if (platformProbes.includes('getSentryProbeUrl')) {
   ok = false
 }
 
+if (auditLabels.includes('INTEGRATION_PROBE_UI_AUDIT = true')) {
+  console.log('✓ INTEGRATION_PROBE_UI_AUDIT gate enabled')
+} else {
+  console.log('✗ INTEGRATION_PROBE_UI_AUDIT must be true')
+  ok = false
+}
+
+const integrationProbeUi = readFileSync('src/lib/integration-probe-ui.ts', 'utf8')
+if (integrationProbeUi.includes('probeIntegrationsForSettings')) {
+  console.log('✓ integration-probe-ui runs synthetic probes in E2E mock')
+} else {
+  console.log('✗ integration-probe-ui must expose probeIntegrationsForSettings')
+  ok = false
+}
+
 const changelog = readFileSync('CHANGELOG.md', 'utf8')
 if (changelog.includes(`[${pkg.version}]`)) {
   console.log(`✓ CHANGELOG.md has [${pkg.version}] entry`)

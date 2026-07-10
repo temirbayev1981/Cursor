@@ -11,7 +11,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
 import { useTheme } from '@/contexts/theme-context'
 import { useTranslation } from '@/contexts/locale-context'
-import { hasStripe, hasGoogleMaps, hasOpenAI, hasSupabase, hasNotificationConfigured, hasSmsConfigured, hasObservability, isE2eMockBackend } from '@/lib/env'
+import { hasStripe, hasGoogleMaps, hasOpenAI, hasSupabase, hasNotificationConfigured, hasSmsConfigured, hasObservability } from '@/lib/env'
 import { useImportSampleData, useAuditLogs } from '@/hooks/use-entities'
 import { logAudit } from '@/services/entity-service'
 import { getNotificationQueue } from '@/services/notification-service'
@@ -19,7 +19,7 @@ import { getErrorReports } from '@/lib/observability'
 import { computePlatformHealth } from '@/lib/platform-health'
 import { formatAuditAction, countUniqueAuditActions, AUDIT_ACTION_COUNT } from '@/lib/audit-labels'
 import { computePlatformAudit } from '@/lib/platform-audit'
-import { probeLiveIntegrations, type IntegrationProbe } from '@/lib/platform-probes'
+import { probeIntegrationsForSettings, probesToRecord, summarizeIntegrationProbes } from '@/lib/integration-probe-ui'
 import { isServiceWorkerRegistered, whenServiceWorkerReady } from '@/lib/pwa'
 import { computeSystemMetrics } from '@/lib/system-metrics'
 import { getStoredCompany } from '@/services/onboarding-service'
@@ -53,8 +53,9 @@ export default function SettingsPage() {
   const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan>(base?.subscription_plan ?? 'professional')
   const [companySaving, setCompanySaving] = useState(false)
   const [upgradingPlan, setUpgradingPlan] = useState<SubscriptionPlan | null>(null)
-  const [integrationProbes, setIntegrationProbes] = useState<Record<string, IntegrationProbe['reachable']>>({})
+  const [integrationProbes, setIntegrationProbes] = useState<Record<string, boolean | null>>({})
   const [probesLoading, setProbesLoading] = useState(false)
+  const [probesRefreshKey, setProbesRefreshKey] = useState(0)
   const [serviceWorkerReady, setServiceWorkerReady] = useState(isServiceWorkerRegistered)
 
   const [companyForm, setCompanyForm] = useState({
@@ -85,23 +86,27 @@ export default function SettingsPage() {
   }, [base?.subscription_plan])
 
   useEffect(() => {
-    if (isE2eMockBackend) return
     let cancelled = false
     setProbesLoading(true)
-    void probeLiveIntegrations()
+    void probeIntegrationsForSettings()
       .then((results) => {
         if (cancelled) return
-        const map: Record<string, IntegrationProbe['reachable']> = {}
-        for (const probe of results) {
-          map[probe.id] = probe.reachable
-        }
-        setIntegrationProbes(map)
+        setIntegrationProbes(probesToRecord(results))
       })
       .finally(() => {
         if (!cancelled) setProbesLoading(false)
       })
     return () => { cancelled = true }
-  }, [])
+  }, [probesRefreshKey])
+
+  const refreshIntegrationProbes = () => {
+    setProbesRefreshKey((key) => key + 1)
+  }
+
+  const probeSummary = useMemo(
+    () => summarizeIntegrationProbes(integrationProbes),
+    [integrationProbes],
+  )
 
   useEffect(() => {
     if (serviceWorkerReady) return
@@ -296,6 +301,26 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="integrations">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <p className="text-sm text-muted-foreground" data-testid="integration-probes-summary">
+              {probesLoading
+                ? t.settings.integrationProbesSummaryChecking
+                : probeSummary.total > 0
+                  ? t.settings.integrationProbesSummary
+                      .replace('{live}', String(probeSummary.live))
+                      .replace('{total}', String(probeSummary.total))
+                  : t.settings.integrationProbesSummaryNone}
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              data-testid="integration-probes-refresh"
+              disabled={probesLoading}
+              onClick={refreshIntegrationProbes}
+            >
+              {t.settings.integrationProbesRefresh}
+            </Button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {INTEGRATION_KEYS.map((key) => {
               const card = t.settings.integrationCards[key]

@@ -54,6 +54,9 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('integration-card-stripe')).toBeVisible()
     await expect(page.getByTestId('integration-card-observability')).toBeVisible()
     await expect(page.getByTestId('integration-status-supabase')).toBeVisible()
+    await expect(page.getByTestId('integration-probes-summary')).toBeVisible()
+    await expect(page.getByTestId('integration-probes-refresh')).toBeVisible()
+    await expect(page.getByTestId('integration-probe-supabase')).toHaveText(/онлайн|live/i)
   })
 
   test('system tab shows platform audit checklist and coverage summary', async ({ page }) => {
@@ -64,6 +67,7 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('platform-audit-check-integration_probes')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-observability_probe_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-pwa_sw_offline_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-integration_probe_ui_audit')).toBeVisible()
     await expect(page.getByTestId('audit-coverage-summary')).toBeVisible()
     await expect(page.getByTestId('audit-coverage-summary')).toHaveText(/\d+.*(?:типов действий в журнале|action types in log).*\d+.*(?:локализованных меток|localized labels)/i)
   })

@@ -575,6 +575,10 @@ export const ru = {
     integrationProbeLive: 'Онлайн',
     integrationProbeUnreachable: 'Недоступно',
     integrationProbeChecking: 'Проверка…',
+    integrationProbesRefresh: 'Обновить пробы',
+    integrationProbesSummary: '{live}/{total} интеграций онлайн',
+    integrationProbesSummaryChecking: 'Проверка эндпоинтов интеграций…',
+    integrationProbesSummaryNone: 'Настройте интеграции для live-проб',
     roles: ['Владелец', 'Администратор', 'Диспетчер', 'Мастер', 'Бухгалтер', 'Клиент'],
     inviteMember: 'Пригласить в команду',
     inviteEmail: 'Email сотрудника',
@@ -657,6 +661,7 @@ export const ru = {
       integration_probes: 'Пробы интеграций',
       observability_probe_audit: 'Проба observability',
       pwa_sw_offline_audit: 'Service worker офлайн',
+      integration_probe_ui_audit: 'UI проб интеграций',
       multi_tenant: 'Мульти-тенант',
     },
     auditActions: {
