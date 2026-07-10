@@ -32,6 +32,7 @@ import {
   computeDashboardMetrics,
   computeRevenueChart,
   computeExpenseBreakdown,
+  localizeExpenseChart,
   computeServiceProfitability,
   computeTechnicianPerformance,
   computePeriodComparison,
@@ -76,7 +77,18 @@ export default function DashboardPage() {
   const metrics = computeDashboardMetrics(jobs, estimates, expenses, fuelLogs)
   const comparison = computePeriodComparison(jobs)
   const revenueChart = computeRevenueChart(jobs)
-  const expenseChart = computeExpenseBreakdown(jobs, expenses, fuelLogs)
+  const expenseChart = localizeExpenseChart(
+    computeExpenseBreakdown(jobs, expenses, fuelLogs),
+    {
+      Labor: t.dashboard.labor,
+      Materials: t.dashboard.materials,
+      Fuel: t.dashboard.fuel,
+      Tools: t.dashboard.tools,
+      Insurance: t.dashboard.insurance,
+      Office: t.expenses.categories.office,
+      Other: t.expenses.categories.other,
+    },
+  )
   const serviceChart = computeServiceProfitability(jobs)
   const techChart = computeTechnicianPerformance(jobs, employees)
 

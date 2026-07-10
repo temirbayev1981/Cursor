@@ -80,7 +80,7 @@ export default function InvoicesPage() {
     const customer = customers.find((c) => c.id === invoice.customer_id)
     if (!customer?.email) return
     sendInvoice.mutate({ invoice, email: customer.email }, {
-      onSuccess: () => toast.success(`Счёт отправлен: ${customer.email}`),
+      onSuccess: () => toast.success(t.invoices.invoiceSent.replace('{email}', customer.email)),
     })
   }
 

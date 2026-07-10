@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Search, X } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
@@ -31,6 +31,7 @@ export default function JobsPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [bulkStatus, setBulkStatus] = useState<JobStatus>('scheduled')
   const [bulkTechnicianId, setBulkTechnicianId] = useState('emp-002')
+  const [bulkDeleteArmed, setBulkDeleteArmed] = useState(false)
   const { company } = useAuth()
   const companyId = company?.id ?? 'comp-001'
   const { data: jobs = [], isLoading } = useJobs()
@@ -43,6 +44,10 @@ export default function JobsPage() {
   const bulkDeleteJobs = useBulkDeleteJobs()
 
   const activeTechnicians = employees.filter((e) => e.is_active && e.billing_rate > 0)
+
+  useEffect(() => {
+    setBulkDeleteArmed(false)
+  }, [selectedIds])
 
   const filtered = jobs.filter((job) => {
     const matchesSearch = job.title.toLowerCase().includes(search.toLowerCase())
@@ -87,13 +92,18 @@ export default function JobsPage() {
     )
   }
 
-  const handleBulkDelete = () => {
+  const handleBulkDeleteClick = () => {
     const selected = jobs.filter((job) => selectedIds.has(job.id))
     if (selected.length === 0) return
+    if (!bulkDeleteArmed) {
+      setBulkDeleteArmed(true)
+      return
+    }
     bulkDeleteJobs.mutate(selected, {
       onSuccess: () => {
         toast.success(t.jobs.bulkDeleted.replace('{count}', String(selected.length)))
         setSelectedIds(new Set())
+        setBulkDeleteArmed(false)
       },
     })
   }
@@ -262,12 +272,14 @@ export default function JobsPage() {
           </Button>
           <Button
             size="sm"
-            variant="outline"
-            onClick={handleBulkDelete}
+            variant={bulkDeleteArmed ? 'destructive' : 'outline'}
+            onClick={handleBulkDeleteClick}
             disabled={bulkDeleteJobs.isPending}
             data-testid="jobs-bulk-delete"
           >
-            {t.jobs.bulkDelete}
+            {bulkDeleteArmed
+              ? t.jobs.bulkDeleteConfirm.replace('{count}', String(selectedIds.size))
+              : t.jobs.bulkDelete}
           </Button>
         </div>
       )}

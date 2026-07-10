@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useTranslation } from '@/contexts/locale-context'
+import { EXPENSE_CATEGORY_KEYS } from '@/lib/analytics'
 import type { Expense } from '@/types'
 
 interface ExpenseFormProps {
@@ -13,10 +14,20 @@ interface ExpenseFormProps {
   onCancel?: () => void
 }
 
-const CATEGORIES = ['Fuel', 'Materials', 'Tools', 'Insurance', 'Office', 'Other']
-
 export function ExpenseForm({ companyId, onSubmit, onCancel }: ExpenseFormProps) {
   const { t } = useTranslation()
+  const categoryLabels: Record<(typeof EXPENSE_CATEGORY_KEYS)[number], string> = {
+    Fuel: t.expenses.categories.fuel,
+    Materials: t.expenses.categories.materials,
+    Tools: t.expenses.categories.tools,
+    Insurance: t.expenses.categories.insurance,
+    Office: t.expenses.categories.office,
+    Other: t.expenses.categories.other,
+  }
+  const categoryOptions = EXPENSE_CATEGORY_KEYS.map((key) => ({
+    value: key,
+    label: categoryLabels[key],
+  }))
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseSchema),
     defaultValues: { date: new Date().toISOString().slice(0, 10), category: 'Materials' },
@@ -41,7 +52,7 @@ export function ExpenseForm({ companyId, onSubmit, onCancel }: ExpenseFormProps)
           <Label>{t.expenses.category}</Label>
           <Input className="mt-1" list="expense-categories" {...register('category')} />
           <datalist id="expense-categories">
-            {CATEGORIES.map((c) => <option key={c} value={c} />)}
+            {categoryOptions.map((c) => <option key={c.value} value={c.value} label={c.label} />)}
           </datalist>
           {errors.category && <p className="text-xs text-destructive mt-1">{errors.category.message}</p>}
         </div>

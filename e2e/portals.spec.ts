@@ -70,6 +70,24 @@ test.describe('Portal magic link', () => {
     await expect(page).toHaveURL(/\/portal\/customer/, { timeout: 10000 })
     await expect(page.getByRole('heading', { name: /клиентский портал|customer portal/i })).toBeVisible()
   })
+
+  test('portal access page shows English errors for invalid token', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('handymanos_locale', 'en')
+    })
+    await page.goto('/portal/access?token=invalid-token-phase40')
+    await expect(page.getByRole('alert')).toContainText(/expired|invalid/i)
+    await expect(page.getByRole('link', { name: /back to login/i })).toBeVisible()
+  })
+
+  test('portal access page shows English error when token is missing', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('handymanos_locale', 'en')
+    })
+    await page.goto('/portal/access')
+    await expect(page.getByRole('alert')).toContainText(/invalid link/i)
+    await expect(page.getByRole('link', { name: /back to login/i })).toBeVisible()
+  })
 })
 
 test.describe('Portal access errors', () => {

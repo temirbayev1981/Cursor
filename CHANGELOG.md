@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.6.4] — 2026-07-10
+
+Audit P1 fixes: i18n toasts, expense categories, bulk delete confirm.
+
+### Phase 68 — Audit P1 fixes
+- i18n toasts for estimates, invoices, Stripe pay button
+- Localized expense categories in forms, dashboard, and reports charts
+- `localizeExpenseChart()` shared in analytics; removed deprecated `exportReportPdfPlaceholder`
+- Jobs bulk delete requires two-click confirmation
+- Unit tests for `export` and `localizeExpenseChart`
+- E2E: bulk delete confirm, portal access EN, scheduling EN
+
 ## [1.6.3] — 2026-07-10
 
 Portal review EN and route optimizer i18n E2E.

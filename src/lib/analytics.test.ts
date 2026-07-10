@@ -10,6 +10,7 @@ import {
   computeRangeComparison,
   hasRevenueData,
   hasValueData,
+  localizeExpenseChart,
 } from '@/lib/analytics'
 import type { Job, Employee } from '@/types'
 
@@ -139,5 +140,39 @@ describe('analytics', () => {
     expect(comparison.current.revenue).toBe(500)
     expect(comparison.previous.revenue).toBe(250)
     expect(comparison.revenueTrend).toBe(100)
+  })
+
+  it('localizes expense chart category labels', () => {
+    const chart = [
+      { name: 'Labor', value: 100 },
+      { name: 'Materials', value: 50 },
+      { name: 'Office', value: 25 },
+    ]
+    const localized = localizeExpenseChart(chart, {
+      Labor: 'Труд',
+      Materials: 'Материалы',
+      Fuel: 'Топливо',
+      Tools: 'Инструменты',
+      Insurance: 'Страховка',
+      Office: 'Офис',
+      Other: 'Прочее',
+    })
+    expect(localized[0]?.name).toBe('Труд')
+    expect(localized[1]?.name).toBe('Материалы')
+    expect(localized[2]?.name).toBe('Офис')
+  })
+
+  it('keeps unknown expense categories unchanged', () => {
+    const chart = [{ name: 'Custom', value: 10 }]
+    const localized = localizeExpenseChart(chart, {
+      Labor: 'Labor',
+      Materials: 'Materials',
+      Fuel: 'Fuel',
+      Tools: 'Tools',
+      Insurance: 'Insurance',
+      Office: 'Office',
+      Other: 'Other',
+    })
+    expect(localized[0]?.name).toBe('Custom')
   })
 })

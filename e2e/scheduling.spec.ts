@@ -30,4 +30,16 @@ test.describe('Scheduling', () => {
     await expect(page.getByText('E2E Draft Job for Scheduling').first()).toBeVisible()
     await expect(page.getByText('Marcus Thompson').first()).toBeVisible()
   })
+
+  test('scheduling page shows English labels', async ({ page }) => {
+    await loginAsOwner(page, 'en')
+    await seedDraftJob(page)
+    await page.goto('/scheduling')
+
+    await expect(page.getByRole('heading', { name: 'Scheduling' })).toBeVisible()
+    await expect(page.getByRole('tab', { name: 'Week' })).toBeVisible()
+    await expect(page.getByText(/technician availability/i).first()).toBeVisible()
+    await page.getByRole('button', { name: /schedule job/i }).first().click()
+    await expect(page.getByTestId('schedule-form')).toBeVisible()
+  })
 })

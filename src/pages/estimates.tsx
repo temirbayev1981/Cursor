@@ -66,13 +66,13 @@ export default function EstimatesPage() {
     if (!customer?.email) return
     await notifyEstimateSent(customer.email, est.title, est.total)
     saveEstimate.mutate({ ...est, status: 'sent' })
-    toast.success(`Смета отправлена: ${customer.email}`)
+    toast.success(t.estimates.estimateSent.replace('{email}', customer.email))
   }
 
   const handleConvert = (est: Estimate) => {
     convertToInvoice.mutate(
       { estimate: est, invoiceNumber: generateInvoiceNumber(invoices) },
-      { onSuccess: () => toast.success('Счёт создан из сметы') }
+      { onSuccess: () => toast.success(t.estimates.invoiceCreatedFromEstimate) }
     )
   }
 

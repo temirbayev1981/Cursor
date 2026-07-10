@@ -38,7 +38,7 @@ export function StripePayButton({ invoice, customerEmail, portalToken, onSuccess
       if (result === 'redirected') return
 
       if (result === 'error' && hasStripe) {
-        toast.error('Stripe Checkout недоступен — проверьте VITE_STRIPE_CHECKOUT_ENDPOINT')
+        toast.error(t.payments.stripeCheckoutUnavailable)
         return
       }
 
@@ -58,7 +58,7 @@ export function StripePayButton({ invoice, customerEmail, portalToken, onSuccess
   return (
     <Button size="sm" variant="outline" onClick={handlePay} disabled={loading} data-testid={`invoice-pay-${invoice.id}`}>
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-      {hasStripe ? 'Stripe' : t.common.pay}
+      {hasStripe ? t.payments.payWithStripe : t.common.pay}
     </Button>
   )
 }

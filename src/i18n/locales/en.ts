@@ -207,6 +207,7 @@ export const en: TranslationKeys = {
     bulkCancelled: 'Cancelled {count} jobs',
     bulkDelete: 'Delete',
     bulkDeleted: 'Deleted {count} jobs',
+    bulkDeleteConfirm: 'Confirm delete ({count})',
     onHold: 'On Hold',
     cancelled: 'Cancelled',
   },
@@ -310,6 +311,8 @@ export const en: TranslationKeys = {
     materials: 'Materials',
     total: 'Total',
     validUntil: 'Valid Until',
+    estimateSent: 'Estimate sent: {email}',
+    invoiceCreatedFromEstimate: 'Invoice created from estimate',
     pdf: {
       lineItems: 'Line items',
       description: 'Description',
@@ -449,6 +452,18 @@ export const en: TranslationKeys = {
     linked: 'Linked',
     job: 'Job',
     vehicle: 'Vehicle',
+    categories: {
+      fuel: 'Fuel',
+      materials: 'Materials',
+      tools: 'Tools',
+      insurance: 'Insurance',
+      office: 'Office',
+      other: 'Other',
+    },
+  },
+  payments: {
+    stripeCheckoutUnavailable: 'Stripe Checkout unavailable — check VITE_STRIPE_CHECKOUT_ENDPOINT',
+    payWithStripe: 'Pay with Stripe',
   },
   invoices: {
     title: 'Invoices',
@@ -467,6 +482,7 @@ export const en: TranslationKeys = {
     dueDate: 'Due Date',
     payNow: 'Pay Now',
     paymentReceived: 'Payment received',
+    invoiceSent: 'Invoice sent: {email}',
     pdf: {
       invoiceTitle: 'Invoice',
       lineItems: 'Line items',

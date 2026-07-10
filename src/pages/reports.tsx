@@ -25,6 +25,7 @@ import {
   computeTechnicianPerformance,
   computeReportSummary,
   computeExpenseBreakdown,
+  localizeExpenseChart,
   computeRangeComparison,
   filterJobsByDateRange,
   filterExpensesByDateRange,
@@ -46,21 +47,6 @@ import { subMonths, format } from 'date-fns'
 type ReportTab = 'financial' | 'profit' | 'technicians' | 'customers' | 'services' | 'expenses'
 
 const PIE_COLORS = ['#0ea5e9', '#fbbf24', '#22c55e', '#ef4444', '#8b5cf6', '#f97316']
-
-function localizeExpenseChart(
-  chart: ReturnType<typeof computeExpenseBreakdown>,
-  labels: { labor: string; materials: string; fuel: string },
-): ReturnType<typeof computeExpenseBreakdown> {
-  const map: Record<string, string> = {
-    Labor: labels.labor,
-    Materials: labels.materials,
-    Fuel: labels.fuel,
-  }
-  return chart.map((point) => ({
-    ...point,
-    name: map[point.name] ?? point.name,
-  }))
-}
 
 function defaultStartDate() {
   return format(subMonths(new Date(), 6), 'yyyy-MM-dd')
@@ -109,6 +95,24 @@ export default function ReportsPage() {
     [filteredJobs, filteredExpenses, filteredFuelLogs],
   )
 
+  const expenseCategoryLabels = useMemo(
+    () => ({
+      Labor: t.dashboard.labor,
+      Materials: t.dashboard.materials,
+      Fuel: t.dashboard.fuel,
+      Tools: t.dashboard.tools,
+      Insurance: t.dashboard.insurance,
+      Office: t.expenses.categories.office,
+      Other: t.expenses.categories.other,
+    }),
+    [t],
+  )
+
+  const localizedExpenseChart = useMemo(
+    () => localizeExpenseChart(expenseChart, expenseCategoryLabels),
+    [expenseChart, expenseCategoryLabels],
+  )
+
   const dateRangeLabel = `${startDate} — ${endDate}`
 
   const tabLabels: Record<ReportTab, string> = {
@@ -142,7 +146,6 @@ export default function ReportsPage() {
       category: t.expenses.category,
       amount: t.expenses.amount,
     }
-    const expenseLabels = { labor: t.dashboard.labor, materials: t.dashboard.materials, fuel: t.dashboard.fuel }
     exportReportPdf({
       title: t.reports.title,
       dateRangeLabel,
@@ -169,7 +172,7 @@ export default function ReportsPage() {
               }
             })
         : undefined,
-      expenses: activeTab === 'expenses' ? localizeExpenseChart(expenseChart, expenseLabels) : undefined,
+      expenses: activeTab === 'expenses' ? localizedExpenseChart : undefined,
     })
   }
 
@@ -373,11 +376,11 @@ export default function ReportsPage() {
           <Card>
             <CardHeader><CardTitle>{t.reports.expenseBreakdown}</CardTitle></CardHeader>
             <CardContent>
-              {hasValueData(expenseChart) ? (
+              {hasValueData(localizedExpenseChart) ? (
                 <ResponsiveContainer width="100%" height={350}>
                   <PieChart>
                     <Pie
-                      data={expenseChart}
+                      data={localizedExpenseChart}
                       cx="50%"
                       cy="50%"
                       innerRadius={70}
@@ -386,7 +389,7 @@ export default function ReportsPage() {
                       dataKey="value"
                       nameKey="name"
                     >
-                      {expenseChart.map((_, index) => (
+                      {localizedExpenseChart.map((_, index) => (
                         <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                       ))}
                     </Pie>

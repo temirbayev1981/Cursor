@@ -308,6 +308,7 @@ test.describe('Jobs bulk delete', () => {
     await page.getByTestId('job-select-job-bulk-001').check()
     await page.getByTestId('job-select-job-bulk-002').check()
     await page.getByTestId('jobs-bulk-delete').click()
+    await page.getByTestId('jobs-bulk-delete').click()
 
     await expect(page.getByText(/удалено заказов:\s*2|deleted 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
     await expect(page.getByText('E2E Bulk Draft A')).toHaveCount(0)

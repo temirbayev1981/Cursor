@@ -1,19 +1,22 @@
-# HandymanOS AI — Release 1.6.3
+# HandymanOS AI — Release 1.6.4
 
-Portal review EN and route optimizer i18n E2E on **1.6.2**.
+Audit P1 fixes on **1.6.3**.
 
-## What's new in 1.6.3
+## What's new in 1.6.4
 
-- Customer portal review testids: `customer-portal-leave-review`, `portal-review-submit`
-- Route optimizer `route-optimizer-open-maps` testid
-- `clearPortalReview()` E2E helper
-- E2E: portal review EN, route optimizer EN labels on dispatch
-- E2E: **134** tests total across 30 spec files
+- i18n toasts: estimate sent, invoice sent, Stripe checkout errors
+- Expense category labels localized in form datalist, dashboard pie chart, reports chart/PDF
+- `localizeExpenseChart()` centralized in `analytics.ts`
+- Removed deprecated `exportReportPdfPlaceholder`
+- Jobs bulk delete: two-click confirm (`bulkDeleteConfirm`)
+- Unit tests: `export.test.ts`, `localizeExpenseChart` in `analytics.test.ts`
+- E2E: bulk delete two-click, portal access EN errors, scheduling EN labels
+- E2E: **137** tests total across 30 spec files
 
 ## Test coverage
 
-- Unit: **83**
-- E2E: **134** (30 spec files)
+- Unit: **87**
+- E2E: **137** (30 spec files)
 
 ## Deploy
 
@@ -22,10 +25,10 @@ npm run verify:production
 npm run test:e2e
 
 git checkout main
-git merge cursor/phase-67-portal-review-route-i18n-1b4a
+git merge cursor/audit-fixes-p1-i18n-bulk-1b4a
 git push origin main
 ```
 
 ## Merge chain
 
-`#24` → … → `#59` → **#60**
+`#50` → … → `#61` → `#62` (this release)

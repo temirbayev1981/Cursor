@@ -228,6 +228,37 @@ export function computeExpenseBreakdown(jobs: Job[], expenses: Expense[], fuelLo
   return points.filter((p) => (p.value ?? 0) > 0)
 }
 
+export const EXPENSE_CATEGORY_KEYS = ['Fuel', 'Materials', 'Tools', 'Insurance', 'Office', 'Other'] as const
+
+export interface ExpenseCategoryLabels {
+  Labor: string
+  Materials: string
+  Fuel: string
+  Tools: string
+  Insurance: string
+  Office: string
+  Other: string
+}
+
+export function localizeExpenseChart(
+  chart: ChartDataPoint[],
+  labels: ExpenseCategoryLabels,
+): ChartDataPoint[] {
+  const map: Record<string, string> = {
+    Labor: labels.Labor,
+    Materials: labels.Materials,
+    Fuel: labels.Fuel,
+    Tools: labels.Tools,
+    Insurance: labels.Insurance,
+    Office: labels.Office,
+    Other: labels.Other,
+  }
+  return chart.map((point) => ({
+    ...point,
+    name: map[point.name] ?? point.name,
+  }))
+}
+
 export function computeServiceProfitability(jobs: Job[]): ChartDataPoint[] {
   const keywords: [string, RegExp][] = [
     ['Electrical', /electr|outlet|panel/i],

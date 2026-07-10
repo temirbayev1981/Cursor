@@ -205,6 +205,7 @@ export const ru = {
     bulkCancelled: 'Отменено заказов: {count}',
     bulkDelete: 'Удалить',
     bulkDeleted: 'Удалено заказов: {count}',
+    bulkDeleteConfirm: 'Подтвердить удаление ({count})',
     onHold: 'Приостановленные',
     cancelled: 'Отменённые',
   },
@@ -308,6 +309,8 @@ export const ru = {
     materials: 'Материалы',
     total: 'Итого',
     validUntil: 'Действует до',
+    estimateSent: 'Смета отправлена: {email}',
+    invoiceCreatedFromEstimate: 'Счёт создан из сметы',
     pdf: {
       lineItems: 'Позиции',
       description: 'Описание',
@@ -447,6 +450,18 @@ export const ru = {
     linked: 'Привязка',
     job: 'Заказ',
     vehicle: 'Транспорт',
+    categories: {
+      fuel: 'Топливо',
+      materials: 'Материалы',
+      tools: 'Инструменты',
+      insurance: 'Страховка',
+      office: 'Офис',
+      other: 'Прочее',
+    },
+  },
+  payments: {
+    stripeCheckoutUnavailable: 'Stripe Checkout недоступен — проверьте VITE_STRIPE_CHECKOUT_ENDPOINT',
+    payWithStripe: 'Оплатить через Stripe',
   },
   invoices: {
     title: 'Счета',
@@ -465,6 +480,7 @@ export const ru = {
     dueDate: 'Срок оплаты',
     payNow: 'Оплатить',
     paymentReceived: 'Оплата получена',
+    invoiceSent: 'Счёт отправлен: {email}',
     pdf: {
       invoiceTitle: 'Счёт',
       lineItems: 'Позиции',

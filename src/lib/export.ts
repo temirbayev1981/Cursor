@@ -414,37 +414,6 @@ export function exportInvoicePdf(data: InvoicePdfData) {
   win.print()
 }
 
-/** @deprecated Use exportReportPdf */
-export function exportReportPdfPlaceholder(title: string) {
-  exportReportPdf({
-    title,
-    dateRangeLabel: 'All time',
-    activeTab: 'Summary',
-    summary: { jobs: 0, revenue: 0, profit: 0, margin: 0 },
-    labels: {
-      jobs: 'Jobs',
-      revenue: 'Revenue',
-      profit: 'Profit',
-      margin: 'Margin',
-      revenueByMonth: 'Revenue by month',
-      month: 'Month',
-      technicianPerformance: 'Technician performance',
-      name: 'Name',
-      efficiency: 'Efficiency',
-      serviceProfitability: 'Service profitability',
-      service: 'Service',
-      customers: 'Customers',
-      customer: 'Customer',
-      jobProfitability: 'Job profitability',
-      job: 'Job',
-      costs: 'Costs',
-      expenseBreakdown: 'Expense breakdown',
-      category: 'Category',
-      amount: 'Amount',
-    },
-  })
-}
-
 export function isNTEExceeded(nte: number, estimate: number): boolean {
   return nte > 0 && estimate > nte
 }
