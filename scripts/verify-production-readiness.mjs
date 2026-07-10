@@ -395,6 +395,20 @@ if (auditLabels.includes('NOTIFICATION_HUB_ETA_SMS_SKIP_AUDIT = true')) {
   ok = false
 }
 
+if (auditLabels.includes('PORTAL_SMS_OPT_OUT_BADGE_AUDIT = true')) {
+  console.log('✓ PORTAL_SMS_OPT_OUT_BADGE_AUDIT gate enabled')
+} else {
+  console.log('✗ PORTAL_SMS_OPT_OUT_BADGE_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('NOTIFICATION_HUB_SCHEDULING_SMS_SKIP_AUDIT = true')) {
+  console.log('✓ NOTIFICATION_HUB_SCHEDULING_SMS_SKIP_AUDIT gate enabled')
+} else {
+  console.log('✗ NOTIFICATION_HUB_SCHEDULING_SMS_SKIP_AUDIT must be true')
+  ok = false
+}
+
 const notificationsE2e = readFileSync('e2e/notifications.spec.ts', 'utf8')
 if (notificationsE2e.includes('scheduling skips customer SMS when opted out') && notificationsE2e.includes('scheduling queues customer SMS when enabled')) {
   console.log('✓ scheduling customer SMS E2E coverage present')
@@ -446,6 +460,35 @@ if (settingsE2e.includes('notification hub shows dispatch ETA SMS opt-out skip')
   console.log('✓ hub dispatch ETA SMS skip E2E coverage present')
 } else {
   console.log('✗ hub dispatch ETA SMS skip E2E test required')
+  ok = false
+}
+
+if (settingsE2e.includes('notification hub shows dispatch ETA SMS opt-out skip')) {
+  console.log('✓ hub dispatch ETA SMS skip E2E coverage present')
+} else {
+  console.log('✗ hub dispatch ETA SMS skip E2E test required')
+  ok = false
+}
+if (settingsE2e.includes('notification hub shows scheduling SMS opt-out skip')) {
+  console.log('✓ hub scheduling SMS skip E2E coverage present')
+} else {
+  console.log('✗ hub scheduling SMS skip E2E test required')
+  ok = false
+}
+
+const portalsE2e = readFileSync('e2e/portals.spec.ts', 'utf8')
+if (portalsE2e.includes('customer-portal-sms-optout-badge') && portalsE2e.includes('customer portal shows SMS opt-out badge')) {
+  console.log('✓ portal SMS opt-out badge E2E coverage present')
+} else {
+  console.log('✗ portal SMS opt-out badge E2E test required')
+  ok = false
+}
+
+const customerPortalPage = readFileSync('src/pages/customer-portal.tsx', 'utf8')
+if (customerPortalPage.includes('customer-portal-sms-optout-badge') && customerPortalPage.includes('customer-portal-email-optout-badge')) {
+  console.log('✓ customer portal exposes SMS and email opt-out badges')
+} else {
+  console.log('✗ customer portal must expose SMS and email opt-out badges')
   ok = false
 }
 

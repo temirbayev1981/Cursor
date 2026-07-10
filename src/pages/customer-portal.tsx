@@ -3,6 +3,7 @@ import { LogOut, Star } from 'lucide-react'
 import { Navigate, useSearchParams } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { EstimateStatusBadge } from '@/components/shared/status-badge'
@@ -122,7 +123,14 @@ export default function CustomerPortalPage() {
           <CardContent className="space-y-4 p-4">
             <p className="font-medium">{t.customerPortal.notificationPreferences}</p>
             <div className="flex items-center justify-between gap-4">
-              <Label htmlFor="notify-email">{t.customerPortal.notifyEmail}</Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="notify-email">{t.customerPortal.notifyEmail}</Label>
+                {!notifyPrefs.email && (
+                  <Badge variant="secondary" className="text-xs" data-testid="customer-portal-email-optout-badge">
+                    {t.customerPortal.emailOptOut}
+                  </Badge>
+                )}
+              </div>
               <Switch
                 id="notify-email"
                 checked={notifyPrefs.email}
@@ -131,7 +139,14 @@ export default function CustomerPortalPage() {
               />
             </div>
             <div className="flex items-center justify-between gap-4">
-              <Label htmlFor="notify-sms">{t.customerPortal.notifySms}</Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="notify-sms">{t.customerPortal.notifySms}</Label>
+                {!notifyPrefs.sms && (
+                  <Badge variant="secondary" className="text-xs" data-testid="customer-portal-sms-optout-badge">
+                    {t.customerPortal.smsOptOut}
+                  </Badge>
+                )}
+              </div>
               <Switch
                 id="notify-sms"
                 checked={notifyPrefs.sms}

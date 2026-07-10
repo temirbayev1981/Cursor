@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.10.14] — 2026-07-10
+
+Portal SMS opt-out badge and hub scheduling SMS skip log.
+
+### Phase 112 — Portal badge & hub scheduling skip
+- Customer portal: email/SMS opt-out status badges in notification prefs card
+- E2E: portal SMS opt-out badge by default; email badge when disabled
+- E2E: hub Skipped tab shows scheduling SMS opt-out entry
+- Platform audit: `portal_sms_opt_out_badge_audit`, `notification_hub_scheduling_sms_skip_audit` gates
+- **222** E2E tests, **160** unit tests
+
 ## [1.10.13] — 2026-07-10
 
 Staff CRM SMS opt-out badge and hub dispatch ETA SMS skip log.
