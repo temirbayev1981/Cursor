@@ -1,0 +1,151 @@
+import type { VendorPOInput } from '@/types/vendor-po'
+
+function clean(value?: string | null): string {
+  return (value ?? '').replace(/\s+/g, ' ').trim()
+}
+
+function parseMoney(value?: string | null): number {
+  if (!value) return 0
+  const n = parseFloat(value.replace(/[$,]/g, ''))
+  return Number.isFinite(n) ? n : 0
+}
+
+function extractSection(text: string, start: string, endMarkers: string[]): string {
+  const startIdx = text.indexOf(start)
+  if (startIdx === -1) return ''
+  const from = startIdx + start.length
+  let end = text.length
+  for (const marker of endMarkers) {
+    const idx = text.indexOf(marker, from)
+    if (idx !== -1 && idx < end) end = idx
+  }
+  return clean(text.slice(from, end))
+}
+
+function parseLocationBlock(normalized: string) {
+  const block = normalized.match(
+    /SERVICE LOCATION VENDOR #\s*(\d+)\s*\n(.+?)\s+ReadyFix\s*\n([^\n]+)\n([^\n]+)\s+Phone #\s*([\d-]+)/is
+  )
+  if (!block) return null
+
+  const vendorNumber = block[1]
+  const storeLine = clean(block[2])
+  const streetLine = block[3]
+  const cityLine = block[4]
+  const servicePhone = clean(block[5])
+
+  const locationNumber = storeLine.match(/Loc #\s*(\d+)/i)?.[1]
+  const serviceLocationName = clean(storeLine.replace(/\s*-?\s*Loc #\s*\d+/i, ''))
+
+  const streetMatch = streetLine.match(/^(.+?)\s+(\d{3,}\s+.+)$/)
+  const serviceStreet = clean(streetMatch?.[1] ?? streetLine)
+  const vendorStreet = clean(streetMatch?.[2] ?? '')
+
+  const cityMatch = cityLine.match(
+    /^(.+?,\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?)\s+(.+?,\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?)$/
+  )
+  const serviceCityStateZip = clean(cityMatch?.[1] ?? cityLine)
+  const vendorCityStateZip = clean(cityMatch?.[2] ?? '')
+
+  const serviceParts = serviceCityStateZip.match(/^(.+),\s*([A-Z]{2})\s+(\d{5}(?:-\d{4})?)$/)
+
+  return {
+    vendorNumber,
+    serviceLocationName,
+    locationNumber,
+    serviceStreet,
+    serviceCity: clean(serviceParts?.[1] ?? ''),
+    serviceState: serviceParts?.[2] ?? '',
+    serviceZip: serviceParts?.[3] ?? '',
+    serviceCityStateZip,
+    servicePhone,
+    vendorStreet,
+    vendorCityStateZip,
+  }
+}
+
+export function parseVendorPOText(text: string, fileName: string, companyId = 'comp-001'): VendorPOInput {
+  const normalized = text.replace(/\r\n/g, '\n')
+
+  const vendorPoNumber =
+    normalized.match(/Client PO #\s*\d+\s*\n\s*(\d{6}-\d{2})/i)?.[1] ??
+    normalized.match(/(\d{6}-\d{2})\s*\n\s*Priority/i)?.[1] ??
+    fileName.match(/(\d{6}-\d{2})/)?.[1] ??
+    ''
+
+  const clientPoNumber = normalized.match(/Client PO #\s*(\d+)/i)?.[1] ?? ''
+  const priority = clean(normalized.match(/Priority\s+(.+?)(?:\n|$)/i)?.[1])
+  const orderType = clean(normalized.match(/Order Type\s+(.+?)(?:\n|$)/i)?.[1])
+  const nteAmount = parseMoney(normalized.match(/NTE\s+\$?([\d,]+\.?\d*)/i)?.[1])
+
+  const serviceDate = clean(
+    normalized.match(/Service Date\s+([^\n]+)/i)?.[1]?.replace(/Client PO.*/i, '')
+  )
+  const printDate = clean(normalized.match(/Print Date:\s*([^\n]+)/i)?.[1])
+
+  const clientCompany =
+    clean(normalized.match(/Order Type\s+[^\n]+\n([^\n]+)/i)?.[1]) || 'CD Maintenance Company'
+
+  const clientContactLine = normalized.match(
+    /(\d+[^,\n]+,\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?)\s+([A-Za-z][A-Za-z\s.'-]+)\nPhone #/i
+  )
+
+  const location = parseLocationBlock(normalized)
+
+  const serviceDescription = extractSection(normalized, 'SERVICE DESCRIPTION', [
+    'SPECIAL INSTRUCTIONS',
+    'Print Date:',
+  ])
+
+  const specialInstructions = extractSection(normalized, 'SPECIAL INSTRUCTIONS', [
+    'Print Date:',
+    'Invoicing/Required Documentation',
+  ])
+
+  const categoryParts = serviceDescription.split('/').map((p) => clean(p)).filter(Boolean)
+  const serviceCategory = categoryParts.slice(0, 3).join(' / ')
+  const workSummary = clean(
+    categoryParts.slice(0, 4).join(' / ') ||
+      serviceDescription.slice(0, 200)
+  )
+
+  const vendorPhone = clean(
+    normalized.match(/Hickory, NC[\s\S]*?Phone #\s*([\d-]+)/i)?.[1]
+  )
+
+  return {
+    company_id: companyId,
+    vendor_po_number: vendorPoNumber,
+    client_po_number: clientPoNumber,
+    priority,
+    order_type: orderType,
+    nte_amount: nteAmount,
+    service_date: serviceDate || undefined,
+    print_date: printDate || undefined,
+    client_company: clientCompany,
+    client_contact: clean(clientContactLine?.[2]),
+    client_phone: clean(normalized.match(/Phone #\s*([\d-]+)\s+Fax #/i)?.[1]),
+    client_email: clean(normalized.match(/([\w.-]+@mycdfs\.com)/i)?.[1]),
+    client_address: clean(clientContactLine?.[1]),
+    service_location_name: location?.serviceLocationName ?? '',
+    location_number: location?.locationNumber,
+    service_address: location?.serviceStreet ?? '',
+    service_city: location?.serviceCity ?? '',
+    service_state: location?.serviceState ?? '',
+    service_zip: location?.serviceZip ?? '',
+    service_phone: location?.servicePhone ?? '',
+    vendor_name: 'ReadyFix',
+    vendor_number: location?.vendorNumber,
+    vendor_address: [location?.vendorStreet, location?.vendorCityStateZip].filter(Boolean).join(', '),
+    vendor_phone: vendorPhone,
+    service_category: serviceCategory,
+    service_description: serviceDescription,
+    work_summary: workSummary,
+    special_instructions: specialInstructions.slice(0, 500) || undefined,
+    source_file_name: fileName,
+  }
+}
+
+export function isVendorPOText(text: string): boolean {
+  return /VENDOR PO #/i.test(text) && /SERVICE DESCRIPTION/i.test(text)
+}

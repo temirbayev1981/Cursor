@@ -481,3 +481,48 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER jobs_calculate_profit BEFORE INSERT OR UPDATE ON jobs
   FOR EACH ROW EXECUTE FUNCTION calculate_job_profit();
+
+-- Vendor PO Records (CD Maintenance / Facil-IT PDF imports)
+CREATE TABLE vendor_po_records (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  vendor_po_number TEXT NOT NULL,
+  client_po_number TEXT,
+  priority TEXT,
+  order_type TEXT,
+  nte_amount DECIMAL(10,2) DEFAULT 0,
+  service_date TEXT,
+  print_date TEXT,
+  client_company TEXT,
+  client_contact TEXT,
+  client_phone TEXT,
+  client_email TEXT,
+  client_address TEXT,
+  service_location_name TEXT,
+  location_number TEXT,
+  service_address TEXT,
+  service_city TEXT,
+  service_state TEXT,
+  service_zip TEXT,
+  service_phone TEXT,
+  vendor_name TEXT,
+  vendor_number TEXT,
+  vendor_address TEXT,
+  vendor_phone TEXT,
+  service_category TEXT,
+  service_description TEXT,
+  work_summary TEXT,
+  special_instructions TEXT,
+  source_file_name TEXT,
+  status TEXT DEFAULT 'parsed',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(company_id, vendor_po_number)
+);
+
+CREATE INDEX idx_vendor_po_company ON vendor_po_records(company_id);
+CREATE INDEX idx_vendor_po_number ON vendor_po_records(vendor_po_number);
+
+ALTER TABLE vendor_po_records ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Company members can manage vendor PO records" ON vendor_po_records
+  FOR ALL USING (company_id = get_user_company_id());

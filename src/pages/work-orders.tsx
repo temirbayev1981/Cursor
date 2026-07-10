@@ -1,7 +1,7 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Upload, FileText, Mail, Camera, Loader2, Check, Edit } from 'lucide-react'
+import { Upload, FileText, Mail, Camera, Loader2, Check, Edit, Table2, Database } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -10,8 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { VendorPOTable } from '@/components/vendor-po/vendor-po-table'
 import { DEMO_WORK_ORDERS } from '@/data/mock-data'
 import { analyzeWorkOrderPDF, analyzeEmailWorkOrder, analyzePhoto } from '@/lib/ai'
+import { extractTextFromPdfFiles } from '@/lib/pdf-extract'
+import { isVendorPOText, parseVendorPOText } from '@/lib/vendor-po-parser'
+import { useVendorPOs, useSaveVendorPOs, useDeleteVendorPO, useSeedVendorPOs } from '@/hooks/use-vendor-pos'
 import type { AIExtractedData } from '@/types'
 import { formatCurrency } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -20,6 +24,7 @@ import { useTranslation } from '@/contexts/locale-context'
 export default function WorkOrdersPage() {
   const { t } = useTranslation()
   const [analyzing, setAnalyzing] = useState(false)
+  const [parsingPdf, setParsingPdf] = useState(false)
   const [extracted, setExtracted] = useState<AIExtractedData | null>(null)
   const [emailContent, setEmailContent] = useState(
     'Tenant reports leaking faucet at 123 Main Street. Please send someone ASAP.\n\n— ABC Property Management'
@@ -27,6 +32,20 @@ export default function WorkOrdersPage() {
   const [pdfContent, setPdfContent] = useState(
     'Repair drywall damage, replace door trim, paint bedroom wall. Unit 204, 123 Main Street.'
   )
+
+  const { data: vendorPOs = [], isLoading } = useVendorPOs()
+  const saveVendorPOs = useSaveVendorPOs()
+  const deleteVendorPO = useDeleteVendorPO()
+  const seedVendorPOs = useSeedVendorPOs()
+
+  useEffect(() => {
+    const seeded = localStorage.getItem('handymanos_vendor_pos_seeded')
+    if (!seeded && !isLoading && vendorPOs.length === 0) {
+      seedVendorPOs.mutate(undefined, {
+        onSuccess: () => localStorage.setItem('handymanos_vendor_pos_seeded', 'true'),
+      })
+    }
+  }, [isLoading, vendorPOs.length])
 
   const handleAnalyze = async (content: string, type: 'pdf' | 'email' | 'photo', file?: File) => {
     setAnalyzing(true)
@@ -47,15 +66,51 @@ export default function WorkOrdersPage() {
     }
   }
 
-  const onDrop = useCallback((files: File[]) => {
+  const handleVendorPOUpload = async (files: File[]) => {
+    const pdfFiles = files.filter((f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'))
+    if (pdfFiles.length === 0) return
+
+    setParsingPdf(true)
+    try {
+      const extracted = await extractTextFromPdfFiles(pdfFiles)
+      const parsed = []
+      for (const { fileName, text } of extracted) {
+        if (!isVendorPOText(text)) {
+          toast.error(`${fileName}: ${t.vendorPO.notVendorPO}`)
+          continue
+        }
+        parsed.push(parseVendorPOText(text, fileName))
+      }
+      if (parsed.length === 0) {
+        toast.error(t.vendorPO.parseError)
+        return
+      }
+      await saveVendorPOs.mutateAsync(parsed)
+      toast.success(`${t.vendorPO.parseSuccess}: ${parsed.length}`)
+    } catch {
+      toast.error(t.vendorPO.parseError)
+    } finally {
+      setParsingPdf(false)
+    }
+  }
+
+  const onDropVendorPO = useCallback((files: File[]) => {
+    handleVendorPOUpload(files)
+  }, [])
+
+  const onDropGeneral = useCallback((files: File[]) => {
     const file = files[0]
     if (!file) return
+    if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+      handleVendorPOUpload([file])
+      return
+    }
     if (file.type.startsWith('image/')) {
       handleAnalyze('', 'photo', file)
     } else {
       const reader = new FileReader()
       reader.onload = (e) => {
-        const text = (e.target?.result as string) || 'Uploaded document content'
+        const text = (e.target?.result as string) || ''
         setPdfContent(text)
         handleAnalyze(text, 'pdf')
       }
@@ -63,8 +118,14 @@ export default function WorkOrdersPage() {
     }
   }, [])
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
+  const vendorDropzone = useDropzone({
+    onDrop: onDropVendorPO,
+    accept: { 'application/pdf': ['.pdf'] },
+    multiple: true,
+  })
+
+  const generalDropzone = useDropzone({
+    onDrop: onDropGeneral,
     accept: {
       'application/pdf': ['.pdf'],
       'image/*': ['.png', '.jpg', '.jpeg'],
@@ -79,13 +140,71 @@ export default function WorkOrdersPage() {
         description={t.workOrders.description}
       />
 
-      <Tabs defaultValue="upload" className="mb-8">
-        <TabsList>
+      <Tabs defaultValue="vendor-po" className="mb-8">
+        <TabsList className="flex-wrap h-auto gap-1">
+          <TabsTrigger value="vendor-po"><Table2 className="h-4 w-4 mr-2" />{t.vendorPO.tab}</TabsTrigger>
           <TabsTrigger value="upload"><Upload className="h-4 w-4 mr-2" />{t.workOrders.pdfUpload}</TabsTrigger>
           <TabsTrigger value="email"><Mail className="h-4 w-4 mr-2" />{t.workOrders.emailImport}</TabsTrigger>
           <TabsTrigger value="photo"><Camera className="h-4 w-4 mr-2" />{t.workOrders.photoAnalysis}</TabsTrigger>
           <TabsTrigger value="history"><FileText className="h-4 w-4 mr-2" />{t.workOrders.history}</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="vendor-po">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t.vendorPO.title}</CardTitle>
+                <p className="text-sm text-muted-foreground">{t.vendorPO.description}</p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div
+                  {...vendorDropzone.getRootProps()}
+                  className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors ${
+                    vendorDropzone.isDragActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <input {...vendorDropzone.getInputProps()} />
+                  {parsingPdf ? (
+                    <div className="flex flex-col items-center">
+                      <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+                      <p className="font-medium">{t.vendorPO.parsing}</p>
+                    </div>
+                  ) : (
+                    <>
+                      <Database className="h-10 w-10 mx-auto mb-4 text-primary" />
+                      <p className="font-medium">{t.vendorPO.dropHint}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{t.vendorPO.clickBrowse}</p>
+                      <p className="text-xs text-muted-foreground mt-3">CD Maintenance · Facil-IT · Walgreens PO</p>
+                    </>
+                  )}
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    {t.vendorPO.tableTitle}: <span className="font-medium text-foreground">{vendorPOs.length}</span>
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => seedVendorPOs.mutate()}
+                    disabled={seedVendorPOs.isPending}
+                  >
+                    {t.vendorPO.loadDemo}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <VendorPOTable
+              records={vendorPOs}
+              loading={isLoading}
+              onDelete={(id) => {
+                deleteVendorPO.mutate(id, {
+                  onSuccess: () => toast.success(t.vendorPO.deleteSuccess),
+                })
+              }}
+            />
+          </div>
+        </TabsContent>
 
         <TabsContent value="upload">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -95,12 +214,12 @@ export default function WorkOrdersPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div
-                  {...getRootProps()}
+                  {...generalDropzone.getRootProps()}
                   className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
-                    isDragActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
+                    generalDropzone.isDragActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
                   }`}
                 >
-                  <input {...getInputProps()} />
+                  <input {...generalDropzone.getInputProps()} />
                   <Upload className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
                   <p className="font-medium">{t.workOrders.dropHint}</p>
                   <p className="text-sm text-muted-foreground mt-1">{t.workOrders.clickBrowse}</p>
@@ -155,8 +274,8 @@ export default function WorkOrdersPage() {
                 <CardTitle>{t.workOrders.photoTitle}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div {...getRootProps()} className="border-2 border-dashed border-border rounded-xl p-12 text-center cursor-pointer hover:border-primary/50">
-                  <input {...getInputProps()} />
+                <div {...generalDropzone.getRootProps()} className="border-2 border-dashed border-border rounded-xl p-12 text-center cursor-pointer hover:border-primary/50">
+                  <input {...generalDropzone.getInputProps()} />
                   <Camera className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <p className="font-medium">{t.workOrders.photoHint}</p>
                   <p className="text-sm text-muted-foreground mt-1">{t.workOrders.photoSubhint}</p>
