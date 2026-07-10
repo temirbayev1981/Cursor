@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { loginAsOwner, seedDraftInvoice } from './helpers/auth'
+import { loginAsOwner, seedDraftInvoice, clearNotificationQueue } from './helpers/auth'
 
 test.describe('Vendor PO multi-site', () => {
   test.beforeEach(async ({ page }) => {
@@ -73,5 +73,15 @@ test.describe('Global search & invoice send', () => {
     await page.goto('/invoices')
     await page.getByTestId('invoice-send-inv-e2e-draft').click()
     await expect(page.getByText(/email disabled|email отключён/i).first()).toBeVisible({ timeout: 5000 })
+  })
+
+  test('send draft invoice skips customer SMS when opted out', async ({ page }) => {
+    await clearNotificationQueue(page)
+    await seedDraftInvoice(page)
+    await page.goto('/invoices')
+    await page.getByTestId('invoice-send-inv-e2e-draft').click()
+    await expect(page.getByText(/счёт отправлен|invoice sent/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/SMS.*отключён|SMS disabled/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
   })
 })

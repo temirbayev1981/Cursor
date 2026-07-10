@@ -308,6 +308,9 @@ export const ru = {
     validUntil: 'Действует до',
     estimateSent: 'Смета отправлена: {email}',
     estimateSentSkipped: 'Смета отмечена отправленной (email отключён: {email})',
+    smsSent: 'SMS по смете отправлено: {phone}',
+    smsQueued: 'SMS по смете в очереди → {phone}',
+    smsSkipped: 'Смета отправлена (SMS отключён: {phone})',
     invoiceCreatedFromEstimate: 'Счёт создан из сметы',
     pdf: {
       lineItems: 'Позиции',
@@ -503,6 +506,9 @@ export const ru = {
     paymentReceived: 'Оплата получена',
     invoiceSent: 'Счёт отправлен: {email}',
     invoiceSentSkipped: 'Счёт отмечен отправленным (email отключён: {email})',
+    smsSent: 'SMS по счёту отправлено: {phone}',
+    smsQueued: 'SMS по счёту в очереди → {phone}',
+    smsSkipped: 'Счёт отправлен (SMS отключён: {phone})',
     pdf: {
       invoiceTitle: 'Счёт',
       lineItems: 'Позиции',
@@ -700,6 +706,7 @@ export const ru = {
       notification_hub_skip_ops_audit: 'Экспорт и очистка журнала',
       customer_sms_opt_out_audit: 'Opt-out SMS клиента',
       scheduling_customer_sms_audit: 'E2E SMS клиента в расписании',
+      estimate_invoice_sms_audit: 'Opt-out SMS сметы и счёта',
       multi_tenant: 'Мульти-тенант',
     },
     auditActions: {

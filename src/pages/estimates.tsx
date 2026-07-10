@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/contexts/auth-context'
 import { useEstimates, useJobs, useCustomers, useServices, useSaveEstimate, useConvertEstimateToInvoice, useInvoices } from '@/hooks/use-entities'
 import { generateInvoiceNumber } from '@/services/payment-service'
-import { notifyEstimateSent } from '@/services/notification-service'
+import { notifyEstimateSent, notifyEstimateSentSms, notifyResultMessage } from '@/services/notification-service'
 import { logAudit } from '@/services/entity-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { generateSmartEstimate } from '@/lib/ai'
@@ -66,6 +66,20 @@ export default function EstimatesPage() {
     const customer = customers.find((c) => c.id === est.customer_id)
     if (!customer?.email) return
     const result = await notifyEstimateSent(customer.email, est.title, est.total, customer.id, customer)
+
+    if (customer.phone) {
+      const smsResult = await notifyEstimateSentSms(customer.phone, est.title, est.total, customer.id, customer)
+      const smsFeedback = notifyResultMessage(
+        smsResult,
+        t.estimates.smsSent.replace('{phone}', customer.phone),
+        t.estimates.smsQueued.replace('{phone}', customer.phone),
+        t.common.notificationFailed,
+        t.estimates.smsSkipped.replace('{phone}', customer.phone),
+      )
+      if (smsFeedback.type === 'success') toast.success(smsFeedback.message)
+      else if (smsFeedback.type === 'info') toast.info(smsFeedback.message)
+    }
+
     saveEstimate.mutate(
       { ...est, status: 'sent' },
       {

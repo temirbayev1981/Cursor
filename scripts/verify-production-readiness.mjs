@@ -353,11 +353,26 @@ if (auditLabels.includes('SCHEDULING_CUSTOMER_SMS_AUDIT = true')) {
   ok = false
 }
 
+if (auditLabels.includes('ESTIMATE_INVOICE_SMS_AUDIT = true')) {
+  console.log('✓ ESTIMATE_INVOICE_SMS_AUDIT gate enabled')
+} else {
+  console.log('✗ ESTIMATE_INVOICE_SMS_AUDIT must be true')
+  ok = false
+}
+
 const notificationsE2e = readFileSync('e2e/notifications.spec.ts', 'utf8')
 if (notificationsE2e.includes('scheduling skips customer SMS when opted out') && notificationsE2e.includes('scheduling queues customer SMS when enabled')) {
   console.log('✓ scheduling customer SMS E2E coverage present')
 } else {
   console.log('✗ scheduling customer SMS E2E tests required')
+  ok = false
+}
+
+const estimatesE2e = readFileSync('e2e/estimates-invoices.spec.ts', 'utf8')
+if (estimatesE2e.includes('send draft estimate skips customer SMS when opted out')) {
+  console.log('✓ estimate SMS opt-out E2E coverage present')
+} else {
+  console.log('✗ estimate SMS opt-out E2E test required')
   ok = false
 }
 
@@ -374,6 +389,12 @@ if (notificationService.includes('notifyCustomerJobScheduledSms') && notificatio
   console.log('✓ notification-service applies SMS opt-out for customer notifications')
 } else {
   console.log('✗ notification-service must apply SMS opt-out for customer notifications')
+  ok = false
+}
+if (notificationService.includes('notifyEstimateSentSms') && notificationService.includes('notifyInvoiceSentSms')) {
+  console.log('✓ notification-service sends estimate and invoice SMS with opt-out')
+} else {
+  console.log('✗ notification-service must send estimate and invoice SMS with opt-out')
   ok = false
 }
 if (notificationService.includes('result.skipped')) {

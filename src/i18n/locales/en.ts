@@ -310,6 +310,9 @@ export const en: TranslationKeys = {
     validUntil: 'Valid Until',
     estimateSent: 'Estimate sent: {email}',
     estimateSentSkipped: 'Estimate marked sent (email disabled for {email})',
+    smsSent: 'Estimate SMS sent: {phone}',
+    smsQueued: 'Estimate SMS queued → {phone}',
+    smsSkipped: 'Estimate sent (SMS disabled for {phone})',
     invoiceCreatedFromEstimate: 'Invoice created from estimate',
     pdf: {
       lineItems: 'Line items',
@@ -505,6 +508,9 @@ export const en: TranslationKeys = {
     paymentReceived: 'Payment received',
     invoiceSent: 'Invoice sent: {email}',
     invoiceSentSkipped: 'Invoice marked sent (email disabled for {email})',
+    smsSent: 'Invoice SMS sent: {phone}',
+    smsQueued: 'Invoice SMS queued → {phone}',
+    smsSkipped: 'Invoice sent (SMS disabled for {phone})',
     pdf: {
       invoiceTitle: 'Invoice',
       lineItems: 'Line items',
@@ -702,6 +708,7 @@ export const en: TranslationKeys = {
       notification_hub_skip_ops_audit: 'Skip log export & clear',
       customer_sms_opt_out_audit: 'Customer SMS opt-out',
       scheduling_customer_sms_audit: 'Scheduling customer SMS E2E',
+      estimate_invoice_sms_audit: 'Estimate & invoice SMS opt-out',
       multi_tenant: 'Multi-tenant',
     },
     auditActions: {
