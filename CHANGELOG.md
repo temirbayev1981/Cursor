@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.10.15] — 2026-07-10
+
+Portal email badge sync and hub SMS skip CSV export.
+
+### Phase 113 — Portal email badge & SMS skip CSV
+- E2E: staff CRM email/SMS opt-out sync shows portal opt-out badges
+- E2E: hub skip log CSV export includes SMS channel and phone
+- Platform audit: `portal_email_opt_out_badge_audit`, `notification_hub_sms_skip_csv_audit` gates
+- **223** E2E tests, **160** unit tests
+
 ## [1.10.14] — 2026-07-10
 
 Portal SMS opt-out badge and hub scheduling SMS skip log.

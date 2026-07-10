@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, clearNotificationQueue, seedDraftJob, seedDraftInvoice } from './helpers/auth'
 
@@ -87,6 +88,8 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('platform-audit-check-notification_hub_eta_sms_skip_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-portal_sms_opt_out_badge_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-notification_hub_scheduling_sms_skip_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-portal_email_opt_out_badge_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-notification_hub_sms_skip_csv_audit')).toBeVisible()
     await expect(page.getByTestId('notification-hub')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history-entry-0')).toBeVisible()
@@ -278,6 +281,28 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByText(/журнал пропусков очищен|skip log cleared/i).first()).toBeVisible({ timeout: 5000 })
     await page.getByTestId('notification-hub-filter-skipped').click()
     await expect(page.getByText(/chen\.family@email\.com/i)).not.toBeVisible()
+  })
+
+  test('notification hub exports SMS skip log CSV with channel column', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await clearNotificationQueue(page)
+    await seedDraftJob(page, true)
+    await page.goto('/dispatch')
+    await page.getByTestId('dispatch-status-job-e2e-draft').click()
+    await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
+    await expect(page.getByText(/SMS.*пропущено|SMS skipped|opt-out/i).first()).toBeVisible({ timeout: 5000 })
+
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /system|система/i }).click()
+    const downloadPromise = page.waitForEvent('download')
+    await page.getByTestId('notification-hub-export-skip-log').click()
+    const download = await downloadPromise
+    const csvPath = await download.path()
+    expect(csvPath).toBeTruthy()
+    const csv = readFileSync(csvPath!, 'utf8')
+    expect(csv).toContain('channel')
+    expect(csv).toContain('"sms"')
+    expect(csv).toMatch(/555.*234.*5678|\(555\) 234-5678/)
   })
 })
 
