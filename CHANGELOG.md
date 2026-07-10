@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.3.2] — 2026-07-10
+
+Work orders AI import E2E and documentation parity.
+
+### Phase 43 — Work orders upload E2E
+- E2E: photo tab image upload → AI analysis results (`e2e/work-orders-upload.spec.ts`)
+- E2E: email tab sample work order processing
+- `data-testid="work-orders-photo-dropzone"` for stable file upload
+- README: `/dispatch` route; `.env.example`: `VITE_APP_VERSION`, `VITE_ENABLE_E2E_ROUTES`
+
 ## [1.3.1] — 2026-07-10
 
 Field ops completion and production audit parity.

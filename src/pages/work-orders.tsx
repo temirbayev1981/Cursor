@@ -283,7 +283,11 @@ export default function WorkOrdersPage() {
                 <CardTitle>{t.workOrders.photoTitle}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div {...generalDropzone.getRootProps()} className="border-2 border-dashed border-border rounded-xl p-12 text-center cursor-pointer hover:border-primary/50">
+                <div
+                  {...generalDropzone.getRootProps()}
+                  data-testid="work-orders-photo-dropzone"
+                  className="border-2 border-dashed border-border rounded-xl p-12 text-center cursor-pointer hover:border-primary/50"
+                >
                   <input {...generalDropzone.getInputProps()} />
                   <Camera className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <p className="font-medium">{t.workOrders.photoHint}</p>

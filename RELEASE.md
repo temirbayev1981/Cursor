@@ -1,19 +1,17 @@
-# HandymanOS AI — Release 1.3.1
+# HandymanOS AI — Release 1.3.2
 
-Field ops completion on **1.3.0**.
+Work orders AI E2E on **1.3.1**.
 
-## What's new in 1.3.1
+## What's new in 1.3.2
 
-- E2E: offline photo upload sync (all 5 offline action types now have E2E)
-- Unit tests: `storage-service` demo photo upload
-- Platform audit: observability integration check + recommendation
-- Settings → Integrations: i18n labels, separate Email and SMS cards
-- E2E: integrations tab shows configure state in demo mode
+- E2E: work orders photo upload → AI extraction panel (38 tests total)
+- E2E: work orders email import → AI analysis complete
+- README `/dispatch` route; `.env.example` build/E2E notes
 
 ## Test coverage
 
 - Unit: **82**
-- E2E: **36** (11 spec files)
+- E2E: **38** (12 spec files)
 
 ## Deploy
 
@@ -22,10 +20,10 @@ npm run verify:production
 npm run test:e2e
 
 git checkout main
-git merge cursor/phase-42-offline-photo-audit-1b4a
+git merge cursor/phase-43-work-orders-e2e-1b4a
 git push origin main
 ```
 
 ## Merge chain
 
-`#24` → … → `#34` → **#35**
+`#24` → … → `#35` → **#36**
