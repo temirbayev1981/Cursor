@@ -715,6 +715,8 @@ export const en: TranslationKeys = {
       notification_hub_estimate_invoice_sms_skip_audit: 'Hub estimate/invoice SMS skip',
       staff_customer_sms_badge_audit: 'Staff CRM SMS opt-out badge',
       notification_hub_eta_sms_skip_audit: 'Hub dispatch ETA SMS skip',
+      portal_sms_opt_out_badge_audit: 'Portal SMS opt-out badge',
+      notification_hub_scheduling_sms_skip_audit: 'Hub scheduling SMS skip',
       multi_tenant: 'Multi-tenant',
     },
     auditActions: {
@@ -901,6 +903,8 @@ export const en: TranslationKeys = {
     notificationPreferences: 'Notification preferences',
     notifyEmail: 'Email updates',
     notifySms: 'SMS updates',
+    emailOptOut: 'Email off',
+    smsOptOut: 'SMS off',
     preferencesSaved: 'Notification preferences saved',
   },
   portalAccess: {

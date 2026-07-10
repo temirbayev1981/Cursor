@@ -28,6 +28,23 @@ test.describe('Portals', () => {
     await expect(page.getByText(/утверждена|approved/i).first()).toBeVisible({ timeout: 5000 })
   })
 
+  test('customer portal shows SMS opt-out badge by default', async ({ page }) => {
+    await page.goto('/portal/customer')
+    await expect(page.getByTestId('customer-portal-notification-prefs')).toBeVisible()
+    await expect(page.getByTestId('customer-portal-sms-optout-badge')).toBeVisible()
+    await expect(page.getByTestId('customer-portal-email-optout-badge')).not.toBeVisible()
+  })
+
+  test('customer portal shows email opt-out badge when disabled', async ({ page }) => {
+    await page.goto('/portal/customer')
+    const emailToggle = page.getByTestId('customer-portal-notify-email')
+    if ((await emailToggle.getAttribute('data-state')) === 'checked') {
+      await emailToggle.click()
+      await expect(page.getByText(/настройки уведомлений сохранены|notification preferences saved/i).first()).toBeVisible({ timeout: 5000 })
+    }
+    await expect(page.getByTestId('customer-portal-email-optout-badge')).toBeVisible()
+  })
+
   test('customer portal declines sent estimate', async ({ page }) => {
     await page.goto('/portal/customer')
     await expect(page.getByTestId('portal-estimate-decline-est-004')).toBeVisible()

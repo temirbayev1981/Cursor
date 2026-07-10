@@ -85,6 +85,8 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('platform-audit-check-notification_hub_estimate_invoice_sms_skip_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-staff_customer_sms_badge_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-notification_hub_eta_sms_skip_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-portal_sms_opt_out_badge_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-notification_hub_scheduling_sms_skip_audit')).toBeVisible()
     await expect(page.getByTestId('notification-hub')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history-entry-0')).toBeVisible()
@@ -224,6 +226,28 @@ test.describe('Settings billing & team', () => {
     await page.getByTestId('dispatch-status-job-e2e-draft').click()
     await page.getByRole('option', { name: /в работе|in progress/i }).click()
     await expect(page.getByText(/ETA SMS.*пропущено|ETA SMS skipped/i).first()).toBeVisible({ timeout: 5000 })
+
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /system|система/i }).click()
+    await page.getByTestId('notification-hub-filter-skipped').click()
+    await expect(page.getByText(/555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
+    await expect(page.getByText(/отключил SMS|opted out of SMS/i).first()).toBeVisible()
+  })
+
+  test('notification hub shows scheduling SMS opt-out skip', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await clearNotificationQueue(page)
+    await seedDraftJob(page)
+    await page.goto('/scheduling')
+    await page.getByRole('button', { name: /запланировать заказ|schedule job/i }).click()
+
+    const scheduleForm = page.locator('form').filter({ has: page.getByText(/^Заказ$|^Job$/i) })
+    await scheduleForm.getByRole('combobox').first().click()
+    await page.getByRole('option', { name: /E2E Draft Job for Scheduling/i }).click()
+    await scheduleForm.getByRole('combobox').nth(1).click()
+    await page.getByRole('option', { name: /Marcus Thompson/i }).click()
+    await scheduleForm.getByRole('button', { name: /запланировать заказ|schedule job/i }).click()
+    await expect(page.getByText(/SMS.*отключён|SMS disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
     await page.getByRole('tab', { name: /system|система/i }).click()
