@@ -1,6 +1,6 @@
-import type { TimeEntry } from '@/types'
+import type { TimeEntry, Job } from '@/types'
 import { loadStore, saveStore, STORE_KEYS } from '@/lib/data-store'
-import { saveTimeEntry } from '@/services/entity-service'
+import { saveTimeEntry, saveEntity } from '@/services/entity-service'
 import { uploadJobPhoto } from '@/services/storage-service'
 import { base64ToFile } from '@/lib/file-utils'
 import type { OfflineAction } from '@/lib/pwa'
@@ -79,6 +79,12 @@ export async function applyOfflineAction(
     }
     const file = base64ToFile(data, fileName, mimeType)
     await uploadJobPhoto(file, companyId, jobId)
+    return true
+  }
+
+  if (action.type === 'update_job_status') {
+    const { job } = action.payload as { job: Job }
+    await saveEntity('jobs', job)
     return true
   }
 

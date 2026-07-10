@@ -1,5 +1,8 @@
 import * as XLSX from 'xlsx'
 import type { VendorPORecord } from '@/types/vendor-po'
+import type { Job, Customer, Employee } from '@/types'
+import type { ChartDataPoint } from '@/lib/analytics'
+import { computeTechnicianPerformance, computeServiceProfitability, computeReportSummary } from '@/lib/analytics'
 
 export function exportVendorPOsToExcel(records: VendorPORecord[], filename = 'vendor-po-export.xlsx') {
   const rows = records.map((r) => ({
@@ -59,9 +62,37 @@ export function exportJobsToCsv(jobs: import('@/types').Job[], filename = 'jobs-
 }
 
 export function exportFinancialReport(
-  jobs: import('@/types').Job[],
-  customers: import('@/types').Customer[],
+  jobs: Job[],
+  customers: Customer[],
   filename = 'financial-report.xlsx'
+) {
+  exportFullReport(jobs, customers, [], filename)
+}
+
+export interface ReportPdfData {
+  title: string
+  dateRangeLabel: string
+  activeTab: string
+  summary: ReturnType<typeof computeReportSummary>
+  revenueChart?: ChartDataPoint[]
+  technicians?: ChartDataPoint[]
+  services?: ChartDataPoint[]
+  customers?: Customer[]
+  profitJobs?: Array<{
+    title: string
+    customer: string
+    revenue: number
+    costs: number
+    profit: number
+    margin: number
+  }>
+}
+
+export function exportFullReport(
+  jobs: Job[],
+  customers: Customer[],
+  employees: Employee[],
+  filename = 'handymanos-report.xlsx'
 ) {
   const jobRows = jobs.map((j) => {
     const customer = customers.find((c) => c.id === j.customer_id)
@@ -70,20 +101,136 @@ export function exportFinancialReport(
       Customer: customer?.name ?? '',
       Revenue: j.revenue,
       Profit: j.profit,
+      'Profit %': j.profit_margin,
       Status: j.status,
+      Date: j.completed_date ?? j.scheduled_date ?? j.created_at,
     }
   })
-  const ws = XLSX.utils.json_to_sheet(jobRows)
+
+  const techRows = computeTechnicianPerformance(jobs, employees).map((row) => ({
+    Technician: row.name,
+    Revenue: row.revenue ?? 0,
+    Jobs: row.jobs ?? 0,
+    Efficiency: row.efficiency ?? 0,
+  }))
+
+  const serviceRows = computeServiceProfitability(jobs).map((row) => ({
+    Service: row.name,
+    Profit: row.profit ?? 0,
+    Jobs: row.jobs ?? 0,
+  }))
+
+  const customerRows = customers.map((c) => ({
+    Customer: c.name,
+    Revenue: c.total_revenue,
+    Jobs: c.job_count,
+    Type: c.type,
+  }))
+
   const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, 'Financial')
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(jobRows), 'Financial')
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(techRows), 'Technicians')
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(serviceRows), 'Services')
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(customerRows), 'Customers')
   XLSX.writeFile(wb, filename)
 }
 
-export function exportReportPdfPlaceholder(title: string) {
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+}
+
+export function exportReportPdf(data: ReportPdfData) {
+  const rows: string[] = []
+
+  if (data.revenueChart?.length) {
+    rows.push('<h2>Revenue by month</h2><table><tr><th>Month</th><th>Revenue</th><th>Profit</th></tr>')
+    for (const row of data.revenueChart) {
+      rows.push(`<tr><td>${escapeHtml(row.name)}</td><td>$${(row.revenue ?? 0).toFixed(2)}</td><td>$${(row.profit ?? 0).toFixed(2)}</td></tr>`)
+    }
+    rows.push('</table>')
+  }
+
+  if (data.technicians?.length) {
+    rows.push('<h2>Technician performance</h2><table><tr><th>Name</th><th>Revenue</th><th>Jobs</th><th>Efficiency</th></tr>')
+    for (const row of data.technicians) {
+      rows.push(`<tr><td>${escapeHtml(row.name)}</td><td>$${(row.revenue ?? 0).toFixed(2)}</td><td>${row.jobs ?? 0}</td><td>${row.efficiency ?? 0}%</td></tr>`)
+    }
+    rows.push('</table>')
+  }
+
+  if (data.services?.length) {
+    rows.push('<h2>Service profitability</h2><table><tr><th>Service</th><th>Profit</th><th>Jobs</th></tr>')
+    for (const row of data.services) {
+      rows.push(`<tr><td>${escapeHtml(row.name)}</td><td>$${(row.profit ?? 0).toFixed(2)}</td><td>${row.jobs ?? 0}</td></tr>`)
+    }
+    rows.push('</table>')
+  }
+
+  if (data.customers?.length) {
+    rows.push('<h2>Customers</h2><table><tr><th>Customer</th><th>Revenue</th><th>Jobs</th></tr>')
+    for (const customer of data.customers) {
+      rows.push(`<tr><td>${escapeHtml(customer.name)}</td><td>$${customer.total_revenue.toFixed(2)}</td><td>${customer.job_count}</td></tr>`)
+    }
+    rows.push('</table>')
+  }
+
+  if (data.profitJobs?.length) {
+    rows.push('<h2>Job profitability</h2><table><tr><th>Job</th><th>Customer</th><th>Revenue</th><th>Costs</th><th>Profit</th><th>Margin</th></tr>')
+    for (const row of data.profitJobs) {
+      rows.push(`<tr><td>${escapeHtml(row.title)}</td><td>${escapeHtml(row.customer)}</td><td>$${row.revenue.toFixed(2)}</td><td>$${row.costs.toFixed(2)}</td><td>$${row.profit.toFixed(2)}</td><td>${row.margin}%</td></tr>`)
+    }
+    rows.push('</table>')
+  }
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>${escapeHtml(data.title)}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 24px; color: #111; }
+    h1 { margin-bottom: 4px; }
+    .meta { color: #555; margin-bottom: 24px; }
+    .summary { display: flex; gap: 24px; margin-bottom: 24px; }
+    .summary div { background: #f4f4f5; padding: 12px 16px; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f8fafc; }
+  </style>
+</head>
+<body>
+  <h1>${escapeHtml(data.title)}</h1>
+  <p class="meta">${escapeHtml(data.dateRangeLabel)} · ${escapeHtml(data.activeTab)}</p>
+  <div class="summary">
+    <div><strong>Jobs</strong><br>${data.summary.jobs}</div>
+    <div><strong>Revenue</strong><br>$${data.summary.revenue.toFixed(2)}</div>
+    <div><strong>Profit</strong><br>$${data.summary.profit.toFixed(2)}</div>
+    <div><strong>Margin</strong><br>${data.summary.margin}%</div>
+  </div>
+  ${rows.join('\n')}
+</body>
+</html>`
+
   const win = window.open('', '_blank')
   if (!win) return
-  win.document.write(`<html><head><title>${title}</title></head><body><h1>${title}</h1><p>HandymanOS AI — PDF export (подключите backend для полного PDF)</p></body></html>`)
+  win.document.write(html)
+  win.document.close()
+  win.focus()
   win.print()
+}
+
+/** @deprecated Use exportReportPdf */
+export function exportReportPdfPlaceholder(title: string) {
+  exportReportPdf({
+    title,
+    dateRangeLabel: 'All time',
+    activeTab: 'Summary',
+    summary: { jobs: 0, revenue: 0, profit: 0, margin: 0 },
+  })
 }
 
 export function isNTEExceeded(nte: number, estimate: number): boolean {

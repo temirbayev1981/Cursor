@@ -389,6 +389,10 @@ export const ru = {
     costs: 'Затраты',
     netProfit: 'Чистая прибыль',
     jobsCount: 'заказов',
+    dateFrom: 'С',
+    dateTo: 'По',
+    margin: 'Маржа',
+    efficiency: 'Эффективность',
   },
   ai: {
     title: 'ИИ-бизнес-помощник',
@@ -485,6 +489,9 @@ export const ru = {
     photoSaved: 'Фото сохранено',
     photoQueued: 'Фото в очереди на синхронизацию',
     uploadFailed: 'Ошибка загрузки',
+    startJob: 'Начать работу',
+    completeJob: 'Завершить',
+    statusUpdated: 'Статус заказа обновлён',
   },
   propertyPortal: {
     title: 'Портал управляющей компании',

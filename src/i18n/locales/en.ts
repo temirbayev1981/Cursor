@@ -391,6 +391,10 @@ export const en: TranslationKeys = {
     costs: 'Costs',
     netProfit: 'Net Profit',
     jobsCount: 'jobs',
+    dateFrom: 'From',
+    dateTo: 'To',
+    margin: 'Margin',
+    efficiency: 'Efficiency',
   },
   ai: {
     title: 'AI Business Assistant',
@@ -487,6 +491,9 @@ export const en: TranslationKeys = {
     photoSaved: 'Photo saved',
     photoQueued: 'Photo queued for sync',
     uploadFailed: 'Upload failed',
+    startJob: 'Start job',
+    completeJob: 'Complete job',
+    statusUpdated: 'Job status updated',
   },
   propertyPortal: {
     title: 'Property Manager Portal',

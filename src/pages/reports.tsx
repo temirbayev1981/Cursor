@@ -1,7 +1,10 @@
+import { useMemo, useState } from 'react'
 import { Download, FileSpreadsheet } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   BarChart,
@@ -16,6 +19,8 @@ import {
   computeRevenueChart,
   computeServiceProfitability,
   computeTechnicianPerformance,
+  computeReportSummary,
+  filterJobsByDateRange,
   hasRevenueData,
   hasProfitData,
   hasTechnicianData,
@@ -25,18 +30,77 @@ import { useJobs, useCustomers, useEmployees } from '@/hooks/use-entities'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { formatCurrency } from '@/lib/utils'
 import { ProfitIndicator } from '@/components/shared/status-badge'
-import { exportFinancialReport, exportReportPdfPlaceholder } from '@/lib/export'
+import { exportFullReport, exportReportPdf } from '@/lib/export'
 import { useTranslation } from '@/contexts/locale-context'
+import { subMonths, format } from 'date-fns'
+
+type ReportTab = 'financial' | 'profit' | 'technicians' | 'customers' | 'services'
+
+function defaultStartDate() {
+  return format(subMonths(new Date(), 6), 'yyyy-MM-dd')
+}
+
+function defaultEndDate() {
+  return format(new Date(), 'yyyy-MM-dd')
+}
 
 export default function ReportsPage() {
   const { t } = useTranslation()
+  const [activeTab, setActiveTab] = useState<ReportTab>('financial')
+  const [startDate, setStartDate] = useState(defaultStartDate)
+  const [endDate, setEndDate] = useState(defaultEndDate)
   const { data: jobs = [], isLoading: jobsLoading } = useJobs()
   const { data: customers = [], isLoading: custLoading } = useCustomers()
   const { data: employees = [] } = useEmployees()
 
-  const revenueChart = computeRevenueChart(jobs)
-  const serviceChart = computeServiceProfitability(jobs)
-  const techChart = computeTechnicianPerformance(jobs, employees)
+  const filteredJobs = useMemo(
+    () => filterJobsByDateRange(jobs, startDate, endDate),
+    [jobs, startDate, endDate],
+  )
+
+  const summary = useMemo(() => computeReportSummary(filteredJobs), [filteredJobs])
+  const revenueChart = useMemo(() => computeRevenueChart(filteredJobs), [filteredJobs])
+  const serviceChart = useMemo(() => computeServiceProfitability(filteredJobs), [filteredJobs])
+  const techChart = useMemo(() => computeTechnicianPerformance(filteredJobs, employees), [filteredJobs, employees])
+
+  const dateRangeLabel = `${startDate} — ${endDate}`
+
+  const tabLabels: Record<ReportTab, string> = {
+    financial: t.reports.financial,
+    profit: t.reports.profit,
+    technicians: t.reports.technicians,
+    customers: t.reports.customers,
+    services: t.reports.services,
+  }
+
+  const handleExportPdf = () => {
+    exportReportPdf({
+      title: t.reports.title,
+      dateRangeLabel,
+      activeTab: tabLabels[activeTab],
+      summary,
+      revenueChart: activeTab === 'financial' ? revenueChart : undefined,
+      technicians: activeTab === 'technicians' ? techChart : undefined,
+      services: activeTab === 'services' ? serviceChart : undefined,
+      customers: activeTab === 'customers' ? customers : undefined,
+      profitJobs: activeTab === 'profit'
+        ? filteredJobs
+            .filter((job) => job.status === 'completed')
+            .map((job) => {
+              const customer = customers.find((c) => c.id === job.customer_id)
+              const costs = job.labor_cost + job.material_cost + job.fuel_cost + job.overhead_cost
+              return {
+                title: job.title,
+                customer: customer?.name ?? '',
+                revenue: job.revenue,
+                costs,
+                profit: job.profit,
+                margin: job.profit_margin,
+              }
+            })
+        : undefined,
+    })
+  }
 
   if (jobsLoading || custLoading) return <TableSkeleton rows={6} cols={4} />
 
@@ -47,17 +111,62 @@ export default function ReportsPage() {
         description={t.reports.description}
         actions={
           <>
-            <Button variant="outline" onClick={() => exportReportPdfPlaceholder(t.reports.title)}>
+            <Button variant="outline" onClick={handleExportPdf}>
               <Download className="h-4 w-4" />{t.common.exportPdf}
             </Button>
-            <Button variant="outline" onClick={() => exportFinancialReport(jobs, customers)}>
+            <Button variant="outline" onClick={() => exportFullReport(filteredJobs, customers, employees)}>
               <FileSpreadsheet className="h-4 w-4" />{t.common.exportCsv}
             </Button>
           </>
         }
       />
 
-      <Tabs defaultValue="financial">
+      <Card className="mb-6">
+        <CardContent className="p-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="report-start">{t.reports.dateFrom}</Label>
+              <Input
+                id="report-start"
+                type="date"
+                className="mt-1"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="report-end">{t.reports.dateTo}</Label>
+              <Input
+                id="report-end"
+                type="date"
+                className="mt-1"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <div>
+              <p className="text-muted-foreground">{t.dashboard.revenue}</p>
+              <p className="font-semibold">{formatCurrency(summary.revenue)}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">{t.reports.netProfit}</p>
+              <p className="font-semibold">{formatCurrency(summary.profit)}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">{t.nav.jobs}</p>
+              <p className="font-semibold">{summary.jobs}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">{t.reports.margin}</p>
+              <p className="font-semibold">{summary.margin}%</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ReportTab)}>
         <TabsList className="mb-6">
           <TabsTrigger value="financial">{t.reports.financial}</TabsTrigger>
           <TabsTrigger value="profit">{t.reports.profit}</TabsTrigger>
@@ -90,7 +199,7 @@ export default function ReportsPage() {
 
         <TabsContent value="profit">
           <div className="space-y-3">
-            {jobs.filter((j) => j.status === 'completed').map((job) => {
+            {filteredJobs.filter((j) => j.status === 'completed').map((job) => {
               const customer = customers.find((c) => c.id === job.customer_id)
               const totalCost = job.labor_cost + job.material_cost + job.fuel_cost + job.overhead_cost
               return (
@@ -135,6 +244,7 @@ export default function ReportsPage() {
                   <Tooltip />
                   <Bar dataKey="revenue" fill="#fbbf24" name={t.dashboard.revenue} radius={[4, 4, 0, 0]} />
                   <Bar dataKey="jobs" fill="#0ea5e9" name={t.nav.jobs} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="efficiency" fill="#22c55e" name={t.reports.efficiency} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
               ) : (

@@ -1,0 +1,26 @@
+import { test, expect } from '@playwright/test'
+
+test.describe('Reports and technician mobile', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('handymanos_onboarding', 'complete')
+    })
+    await page.goto('/login')
+    await page.getByRole('button', { name: /войти|sign in/i }).click()
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
+  })
+
+  test('reports page shows date filters and summary', async ({ page }) => {
+    await page.goto('/reports')
+    await expect(page.getByRole('heading', { name: /отчёты|reports/i })).toBeVisible()
+    await expect(page.locator('#report-start')).toBeVisible()
+    await expect(page.locator('#report-end')).toBeVisible()
+    await expect(page.getByText(/маржа|margin/i).first()).toBeVisible()
+  })
+
+  test('technician mobile page loads assigned jobs', async ({ page }) => {
+    await page.goto('/tech')
+    await expect(page.getByRole('heading', { name: /мои заказы|my jobs/i })).toBeVisible()
+    await expect(page.getByText(/сегодня|today/i)).toBeVisible()
+  })
+})

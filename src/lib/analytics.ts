@@ -11,6 +11,35 @@ export interface ChartDataPoint {
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
+export function getJobReportDate(job: Job): string {
+  return job.completed_date ?? job.scheduled_date ?? job.created_at
+}
+
+export function filterJobsByDateRange(jobs: Job[], startDate?: string, endDate?: string): Job[] {
+  if (!startDate && !endDate) return jobs
+
+  const start = startDate ? new Date(`${startDate}T00:00:00`) : null
+  const end = endDate ? new Date(`${endDate}T23:59:59`) : null
+
+  return jobs.filter((job) => {
+    const date = new Date(getJobReportDate(job))
+    if (start && date < start) return false
+    if (end && date > end) return false
+    return true
+  })
+}
+
+export function computeReportSummary(jobs: Job[]) {
+  const revenue = jobs.reduce((sum, job) => sum + job.revenue, 0)
+  const profit = jobs.reduce((sum, job) => sum + job.profit, 0)
+  return {
+    jobs: jobs.length,
+    revenue,
+    profit,
+    margin: revenue > 0 ? Math.round((profit / revenue) * 1000) / 10 : 0,
+  }
+}
+
 function isToday(dateStr: string): boolean {
   const d = new Date(dateStr)
   const now = new Date()
@@ -56,11 +85,12 @@ export function computeDashboardMetrics(
 }
 
 export function computeRevenueChart(jobs: Job[]): ChartDataPoint[] {
-  const byMonth = new Map<string, { revenue: number; profit: number }>()
+  const byMonth = new Map<string, { revenue: number; profit: number; sortKey: string }>()
   for (const job of jobs) {
-    const d = new Date(job.created_at)
-    const key = MONTH_NAMES[d.getMonth()]
-    const cur = byMonth.get(key) ?? { revenue: 0, profit: 0 }
+    const d = new Date(getJobReportDate(job))
+    const sortKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const key = `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`
+    const cur = byMonth.get(key) ?? { revenue: 0, profit: 0, sortKey }
     cur.revenue += job.revenue
     cur.profit += job.profit
     byMonth.set(key, cur)
@@ -68,7 +98,9 @@ export function computeRevenueChart(jobs: Job[]): ChartDataPoint[] {
   if (byMonth.size === 0) {
     return MONTH_NAMES.slice(0, 7).map((name) => ({ name, revenue: 0, profit: 0 }))
   }
-  return Array.from(byMonth.entries()).map(([name, v]) => ({ name, ...v }))
+  return Array.from(byMonth.entries())
+    .sort((a, b) => a[1].sortKey.localeCompare(b[1].sortKey))
+    .map(([name, value]) => ({ name, revenue: value.revenue, profit: value.profit }))
 }
 
 export function computeExpenseBreakdown(jobs: Job[], expenses: Expense[], fuelLogs: FuelLog[]): ChartDataPoint[] {

@@ -4,12 +4,13 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { JobStatusBadge, PriorityBadge } from '@/components/shared/status-badge'
-import { useJobs, useEmployees, useCustomers, useProperties } from '@/hooks/use-entities'
+import { useJobs, useEmployees, useCustomers, useProperties, useUpdateJobStatus } from '@/hooks/use-entities'
 import { useAuth } from '@/contexts/auth-context'
 import { useTranslation } from '@/contexts/locale-context'
 import { useOnlineStatus } from '@/hooks/use-online-status'
+import { useQueryClient } from '@tanstack/react-query'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
-import { loadStore, saveStore, STORE_KEYS } from '@/lib/data-store'
+import { loadStore, saveStore, upsertStore, STORE_KEYS } from '@/lib/data-store'
 import { queueOfflineAction, getOfflineQueue, syncOfflineQueue } from '@/lib/pwa'
 import { applyOfflineAction } from '@/services/offline-sync-service'
 import { uploadJobPhoto } from '@/services/storage-service'
@@ -17,7 +18,7 @@ import { resolveJobAddress } from '@/hooks/use-route-optimizer'
 import { buildGoogleMapsDirectionsUrl, geocodeAddressForRouting } from '@/lib/route-optimizer'
 import { fileToBase64 } from '@/lib/file-utils'
 import { toast } from 'sonner'
-import type { Job } from '@/types'
+import type { Job, JobStatus } from '@/types'
 
 interface LocalTimeEntry {
   id: string
@@ -32,11 +33,13 @@ export default function TechnicianMobilePage() {
   const { t } = useTranslation()
   const { user, company } = useAuth()
   const online = useOnlineStatus()
+  const qc = useQueryClient()
   const companyId = company?.id ?? 'comp-001'
   const { data: jobs = [] } = useJobs()
   const { data: employees = [] } = useEmployees()
   const { data: customers = [] } = useCustomers()
   const { data: properties = [] } = useProperties()
+  const updateStatus = useUpdateJobStatus()
   const [activeJobId, setActiveJobId] = useState<string | null>(null)
   const [timeEntries, setTimeEntries] = useState<LocalTimeEntry[]>([])
   const [gps, setGps] = useState<{ lat: number; lng: number } | null>(null)
@@ -101,6 +104,7 @@ export default function TechnicianMobilePage() {
       setTimeEntries(loadStore<LocalTimeEntry>(STORE_KEYS.timeEntries))
       setPendingSync(getOfflineQueue().length)
       if (processed > 0) {
+        void qc.invalidateQueries({ queryKey: ['jobs', companyId] })
         toast.info(t.techMobile.synced)
       }
     })()
@@ -112,6 +116,29 @@ export default function TechnicianMobilePage() {
     const address = resolveJobAddress(job, customers, properties)
     const stop = { id: job.id, label: job.title, address, ...geocodeAddressForRouting(address) }
     window.open(buildGoogleMapsDirectionsUrl([stop]), '_blank', 'noopener,noreferrer')
+  }
+
+  const changeJobStatus = (job: Job, status: JobStatus) => {
+    const updated: Job = {
+      ...job,
+      status,
+      ...(status === 'completed' ? { completed_date: new Date().toISOString() } : {}),
+    }
+
+    upsertStore(STORE_KEYS.jobs, updated)
+    void qc.invalidateQueries({ queryKey: ['jobs', companyId] })
+
+    if (!online) {
+      queueOfflineAction('update_job_status', { job: updated })
+      setPendingSync(getOfflineQueue().length)
+      toast.success(t.techMobile.offlineSaved)
+      return
+    }
+
+    updateStatus.mutate(
+      { job: updated, status },
+      { onSuccess: () => toast.success(t.techMobile.statusUpdated) },
+    )
   }
 
   const queuePhotoUpload = async (file: File, jobId: string) => {
@@ -301,6 +328,18 @@ export default function TechnicianMobilePage() {
                   <Button variant="outline" size="sm">
                     <PenLine className="h-4 w-4" />{t.common.notes}
                   </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {job.status === 'scheduled' && (
+                    <Button size="sm" variant="secondary" onClick={() => changeJobStatus(job, 'in_progress')}>
+                      {t.techMobile.startJob}
+                    </Button>
+                  )}
+                  {job.status === 'in_progress' && (
+                    <Button size="sm" variant="secondary" onClick={() => changeJobStatus(job, 'completed')}>
+                      {t.techMobile.completeJob}
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

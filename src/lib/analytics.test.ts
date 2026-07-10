@@ -3,6 +3,9 @@ import {
   computeDashboardMetrics,
   computeServiceProfitability,
   computeTechnicianPerformance,
+  computeRevenueChart,
+  filterJobsByDateRange,
+  computeReportSummary,
   hasRevenueData,
   hasValueData,
 } from '@/lib/analytics'
@@ -69,5 +72,29 @@ describe('analytics', () => {
     expect(hasRevenueData(chart)).toBe(true)
     expect(hasValueData([{ name: 'Labor', value: 0 }])).toBe(false)
     expect(hasValueData([{ name: 'Labor', value: 100 }])).toBe(true)
+  })
+
+  it('filters jobs by date range', () => {
+    const oldJob = { ...job, id: 'old', created_at: '2024-01-15T10:00:00.000Z', completed_date: undefined, scheduled_date: undefined }
+    const recentJob = { ...job, id: 'recent', created_at: '2026-06-01T10:00:00.000Z', completed_date: undefined, scheduled_date: undefined }
+    const filtered = filterJobsByDateRange([oldJob, recentJob], '2026-01-01', '2026-12-31')
+    expect(filtered).toHaveLength(1)
+    expect(filtered[0]?.id).toBe('recent')
+  })
+
+  it('keeps revenue chart months separated by year', () => {
+    const jan2024 = { ...job, id: 'j2024', created_at: '2024-01-10T10:00:00.000Z', completed_date: undefined, scheduled_date: undefined, revenue: 100, profit: 20 }
+    const jan2025 = { ...job, id: 'j2025', created_at: '2025-01-10T10:00:00.000Z', completed_date: undefined, scheduled_date: undefined, revenue: 200, profit: 40 }
+    const chart = computeRevenueChart([jan2024, jan2025])
+    expect(chart).toHaveLength(2)
+    expect(chart.find((point) => point.name === 'Jan 2024')?.revenue).toBe(100)
+    expect(chart.find((point) => point.name === 'Jan 2025')?.revenue).toBe(200)
+  })
+
+  it('computes report summary totals', () => {
+    const summary = computeReportSummary([job, { ...job, id: 'j2', revenue: 300, profit: 100 }])
+    expect(summary.jobs).toBe(2)
+    expect(summary.revenue).toBe(800)
+    expect(summary.profit).toBe(320)
   })
 })
