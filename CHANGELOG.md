@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.4.2] — 2026-07-10
+
+Properties and job inventory E2E.
+
+### Phase 50 — Properties & inventory E2E
+- E2E: properties demo cards, create property (`properties-inventory.spec.ts`)
+- E2E: job material deduction updates inventory quantity
+- `data-testid` on property form, job material usage dialog
+- `verify:production` checks `supabase-smoke.yml` workflow
+
 ## [1.4.1] — 2026-07-10
 
 Fleet, expenses, and command palette E2E.

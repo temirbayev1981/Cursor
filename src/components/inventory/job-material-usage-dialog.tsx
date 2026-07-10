@@ -41,7 +41,8 @@ export function JobMaterialUsageDialog({ job, companyId }: JobMaterialUsageDialo
 
   return (
     <>
-      <Button variant="ghost" size="icon" title={t.materials.useOnJob} onClick={() => setOpen(true)}>
+      <Button variant="ghost" size="icon" title={t.materials.useOnJob} onClick={() => setOpen(true)}
+        data-testid={`job-material-usage-${job.id}`}>
         <Package className="h-4 w-4" />
       </Button>
       {open && (
@@ -49,7 +50,7 @@ export function JobMaterialUsageDialog({ job, companyId }: JobMaterialUsageDialo
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
           onClick={() => setOpen(false)}
         >
-          <Card className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <Card className="w-full max-w-md" onClick={(e) => e.stopPropagation()} data-testid="job-material-dialog">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-base">{t.materials.useOnJob}</CardTitle>
               <Button variant="ghost" size="icon" onClick={() => setOpen(false)}><X className="h-4 w-4" /></Button>
@@ -80,7 +81,8 @@ export function JobMaterialUsageDialog({ job, companyId }: JobMaterialUsageDialo
                   onChange={(e) => setQuantity(Number(e.target.value))}
                 />
               </div>
-              <Button className="w-full" onClick={handleSubmit} disabled={recordUsage.isPending || !materialId}>
+              <Button className="w-full" onClick={handleSubmit} disabled={recordUsage.isPending || !materialId}
+                data-testid="job-material-submit">
                 {t.common.save}
               </Button>
             </CardContent>

@@ -41,7 +41,7 @@ export function PropertyForm({ companyId, customers, onSubmit, onCancel }: Prope
   }
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="space-y-4">
+    <form onSubmit={handleSubmit(submit)} className="space-y-4" data-testid="property-form">
       <div>
         <Label>{t.properties.propertyName}</Label>
         <Input className="mt-1" {...register('name')} />
@@ -89,7 +89,7 @@ export function PropertyForm({ companyId, customers, onSubmit, onCancel }: Prope
       </div>
       <div className="flex justify-end gap-2">
         {onCancel && <Button type="button" variant="outline" onClick={onCancel}>{t.common.cancel}</Button>}
-        <Button type="submit" disabled={isSubmitting}>{t.common.save}</Button>
+        <Button type="submit" disabled={isSubmitting} data-testid="property-form-submit">{t.common.save}</Button>
       </div>
     </form>
   )

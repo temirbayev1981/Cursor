@@ -19,6 +19,7 @@ const requiredFiles = [
   'DEPLOYMENT.md',
   '.github/workflows/deploy.yml',
   '.github/workflows/ci.yml',
+  '.github/workflows/supabase-smoke.yml',
   'src/i18n/ai-fallbacks.ts',
   'e2e/error-boundary.spec.ts',
   ...e2eSpecs,
