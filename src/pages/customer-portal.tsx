@@ -22,10 +22,10 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
 import {
-  getCustomerNotificationPreferences,
-  saveCustomerNotificationPreferences,
-  type CustomerNotificationPreferences,
-} from '@/lib/customer-notification-prefs'
+  portalGetNotificationPreferences,
+  portalUpdateNotificationPreferences,
+} from '@/services/portal-data-service'
+import { saveCustomerNotificationPreferences, type CustomerNotificationPreferences } from '@/lib/customer-notification-prefs'
 import { toast } from 'sonner'
 import type { Estimate } from '@/types'
 
@@ -45,7 +45,12 @@ export default function CustomerPortalPage() {
   useEffect(() => {
     if (!portal) return
     setReviewed(hasPortalReview(portal.customerId))
-    setNotifyPrefs(getCustomerNotificationPreferences(portal.customerId))
+    void portalGetNotificationPreferences().then((prefs) => {
+      if (prefs) {
+        setNotifyPrefs(prefs)
+        saveCustomerNotificationPreferences(portal.customerId, prefs)
+      }
+    })
   }, [portal])
 
   useEffect(() => {
@@ -78,7 +83,9 @@ export default function CustomerPortalPage() {
     const next = { ...notifyPrefs, [key]: value }
     setNotifyPrefs(next)
     saveCustomerNotificationPreferences(portal.customerId, next)
-    toast.success(t.customerPortal.preferencesSaved)
+    void portalUpdateNotificationPreferences(next).then((ok) => {
+      if (ok) toast.success(t.customerPortal.preferencesSaved)
+    })
   }
 
   const submitReview = (rating: number, comment: string) => {

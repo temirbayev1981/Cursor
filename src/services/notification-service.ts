@@ -1,6 +1,7 @@
 import { getNotificationEndpoint, getSmsEndpoint } from '@/lib/env'
 import { getSupabaseAuthHeaders } from '@/lib/supabase'
 import { customerAllowsNotification } from '@/lib/customer-notification-prefs'
+import type { Customer } from '@/types'
 
 export type NotificationChannel = 'email' | 'sms' | 'push'
 export type NotificationDeliveryStatus = 'queued' | 'sent' | 'failed'
@@ -157,8 +158,9 @@ export async function notifyJobScheduled(
   jobTitle: string,
   date: string,
   customerId?: string,
+  customer?: Pick<Customer, 'notification_preferences'>,
 ) {
-  if (customerId && !customerAllowsNotification(customerId, 'email')) {
+  if (customerId && !customerAllowsNotification(customerId, 'email', customer)) {
     return { ok: true, queued: false }
   }
   const tpl = notifyTemplates()
@@ -176,8 +178,9 @@ export async function notifyCustomerEta(
   jobTitle: string,
   eta: string,
   customerId?: string,
+  customer?: Pick<Customer, 'notification_preferences'>,
 ) {
-  if (customerId && !customerAllowsNotification(customerId, 'email')) {
+  if (customerId && !customerAllowsNotification(customerId, 'email', customer)) {
     return { ok: true, queued: false }
   }
   const tpl = notifyTemplates()

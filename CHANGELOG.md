@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.10.1] — 2026-07-10
+
+Portal notification prefs RPC sync, scheduling opt-out, and v1.10 E2E coverage.
+
+### Phase 99 — Portal prefs & E2E polish
+- Portal RPCs: `portal_get_notification_preferences`, `portal_update_notification_preferences`
+- Customer portal prefs sync to Supabase + localStorage cache
+- Scheduling respects customer email opt-out and uses locale-aware `formatDateTime`
+- E2E: dispatch bulk SMS, ETA on `in_progress`, notification opt-out, portal prefs toggle
+- Platform audit: `portal_notification_prefs_audit` gate
+- **190** E2E tests, **142** unit tests
+
 ## [1.10.0] — 2026-07-10
 
 Audit recommendations roadmap — operator tooling, notifications hub, dispatch alerts, portal prefs.

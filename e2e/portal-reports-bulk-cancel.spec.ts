@@ -89,6 +89,13 @@ test.describe('Customer portal English', () => {
     await expect(page.getByTestId('customer-portal-title')).toHaveText('Customer Portal')
     await expect(page.getByTestId('customer-portal-estimates-heading')).toHaveText('Your Estimates')
     await expect(page.getByText(/Bathroom Fixture/i).first()).toBeVisible()
+    await expect(page.getByTestId('customer-portal-notification-prefs')).toBeVisible()
+  })
+
+  test('customer portal toggles notification preferences', async ({ page }) => {
+    await page.goto('/portal/customer')
+    await page.getByTestId('customer-portal-notify-email').click()
+    await expect(page.getByText(/notification preferences saved|настройки уведомлений сохранены/i).first()).toBeVisible({ timeout: 5000 })
   })
 
   test('customer portal approves estimate in English', async ({ page }) => {

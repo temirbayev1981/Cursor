@@ -182,7 +182,7 @@ export default function DispatchPage() {
         const customer = customers.find((c) => c.id === job.customer_id)
         if (customer?.email) {
           const when = job.scheduled_date ? formatDateTime(job.scheduled_date) : t.dispatch.soon
-          const emailResult = await notifyJobScheduled(customer.email, job.title, when, customer.id)
+          const emailResult = await notifyJobScheduled(customer.email, job.title, when, customer.id, customer)
           const emailFeedback = notifyResultMessage(
             emailResult,
             t.dispatch.customerEmailSent.replace('{email}', customer.email),
@@ -198,7 +198,7 @@ export default function DispatchPage() {
         const customer = customers.find((c) => c.id === job.customer_id)
         if (customer?.email) {
           const eta = t.dispatch.etaDefault
-          const etaResult = await notifyCustomerEta(customer.email, job.title, eta, customer.id)
+          const etaResult = await notifyCustomerEta(customer.email, job.title, eta, customer.id, customer)
           const etaFeedback = notifyResultMessage(
             etaResult,
             t.dispatch.customerEtaSent.replace('{email}', customer.email),

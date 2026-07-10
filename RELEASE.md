@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.10.0
+# HandymanOS AI — Release 1.10.1
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.0`**, current package **1.10.0**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.1`**, current package **1.10.1**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -131,6 +131,11 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
 
+### 1.10.1 — Portal prefs sync & E2E polish
+- Portal notification preference RPCs; scheduling locale dates and opt-out
+- E2E for dispatch bulk SMS, ETA, portal prefs
+- Platform audit `portal_notification_prefs_audit` gate
+
 ### 1.10.0 — Recommendations roadmap
 - `verify:operator` + edge function smoke in Deploy CI
 - Notification hub (filter, status, retry); dispatch bulk SMS + ETA alerts
@@ -139,8 +144,8 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
 ## Test coverage
 
-- Unit: **140** (`npm test`)
-- E2E: **186/186** (`npm run test:e2e`)
+- Unit: **142** (`npm test`)
+- E2E: **190/190** (`npm run test:e2e`)
 
 ## Deploy
 

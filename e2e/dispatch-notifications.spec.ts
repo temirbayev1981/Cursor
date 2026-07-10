@@ -28,4 +28,25 @@ test.describe('Dispatch notifications', () => {
     await expect(page.getByText(/запланирован|scheduled/i).first()).toBeVisible()
     await expect(page.getByTestId('dispatch-card-job-e2e-draft')).toBeVisible()
   })
+
+  test('status select to in_progress queues customer ETA email', async ({ page }) => {
+    await page.goto('/dispatch')
+    await page.getByTestId('dispatch-status-job-e2e-draft').click()
+    await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
+    await expect(page.getByText(/Email.*очереди|email queued/i).first()).toBeVisible({ timeout: 5000 })
+
+    await page.getByTestId('dispatch-status-job-e2e-draft').click()
+    await page.getByRole('option', { name: /в работе|in progress/i }).click()
+    await expect(page.getByText(/ETA.*очереди|ETA email queued/i).first()).toBeVisible({ timeout: 5000 })
+  })
+
+  test('bulk SMS button notifies scheduled technicians', async ({ page }) => {
+    await page.goto('/dispatch')
+    await page.getByTestId('dispatch-status-job-e2e-draft').click()
+    await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
+    await expect(page.getByText(/SMS.*очереди|SMS queued locally/i).first()).toBeVisible({ timeout: 5000 })
+
+    await page.getByTestId('dispatch-bulk-sms').click()
+    await expect(page.getByText(/массовое SMS|bulk SMS/i).first()).toBeVisible({ timeout: 5000 })
+  })
 })

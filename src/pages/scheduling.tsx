@@ -15,11 +15,14 @@ import { addDays, format, startOfWeek, isSameDay } from 'date-fns'
 import { useTranslation } from '@/contexts/locale-context'
 import { toast } from 'sonner'
 import { notifyJobScheduled, flushNotificationQueue, notifyResultMessage } from '@/services/notification-service'
+import { formatDateTime } from '@/lib/utils'
+import { useDateLocale } from '@/hooks/use-date-locale'
 import { cn } from '@/lib/utils'
 import type { ScheduleFormValues } from '@/lib/schemas'
 
 export default function SchedulingPage() {
   const { t } = useTranslation()
+  const dateLocale = useDateLocale()
   const isMobile = useIsMobileNav()
   const [view, setView] = useState<'day' | 'week' | 'month'>(() =>
     typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches ? 'day' : 'week',
@@ -76,8 +79,8 @@ export default function SchedulingPage() {
           setShowForm(false)
 
           if (customer?.email) {
-            const when = format(start, 'PPp', { locale: undefined })
-            const result = await notifyJobScheduled(customer.email, job.title, when)
+            const when = formatDateTime(start.toISOString(), dateLocale)
+            const result = await notifyJobScheduled(customer.email, job.title, when, customer.id, customer)
             const feedback = notifyResultMessage(
               result,
               t.scheduling.emailSent.replace('{email}', customer.email),

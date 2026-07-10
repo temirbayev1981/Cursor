@@ -130,6 +130,9 @@ export const INTEGRATION_PROBE_HISTORY_AUDIT = true as const
 /** Settings notification hub exposes queue filter, status, and retry. */
 export const NOTIFICATION_HUB_AUDIT = true as const
 
+/** Customer portal notification preferences sync via portal RPCs. */
+export const PORTAL_NOTIFICATION_PREFS_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }
