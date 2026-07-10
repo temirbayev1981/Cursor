@@ -23,6 +23,6 @@ describe('platform-probes', () => {
   it('returns probes for all integration keys', async () => {
     vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 401 }))
     const probes = await probeLiveIntegrations()
-    expect(probes.map((p) => p.id)).toEqual(['stripe', 'supabase', 'openai', 'email', 'sms', 'maps'])
+    expect(probes.map((p) => p.id)).toEqual(['stripe', 'supabase', 'openai', 'email', 'sms', 'maps', 'observability'])
   })
 })

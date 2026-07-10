@@ -161,6 +161,20 @@ if (uniqueAuditE2eActions.size >= 40) {
   console.log(`✗ audit-expanded.spec.ts should reference many audit actions (got ${uniqueAuditE2eActions.size})`)
   ok = false
 }
+if (auditLabels.includes('OBSERVABILITY_PROBE_AUDIT = true')) {
+  console.log('✓ OBSERVABILITY_PROBE_AUDIT gate enabled')
+} else {
+  console.log('✗ OBSERVABILITY_PROBE_AUDIT must be true')
+  ok = false
+}
+
+const smokeScript = readFileSync('scripts/supabase-smoke.mjs', 'utf8')
+if (smokeScript.includes('SMOKE_EDGE_FUNCTIONS')) {
+  console.log('✓ supabase-smoke.mjs supports SMOKE_EDGE_FUNCTIONS')
+} else {
+  console.log('✗ supabase-smoke.mjs must support SMOKE_EDGE_FUNCTIONS')
+  ok = false
+}
 
 const changelog = readFileSync('CHANGELOG.md', 'utf8')
 if (changelog.includes(`[${pkg.version}]`)) {

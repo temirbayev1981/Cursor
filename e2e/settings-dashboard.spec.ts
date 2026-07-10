@@ -47,12 +47,22 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByText(/приглашение в команду отправлено|team invite sent/i).first()).toBeVisible({ timeout: 10000 })
   })
 
+  test('integrations tab lists integration cards including observability', async ({ page }) => {
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /интеграции|integrations/i }).click()
+    await expect(page.getByTestId('integration-card-supabase')).toBeVisible()
+    await expect(page.getByTestId('integration-card-stripe')).toBeVisible()
+    await expect(page.getByTestId('integration-card-observability')).toBeVisible()
+    await expect(page.getByTestId('integration-status-supabase')).toBeVisible()
+  })
+
   test('system tab shows platform audit checklist and coverage summary', async ({ page }) => {
     await page.goto('/settings')
     await page.getByRole('tab', { name: /system|система/i }).click()
     await expect(page.getByTestId('platform-audit-checklist')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-audit_e2e_full')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-integration_probes')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-observability_probe_audit')).toBeVisible()
     await expect(page.getByTestId('audit-coverage-summary')).toBeVisible()
     await expect(page.getByTestId('audit-coverage-summary')).toHaveText(/\d+.*(?:типов действий в журнале|action types in log).*\d+.*(?:локализованных меток|localized labels)/i)
   })

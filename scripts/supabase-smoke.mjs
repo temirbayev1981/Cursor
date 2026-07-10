@@ -39,7 +39,18 @@ const REQUIRED_RPCS = [
   ['get_team_invite', { p_token: 'smoke-invalid-invite' }],
   ['get_portal_estimates', { p_token: 'smoke-invalid-token' }],
   ['portal_submit_review', { p_token: 'smoke-invalid-token', p_rating: 1, p_comment: null }],
-] 
+]
+
+const EDGE_FUNCTIONS = [
+  'create-checkout-session',
+  'create-subscription-checkout',
+  'openai-proxy',
+  'send-notification',
+  'send-sms',
+  'stripe-webhook',
+]
+
+const REACHABLE_STATUSES = new Set([200, 204, 401, 405])
 
 async function checkRest() {
   const endpoint = `${url}/rest/v1/companies?select=id&limit=1`
@@ -84,12 +95,43 @@ async function checkRpc(name, body = {}) {
   console.log(`✓ RPC ${name} reachable`)
 }
 
+async function checkEdgeFunction(name) {
+  const endpoint = `${url}/functions/v1/${name}`
+  let reachable = false
+  try {
+    const res = await fetch(endpoint, { method: 'OPTIONS', headers })
+    reachable = REACHABLE_STATUSES.has(res.status) || res.ok
+  } catch {
+    reachable = false
+  }
+  if (!reachable) {
+    try {
+      const res = await fetch(endpoint, { method: 'GET', headers })
+      reachable = REACHABLE_STATUSES.has(res.status) || res.ok
+    } catch {
+      reachable = false
+    }
+  }
+  if (!reachable) {
+    console.error(`✗ Edge Function unreachable: ${name} — deploy supabase/functions/${name}`)
+    process.exit(1)
+  }
+  console.log(`✓ Edge Function ${name} reachable`)
+}
+
 await checkRest()
 for (const table of REQUIRED_TABLES) {
   await checkTable(table)
 }
 for (const [name, body] of REQUIRED_RPCS) {
   await checkRpc(name, body)
+}
+
+if (process.env.SMOKE_EDGE_FUNCTIONS === '1') {
+  console.log('\nEdge Functions:')
+  for (const fn of EDGE_FUNCTIONS) {
+    await checkEdgeFunction(fn)
+  }
 }
 
 console.log('✓ Supabase smoke passed')

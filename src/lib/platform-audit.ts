@@ -1,7 +1,7 @@
 import { hasSupabase, isE2eMockBackend } from '@/lib/env'
 import { computePlatformHealth, integrationProbesPass, type PlatformHealthOptions } from '@/lib/platform-health'
 import { TYPED_SUPABASE_QUERIES } from '@/lib/supabase-queries'
-import { AUDIT_E2E_FULL_COVERAGE, AUDIT_I18N_COVERAGE, BILLING_PLAN_AUDIT, BULK_OPS_AUDIT, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, ENTITY_UPDATE_AUDIT, ESTIMATE_CREATE_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INTEGRATION_PROBES_AUDIT, INVOICE_AUDIT, INVITE_AUDIT, PORTAL_AUDIT, PORTAL_REQUESTS_AUDIT, SAMPLE_IMPORT_AUDIT, TEAM_INVITE_AUDIT, VENDOR_PO_AUDIT } from '@/lib/audit-labels'
+import { AUDIT_E2E_FULL_COVERAGE, AUDIT_I18N_COVERAGE, BILLING_PLAN_AUDIT, BULK_OPS_AUDIT, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, ENTITY_UPDATE_AUDIT, ESTIMATE_CREATE_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INTEGRATION_PROBES_AUDIT, INVOICE_AUDIT, INVITE_AUDIT, OBSERVABILITY_PROBE_AUDIT, PORTAL_AUDIT, PORTAL_REQUESTS_AUDIT, SAMPLE_IMPORT_AUDIT, TEAM_INVITE_AUDIT, VENDOR_PO_AUDIT } from '@/lib/audit-labels'
 import { MULTI_TENANT_SUPPORTED, MULTI_TENANT_MEMBERSHIP_RPC } from '@/services/company-service'
 import { PORTAL_RPC_ENFORCED } from '@/services/portal-data-service'
 import { STRIPE_WEBHOOK_AUDIT } from '@/services/billing-service'
@@ -76,6 +76,7 @@ export function computePlatformAudit(options: PlatformHealthOptions = {}): Platf
     { id: 'entity_update_audit', label: 'Entity update audit logging', ok: liveBackend && ENTITY_UPDATE_AUDIT, weight: 0.5 },
     { id: 'audit_e2e_full', label: 'Full audit E2E coverage', ok: liveBackend && AUDIT_E2E_FULL_COVERAGE, weight: 0.5 },
     { id: 'integration_probes', label: 'Live integration probes', ok: liveBackend && INTEGRATION_PROBES_AUDIT && probesOk, weight: 0.5 },
+    { id: 'observability_probe_audit', label: 'Observability live probe', ok: liveBackend && OBSERVABILITY_PROBE_AUDIT, weight: 0.5 },
     { id: 'multi_tenant', label: 'Multi-company membership', ok: liveBackend && MULTI_TENANT_SUPPORTED && Boolean(MULTI_TENANT_MEMBERSHIP_RPC), weight: 0.5 },
   ]
 

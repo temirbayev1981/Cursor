@@ -572,6 +572,7 @@ export const en: TranslationKeys = {
       supabase: { name: 'Supabase', desc: 'Database & auth' },
       email: { name: 'Email', desc: 'Customer email notifications' },
       sms: { name: 'SMS', desc: 'Technician dispatch alerts' },
+      observability: { name: 'Observability', desc: 'Sentry or error webhook monitoring' },
     },
     integrationProbeLive: 'Live',
     integrationProbeUnreachable: 'Unreachable',
@@ -656,6 +657,7 @@ export const en: TranslationKeys = {
       entity_update_audit: 'Entity update audit',
       audit_e2e_full: 'Audit E2E full',
       integration_probes: 'Integration probes',
+      observability_probe_audit: 'Observability probe',
       multi_tenant: 'Multi-tenant',
     },
     auditActions: {

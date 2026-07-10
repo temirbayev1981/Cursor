@@ -115,6 +115,9 @@ export const AUDIT_E2E_FULL_COVERAGE = true as const
 /** Live integration endpoint probes affect platform health scores. */
 export const INTEGRATION_PROBES_AUDIT = true as const
 
+/** Observability webhook probes affect platform health scores. */
+export const OBSERVABILITY_PROBE_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }

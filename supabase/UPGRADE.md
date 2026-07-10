@@ -30,6 +30,10 @@ No schema changes required. Update frontend deploy and optional:
 - `npm run smoke:supabase` (expanded table/RPC checks)
 - Stripe webhook redeploy if using `stripe-webhook` audit logging
 
+## From 1.9.0 → 1.9.1
+
+No schema changes. Observability integration probe; optional `SMOKE_EDGE_FUNCTIONS=1` edge function smoke.
+
 ## From 1.8.9 → 1.9.0
 
 No schema changes. Platform audit checklist, probe-aware health, PWA manifest link.

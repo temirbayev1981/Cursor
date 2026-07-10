@@ -570,6 +570,7 @@ export const ru = {
       supabase: { name: 'Supabase', desc: 'База данных и авторизация' },
       email: { name: 'Email', desc: 'Email-уведомления клиентам' },
       sms: { name: 'SMS', desc: 'SMS-оповещения мастерам' },
+      observability: { name: 'Наблюдаемость', desc: 'Sentry или error webhook мониторинг' },
     },
     integrationProbeLive: 'Онлайн',
     integrationProbeUnreachable: 'Недоступно',
@@ -654,6 +655,7 @@ export const ru = {
       entity_update_audit: 'Entity update audit',
       audit_e2e_full: 'Audit E2E полный',
       integration_probes: 'Пробы интеграций',
+      observability_probe_audit: 'Проба observability',
       multi_tenant: 'Мульти-тенант',
     },
     auditActions: {

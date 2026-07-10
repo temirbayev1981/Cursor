@@ -54,7 +54,7 @@ export function computePlatformHealth(options: PlatformHealthOptions = {}): Plat
     { id: 'sms', label: 'SMS', ok: integrationOk(hasSmsConfigured, 'sms', probeResults), weight: 1 },
     { id: 'openai', label: 'OpenAI', ok: integrationOk(hasOpenAI, 'openai', probeResults), weight: 1 },
     { id: 'maps', label: 'Google Maps', ok: integrationOk(hasGoogleMaps, 'maps', probeResults), weight: 0.5 },
-    { id: 'observability', label: 'Observability', ok: hasObservability, weight: 0.5 },
+    { id: 'observability', label: 'Observability', ok: integrationOk(hasObservability, 'observability', probeResults), weight: 0.5 },
     { id: 'pwa', label: 'PWA', ok: pwaReady, weight: 0.5 },
     { id: 'offline_sync', label: 'Offline sync', ok: offlineReady, weight: 0.5 },
   ]

@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.9.1] — 2026-07-10
+
+Observability probe and edge function smoke milestone.
+
+### Phase 93 — Observability & edge smoke
+- Observability integration probe (`VITE_ERROR_WEBHOOK_URL`) in live integration probes
+- Settings → Integrations: observability card with probe-aware unreachable badge
+- Platform audit: `observability_probe_audit` quality gate
+- `supabase-smoke.mjs`: optional `SMOKE_EDGE_FUNCTIONS=1` OPTIONS/GET probe for 6 edge functions
+- `verify:production` checks observability gate and edge smoke support
+- **185** E2E tests, **122** unit tests
+
 ## [1.9.0] — 2026-07-10
 
 Production readiness visibility milestone.

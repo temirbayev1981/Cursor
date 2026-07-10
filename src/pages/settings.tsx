@@ -11,7 +11,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
 import { useTheme } from '@/contexts/theme-context'
 import { useTranslation } from '@/contexts/locale-context'
-import { hasStripe, hasGoogleMaps, hasOpenAI, hasSupabase, hasNotificationConfigured, hasSmsConfigured, isE2eMockBackend } from '@/lib/env'
+import { hasStripe, hasGoogleMaps, hasOpenAI, hasSupabase, hasNotificationConfigured, hasSmsConfigured, hasObservability, isE2eMockBackend } from '@/lib/env'
 import { useImportSampleData, useAuditLogs } from '@/hooks/use-entities'
 import { logAudit } from '@/services/entity-service'
 import { getNotificationQueue } from '@/services/notification-service'
@@ -30,7 +30,7 @@ import type { UserRole, SubscriptionPlan } from '@/types'
 
 const INVITE_ROLES: UserRole[] = ['admin', 'dispatcher', 'technician', 'accountant']
 
-const INTEGRATION_KEYS = ['stripe', 'maps', 'openai', 'supabase', 'email', 'sms'] as const
+const INTEGRATION_KEYS = ['stripe', 'maps', 'openai', 'supabase', 'email', 'sms', 'observability'] as const
 
 export default function SettingsPage() {
   const { company, user, updateCompanyDetails } = useAuth()
@@ -69,6 +69,7 @@ export default function SettingsPage() {
     supabase: hasSupabase ? 'connected' : 'configure',
     email: hasNotificationConfigured ? 'connected' : 'configure',
     sms: hasSmsConfigured ? 'connected' : 'configure',
+    observability: hasObservability ? 'connected' : 'configure',
   }
 
   const importSampleData = useImportSampleData()
@@ -291,15 +292,21 @@ export default function SettingsPage() {
               const card = t.settings.integrationCards[key]
               const status = integrationStatus[key]
               const probeLabel = getIntegrationProbeLabel(key)
+              const probeFailed = status === 'connected' && integrationProbes[key] === false
               return (
-                <Card key={key}>
+                <Card key={key} data-testid={`integration-card-${key}`}>
                   <CardContent className="p-5 flex items-center justify-between">
                     <div>
                       <p className="font-medium">{card.name}</p>
                       <p className="text-sm text-muted-foreground">{card.desc}</p>
                     </div>
                     <div className="flex flex-col items-end gap-1">
-                      <Badge variant={status === 'connected' ? 'success' : 'outline'}>{getIntegrationStatus(key)}</Badge>
+                      <Badge
+                        variant={probeFailed ? 'destructive' : status === 'connected' ? 'success' : 'outline'}
+                        data-testid={`integration-status-${key}`}
+                      >
+                        {probeFailed ? t.settings.integrationProbeUnreachable : getIntegrationStatus(key)}
+                      </Badge>
                       {probeLabel && (
                         <Badge
                           variant={integrationProbes[key] ? 'success' : 'outline'}

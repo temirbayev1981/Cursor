@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.9.0
+# HandymanOS AI — Release 1.9.1
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.9.0`**, current package **1.9.0**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.9.1`**, current package **1.9.1**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -105,10 +105,16 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Maps live probe; `integration_probes` gate; honest PWA/offline checks
 - `verify:production` enforces audit E2E invariants
 
+### 1.9.1 — Observability & edge smoke
+- Observability probe (`VITE_ERROR_WEBHOOK_URL`); Settings → Integrations card
+- Platform audit `observability_probe_audit` gate; probe-aware observability health
+- `SMOKE_EDGE_FUNCTIONS=1` edge function smoke in `supabase-smoke.mjs`
+- E2E: integrations cards including observability; platform audit checklist
+
 ## Test coverage
 
-- Unit: **120** (`npm test`)
-- E2E: **184/184** (`npm run test:e2e`)
+- Unit: **122** (`npm test`)
+- E2E: **185/185** (`npm run test:e2e`)
 
 ## Deploy
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatAuditAction, isAuditActionKey, countUniqueAuditActions, AUDIT_ACTION_COUNT, AUDIT_E2E_FULL_COVERAGE, BILLING_PLAN_AUDIT, BULK_OPS_AUDIT, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, ENTITY_UPDATE_AUDIT, ESTIMATE_CREATE_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INTEGRATION_PROBES_AUDIT, INVOICE_AUDIT, INVITE_AUDIT, PORTAL_AUDIT, PORTAL_REQUESTS_AUDIT, SAMPLE_IMPORT_AUDIT, TEAM_INVITE_AUDIT, VENDOR_PO_AUDIT } from './audit-labels'
+import { formatAuditAction, isAuditActionKey, countUniqueAuditActions, AUDIT_ACTION_COUNT, AUDIT_E2E_FULL_COVERAGE, BILLING_PLAN_AUDIT, BULK_OPS_AUDIT, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, ENTITY_UPDATE_AUDIT, ESTIMATE_CREATE_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INTEGRATION_PROBES_AUDIT, INVOICE_AUDIT, INVITE_AUDIT, OBSERVABILITY_PROBE_AUDIT, PORTAL_AUDIT, PORTAL_REQUESTS_AUDIT, SAMPLE_IMPORT_AUDIT, TEAM_INVITE_AUDIT, VENDOR_PO_AUDIT } from './audit-labels'
 
 describe('audit-labels', () => {
   const labels = {
@@ -113,6 +113,10 @@ describe('audit-labels', () => {
 
   it('recognizes v1.9.0 integration probes gate', () => {
     expect(INTEGRATION_PROBES_AUDIT).toBe(true)
+  })
+
+  it('recognizes v1.9.1 observability probe gate', () => {
+    expect(OBSERVABILITY_PROBE_AUDIT).toBe(true)
   })
 
   it('tracks audit action count', () => {

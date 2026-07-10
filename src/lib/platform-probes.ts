@@ -6,6 +6,7 @@ import {
   getStripeCheckoutEndpoint,
   getStripeSubscriptionEndpoint,
   hasGoogleMaps,
+  hasObservability,
   hasSupabase,
 } from '@/lib/env'
 
@@ -69,6 +70,14 @@ async function probeMaps(): Promise<IntegrationProbe> {
   }
 }
 
+async function probeObservability(): Promise<IntegrationProbe> {
+  if (!hasObservability || !env.VITE_ERROR_WEBHOOK_URL) {
+    return { id: 'observability', reachable: null }
+  }
+  const ok = await probeIntegrationEndpoint(env.VITE_ERROR_WEBHOOK_URL)
+  return { id: 'observability', reachable: ok }
+}
+
 /** Async reachability checks for configured integration endpoints (Settings → Integrations). */
 export async function probeLiveIntegrations(): Promise<IntegrationProbe[]> {
   return Promise.all([
@@ -78,5 +87,6 @@ export async function probeLiveIntegrations(): Promise<IntegrationProbe[]> {
     probeConfiguredEndpoint('email', getNotificationEndpoint()),
     probeConfiguredEndpoint('sms', getSmsEndpoint()),
     probeMaps(),
+    probeObservability(),
   ])
 }

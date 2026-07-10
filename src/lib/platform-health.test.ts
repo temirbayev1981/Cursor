@@ -26,6 +26,13 @@ describe('platform-health', () => {
     expect(integrationProbesPass(undefined)).toBe(true)
   })
 
+  it('downgrades observability when live probe fails', () => {
+    const report = computePlatformHealth({
+      probeResults: { observability: false },
+    })
+    expect(report.checks.find((c) => c.id === 'observability')?.ok).toBe(false)
+  })
+
   it('requires supabase for production readiness flag', () => {
     const report = computePlatformHealth()
     if (!report.checks.find((check) => check.id === 'supabase')?.ok) {
