@@ -94,6 +94,15 @@ export const BILLING_PLAN_AUDIT = true as const
 /** Team invite sends write audit_logs. */
 export const TEAM_INVITE_AUDIT = true as const
 
+/** Invoice payment and send write audit_logs. */
+export const INVOICE_AUDIT = true as const
+
+/** Sample data import writes audit_logs. */
+export const SAMPLE_IMPORT_AUDIT = true as const
+
+/** Portal job/review requests write audit_logs. */
+export const PORTAL_REQUESTS_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }

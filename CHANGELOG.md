@@ -2,6 +2,15 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.8.8] — 2026-07-10
+
+Invoice, sample import, and portal request audit E2E.
+
+### Phase 90 — Invoice & portal requests audit
+- Platform audit: `invoice_audit`, `sample_import_audit`, `portal_requests_audit` gates
+- `import-sample-data` test id on Settings → System
+- E2E: invoice payment/sent, sample import, portal review/job submit → audit log
+
 ## [1.8.7] — 2026-07-10
 
 Bulk ops and billing/team audit E2E.

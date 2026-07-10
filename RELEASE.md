@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.8.7
+# HandymanOS AI — Release 1.8.8
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.8.7`**, current package **1.8.7**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.8.8`**, current package **1.8.8**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -91,10 +91,14 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Platform audit `bulk_ops_audit`, `billing_plan_audit`, `team_invite_audit` gates
 - E2E: bulk cancel/assign, plan upgrade, team invite → audit log
 
+### 1.8.8 — Invoice & portal requests audit
+- Platform audit `invoice_audit`, `sample_import_audit`, `portal_requests_audit` gates
+- E2E: invoice payment/sent, sample import, portal review/job submit → audit log
+
 ## Test coverage
 
-- Unit: **114** (`npm test`)
-- E2E: **166/166** (`npm run test:e2e`)
+- Unit: **115** (`npm test`)
+- E2E: **171/171** (`npm run test:e2e`)
 
 ## Deploy
 

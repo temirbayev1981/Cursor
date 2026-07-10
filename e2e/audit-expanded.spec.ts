@@ -8,6 +8,8 @@ import {
   seedInProgressTechJob,
   seedPortalCustomerInvoice,
   seedBulkDraftJobs,
+  seedDraftInvoice,
+  clearPortalReview,
 } from './helpers/auth'
 
 test.describe('Expanded audit log E2E', () => {
@@ -419,6 +421,95 @@ test.describe('Bulk & billing audit E2E', () => {
     await expect(page.getByTestId('audit-log-list')).toBeVisible()
     await expect(page.locator('[data-audit-action="team.invite_sent"]').first()).toBeVisible({ timeout: 10000 })
     await expect(page.getByText(/приглашение в команду отправлено|team invite sent/i).first()).toBeVisible()
+  })
+})
+
+test.describe('Invoice & sample audit E2E', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+  })
+
+  test('invoice payment appears in audit log', async ({ page }) => {
+    await page.goto('/invoices')
+    await expect(page.getByText('INV-2026-0141').first()).toBeVisible()
+    await page.getByTestId('invoice-pay-inv-002').click()
+    await expect(page.getByText(/оплачено|paid/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="invoice.payment"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/оплата счёта|invoice payment recorded/i).first()).toBeVisible()
+  })
+
+  test('invoice sent appears in audit log', async ({ page }) => {
+    await seedDraftInvoice(page)
+    await page.goto('/invoices')
+    await expect(page.getByText('INV-E2E-DRAFT').first()).toBeVisible()
+    await page.getByTestId('invoice-send-inv-e2e-draft').click()
+    await expect(page.getByText(/счёт отправлен|invoice sent/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="invoice.sent"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/счёт отправлен клиенту|invoice sent to customer/i).first()).toBeVisible()
+  })
+
+  test('sample import appears in audit log', async ({ page }) => {
+    await openSettingsAuditTab(page)
+    await page.getByTestId('import-sample-data').click()
+    await expect(page.getByText(/импортировано|imported/i).first()).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-audit-action="sample.import"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/импорт примеров данных|sample data imported/i).first()).toBeVisible()
+  })
+})
+
+test.describe('Portal requests audit E2E', () => {
+  test('portal review submit appears in audit log', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await page.evaluate(() => {
+      sessionStorage.setItem('handymanos_portal_session', JSON.stringify({
+        customerId: 'cust-002',
+        companyId: 'comp-001',
+        portalType: 'customer',
+        customerName: 'Sarah Johnson',
+        expiresAt: Date.now() + 30 * 86400000,
+        token: 'e2e-portal-customer-token',
+      }))
+    })
+    await page.goto('/portal/customer')
+    await clearPortalReview(page)
+    await page.reload()
+    await page.getByRole('button', { name: /оставить отзыв|leave a review/i }).click()
+    await page.getByRole('button', { name: '5' }).click()
+    await page.locator('#portal-review-comment').fill('E2E audit review comment')
+    await page.getByTestId('portal-review-submit').click()
+    await expect(page.getByText(/спасибо за отзыв|thank you for your review/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="portal.review_submit"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/отзыв оставлен в портале|portal review submitted/i).first()).toBeVisible()
+  })
+
+  test('portal job submit appears in audit log', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await page.evaluate(() => {
+      sessionStorage.setItem('handymanos_portal_session', JSON.stringify({
+        customerId: 'cust-001',
+        companyId: 'comp-001',
+        portalType: 'property',
+        customerName: 'ABC Property Management',
+        expiresAt: Date.now() + 30 * 86400000,
+        token: 'e2e-portal-property-token',
+      }))
+    })
+    await page.goto('/portal/property')
+    await page.getByTestId('property-portal-submit-request').click()
+    await page.getByTestId('property-portal-request-form').locator('input').first().fill('E2E Audit Portal Job')
+    await page.getByTestId('property-portal-request-form').locator('textarea').first().fill('Audit E2E maintenance request')
+    await page.getByTestId('property-portal-request-submit').click()
+    await expect(page.getByText(/заявка отправлена|request submitted/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="portal.job_submit"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/заявка подана через портал|portal job request submitted/i).first()).toBeVisible()
   })
 })
 

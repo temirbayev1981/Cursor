@@ -478,6 +478,7 @@ export default function SettingsPage() {
                   </p>
                   <Button
                     variant="outline"
+                    data-testid="import-sample-data"
                     disabled={importSampleData.isPending}
                     onClick={() => importSampleData.mutate(undefined, {
                       onSuccess: (r) => {

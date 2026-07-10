@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatAuditAction, isAuditActionKey, countUniqueAuditActions, BILLING_PLAN_AUDIT, BULK_OPS_AUDIT, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INVITE_AUDIT, PORTAL_AUDIT, TEAM_INVITE_AUDIT, VENDOR_PO_AUDIT } from './audit-labels'
+import { formatAuditAction, isAuditActionKey, countUniqueAuditActions, BILLING_PLAN_AUDIT, BULK_OPS_AUDIT, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INVOICE_AUDIT, INVITE_AUDIT, PORTAL_AUDIT, PORTAL_REQUESTS_AUDIT, SAMPLE_IMPORT_AUDIT, TEAM_INVITE_AUDIT, VENDOR_PO_AUDIT } from './audit-labels'
 
 describe('audit-labels', () => {
   const labels = {
@@ -85,6 +85,17 @@ describe('audit-labels', () => {
     expect(BULK_OPS_AUDIT).toBe(true)
     expect(BILLING_PLAN_AUDIT).toBe(true)
     expect(TEAM_INVITE_AUDIT).toBe(true)
+  })
+
+  it('recognizes v1.8.8 invoice and portal request audit gates', () => {
+    expect(isAuditActionKey('invoice.payment')).toBe(true)
+    expect(isAuditActionKey('invoice.sent')).toBe(true)
+    expect(isAuditActionKey('sample.import')).toBe(true)
+    expect(isAuditActionKey('portal.review_submit')).toBe(true)
+    expect(isAuditActionKey('portal.job_submit')).toBe(true)
+    expect(INVOICE_AUDIT).toBe(true)
+    expect(SAMPLE_IMPORT_AUDIT).toBe(true)
+    expect(PORTAL_REQUESTS_AUDIT).toBe(true)
   })
 
   it('counts unique audit actions in log', () => {

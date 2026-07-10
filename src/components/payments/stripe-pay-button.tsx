@@ -8,6 +8,7 @@ import { useTranslation } from '@/contexts/locale-context'
 import { recordInvoicePayment } from '@/services/payment-service'
 import { logAudit } from '@/services/entity-service'
 import { startStripeCheckout } from '@/services/stripe-service'
+import { useAuth } from '@/contexts/auth-context'
 import type { Invoice } from '@/types'
 
 interface StripePayButtonProps {
@@ -19,6 +20,7 @@ interface StripePayButtonProps {
 
 export function StripePayButton({ invoice, customerEmail, portalToken, onSuccess }: StripePayButtonProps) {
   const { t } = useTranslation()
+  const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const amount = invoice.total - invoice.amount_paid
 
@@ -45,6 +47,8 @@ export function StripePayButton({ invoice, customerEmail, portalToken, onSuccess
         await recordInvoicePayment(invoice, amount, 'cash', `manual_${Date.now()}`)
         if (portalToken) {
           void logAudit(invoice.company_id, invoice.customer_id, 'portal.invoice_payment', 'invoice', invoice.id)
+        } else if (user) {
+          void logAudit(invoice.company_id, user.id, 'invoice.payment', 'invoice', invoice.id)
         }
         toast.success(t.invoices.paid, {
           description: `${formatCurrency(amount)} — ${invoice.invoice_number}`,
