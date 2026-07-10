@@ -39,7 +39,7 @@ export function MaterialForm({ companyId, onSubmit, onCancel }: MaterialFormProp
   }
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="space-y-4">
+    <form onSubmit={handleSubmit(submit)} className="space-y-4" data-testid="material-form">
       <div>
         <Label>{t.materials.material}</Label>
         <Input className="mt-1" {...register('name')} />
@@ -81,7 +81,7 @@ export function MaterialForm({ companyId, onSubmit, onCancel }: MaterialFormProp
       </div>
       <div className="flex justify-end gap-2 pt-2">
         {onCancel && <Button type="button" variant="outline" onClick={onCancel}>{t.common.cancel}</Button>}
-        <Button type="submit" disabled={isSubmitting}>{t.common.save}</Button>
+        <Button type="submit" disabled={isSubmitting} data-testid="material-form-submit">{t.common.save}</Button>
       </div>
     </form>
   )

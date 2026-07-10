@@ -26,11 +26,11 @@ import type { UserRole, SubscriptionPlan } from '@/types'
 
 const INVITE_ROLES: UserRole[] = ['admin', 'dispatcher', 'technician', 'accountant']
 
-const INTEGRATION_KEYS = ['stripe', 'maps', 'openai', 'supabase', 'email'] as const
+const INTEGRATION_KEYS = ['stripe', 'maps', 'openai', 'supabase', 'email', 'sms'] as const
 
 export default function SettingsPage() {
-  const { company, user } = useAuth()
-  const { t, locale } = useTranslation()
+  const { company, user, updateCompanyDetails } = useAuth()
+  const { t } = useTranslation()
   const { theme, setTheme } = useTheme()
   const stored = getStoredCompany()
   const base = stored ?? company
@@ -41,6 +41,7 @@ export default function SettingsPage() {
   const [pendingInvites, setPendingInvites] = useState<TeamInvite[]>([])
   const [inviteLoading, setInviteLoading] = useState(false)
   const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan>(base?.subscription_plan ?? 'professional')
+  const [companySaving, setCompanySaving] = useState(false)
   const [upgradingPlan, setUpgradingPlan] = useState<SubscriptionPlan | null>(null)
 
   const [companyForm, setCompanyForm] = useState({
@@ -55,7 +56,8 @@ export default function SettingsPage() {
     maps: hasGoogleMaps ? 'connected' : 'configure',
     openai: hasOpenAI ? 'connected' : 'configure',
     supabase: hasSupabase ? 'connected' : 'configure',
-    email: hasNotificationConfigured || hasSmsConfigured ? 'connected' : 'configure',
+    email: hasNotificationConfigured ? 'connected' : 'configure',
+    sms: hasSmsConfigured ? 'connected' : 'configure',
   }
 
   const importDemoSeed = useImportDemoSeed()
@@ -74,11 +76,11 @@ export default function SettingsPage() {
     if (subscribed && ['starter', 'professional', 'enterprise'].includes(subscribed)) {
       void updateCompanySubscription(companyId, subscribed).then((updated) => {
         setCurrentPlan(updated.subscription_plan)
-        toast.success(locale === 'ru' ? `План обновлён: ${subscribed}` : `Plan upgraded: ${subscribed}`)
+        toast.success(t.settings.planUpgraded.replace('{plan}', subscribed))
       })
       window.history.replaceState({}, '', '/settings')
     }
-  }, [companyId, locale])
+  }, [companyId, t.settings.planUpgraded])
 
   const handleUpgrade = async (plan: SubscriptionPlan) => {
     if (plan === currentPlan) return
@@ -88,9 +90,9 @@ export default function SettingsPage() {
       if (result === 'demo') {
         const updated = await updateCompanySubscription(companyId, plan)
         setCurrentPlan(updated.subscription_plan)
-        toast.success(locale === 'ru' ? 'План обновлён (демо)' : 'Plan upgraded (demo)')
+        toast.success(t.settings.planUpgradedDemo)
       } else if (result === 'error') {
-        toast.error(locale === 'ru' ? 'Ошибка оплаты' : 'Checkout failed')
+        toast.error(t.settings.checkoutFailed)
       }
     } finally {
       setUpgradingPlan(null)
@@ -108,7 +110,7 @@ export default function SettingsPage() {
       const invites = await listTeamInvites(companyId)
       setPendingInvites(invites)
     } catch {
-      toast.error(locale === 'ru' ? 'Ошибка приглашения' : 'Invite failed')
+      toast.error(t.settings.inviteFailed)
     } finally {
       setInviteLoading(false)
     }
@@ -133,10 +135,16 @@ export default function SettingsPage() {
     return t.common.moduleBased
   }
 
-  const handleSaveCompany = () => {
-    const updated = { ...base!, ...companyForm }
-    localStorage.setItem('handymanos_company', JSON.stringify(updated))
-    toast.success(t.settings.saveChanges)
+  const handleSaveCompany = async () => {
+    setCompanySaving(true)
+    try {
+      await updateCompanyDetails(companyForm)
+      toast.success(t.settings.saveChanges)
+    } catch {
+      toast.error(t.settings.companySaveFailed)
+    } finally {
+      setCompanySaving(false)
+    }
   }
 
   const notifications = getNotificationQueue().slice(0, 5)
@@ -175,16 +183,16 @@ export default function SettingsPage() {
               <div><Label>{t.onboarding.address}</Label><Input className="mt-1" value={companyForm.address} onChange={(e) => setCompanyForm({ ...companyForm, address: e.target.value })} /></div>
               <div className="flex items-center justify-between rounded-lg bg-secondary/30 p-4">
                 <div>
-                  <p className="font-medium">{theme === 'dark' ? (locale === 'ru' ? 'Тёмная тема' : 'Dark mode') : (locale === 'ru' ? 'Светлая тема' : 'Light mode')}</p>
+                  <p className="font-medium">{theme === 'dark' ? t.settings.themeDark : t.settings.themeLight}</p>
                   <p className="text-sm text-muted-foreground">
-                    {theme === 'dark' ? (locale === 'ru' ? 'Переключить на светлую тему' : 'Switch to light theme') : (locale === 'ru' ? 'Переключить на тёмную тему' : 'Switch to dark theme')}
+                    {theme === 'dark' ? t.settings.themeSwitchToLight : t.settings.themeSwitchToDark}
                   </p>
                 </div>
-                <Button variant="outline" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+                <Button variant="outline" size="icon" data-testid="theme-toggle" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
                   {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 </Button>
               </div>
-              <Button onClick={handleSaveCompany}>{t.settings.saveChanges}</Button>
+              <Button onClick={() => void handleSaveCompany()} disabled={companySaving}>{t.settings.saveChanges}</Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -195,7 +203,7 @@ export default function SettingsPage() {
               const planData = t.settings.plans[plan.key]
               const isCurrent = currentPlan === plan.key
               return (
-                <Card key={plan.key} className={isCurrent ? 'border-primary' : ''}>
+                <Card key={plan.key} className={isCurrent ? 'border-primary' : ''} data-testid={`billing-plan-${plan.key}`}>
                   <CardContent className="p-5">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="font-semibold">{planData.name}</h3>
@@ -212,6 +220,7 @@ export default function SettingsPage() {
                         variant="outline"
                         className="w-full"
                         disabled={upgradingPlan === plan.key}
+                        data-testid={`billing-upgrade-${plan.key}`}
                         onClick={() => void handleUpgrade(plan.key)}
                       >
                         {upgradingPlan === plan.key ? '...' : t.common.upgrade}
@@ -227,20 +236,14 @@ export default function SettingsPage() {
         <TabsContent value="integrations">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {INTEGRATION_KEYS.map((key) => {
-              const labels: Record<typeof key, { name: string; desc: string }> = {
-                stripe: { name: 'Stripe', desc: 'Online payments' },
-                maps: { name: 'Google Maps', desc: 'Routing & dispatch map' },
-                openai: { name: 'OpenAI', desc: 'AI work order parsing' },
-                supabase: { name: 'Supabase', desc: 'Database & auth' },
-                email: { name: 'Email/SMS', desc: 'Customer notifications' },
-              }
+              const card = t.settings.integrationCards[key]
               const status = integrationStatus[key]
               return (
                 <Card key={key}>
                   <CardContent className="p-5 flex items-center justify-between">
                     <div>
-                      <p className="font-medium">{labels[key].name}</p>
-                      <p className="text-sm text-muted-foreground">{labels[key].desc}</p>
+                      <p className="font-medium">{card.name}</p>
+                      <p className="text-sm text-muted-foreground">{card.desc}</p>
                     </div>
                     <Badge variant={status === 'connected' ? 'success' : 'outline'}>{getIntegrationStatus(key)}</Badge>
                   </CardContent>
@@ -263,6 +266,7 @@ export default function SettingsPage() {
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
                     placeholder="tech@company.com"
+                    data-testid="team-invite-email"
                   />
                 </div>
                 <div>
@@ -278,7 +282,7 @@ export default function SettingsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={() => void handleSendInvite()} disabled={inviteLoading || !inviteEmail.includes('@')}>
+                <Button onClick={() => void handleSendInvite()} disabled={inviteLoading || !inviteEmail.includes('@')} data-testid="team-invite-submit">
                   {t.settings.sendInvite}
                 </Button>
               </CardContent>
@@ -286,7 +290,7 @@ export default function SettingsPage() {
 
             <Card>
               <CardHeader><CardTitle>{t.settings.pendingInvites}</CardTitle></CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-2" data-testid="team-pending-invites">
                 {pendingInvites.length === 0 ? (
                   <p className="text-sm text-muted-foreground">{t.settings.noPendingInvites}</p>
                 ) : (

@@ -21,7 +21,7 @@ export default function AIAssistantPage() {
   const { data: jobs = [] } = useJobs()
   const { data: invoices = [] } = useInvoices()
   const { data: customers = [] } = useCustomers()
-  const businessContext = buildBusinessContext({ jobs, invoices, customers })
+  const businessContext = buildBusinessContext({ jobs, invoices, customers }, locale)
   const suggestedQuestions = [t.ai.q1, t.ai.q2, t.ai.q3, t.ai.q4]
 
   useEffect(() => {
@@ -98,6 +98,7 @@ export default function AIAssistantPage() {
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-secondary/50'
                       }`}
+                      data-testid={msg.role === 'user' ? 'ai-chat-user-message' : 'ai-chat-assistant-message'}
                     >
                       {msg.content}
                     </div>
@@ -130,8 +131,9 @@ export default function AIAssistantPage() {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder={t.ai.placeholder}
                   disabled={loading}
+                  data-testid="ai-chat-input"
                 />
-                <Button type="submit" disabled={loading || !input.trim()}>
+                <Button type="submit" disabled={loading || !input.trim()} data-testid="ai-chat-submit">
                   <Send className="h-4 w-4" />
                 </Button>
               </form>
@@ -151,6 +153,7 @@ export default function AIAssistantPage() {
                   <button
                     key={q}
                     onClick={() => sendMessage(q)}
+                    data-testid="ai-suggested-question"
                     className="w-full text-left text-sm rounded-lg bg-secondary/30 p-3 hover:bg-secondary/50 transition-colors cursor-pointer"
                   >
                     {q}

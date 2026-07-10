@@ -56,9 +56,7 @@ export function DataTableRow({
 export function DataTableCell({
   children,
   className,
-}: {
-  children: React.ReactNode
-  className?: string
-}) {
-  return <td className={cn('px-4 py-3 text-sm', className)}>{children}</td>
+  ...props
+}: React.TdHTMLAttributes<HTMLTableCellElement>) {
+  return <td className={cn('px-4 py-3 text-sm', className)} {...props}>{children}</td>
 }

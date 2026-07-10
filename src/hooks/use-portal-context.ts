@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import type { Customer } from '@/types'
+import type { PortalContext } from '@/types/portal'
 import { loadStore, STORE_KEYS } from '@/lib/data-store'
 import { getPortalSession, isDemoPortalAccess } from '@/services/portal-service'
 
@@ -8,7 +9,7 @@ const DEMO_CUSTOMER_IDS = {
   property: 'cust-001',
 } as const
 
-export function usePortalContext(portalType: 'customer' | 'property') {
+export function usePortalContext(portalType: 'customer' | 'property'): PortalContext | null {
   const session = getPortalSession()
 
   return useMemo(() => {

@@ -40,7 +40,7 @@ export function CustomerForm({ companyId, onSubmit, onCancel }: CustomerFormProp
   }
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="space-y-4">
+    <form onSubmit={handleSubmit(submit)} className="space-y-4" data-testid="customer-form">
       <div>
         <Label>{t.customers.customer}</Label>
         <Input className="mt-1" {...register('name')} />
@@ -76,7 +76,7 @@ export function CustomerForm({ companyId, onSubmit, onCancel }: CustomerFormProp
       </div>
       <div className="flex justify-end gap-2 pt-2">
         {onCancel && <Button type="button" variant="outline" onClick={onCancel}>{t.common.cancel}</Button>}
-        <Button type="submit" disabled={isSubmitting}>{t.common.save}</Button>
+        <Button type="submit" disabled={isSubmitting} data-testid="customer-form-submit">{t.common.save}</Button>
       </div>
     </form>
   )

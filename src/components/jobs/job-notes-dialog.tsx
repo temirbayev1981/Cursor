@@ -35,13 +35,18 @@ export function JobNotesDialog({ job, onSave, isSaving }: JobNotesDialogProps) {
       </Button>
       {open && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={`notes-title-${job.id}`}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
           onClick={() => setOpen(false)}
         >
           <Card className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base">{t.common.notes}</CardTitle>
-              <Button variant="ghost" size="icon" onClick={() => setOpen(false)}><X className="h-4 w-4" /></Button>
+              <CardTitle id={`notes-title-${job.id}`} className="text-base">{t.common.notes}</CardTitle>
+              <Button variant="ghost" size="icon" aria-label={t.common.cancel} onClick={() => setOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground line-clamp-2">{job.title}</p>

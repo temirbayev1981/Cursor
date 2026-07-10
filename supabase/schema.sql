@@ -42,6 +42,19 @@ CREATE TABLE profiles (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Multi-company membership (active company remains profiles.company_id)
+CREATE TABLE company_members (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  role user_role NOT NULL DEFAULT 'technician',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(company_id, profile_id)
+);
+
+CREATE INDEX idx_company_members_profile ON company_members(profile_id);
+CREATE INDEX idx_company_members_company ON company_members(company_id);
+
 -- Customers
 CREATE TABLE customers (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -392,6 +405,7 @@ ALTER TABLE ai_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE service_catalog ENABLE ROW LEVEL SECURITY;
+ALTER TABLE company_members ENABLE ROW LEVEL SECURITY;
 
 -- Helper function to get user's company_id
 CREATE OR REPLACE FUNCTION get_user_company_id()
@@ -401,7 +415,10 @@ $$ LANGUAGE SQL SECURITY DEFINER STABLE;
 
 -- RLS Policies (company-scoped access)
 CREATE POLICY "Users can view own company" ON companies
-  FOR SELECT USING (id = get_user_company_id());
+  FOR SELECT USING (
+    id = get_user_company_id()
+    OR id IN (SELECT company_id FROM company_members WHERE profile_id = auth.uid())
+  );
 
 CREATE POLICY "Authenticated users can create company" ON companies
   FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
@@ -417,6 +434,12 @@ CREATE POLICY "Users can insert own profile" ON profiles
 
 CREATE POLICY "Users can update own profile" ON profiles
   FOR UPDATE USING (id = auth.uid());
+
+CREATE POLICY "Users can view own memberships" ON company_members
+  FOR SELECT USING (profile_id = auth.uid());
+
+CREATE POLICY "Users can view company memberships" ON company_members
+  FOR SELECT USING (company_id = get_user_company_id());
 
 CREATE POLICY "Company members can view customers" ON customers
   FOR ALL USING (company_id = get_user_company_id());
@@ -635,14 +658,168 @@ CREATE POLICY "Company members can manage team invites" ON team_invites
 
 -- Public token validation (no auth required — used by portal access page)
 CREATE OR REPLACE FUNCTION validate_portal_token(p_token TEXT)
-RETURNS TABLE (customer_id UUID, portal_type TEXT, company_id UUID)
+RETURNS TABLE (customer_id UUID, portal_type TEXT, company_id UUID, expires_at TIMESTAMPTZ, customer_name TEXT)
 LANGUAGE sql
 SECURITY DEFINER
 STABLE
+SET search_path = public
 AS $$
-  SELECT customer_id, portal_type, company_id
-  FROM portal_tokens
-  WHERE token = p_token AND expires_at > NOW()
+  SELECT pt.customer_id, pt.portal_type, pt.company_id, pt.expires_at, c.name AS customer_name
+  FROM portal_tokens pt
+  JOIN customers c ON c.id = pt.customer_id
+  WHERE pt.token = p_token AND pt.expires_at > NOW()
+$$;
+
+CREATE OR REPLACE FUNCTION get_portal_estimates(p_token TEXT)
+RETURNS SETOF estimates
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT e.*
+  FROM estimates e
+  INNER JOIN portal_tokens pt ON pt.token = p_token AND pt.expires_at > NOW()
+  WHERE e.company_id = pt.company_id AND e.customer_id = pt.customer_id
+  ORDER BY e.created_at DESC
+$$;
+
+CREATE OR REPLACE FUNCTION get_portal_invoices(p_token TEXT)
+RETURNS SETOF invoices
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT i.*
+  FROM invoices i
+  INNER JOIN portal_tokens pt ON pt.token = p_token AND pt.expires_at > NOW()
+  WHERE i.company_id = pt.company_id AND i.customer_id = pt.customer_id
+  ORDER BY i.created_at DESC
+$$;
+
+CREATE OR REPLACE FUNCTION get_portal_jobs(p_token TEXT)
+RETURNS SETOF jobs
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT j.*
+  FROM jobs j
+  INNER JOIN portal_tokens pt ON pt.token = p_token AND pt.expires_at > NOW()
+  WHERE j.company_id = pt.company_id AND j.customer_id = pt.customer_id
+  ORDER BY j.created_at DESC
+$$;
+
+CREATE OR REPLACE FUNCTION portal_update_estimate_status(
+  p_token TEXT,
+  p_estimate_id UUID,
+  p_status TEXT
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  pt portal_tokens%ROWTYPE;
+BEGIN
+  SELECT * INTO pt FROM portal_tokens WHERE token = p_token AND expires_at > NOW();
+  IF NOT FOUND THEN RETURN FALSE; END IF;
+  IF p_status NOT IN ('approved', 'rejected') THEN RETURN FALSE; END IF;
+
+  UPDATE estimates
+  SET status = p_status
+  WHERE id = p_estimate_id
+    AND company_id = pt.company_id
+    AND customer_id = pt.customer_id
+    AND status = 'sent';
+
+  RETURN FOUND;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION portal_submit_job_request(
+  p_token TEXT,
+  p_title TEXT,
+  p_description TEXT,
+  p_priority TEXT DEFAULT 'medium'
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  pt portal_tokens%ROWTYPE;
+  v_job_id UUID;
+BEGIN
+  SELECT * INTO pt FROM portal_tokens WHERE token = p_token AND expires_at > NOW();
+  IF NOT FOUND THEN RETURN NULL; END IF;
+  IF pt.portal_type <> 'property' THEN RETURN NULL; END IF;
+
+  v_job_id := uuid_generate_v4();
+  INSERT INTO jobs (
+    id, company_id, customer_id, title, description, status, priority,
+    estimated_hours, actual_hours, revenue, labor_cost, material_cost,
+    fuel_cost, overhead_cost, profit, profit_margin
+  ) VALUES (
+    v_job_id, pt.company_id, pt.customer_id, p_title, p_description, 'draft',
+    COALESCE(p_priority, 'medium'), 2, 0, 0, 0, 0, 0, 0, 0, 0
+  );
+
+  RETURN v_job_id;
+END;
+$$;
+
+CREATE TABLE customer_reviews (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+  rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  comment TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_customer_reviews_company ON customer_reviews(company_id);
+CREATE INDEX idx_customer_reviews_customer ON customer_reviews(customer_id);
+
+ALTER TABLE customer_reviews ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Company members can view customer reviews" ON customer_reviews
+  FOR SELECT USING (company_id = get_user_company_id());
+
+CREATE OR REPLACE FUNCTION portal_submit_review(
+  p_token TEXT,
+  p_rating INTEGER,
+  p_comment TEXT DEFAULT NULL
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  pt portal_tokens%ROWTYPE;
+BEGIN
+  SELECT * INTO pt FROM portal_tokens WHERE token = p_token AND expires_at > NOW();
+  IF NOT FOUND THEN RETURN FALSE; END IF;
+  IF pt.portal_type <> 'customer' THEN RETURN FALSE; END IF;
+  IF p_rating < 1 OR p_rating > 5 THEN RETURN FALSE; END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM customer_reviews
+    WHERE company_id = pt.company_id AND customer_id = pt.customer_id
+  ) THEN
+    RETURN FALSE;
+  END IF;
+
+  INSERT INTO customer_reviews (company_id, customer_id, rating, comment)
+  VALUES (pt.company_id, pt.customer_id, p_rating, NULLIF(trim(p_comment), ''));
+
+  RETURN TRUE;
+END;
 $$;
 
 CREATE OR REPLACE FUNCTION get_team_invite(p_token TEXT)
@@ -665,6 +842,12 @@ AS $$
 $$;
 
 GRANT EXECUTE ON FUNCTION validate_portal_token(TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION get_portal_estimates(TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION get_portal_invoices(TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION get_portal_jobs(TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION portal_update_estimate_status(TEXT, UUID, TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION portal_submit_job_request(TEXT, TEXT, TEXT, TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION portal_submit_review(TEXT, INTEGER, TEXT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION get_team_invite(TEXT) TO anon, authenticated;
 
 -- Accept invite: mark accepted and link profile to company (bypasses team_invites RLS)
@@ -691,6 +874,10 @@ BEGIN
     RETURN FALSE;
   END IF;
 
+  IF lower((SELECT email FROM auth.users WHERE id = auth.uid())) <> lower(v_invite.email) THEN
+    RETURN FALSE;
+  END IF;
+
   UPDATE team_invites
   SET accepted_at = NOW()
   WHERE id = v_invite.id;
@@ -699,6 +886,10 @@ BEGIN
   SET company_id = v_invite.company_id,
       role = v_invite.role
   WHERE id = auth.uid();
+
+  INSERT INTO company_members (company_id, profile_id, role)
+  VALUES (v_invite.company_id, auth.uid(), v_invite.role)
+  ON CONFLICT (company_id, profile_id) DO UPDATE SET role = EXCLUDED.role;
 
   RETURN TRUE;
 END;
@@ -728,10 +919,10 @@ ALTER TABLE time_entries ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Company members can manage time entries" ON time_entries
   FOR ALL USING (company_id = get_user_company_id());
 
--- Storage bucket for job photos and documents
+-- Storage bucket for job photos and documents (private — use signed URLs)
 INSERT INTO storage.buckets (id, name, public)
-VALUES ('handymanos', 'handymanos', true)
-ON CONFLICT (id) DO NOTHING;
+VALUES ('handymanos', 'handymanos', false)
+ON CONFLICT (id) DO UPDATE SET public = false;
 
 CREATE POLICY "Company members can read files" ON storage.objects
   FOR SELECT USING (
@@ -756,3 +947,82 @@ CREATE POLICY "Company members can delete files" ON storage.objects
     bucket_id = 'handymanos'
     AND (storage.foldername(name))[1] = get_user_company_id()::text
   );
+
+-- Distributed rate limiting for Edge Functions
+CREATE TABLE IF NOT EXISTS rate_limit_buckets (
+  bucket_key TEXT PRIMARY KEY,
+  count INTEGER NOT NULL DEFAULT 1,
+  reset_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_rate_limit_buckets_reset_at ON rate_limit_buckets (reset_at);
+
+CREATE OR REPLACE FUNCTION public.check_rate_limit(
+  p_key TEXT,
+  p_limit INTEGER DEFAULT 30,
+  p_window_seconds INTEGER DEFAULT 60
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_now TIMESTAMPTZ := NOW();
+  v_count INTEGER;
+  v_reset_at TIMESTAMPTZ;
+BEGIN
+  DELETE FROM rate_limit_buckets WHERE reset_at <= v_now;
+
+  SELECT count, reset_at
+  INTO v_count, v_reset_at
+  FROM rate_limit_buckets
+  WHERE bucket_key = p_key
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    INSERT INTO rate_limit_buckets (bucket_key, count, reset_at)
+    VALUES (p_key, 1, v_now + make_interval(secs => p_window_seconds));
+    RETURN jsonb_build_object('ok', true);
+  END IF;
+
+  IF v_count >= p_limit THEN
+    RETURN jsonb_build_object(
+      'ok', false,
+      'retry_after', GREATEST(1, CEIL(EXTRACT(EPOCH FROM (v_reset_at - v_now)))::INTEGER)
+    );
+  END IF;
+
+  UPDATE rate_limit_buckets
+  SET count = v_count + 1
+  WHERE bucket_key = p_key;
+
+  RETURN jsonb_build_object('ok', true);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.check_rate_limit(TEXT, INTEGER, INTEGER) TO service_role;
+
+-- Accessible companies for multi-tenant switcher
+CREATE OR REPLACE FUNCTION get_accessible_companies()
+RETURNS SETOF companies
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT c.*
+  FROM companies c
+  INNER JOIN company_members cm ON cm.company_id = c.id
+  WHERE cm.profile_id = auth.uid()
+  ORDER BY c.name;
+$$;
+
+GRANT EXECUTE ON FUNCTION get_accessible_companies() TO authenticated;
+
+-- Backfill memberships from existing profiles
+INSERT INTO company_members (company_id, profile_id, role)
+SELECT company_id, id, role
+FROM profiles
+WHERE company_id IS NOT NULL
+ON CONFLICT (company_id, profile_id) DO NOTHING;

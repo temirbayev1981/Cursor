@@ -17,7 +17,7 @@ export function GlobalSearch() {
   )
 
   return (
-    <div className="relative flex-1 max-w-md">
+    <div className="relative min-w-0 flex-1">
       <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       <Input
         placeholder={t.common.searchJobs}
@@ -26,9 +26,10 @@ export function GlobalSearch() {
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => setFocused(true)}
         onBlur={() => setTimeout(() => setFocused(false), 200)}
+        data-testid="global-search-input"
       />
       {focused && hasResults && (
-        <div className="absolute top-full left-0 right-0 mt-1 glass-card z-50 max-h-64 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 glass-card z-50 max-h-64 overflow-y-auto" data-testid="global-search-results">
           {data!.jobs.map((j) => (
             <button key={j.id} className="w-full text-left px-4 py-2 text-sm hover:bg-secondary/50 cursor-pointer" onClick={() => { navigate('/jobs'); setQuery('') }}>
               <span className="text-muted-foreground">{t.nav.jobs}: </span>{j.title}

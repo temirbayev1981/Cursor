@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { useCustomers, useSaveCustomer } from '@/hooks/use-entities'
 import { formatCurrency } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
+import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
 import type { Customer } from '@/types'
 import { createPortalLink } from '@/services/portal-service'
@@ -19,8 +20,8 @@ import { createPortalLink } from '@/services/portal-service'
 const CUSTOMER_TYPE_KEYS = ['residential', 'commercial', 'property_management'] as const
 
 export default function CustomersPage() {
-  const { t, locale } = useTranslation()
-  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
+  const { t } = useTranslation()
+  const dateLocale = useDateLocale()
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
   const { company } = useAuth()
@@ -56,7 +57,7 @@ export default function CustomersPage() {
       await navigator.clipboard.writeText(url)
       toast.success(t.customers.portalLinkCopied)
     } catch {
-      toast.error(locale === 'ru' ? 'Не удалось создать ссылку' : 'Failed to create link')
+      toast.error(t.customers.linkFailed)
     }
   }
 
@@ -82,7 +83,7 @@ export default function CustomersPage() {
 
       <div className="relative max-w-sm mb-6">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder={t.customers.search} className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <Input placeholder={t.customers.search} className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} data-testid="customers-search" />
       </div>
 
       <DataTable headers={[t.customers.customer, t.customers.type, t.customers.contact, t.customers.jobs, t.customers.revenue, t.common.since, '']}>
@@ -113,6 +114,7 @@ export default function CustomersPage() {
                 variant="ghost"
                 size="icon"
                 title={t.customers.copyPortalLink}
+                data-testid={`customer-portal-link-${customer.id}`}
                 onClick={() => void handlePortalLink(customer, customer.type === 'property_management' ? 'property' : 'customer')}
               >
                 <Link2 className="h-4 w-4" />

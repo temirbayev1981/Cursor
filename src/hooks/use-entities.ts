@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
-import { listEntities, saveEntity, createJobFromVendorPO, createEstimateFromJob, createInvoiceFromEstimate, createScheduleFromJob, importDemoSeedToSupabase, listFuelLogs, listAuditLogs, logAudit } from '@/services/entity-service'
+import { listEntities, saveEntity, deleteEntity, createJobFromVendorPO, createEstimateFromJob, createInvoiceFromEstimate, createScheduleFromJob, importDemoSeedToSupabase, listFuelLogs, listAuditLogs, logAudit } from '@/services/entity-service'
 import { recordInvoicePayment, sendInvoiceToCustomer } from '@/services/payment-service'
 import { listInventoryTransactions, applyMaterialsOnJob, receiveStock } from '@/services/inventory-service'
 import type { Job, Customer, Estimate, Invoice, Employee, Material, Vehicle, Expense } from '@/types'
@@ -134,6 +134,64 @@ export function useUpdateJobStatus() {
   return useMutation({
     mutationFn: async ({ job, status }: { job: Job; status: Job['status'] }) =>
       saveEntity('jobs', { ...job, status }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs', companyId] }),
+  })
+}
+
+export function useBulkUpdateJobStatus() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: async ({ jobs, status }: { jobs: Job[]; status: Job['status'] }) => {
+      for (const job of jobs) {
+        await saveEntity('jobs', { ...job, status })
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs', companyId] }),
+  })
+}
+
+export function useBulkAssignTechnician() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: async ({ jobs, technicianId }: { jobs: Job[]; technicianId: string }) => {
+      for (const job of jobs) {
+        await saveEntity('jobs', { ...job, assigned_technician_id: technicianId })
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs', companyId] }),
+  })
+}
+
+export function useBulkScheduleJobs() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: async ({ jobs, technicianId }: { jobs: Job[]; technicianId: string }) => {
+      const scheduledDate = new Date().toISOString()
+      for (const job of jobs) {
+        await saveEntity('jobs', {
+          ...job,
+          status: 'scheduled',
+          assigned_technician_id: technicianId,
+          scheduled_date: job.scheduled_date ?? scheduledDate,
+        })
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs', companyId] }),
+  })
+}
+
+export function useBulkDeleteJobs() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: async (jobs: Job[]) => {
+      for (const job of jobs) {
+        await deleteEntity('jobs', job.id)
+      }
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs', companyId] }),
   })
 }

@@ -52,9 +52,9 @@ export default function WorkOrdersPage() {
         onSuccess: () => localStorage.setItem('handymanos_vendor_pos_seeded', 'true'),
       })
     }
-  }, [isLoading, vendorPOs.length])
+  }, [isLoading, vendorPOs.length, seedVendorPOs])
 
-  const handleAnalyze = async (content: string, type: 'pdf' | 'email' | 'photo', file?: File) => {
+  const handleAnalyze = useCallback(async (content: string, type: 'pdf' | 'email' | 'photo', file?: File) => {
     setAnalyzing(true)
     setExtracted(null)
     try {
@@ -73,9 +73,9 @@ export default function WorkOrdersPage() {
     } finally {
       setAnalyzing(false)
     }
-  }
+  }, [companyId, queryClient, t.workOrders.analysisComplete, t.workOrders.analysisFailed])
 
-  const handleVendorPOUpload = async (files: File[]) => {
+  const handleVendorPOUpload = useCallback(async (files: File[]) => {
     const pdfFiles = files.filter((f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'))
     if (pdfFiles.length === 0) return
 
@@ -101,31 +101,31 @@ export default function WorkOrdersPage() {
     } finally {
       setParsingPdf(false)
     }
-  }
+  }, [saveVendorPOs, t.vendorPO.notVendorPO, t.vendorPO.parseError, t.vendorPO.parseSuccess])
 
   const onDropVendorPO = useCallback((files: File[]) => {
-    handleVendorPOUpload(files)
-  }, [])
+    void handleVendorPOUpload(files)
+  }, [handleVendorPOUpload])
 
   const onDropGeneral = useCallback((files: File[]) => {
     const file = files[0]
     if (!file) return
     if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-      handleVendorPOUpload([file])
+      void handleVendorPOUpload([file])
       return
     }
     if (file.type.startsWith('image/')) {
-      handleAnalyze('', 'photo', file)
+      void handleAnalyze('', 'photo', file)
     } else {
       const reader = new FileReader()
       reader.onload = (e) => {
         const text = (e.target?.result as string) || ''
         setPdfContent(text)
-        handleAnalyze(text, 'pdf')
+        void handleAnalyze(text, 'pdf')
       }
       reader.readAsText(file)
     }
-  }, [])
+  }, [handleAnalyze, handleVendorPOUpload])
 
   const vendorDropzone = useDropzone({
     onDrop: onDropVendorPO,
@@ -168,6 +168,7 @@ export default function WorkOrdersPage() {
               <CardContent className="space-y-4">
                 <div
                   {...vendorDropzone.getRootProps()}
+                  data-testid="work-orders-vendor-po-dropzone"
                   className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors ${
                     vendorDropzone.isDragActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
                   }`}
@@ -189,7 +190,7 @@ export default function WorkOrdersPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
-                    {t.vendorPO.tableTitle}: <span className="font-medium text-foreground">{vendorPOs.length}</span>
+                    {t.vendorPO.tableTitle}: <span className="font-medium text-foreground" data-testid="vendor-po-record-count">{vendorPOs.length}</span>
                   </p>
                   <Button
                     variant="outline"
@@ -242,7 +243,7 @@ export default function WorkOrdersPage() {
                     className="mt-2"
                   />
                 </div>
-                <Button onClick={() => handleAnalyze(pdfContent, 'pdf')} disabled={analyzing} className="w-full">
+                <Button onClick={() => handleAnalyze(pdfContent, 'pdf')} disabled={analyzing} className="w-full" data-testid="work-orders-pdf-analyze">
                   {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
                   {t.workOrders.analyzeAi}
                 </Button>
@@ -283,7 +284,11 @@ export default function WorkOrdersPage() {
                 <CardTitle>{t.workOrders.photoTitle}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div {...generalDropzone.getRootProps()} className="border-2 border-dashed border-border rounded-xl p-12 text-center cursor-pointer hover:border-primary/50">
+                <div
+                  {...generalDropzone.getRootProps()}
+                  data-testid="work-orders-photo-dropzone"
+                  className="border-2 border-dashed border-border rounded-xl p-12 text-center cursor-pointer hover:border-primary/50"
+                >
                   <input {...generalDropzone.getInputProps()} />
                   <Camera className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <p className="font-medium">{t.workOrders.photoHint}</p>

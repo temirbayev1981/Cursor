@@ -23,22 +23,31 @@ export default function LoginPage() {
   const [fullName, setFullName] = useState('')
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [loading, setLoading] = useState(false)
-  const { signIn, signUp } = useAuth()
-  const { t, locale } = useTranslation()
+  const { signIn, signUp, acceptInvite } = useAuth()
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const isPortal = searchParams.get('portal') === '1'
   const inviteToken = searchParams.get('invite') ?? undefined
   const [invitePreview, setInvitePreview] = useState<{ email: string; role: UserRole } | null>(null)
+  const [inviteChecked, setInviteChecked] = useState(!inviteToken)
 
   useEffect(() => {
-    if (!inviteToken) return
+    if (!inviteToken) {
+      setInvitePreview(null)
+      setInviteChecked(true)
+      return
+    }
+    setInviteChecked(false)
     void getTeamInvitePreview(inviteToken).then((preview) => {
       if (preview) {
         setInvitePreview({ email: preview.email, role: preview.role })
         setEmail(preview.email)
         setMode('signup')
+      } else {
+        setInvitePreview(null)
       }
+      setInviteChecked(true)
     })
   }, [inviteToken])
 
@@ -54,21 +63,26 @@ export default function LoginPage() {
       const authState = mode === 'signup'
         ? await signUp(email, password, fullName || email.split('@')[0], inviteToken)
         : await signIn(email, password)
-      toast.success(mode === 'signup'
-        ? (locale === 'ru' ? 'Аккаунт создан' : 'Account created')
-        : (locale === 'ru' ? 'Вход выполнен' : 'Signed in'))
-      navigate(resolvePostAuthRoute(authState))
+
+      if (inviteToken && mode === 'signin') {
+        await acceptInvite(inviteToken, authState.profile)
+      }
+
+      toast.success(mode === 'signup' ? t.auth.accountCreated : t.auth.signedIn)
+      navigate(resolvePostAuthRoute(inviteToken && mode === 'signin'
+        ? { role: invitePreview?.role ?? authState.role, onboardingComplete: true }
+        : authState))
     } catch {
-      toast.error(locale === 'ru' ? 'Ошибка авторизации' : 'Auth error')
+      toast.error(t.auth.authError)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="gradient-bg min-h-screen flex items-center justify-center p-4">
+    <div className="gradient-bg safe-x flex min-h-[100dvh] items-center justify-center p-4 py-8">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-        <div className="absolute top-4 right-4"><LanguageSwitcher /></div>
+        <div className="safe-top absolute right-4 top-4"><LanguageSwitcher /></div>
 
         <div className="text-center mb-8">
           <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary mb-4">
@@ -83,12 +97,17 @@ export default function LoginPage() {
             <Tabs value={mode} onValueChange={(v) => setMode(v as typeof mode)}>
               <TabsList className="w-full">
                 <TabsTrigger value="signin" className="flex-1">{t.auth.signIn}</TabsTrigger>
-                <TabsTrigger value="signup" className="flex-1">{locale === 'ru' ? 'Регистрация' : 'Sign up'}</TabsTrigger>
+                <TabsTrigger value="signup" className="flex-1">{t.auth.signUp}</TabsTrigger>
               </TabsList>
             </Tabs>
-            <CardDescription className="pt-2">{mode === 'signin' ? t.auth.signInDesc : (locale === 'ru' ? 'Создайте аккаунт компании' : 'Create your company account')}</CardDescription>
+            <CardDescription className="pt-2">{mode === 'signin' ? t.auth.signInDesc : t.auth.signUpDesc}</CardDescription>
           </CardHeader>
           <CardContent>
+            {inviteToken && inviteChecked && !invitePreview && (
+              <div role="alert" data-testid="invite-error" className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                {t.auth.inviteInvalidOrExpired}
+              </div>
+            )}
             {invitePreview && (
               <div className="mb-4 rounded-lg bg-primary/10 p-3 text-sm">
                 <p className="font-medium">{t.auth.inviteBanner}</p>
@@ -96,12 +115,13 @@ export default function LoginPage() {
                   {t.auth.inviteRole}: <Badge variant="outline">{invitePreview.role}</Badge>
                 </p>
                 <p className="text-muted-foreground mt-1">{t.auth.acceptInvite}</p>
+                <p className="text-muted-foreground mt-2 text-xs">{t.auth.acceptInviteSignIn}</p>
               </div>
             )}
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === 'signup' && (
                 <div>
-                  <Label>{locale === 'ru' ? 'Имя' : 'Full name'}</Label>
+                  <Label>{t.auth.fullName}</Label>
                   <div className="relative mt-1">
                     <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="pl-10" required />
@@ -123,7 +143,7 @@ export default function LoginPage() {
                 </div>
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? t.common.signingIn : mode === 'signup' ? (locale === 'ru' ? 'Зарегистрироваться' : 'Sign up') : t.auth.signInBtn}
+                {loading ? t.common.signingIn : mode === 'signup' ? t.auth.signUpBtn : t.auth.signInBtn}
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </form>

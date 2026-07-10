@@ -49,7 +49,7 @@ export function JobForm({ companyId, customers, onSubmit, onCancel }: JobFormPro
   }
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="space-y-4">
+    <form onSubmit={handleSubmit(submit)} className="space-y-4" data-testid="job-form">
       <div>
         <Label>{t.jobs.job}</Label>
         <Input className="mt-1" {...register('title')} />
@@ -95,7 +95,7 @@ export function JobForm({ companyId, customers, onSubmit, onCancel }: JobFormPro
       </div>
       <div className="flex justify-end gap-2 pt-2">
         {onCancel && <Button type="button" variant="outline" onClick={onCancel}>{t.common.cancel}</Button>}
-        <Button type="submit" disabled={isSubmitting}>{t.common.save}</Button>
+        <Button type="submit" disabled={isSubmitting} data-testid="job-form-submit">{t.common.save}</Button>
       </div>
     </form>
   )

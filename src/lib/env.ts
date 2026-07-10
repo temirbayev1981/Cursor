@@ -12,6 +12,7 @@ const envSchema = z.object({
   VITE_NOTIFICATION_WEBHOOK_URL: z.string().optional(),
   VITE_SMS_WEBHOOK_URL: z.string().optional(),
   VITE_SENTRY_DSN: z.string().optional(),
+  VITE_ERROR_WEBHOOK_URL: z.string().optional(),
 })
 
 export const env = envSchema.parse(import.meta.env)
@@ -47,6 +48,7 @@ export function getSmsEndpoint(): string | undefined {
 
 export const hasNotificationConfigured = Boolean(getNotificationEndpoint())
 export const hasSmsConfigured = Boolean(getSmsEndpoint())
+export const hasObservability = Boolean(env.VITE_SENTRY_DSN || env.VITE_ERROR_WEBHOOK_URL)
 
 export function getStripeCheckoutEndpoint(): string | undefined {
   return env.VITE_STRIPE_CHECKOUT_ENDPOINT

@@ -4,6 +4,25 @@ function clean(value?: string | null): string {
   return (value ?? '').replace(/\s+/g, ' ').trim()
 }
 
+/** PDF.js often flattens line breaks — restore markers so regex parsers still work. */
+export function normalizeVendorPOText(text: string): string {
+  let normalized = text.replace(/\r\n/g, '\n')
+  const lineCount = normalized.split('\n').filter(Boolean).length
+  if (lineCount >= 8) return normalized
+
+  return normalized
+    .replace(/\s+(Client PO #)/gi, '\n$1')
+    .replace(/\s+(Priority\b)/gi, '\n$1')
+    .replace(/\s+(Order Type\b)/gi, '\n$1')
+    .replace(/\s+(NTE\b)/gi, '\n$1')
+    .replace(/\s+(SERVICE LOCATION\b)/gi, '\n$1')
+    .replace(/\s+(ReadyFix)\s+/gi, '\n$1\n')
+    .replace(/\s+(SERVICE DESCRIPTION\b)/gi, '\n$1')
+    .replace(/\s+(SPECIAL INSTRUCTIONS\b)/gi, '\n$1')
+    .replace(/\s+(Print Date:)/gi, '\n$1')
+    .replace(/(\d{5}(?:-\d{4})?)\s+(Phone #)/gi, '$1\n$2')
+}
+
 function parseMoney(value?: string | null): number {
   if (!value) return 0
   const n = parseFloat(value.replace(/[$,]/g, ''))
@@ -26,7 +45,21 @@ function parseLocationBlock(normalized: string) {
   const block = normalized.match(
     /SERVICE LOCATION VENDOR #\s*(\d+)\s*\n(.+?)\s+ReadyFix\s*\n([^\n]+)\n([^\n]+)\s+Phone #\s*([\d-]+)/is
   )
-  if (!block) return null
+  if (block) {
+    return parseLocationMatch(block)
+  }
+
+  const flat = normalized.match(
+    /SERVICE LOCATION VENDOR #\s*(\d+)\s+(.+?)\s+ReadyFix\s+(.+?)\s+([A-Za-z .]+,\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?)\s+Phone #\s*([\d-]+)/is
+  )
+  if (flat) {
+    return parseLocationMatch(flat)
+  }
+
+  return null
+}
+
+function parseLocationMatch(block: RegExpMatchArray) {
 
   const vendorNumber = block[1]
   const storeLine = clean(block[2])
@@ -38,8 +71,8 @@ function parseLocationBlock(normalized: string) {
   const serviceLocationName = clean(storeLine.replace(/\s*-?\s*Loc #\s*\d+/i, ''))
 
   const streetMatch = streetLine.match(/^(.+?)\s+(\d{3,}\s+.+)$/)
-  const serviceStreet = clean(streetMatch?.[1] ?? streetLine)
-  const vendorStreet = clean(streetMatch?.[2] ?? '')
+  const serviceStreet = clean(streetMatch?.[1] ?? streetLine.split(/\s+\d{3,}\s+/)[0] ?? streetLine)
+  const vendorStreet = clean(streetMatch?.[2] ?? streetLine.split(/\s+\d{3,}\s+/)[1] ?? '')
 
   const cityMatch = cityLine.match(
     /^(.+?,\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?)\s+(.+?,\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?)$/
@@ -65,17 +98,19 @@ function parseLocationBlock(normalized: string) {
 }
 
 export function parseVendorPOText(text: string, fileName: string, companyId = 'comp-001'): VendorPOInput {
-  const normalized = text.replace(/\r\n/g, '\n')
+  const normalized = normalizeVendorPOText(text)
 
   const vendorPoNumber =
     normalized.match(/Client PO #\s*\d+\s*\n\s*(\d{6}-\d{2})/i)?.[1] ??
+    normalized.match(/Client PO #\s*\d+\s+(\d{6}-\d{2})/i)?.[1] ??
     normalized.match(/(\d{6}-\d{2})\s*\n\s*Priority/i)?.[1] ??
+    normalized.match(/(\d{6}-\d{2})\s+Priority/i)?.[1] ??
     fileName.match(/(\d{6}-\d{2})/)?.[1] ??
     ''
 
   const clientPoNumber = normalized.match(/Client PO #\s*(\d+)/i)?.[1] ?? ''
-  const priority = clean(normalized.match(/Priority\s+(.+?)(?:\n|$)/i)?.[1])
-  const orderType = clean(normalized.match(/Order Type\s+(.+?)(?:\n|$)/i)?.[1])
+  const priority = clean(normalized.match(/Priority\s+(\S+)/i)?.[1])
+  const orderType = clean(normalized.match(/Order Type\s+(\S+)/i)?.[1])
   const nteAmount = parseMoney(normalized.match(/NTE\s+\$?([\d,]+\.?\d*)/i)?.[1])
 
   const serviceDate = clean(
@@ -84,7 +119,7 @@ export function parseVendorPOText(text: string, fileName: string, companyId = 'c
   const printDate = clean(normalized.match(/Print Date:\s*([^\n]+)/i)?.[1])
 
   const clientCompany =
-    clean(normalized.match(/Order Type\s+[^\n]+\n([^\n]+)/i)?.[1]) || 'CD Maintenance Company'
+    clean(normalized.match(/Order Type\s+\S+\s+([^\n]+?)(?:\s+NTE\b|\n)/i)?.[1]) || 'CD Maintenance Company'
 
   const clientContactLine = normalized.match(
     /(\d+[^,\n]+,\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?)\s+([A-Za-z][A-Za-z\s.'-]+)\nPhone #/i

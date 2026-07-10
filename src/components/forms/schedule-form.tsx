@@ -33,7 +33,7 @@ export function ScheduleForm({ jobs, technicians, onSubmit, onCancel }: Schedule
   const technicianId = watch('technician_id')
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" data-testid="schedule-form">
       <div>
         <Label>{t.scheduling.selectJob}</Label>
         <Select value={jobId} onValueChange={(v) => setValue('job_id', v)}>
@@ -79,7 +79,9 @@ export function ScheduleForm({ jobs, technicians, onSubmit, onCancel }: Schedule
       </div>
       <div className="flex justify-end gap-2">
         {onCancel && <Button type="button" variant="outline" onClick={onCancel}>{t.common.cancel}</Button>}
-        <Button type="submit" disabled={isSubmitting || unscheduled.length === 0}>{t.scheduling.scheduleFromJob}</Button>
+        <Button type="submit" disabled={isSubmitting || unscheduled.length === 0} data-testid="schedule-form-submit">
+          {t.scheduling.scheduleFromJob}
+        </Button>
       </div>
     </form>
   )

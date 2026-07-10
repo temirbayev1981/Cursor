@@ -5,6 +5,7 @@ import {
   hasOpenAI,
   hasNotificationConfigured,
   hasSmsConfigured,
+  hasObservability,
 } from '@/lib/env'
 import { DEMO_MODE } from '@/lib/supabase'
 
@@ -37,6 +38,7 @@ export function computePlatformHealth(): PlatformHealthReport {
     { id: 'sms', label: 'SMS', ok: hasSmsConfigured, weight: 1 },
     { id: 'openai', label: 'OpenAI', ok: hasOpenAI, weight: 1 },
     { id: 'maps', label: 'Google Maps', ok: hasGoogleMaps, weight: 0.5 },
+    { id: 'observability', label: 'Observability', ok: hasObservability, weight: 0.5 },
     { id: 'pwa', label: 'PWA', ok: pwaSupported, weight: 0.5 },
     { id: 'offline_sync', label: 'Offline sync', ok: swActive, weight: 0.5 },
   ]

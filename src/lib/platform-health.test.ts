@@ -6,9 +6,9 @@ describe('platform-health', () => {
     const report = computePlatformHealth()
     expect(report.score).toBeGreaterThanOrEqual(0)
     expect(report.score).toBeLessThanOrEqual(10)
-    expect(report.checks).toHaveLength(9)
+    expect(report.checks).toHaveLength(10)
     expect(report.checks.map((check) => check.id)).toEqual(
-      expect.arrayContaining(['data_mode', 'pwa', 'offline_sync']),
+      expect.arrayContaining(['data_mode', 'pwa', 'offline_sync', 'observability']),
     )
     expect(report.grade).toMatch(/^[A-C]\+?$/)
   })

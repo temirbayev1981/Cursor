@@ -28,8 +28,16 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npm run verify:production
       - run: npm run lint
       - run: npm run test
+      - name: Supabase smoke (optional)
+        if: ${{ secrets.VITE_SUPABASE_URL != '' && secrets.VITE_SUPABASE_ANON_KEY != '' }}
+        continue-on-error: true
+        run: npm run smoke:supabase
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
       - run: npm run build
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
@@ -42,6 +50,8 @@ jobs:
           VITE_NOTIFICATION_WEBHOOK_URL: ${{ secrets.VITE_NOTIFICATION_WEBHOOK_URL }}
           VITE_SMS_WEBHOOK_URL: ${{ secrets.VITE_SMS_WEBHOOK_URL }}
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_ERROR_WEBHOOK_URL: ${{ secrets.VITE_ERROR_WEBHOOK_URL }}
+          VITE_APP_VERSION: 1.6.3
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - uses: actions/upload-pages-artifact@v3

@@ -3,9 +3,9 @@ import type { Profile, Company, UserRole, OnboardingData } from '@/types'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
 import { DEMO_COMPANY } from '@/data/mock-data'
 import { getStoredCompany, persistOnboarding } from '@/services/onboarding-service'
-import { registerUserWithCompany, loadUserSession, markOnboardingCompleteForInvitedMember, resolveOnboardingState } from '@/services/auth-service'
+import { registerUserWithCompany, loadUserSession, markOnboardingCompleteForInvitedMember, resolveOnboardingState, acceptInviteForCurrentUser } from '@/services/auth-service'
 import { type PostAuthState } from '@/lib/permissions'
-import { resolveActiveCompany, setActiveCompany, registerCompany, listAccessibleCompanies } from '@/services/company-service'
+import { resolveActiveCompany, setActiveCompany, registerCompany, listAccessibleCompanies, fetchAccessibleCompanies, syncActiveCompanyToProfile, updateCompanyProfile, type CompanyProfilePatch } from '@/services/company-service'
 import { logAudit } from '@/services/entity-service'
 import { setTechOnboardingPending } from '@/services/tech-onboarding-service'
 
@@ -19,6 +19,8 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string, inviteToken?: string) => Promise<PostAuthState>
   signOut: () => Promise<void>
   completeOnboarding: (data?: OnboardingData) => Promise<void>
+  acceptInvite: (token: string, session?: Pick<Profile, 'id' | 'email'>) => Promise<void>
+  updateCompanyDetails: (patch: CompanyProfilePatch) => Promise<void>
   switchCompany: (companyId: string) => Promise<void>
   hasRole: (...roles: UserRole[]) => boolean
 }
@@ -63,20 +65,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('handymanos_auth', 'true')
     }
     setIsLoading(false)
-
-    if (supabase) {
-      supabase.auth.onAuthStateChange(async (_event, authSession) => {
-        if (!authSession) {
-          setUser(null)
-          setCompany(null)
-          setOnboardingComplete(false)
-          localStorage.removeItem('handymanos_auth')
-        }
-      })
-    }
   }, [])
 
-  useEffect(() => { restoreSession() }, [restoreSession])
+  useEffect(() => { void restoreSession() }, [restoreSession])
+
+  useEffect(() => {
+    if (!supabase || DEMO_MODE) return
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, authSession) => {
+      if (!authSession) {
+        setUser(null)
+        setCompany(null)
+        setOnboardingComplete(false)
+        localStorage.removeItem('handymanos_auth')
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const signUp = async (email: string, password: string, fullName: string, inviteToken?: string): Promise<PostAuthState> => {
     if (DEMO_MODE) {
@@ -89,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(profile)
         setCompany(invitedCompany)
         setOnboardingComplete(complete)
-        return { role: profile.role, onboardingComplete: complete }
+        return { role: profile.role, onboardingComplete: complete, profile: { id: profile.id, email: profile.email } }
       }
       localStorage.setItem('handymanos_auth', 'true')
       const demoProfile = { ...DEMO_USER, email, full_name: fullName }
@@ -99,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setActiveCompany(comp)
       const complete = localStorage.getItem('handymanos_onboarding') === 'complete'
       setOnboardingComplete(complete)
-      return { role: demoProfile.role, onboardingComplete: complete }
+      return { role: demoProfile.role, onboardingComplete: complete, profile: { id: demoProfile.id, email: demoProfile.email } }
     }
 
     const { profile, company: newCompany } = await registerUserWithCompany(email, password, fullName, inviteToken)
@@ -109,7 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setCompany(newCompany)
     setOnboardingComplete(complete)
     localStorage.setItem('handymanos_auth', 'true')
-    return { role: profile.role, onboardingComplete: complete }
+    return { role: profile.role, onboardingComplete: complete, profile: { id: profile.id, email: profile.email } }
   }
 
   const signIn = async (email: string, password: string): Promise<PostAuthState> => {
@@ -122,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setActiveCompany(comp)
       const complete = localStorage.getItem('handymanos_onboarding') === 'complete'
       setOnboardingComplete(complete)
-      return { role: demoProfile.role, onboardingComplete: complete }
+      return { role: demoProfile.role, onboardingComplete: complete, profile: { id: demoProfile.id, email: demoProfile.email } }
     }
 
     if (!supabase) throw new Error('Supabase not configured')
@@ -133,7 +139,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!session) throw new Error('Session not found')
     const complete = resolveOnboardingState(session.profile.role, session.company)
     setOnboardingComplete(complete)
-    return { role: session.profile.role, onboardingComplete: complete }
+    return {
+      role: session.profile.role,
+      onboardingComplete: complete,
+      profile: { id: session.profile.id, email: session.profile.email },
+    }
   }
 
   const signOut = async () => {
@@ -157,14 +167,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setOnboardingComplete(true)
   }
 
+  const updateCompanyDetails = async (patch: CompanyProfilePatch) => {
+    if (!company) return
+    const updated = await updateCompanyProfile(company.id, patch)
+    setActiveCompany(updated)
+    setCompany(updated)
+  }
+
+  const acceptInvite = async (token: string, session?: Pick<Profile, 'id' | 'email'>) => {
+    const currentUser = session ?? user
+    if (!currentUser) throw new Error('Not authenticated')
+    const { company: invitedCompany, role } = await acceptInviteForCurrentUser(currentUser.id, currentUser.email, token)
+    registerCompany(invitedCompany)
+    setActiveCompany(invitedCompany)
+    setCompany(invitedCompany)
+    setUser({
+      ...(user ?? { ...DEMO_USER, email: currentUser.email }),
+      id: currentUser.id,
+      email: currentUser.email,
+      company_id: invitedCompany.id,
+      role,
+    })
+    markOnboardingCompleteForInvitedMember(role)
+    setOnboardingComplete(resolveOnboardingState(role, invitedCompany))
+    await syncActiveCompanyToProfile(currentUser.id, invitedCompany.id)
+  }
+
   const switchCompany = async (companyId: string) => {
     if (!user) return
-    const nextCompany = listAccessibleCompanies().find((item) => item.id === companyId)
+    const accessible = DEMO_MODE
+      ? listAccessibleCompanies(user.id)
+      : await fetchAccessibleCompanies(user)
+    const nextCompany = accessible.find((item) => item.id === companyId)
     if (!nextCompany) return
 
     setActiveCompany(nextCompany)
     setCompany(nextCompany)
     setUser({ ...user, company_id: companyId })
+
+    if (!DEMO_MODE) {
+      await syncActiveCompanyToProfile(user.id, companyId)
+    }
+
     await logAudit(companyId, user.id, 'company.switch', 'company', companyId)
   }
 
@@ -176,7 +220,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{
       user, company, isLoading, isAuthenticated: !!user, onboardingComplete,
-      signIn, signUp, signOut, completeOnboarding, switchCompany, hasRole,
+      signIn, signUp, signOut, completeOnboarding, acceptInvite, updateCompanyDetails, switchCompany, hasRole,
     }}>
       {children}
     </AuthContext.Provider>

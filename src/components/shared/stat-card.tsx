@@ -39,12 +39,12 @@ export function StatCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay }}
-      className={cn('glass-card p-5', className)}
+      className={cn('glass-card p-4 sm:p-5', className)}
     >
       <div className="flex items-start justify-between">
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">{title}</p>
-          <p className="text-2xl font-bold tracking-tight">{formattedValue}</p>
+          <p className="text-xl font-bold tracking-tight sm:text-2xl">{formattedValue}</p>
           {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
           {trend !== undefined && (
             <div className={cn('flex items-center gap-1 text-xs font-medium', trend >= 0 ? 'text-success' : 'text-destructive')}>

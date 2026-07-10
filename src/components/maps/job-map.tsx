@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { hasGoogleMaps } from '@/lib/env'
 import { env } from '@/lib/env'
 import { MapPin } from 'lucide-react'
+import { useTranslation } from '@/contexts/locale-context'
 
 interface JobMapProps {
   addresses?: string[]
@@ -12,6 +13,7 @@ interface JobMapProps {
 type GMaps = any
 
 export function JobMap({ addresses = [], className = 'h-48' }: JobMapProps) {
+  const { t } = useTranslation()
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstance = useRef<GMaps>(null)
 
@@ -58,9 +60,9 @@ export function JobMap({ addresses = [], className = 'h-48' }: JobMapProps) {
 
   if (!hasGoogleMaps) {
     return (
-      <div className={`rounded-lg bg-secondary/30 flex flex-col items-center justify-center text-muted-foreground text-sm gap-2 ${className}`}>
+      <div data-testid="dispatch-job-map-fallback" className={`rounded-lg bg-secondary/30 flex flex-col items-center justify-center text-muted-foreground text-sm gap-2 ${className}`}>
         <MapPin className="h-8 w-8 opacity-50" />
-        <p>Google Maps — укажите VITE_GOOGLE_MAPS_API_KEY</p>
+        <p>{t.dispatch.mapsApiKeyHint}</p>
         {addresses.length > 0 && (
           <ul className="text-xs space-y-1 mt-2 px-4">
             {addresses.slice(0, 5).map((a) => (
@@ -76,5 +78,5 @@ export function JobMap({ addresses = [], className = 'h-48' }: JobMapProps) {
     )
   }
 
-  return <div ref={mapRef} className={`rounded-lg ${className}`} />
+  return <div ref={mapRef} data-testid="dispatch-job-map-canvas" className={`rounded-lg ${className}`} />
 }

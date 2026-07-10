@@ -40,7 +40,7 @@ export function VehicleForm({ companyId, onSubmit, onCancel }: VehicleFormProps)
   }
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="space-y-4">
+    <form onSubmit={handleSubmit(submit)} className="space-y-4" data-testid="vehicle-form">
       <div>
         <Label>Name</Label>
         <Input className="mt-1" {...register('name')} placeholder="Service Van #1" />
@@ -84,7 +84,7 @@ export function VehicleForm({ companyId, onSubmit, onCancel }: VehicleFormProps)
       </div>
       <div className="flex justify-end gap-2 pt-2">
         {onCancel && <Button type="button" variant="outline" onClick={onCancel}>{t.common.cancel}</Button>}
-        <Button type="submit" disabled={isSubmitting}>{t.common.save}</Button>
+        <Button type="submit" disabled={isSubmitting} data-testid="vehicle-form-submit">{t.common.save}</Button>
       </div>
     </form>
   )

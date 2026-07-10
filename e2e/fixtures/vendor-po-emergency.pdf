@@ -1,0 +1,54 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1088 >>
+stream
+BT
+/F1 10 Tf
+1 0 0 1 50 750 Tm (VENDOR PO # Service Date) Tj
+1 0 0 1 50 738 Tm (Client PO # 356424985) Tj
+1 0 0 1 50 726 Tm (210214-01) Tj
+1 0 0 1 50 714 Tm (Priority P1 - EMERGENCY) Tj
+1 0 0 1 50 702 Tm (Order Type INSTALL/ANCHOR) Tj
+1 0 0 1 50 690 Tm (CD Maintenance Company) Tj
+1 0 0 1 50 678 Tm (NTE $115.00) Tj
+1 0 0 1 50 666 Tm (2170 W State Road 434, Suite 450) Tj
+1 0 0 1 50 654 Tm (Longwood, FL 32779 Max Giardino) Tj
+1 0 0 1 50 642 Tm (Phone # 321-926-3103 Fax # 321-233-0233 mgiardino@mycdfs.com) Tj
+1 0 0 1 50 630 Tm (SERVICE LOCATION VENDOR # 1005635) Tj
+1 0 0 1 50 618 Tm (Walgreens - Loc # 18986 ReadyFix) Tj
+1 0 0 1 50 606 Tm (200 N Lasalle St 929 15th Street Southeast) Tj
+1 0 0 1 50 594 Tm (Durham, NC 27705-3013 Hickory, NC 28602) Tj
+1 0 0 1 50 582 Tm (Phone # 919-383-5591 Fax # 980-252-3295) Tj
+1 0 0 1 50 570 Tm (SERVICE DESCRIPTION) Tj
+1 0 0 1 50 558 Tm (PHARMACY / BUILDING REPAIR / WATER DIVERSION KIT / INSTALL) Tj
+1 0 0 1 50 546 Tm (SPECIAL INSTRUCTIONS) Tj
+1 0 0 1 50 534 Tm (TECH MUST CALL FROM SITE) Tj
+1 0 0 1 50 522 Tm (Print Date: 07/08/26 11:46 am) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000001381 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1451
+%%EOF

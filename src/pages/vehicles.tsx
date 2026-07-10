@@ -11,12 +11,13 @@ import { useAuth } from '@/contexts/auth-context'
 import { useVehicles, useFuelLogs, useSaveVehicle } from '@/hooks/use-entities'
 import { formatCurrencyPrecise, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
+import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
 import type { Vehicle } from '@/types'
 
 export default function VehiclesPage() {
-  const { t, locale } = useTranslation()
-  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
+  const { t } = useTranslation()
+  const dateLocale = useDateLocale()
   const { company } = useAuth()
   const companyId = company?.id ?? 'comp-001'
   const [showForm, setShowForm] = useState(false)
@@ -97,7 +98,7 @@ export default function VehiclesPage() {
         ))}
       </div>
 
-      <Card>
+      <Card data-testid="vehicles-fuel-logs">
         <CardHeader>
           <CardTitle>{t.vehicles.fuelLogs}</CardTitle>
         </CardHeader>

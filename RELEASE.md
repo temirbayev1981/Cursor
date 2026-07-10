@@ -1,58 +1,31 @@
-# HandymanOS AI — Release 1.1.0
+# HandymanOS AI — Release 1.6.3
 
-Production-ready SaaS platform consolidating Phases 8–24.
+Portal review EN and route optimizer i18n E2E on **1.6.2**.
 
-## What's included
+## What's new in 1.6.3
 
-- Full feature platform (dashboard, jobs, dispatch, scheduling, mobile tech, reports, analytics)
-- Supabase auth, RLS, typed data layer, team invites, portals
-- Platform health + audit score in Settings → System
-- CI: lint, unit tests, E2E (Playwright), GitHub Pages deploy
+- Customer portal review testids: `customer-portal-leave-review`, `portal-review-submit`
+- Route optimizer `route-optimizer-open-maps` testid
+- `clearPortalReview()` E2E helper
+- E2E: portal review EN, route optimizer EN labels on dispatch
+- E2E: **134** tests total across 30 spec files
 
-## GitHub repository secrets (production deploy)
+## Test coverage
 
-Configure under **Settings → Secrets and variables → Actions**:
+- Unit: **83**
+- E2E: **134** (30 spec files)
 
-| Secret | Required | Purpose |
-|--------|----------|---------|
-| `VITE_SUPABASE_URL` | Recommended | Live backend |
-| `VITE_SUPABASE_ANON_KEY` | Recommended | Supabase client |
-| `VITE_STRIPE_PUBLISHABLE_KEY` | Optional | Online payments |
-| `VITE_STRIPE_CHECKOUT_ENDPOINT` | Optional | Override checkout URL |
-| `VITE_STRIPE_SUBSCRIPTION_ENDPOINT` | Optional | Override subscription URL |
-| `VITE_GOOGLE_MAPS_API_KEY` | Optional | Dispatch maps |
-| `VITE_NOTIFICATION_WEBHOOK_URL` | Optional | Email notifications |
-| `VITE_SMS_WEBHOOK_URL` | Optional | SMS dispatch alerts |
-| `VITE_SENTRY_DSN` | Optional | Error monitoring |
-
-Without Supabase secrets, GitHub Pages deploys in **demo mode** (fully functional offline).
-
-## Release checklist
+## Deploy
 
 ```bash
-# Local verification
-npm run verify:release
+npm run verify:production
 npm run test:e2e
 
-# Supabase backend
-# 1. Apply supabase/schema.sql
-# 2. Deploy Edge Functions (see DEPLOYMENT.md)
-# 3. Import demo data via Settings → System
-
-# Merge to main triggers deploy workflow
 git checkout main
-git merge cursor/phase-24-release-consolidation-1b4a
+git merge cursor/phase-67-portal-review-route-i18n-1b4a
 git push origin main
 ```
 
-## Post-deploy verification
+## Merge chain
 
-1. Open GitHub Pages URL (Settings → Pages)
-2. Sign in — demo mode works without credentials
-3. With Supabase configured: register owner → complete onboarding
-4. Settings → System: platform audit score ≥ 8.5 when integrations are live
-5. Run invite flow → `/tech-onboarding` → `/tech` mobile view
-
-## Version history
-
-See [CHANGELOG.md](./CHANGELOG.md).
+`#24` → … → `#59` → **#60**

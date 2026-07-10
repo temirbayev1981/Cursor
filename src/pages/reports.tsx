@@ -47,6 +47,21 @@ type ReportTab = 'financial' | 'profit' | 'technicians' | 'customers' | 'service
 
 const PIE_COLORS = ['#0ea5e9', '#fbbf24', '#22c55e', '#ef4444', '#8b5cf6', '#f97316']
 
+function localizeExpenseChart(
+  chart: ReturnType<typeof computeExpenseBreakdown>,
+  labels: { labor: string; materials: string; fuel: string },
+): ReturnType<typeof computeExpenseBreakdown> {
+  const map: Record<string, string> = {
+    Labor: labels.labor,
+    Materials: labels.materials,
+    Fuel: labels.fuel,
+  }
+  return chart.map((point) => ({
+    ...point,
+    name: map[point.name] ?? point.name,
+  }))
+}
+
 function defaultStartDate() {
   return format(subMonths(new Date(), 6), 'yyyy-MM-dd')
 }
@@ -106,11 +121,34 @@ export default function ReportsPage() {
   }
 
   const handleExportPdf = () => {
+    const pdfLabels = {
+      jobs: t.nav.jobs,
+      revenue: t.dashboard.revenue,
+      profit: t.reports.netProfit,
+      margin: t.reports.margin,
+      revenueByMonth: t.reports.pdf.revenueByMonth,
+      month: t.reports.pdf.month,
+      technicianPerformance: t.reports.techPerformance,
+      name: t.reports.pdf.name,
+      efficiency: t.reports.efficiency,
+      serviceProfitability: t.reports.serviceProfit,
+      service: t.reports.pdf.service,
+      customers: t.reports.customers,
+      customer: t.customers.customer,
+      jobProfitability: t.reports.profit,
+      job: t.jobs.job,
+      costs: t.reports.costs,
+      expenseBreakdown: t.reports.expenseBreakdown,
+      category: t.expenses.category,
+      amount: t.expenses.amount,
+    }
+    const expenseLabels = { labor: t.dashboard.labor, materials: t.dashboard.materials, fuel: t.dashboard.fuel }
     exportReportPdf({
       title: t.reports.title,
       dateRangeLabel,
       activeTab: tabLabels[activeTab],
       summary,
+      labels: pdfLabels,
       revenueChart: activeTab === 'financial' ? revenueChart : undefined,
       technicians: activeTab === 'technicians' ? techChart : undefined,
       services: activeTab === 'services' ? serviceChart : undefined,
@@ -131,6 +169,7 @@ export default function ReportsPage() {
               }
             })
         : undefined,
+      expenses: activeTab === 'expenses' ? localizeExpenseChart(expenseChart, expenseLabels) : undefined,
     })
   }
 
@@ -143,10 +182,10 @@ export default function ReportsPage() {
         description={t.reports.description}
         actions={
           <>
-            <Button variant="outline" onClick={handleExportPdf}>
+            <Button variant="outline" data-testid="reports-export-pdf" onClick={handleExportPdf}>
               <Download className="h-4 w-4" />{t.common.exportPdf}
             </Button>
-            <Button variant="outline" onClick={() => exportFullReport(filteredJobs, customers, employees)}>
+            <Button variant="outline" data-testid="reports-export-csv" onClick={() => exportFullReport(filteredJobs, customers, employees)}>
               <FileSpreadsheet className="h-4 w-4" />{t.common.exportCsv}
             </Button>
           </>
@@ -206,12 +245,12 @@ export default function ReportsPage() {
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ReportTab)}>
         <TabsList className="mb-6">
-          <TabsTrigger value="financial">{t.reports.financial}</TabsTrigger>
-          <TabsTrigger value="profit">{t.reports.profit}</TabsTrigger>
-          <TabsTrigger value="technicians">{t.reports.technicians}</TabsTrigger>
-          <TabsTrigger value="customers">{t.reports.customers}</TabsTrigger>
-          <TabsTrigger value="services">{t.reports.services}</TabsTrigger>
-          <TabsTrigger value="expenses">{t.reports.expenses}</TabsTrigger>
+          <TabsTrigger value="financial" data-testid="reports-tab-financial">{t.reports.financial}</TabsTrigger>
+          <TabsTrigger value="profit" data-testid="reports-tab-profit">{t.reports.profit}</TabsTrigger>
+          <TabsTrigger value="technicians" data-testid="reports-tab-technicians">{t.reports.technicians}</TabsTrigger>
+          <TabsTrigger value="customers" data-testid="reports-tab-customers">{t.reports.customers}</TabsTrigger>
+          <TabsTrigger value="services" data-testid="reports-tab-services">{t.reports.services}</TabsTrigger>
+          <TabsTrigger value="expenses" data-testid="reports-tab-expenses">{t.reports.expenses}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="financial">

@@ -23,6 +23,9 @@ export async function startStripeCheckout(params: {
   invoiceNumber: string
   amount: number
   customerEmail?: string
+  portalToken?: string
+  successUrl?: string
+  cancelUrl?: string
 }): Promise<'redirected' | 'demo' | 'error'> {
   const endpoint = getStripeCheckoutEndpoint()
 
@@ -42,8 +45,9 @@ export async function startStripeCheckout(params: {
         invoice_number: params.invoiceNumber,
         amount_cents: Math.round(params.amount * 100),
         customer_email: params.customerEmail,
-        success_url: `${window.location.origin}/invoices?paid=${params.invoiceId}`,
-        cancel_url: `${window.location.origin}/invoices`,
+        portal_token: params.portalToken,
+        success_url: params.successUrl ?? `${window.location.origin}/invoices?paid=${params.invoiceId}`,
+        cancel_url: params.cancelUrl ?? `${window.location.origin}/invoices`,
       }),
     })
 

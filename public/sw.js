@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = 'handymanos-v1'
+const CACHE_NAME = 'handymanos-v2'
 const SHELL = ['/', '/index.html', '/manifest.json', '/favicon.svg']
 
 self.addEventListener('install', (event) => {

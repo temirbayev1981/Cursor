@@ -11,12 +11,13 @@ import { useAuth } from '@/contexts/auth-context'
 import { useExpenses, useSaveExpense } from '@/hooks/use-entities'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
+import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
 import type { Expense } from '@/types'
 
 export default function ExpensesPage() {
-  const { t, locale } = useTranslation()
-  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
+  const { t } = useTranslation()
+  const dateLocale = useDateLocale()
   const { company } = useAuth()
   const companyId = company?.id ?? 'comp-001'
   const [showForm, setShowForm] = useState(false)
@@ -55,7 +56,7 @@ export default function ExpensesPage() {
         </Card>
       )}
 
-      <div className="glass-card p-5 mb-6 inline-block">
+      <div className="glass-card p-5 mb-6 inline-block" data-testid="expenses-monthly-total">
         <p className="text-sm text-muted-foreground">{t.expenses.totalMonth}</p>
         <p className="text-3xl font-bold">{formatCurrency(total)}</p>
       </div>

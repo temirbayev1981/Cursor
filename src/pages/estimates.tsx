@@ -1,4 +1,4 @@
-import { Plus, Sparkles, FileSpreadsheet, Send, X } from 'lucide-react'
+import { Plus, Sparkles, FileSpreadsheet, Send, X, Download } from 'lucide-react'
 import { useState } from 'react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
@@ -13,13 +13,15 @@ import { generateInvoiceNumber } from '@/services/payment-service'
 import { notifyEstimateSent } from '@/services/notification-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { generateSmartEstimate } from '@/lib/ai'
+import { exportEstimatePdf } from '@/lib/export'
 import { useTranslation } from '@/contexts/locale-context'
+import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
 import type { Estimate } from '@/types'
 
 export default function EstimatesPage() {
-  const { t, locale } = useTranslation()
-  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
+  const { t } = useTranslation()
+  const dateLocale = useDateLocale()
   const [showEngine, setShowEngine] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const { company } = useAuth()
@@ -74,6 +76,34 @@ export default function EstimatesPage() {
     )
   }
 
+  const handleExportPdf = (est: Estimate, customerName: string) => {
+    exportEstimatePdf({
+      title: est.title,
+      customerName,
+      status: est.status,
+      laborHours: est.labor_hours,
+      laborRate: est.labor_rate,
+      materialCost: est.material_cost,
+      total: est.total,
+      validUntil: est.valid_until,
+      lineItems: est.line_items,
+      companyName: company?.name,
+      labels: {
+        labor: t.estimates.labor,
+        materials: t.estimates.materials,
+        validUntil: t.estimates.validUntil,
+        lineItems: t.estimates.pdf.lineItems,
+        description: t.estimates.pdf.description,
+        qty: t.estimates.pdf.qty,
+        unit: t.estimates.pdf.unit,
+        total: t.estimates.total,
+        noLineItems: t.estimates.pdf.noLineItems,
+        laborHoursSuffix: `${t.common.hours} @ `,
+        perHour: `/${t.common.hr}`,
+      },
+    })
+  }
+
   return (
     <div>
       <PageHeader
@@ -106,7 +136,7 @@ export default function EstimatesPage() {
       )}
 
       {showEngine && (
-        <Card className="mb-6 border-primary/30">
+        <Card className="mb-6 border-primary/30" data-testid="estimates-smart-engine-panel">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-accent" />
@@ -164,11 +194,23 @@ export default function EstimatesPage() {
               <DataTableCell className="text-muted-foreground">{formatDate(est.valid_until, dateLocale)}</DataTableCell>
               <DataTableCell>
                 <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    title={t.common.exportPdf}
+                    onClick={() => handleExportPdf(est, customer?.name ?? '')}
+                    data-testid={`estimate-export-pdf-${est.id}`}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
                   {est.status === 'draft' && (
-                    <Button size="sm" variant="ghost" onClick={() => handleSend(est)}><Send className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="ghost" onClick={() => handleSend(est)} data-testid={`estimate-send-${est.id}`}>
+                      <Send className="h-4 w-4" />
+                    </Button>
                   )}
                   {['sent', 'approved'].includes(est.status) && (
-                    <Button size="sm" variant="ghost" onClick={() => handleConvert(est)} title="Создать счёт">
+                    <Button size="sm" variant="ghost" onClick={() => handleConvert(est)} title="Создать счёт"
+                      data-testid={`estimate-convert-${est.id}`}>
                       <FileSpreadsheet className="h-4 w-4" />
                     </Button>
                   )}

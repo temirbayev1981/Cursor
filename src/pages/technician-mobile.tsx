@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Phone, Navigation, Camera, Clock, CheckCircle, Play, Square, WifiOff, CloudOff } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -55,11 +55,14 @@ export default function TechnicianMobilePage() {
     employees.find((e) => e.profile_id === user?.id) ??
     employees.find((e) => e.is_active && e.billing_rate > 0 && /technician/i.test(e.role))
 
-  const syncContext = {
-    companyId,
-    employeeId: myEmployee?.id,
-    profileId: user?.id,
-  }
+  const syncContext = useMemo(
+    () => ({
+      companyId,
+      employeeId: myEmployee?.id,
+      profileId: user?.id,
+    }),
+    [companyId, myEmployee?.id, user?.id],
+  )
 
   const myJobs = jobs
     .filter((j) => {
@@ -71,6 +74,9 @@ export default function TechnicianMobilePage() {
   const activeEntry = activeJobId
     ? timeEntries.find((e) => e.job_id === activeJobId && !e.end)
     : undefined
+
+  const activeEntryStart = activeEntry?.start
+    ?? (activeEntry as { start_time?: string } | undefined)?.start_time
 
   useEffect(() => {
     if (DEMO_MODE || !supabase || !myEmployee?.id) return
@@ -132,7 +138,7 @@ export default function TechnicianMobilePage() {
         toast.info(t.techMobile.synced)
       }
     })()
-  }, [online, t.techMobile.synced, companyId, myEmployee?.id, user?.id])
+  }, [online, t.techMobile.synced, syncContext, qc, companyId])
 
   const getJobPhone = (job: Job) => customers.find((c) => c.id === job.customer_id)?.phone
 
@@ -268,17 +274,18 @@ export default function TechnicianMobilePage() {
   }
 
   return (
-    <div className="gradient-bg min-h-screen max-w-md mx-auto">
+    <div className="gradient-bg safe-x mx-auto min-h-[100dvh] max-w-md">
       <input
         ref={photoInputRef}
         type="file"
         accept="image/*"
         capture="environment"
         className="hidden"
+        data-testid="tech-photo-input"
         onChange={(e) => void handlePhotoSelected(e)}
       />
 
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border p-4">
+      <header className="safe-top sticky top-0 z-10 border-b border-border bg-background/80 p-4 backdrop-blur-xl">
         <div className="flex items-center justify-between gap-2">
           <div>
             <h1 className="text-lg font-bold">{t.techMobile.myJobs}</h1>
@@ -286,7 +293,7 @@ export default function TechnicianMobilePage() {
               {myEmployee?.name ?? user?.full_name} · {t.techMobile.today}
             </p>
           </div>
-          <div className="flex flex-col items-end gap-1">
+          <div className="flex flex-col items-end gap-1" aria-live="polite">
             <Badge variant={online ? 'success' : 'destructive'} className="text-xs">
               {online ? t.techMobile.online : <><WifiOff className="h-3 w-3 mr-1" />{t.techMobile.offline}</>}
             </Badge>
@@ -300,7 +307,7 @@ export default function TechnicianMobilePage() {
         </div>
       </header>
 
-      <div className="p-4 space-y-4">
+      <div className="safe-bottom space-y-4 p-4">
         {myJobs.length === 0 && (
           <Card>
             <CardContent className="p-6 text-center text-muted-foreground text-sm">
@@ -391,7 +398,7 @@ export default function TechnicianMobilePage() {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t.techMobile.arrival}</span>
-                <span>{activeEntry ? formatDateTime(activeEntry.start) : '—'}</span>
+                <span>{activeEntryStart ? formatDateTime(activeEntryStart) : '—'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">GPS</span>

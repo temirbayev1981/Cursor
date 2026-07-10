@@ -17,7 +17,7 @@ import {
 import { toast } from 'sonner'
 
 export default function TechnicianOnboardingPage() {
-  const { t, locale } = useTranslation()
+  const { t } = useTranslation()
   const { user, company } = useAuth()
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
@@ -35,7 +35,7 @@ export default function TechnicianOnboardingPage() {
   const handleFinish = async () => {
     if (!user || !company) return
     if (!fullName.trim() || !phone.trim()) {
-      toast.error(locale === 'ru' ? 'Заполните имя и телефон' : 'Enter your name and phone')
+      toast.error(t.techOnboarding.namePhoneRequired)
       return
     }
     setLoading(true)
@@ -48,7 +48,7 @@ export default function TechnicianOnboardingPage() {
       toast.success(t.techOnboarding.complete)
       navigate('/tech', { replace: true })
     } catch {
-      toast.error(locale === 'ru' ? 'Ошибка сохранения' : 'Failed to save profile')
+      toast.error(t.techOnboarding.saveFailed)
     } finally {
       setLoading(false)
     }

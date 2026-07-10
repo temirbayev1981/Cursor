@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Plus, Mail, X } from 'lucide-react'
+import { Plus, Mail, X, Download } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
 import { TableSkeleton } from '@/components/shared/skeleton'
@@ -13,7 +13,9 @@ import { useAuth } from '@/contexts/auth-context'
 import { useInvoices, useCustomers, useSaveInvoice, useSendInvoice, usePayInvoice } from '@/hooks/use-entities'
 import { generateInvoiceNumber } from '@/services/payment-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { exportInvoicePdf } from '@/lib/export'
 import { useTranslation } from '@/contexts/locale-context'
+import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
 import type { Invoice } from '@/types'
 
@@ -24,8 +26,8 @@ function isThisMonth(dateStr: string): boolean {
 }
 
 export default function InvoicesPage() {
-  const { t, locale } = useTranslation()
-  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
+  const { t } = useTranslation()
+  const dateLocale = useDateLocale()
   const [searchParams, setSearchParams] = useSearchParams()
   const [showForm, setShowForm] = useState(false)
   const { company } = useAuth()
@@ -50,13 +52,13 @@ export default function InvoicesPage() {
       { invoice, amount: invoice.total - invoice.amount_paid },
       {
         onSuccess: () => {
-          toast.success(locale === 'ru' ? 'Оплата получена' : 'Payment received')
+          toast.success(t.invoices.paymentReceived)
           setSearchParams({}, { replace: true })
           refetch()
         },
       }
     )
-  }, [searchParams, invoices, payInvoice, setSearchParams, refetch, locale])
+  }, [searchParams, invoices, payInvoice, setSearchParams, refetch, t.invoices.paymentReceived])
 
   const outstanding = invoices.filter((i) => i.status !== 'paid').reduce((s, i) => s + (i.total - i.amount_paid), 0)
   const paidMonth = invoices
@@ -79,6 +81,35 @@ export default function InvoicesPage() {
     if (!customer?.email) return
     sendInvoice.mutate({ invoice, email: customer.email }, {
       onSuccess: () => toast.success(`Счёт отправлен: ${customer.email}`),
+    })
+  }
+
+  const handleExportPdf = (invoice: Invoice, customerName: string) => {
+    exportInvoicePdf({
+      invoiceNumber: invoice.invoice_number,
+      customerName,
+      status: invoice.status,
+      subtotal: invoice.subtotal,
+      tax: invoice.tax,
+      total: invoice.total,
+      amountPaid: invoice.amount_paid,
+      dueDate: invoice.due_date,
+      lineItems: invoice.line_items,
+      companyName: company?.name,
+      labels: {
+        invoiceTitle: t.invoices.pdf.invoiceTitle,
+        subtotal: t.invoices.subtotal,
+        tax: t.invoices.tax,
+        dueDate: t.invoices.dueDate,
+        paid: t.invoices.paid,
+        balance: t.invoices.pdf.balance,
+        lineItems: t.invoices.pdf.lineItems,
+        description: t.invoices.pdf.description,
+        qty: t.invoices.pdf.qty,
+        unit: t.invoices.pdf.unit,
+        total: t.invoices.total,
+        noLineItems: t.invoices.pdf.noLineItems,
+      },
     })
   }
 
@@ -108,10 +139,10 @@ export default function InvoicesPage() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6" data-testid="invoices-summary-stats">
         <div className="glass-card p-5">
           <p className="text-sm text-muted-foreground">{t.invoices.outstanding}</p>
-          <p className="text-2xl font-bold text-warning">{formatCurrency(outstanding)}</p>
+          <p className="text-2xl font-bold text-warning" data-testid="invoices-outstanding-total">{formatCurrency(outstanding)}</p>
         </div>
         <div className="glass-card p-5">
           <p className="text-sm text-muted-foreground">{t.invoices.paidMonth}</p>
@@ -138,8 +169,19 @@ export default function InvoicesPage() {
               <DataTableCell className="text-muted-foreground">{formatDate(inv.due_date, dateLocale)}</DataTableCell>
               <DataTableCell>
                 <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    title={t.common.exportPdf}
+                    onClick={() => handleExportPdf(inv, customer?.name ?? '')}
+                    data-testid={`invoice-export-pdf-${inv.id}`}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
                   {inv.status === 'draft' && (
-                    <Button size="sm" variant="ghost" onClick={() => handleSend(inv)}><Mail className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="ghost" onClick={() => handleSend(inv)} data-testid={`invoice-send-${inv.id}`}>
+                      <Mail className="h-4 w-4" />
+                    </Button>
                   )}
                   <StripePayButton invoice={inv} customerEmail={customer?.email} onSuccess={() => refetch()} />
                 </div>

@@ -22,6 +22,7 @@ export interface PortalSession {
   portalType: PortalType
   customerName?: string
   expiresAt: number
+  token: string
 }
 
 const TOKENS_KEY = 'handymanos_portal_tokens'
@@ -46,6 +47,10 @@ export function getPortalSession(): PortalSession | null {
   } catch {
     return null
   }
+}
+
+export function getPortalToken(): string | null {
+  return getPortalSession()?.token ?? null
 }
 
 export function setPortalSession(session: PortalSession): void {
@@ -90,24 +95,30 @@ export async function createPortalLink(
     if (error) throw error
   }
 
-  const path = portalType === 'customer' ? '/portal/access' : '/portal/access'
+  const path = '/portal/access'
   const url = `${window.location.origin}${path}?token=${token}`
   return { token, url, expiresAt }
 }
 
-export async function validatePortalToken(token: string): Promise<PortalSession | null> {
-  const localTokens = loadStore<PortalToken>(TOKENS_KEY)
-  const local = localTokens.find((t) => t.token === token)
-  if (local && new Date(local.expires_at).getTime() > Date.now()) {
-    return {
-      customerId: local.customer_id,
-      companyId: local.company_id,
-      portalType: local.portal_type,
-      expiresAt: new Date(local.expires_at).getTime(),
-    }
+function sessionFromLocalToken(local: PortalToken): PortalSession {
+  return {
+    customerId: local.customer_id,
+    companyId: local.company_id,
+    portalType: local.portal_type,
+    expiresAt: new Date(local.expires_at).getTime(),
+    token: local.token,
   }
+}
 
-  if (DEMO_MODE || !supabase) return null
+export async function validatePortalToken(token: string): Promise<PortalSession | null> {
+  if (DEMO_MODE || !supabase) {
+    const localTokens = loadStore<PortalToken>(TOKENS_KEY)
+    const local = localTokens.find((t) => t.token === token)
+    if (local && new Date(local.expires_at).getTime() > Date.now()) {
+      return sessionFromLocalToken(local)
+    }
+    return null
+  }
 
   try {
     const { data, error } = await callRpc('validate_portal_token', { p_token: token })
@@ -116,14 +127,24 @@ export async function validatePortalToken(token: string): Promise<PortalSession 
     if (!rows || rows.length === 0) return null
 
     const row = rows[0]
-    const dbToken = localTokens.find((t) => t.token === token)
+    const cached: PortalToken = {
+      id: crypto.randomUUID(),
+      company_id: row.company_id,
+      customer_id: row.customer_id,
+      portal_type: row.portal_type as PortalType,
+      token,
+      expires_at: row.expires_at,
+      created_at: new Date().toISOString(),
+    }
+    upsertStore(TOKENS_KEY, cached)
+
     return {
       customerId: row.customer_id,
       companyId: row.company_id,
       portalType: row.portal_type as PortalType,
-      expiresAt: dbToken
-        ? new Date(dbToken.expires_at).getTime()
-        : Date.now() + 7 * 86400000,
+      customerName: row.customer_name,
+      expiresAt: new Date(row.expires_at).getTime(),
+      token,
     }
   } catch {
     return null
