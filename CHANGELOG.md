@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.13.3] — 2026-07-10
+
+Chart prefetch and registry-driven E2E sync.
+
+### Phase 129 — Chart prefetch & registry E2E sync
+- `chart-prefetch.ts` warms recharts, dashboard, and reports after app shell load
+- verify-production: registry keys must match audit-expanded E2E one-to-one
+- Nightly smoke workflow runs `verify:operator` when secrets are set
+- **230** E2E tests, **169** unit tests
+
 ## [1.13.2] — 2026-07-10
 
 Lazy bundle loading and audit action registry.

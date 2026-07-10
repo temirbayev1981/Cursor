@@ -166,6 +166,23 @@ if (uniqueAuditE2eActions.size >= 40) {
   console.log(`✗ audit-expanded.spec.ts should reference many audit actions (got ${uniqueAuditE2eActions.size})`)
   ok = false
 }
+
+const registryFile = readFileSync('src/lib/audit-action-registry.ts', 'utf8')
+const registryBlock = registryFile.match(/AUDIT_ACTION_REGISTRY = \[([\s\S]*?)\] as const/)?.[1] ?? ''
+const registryKeys = [...registryBlock.matchAll(/'([^']+)'/g)].map((m) => m[1])
+const missingRegistryE2e = registryKeys.filter((key) => !uniqueAuditE2eActions.has(key))
+const extraE2eActions = [...uniqueAuditE2eActions].filter((key) => !registryKeys.includes(key))
+if (
+  registryKeys.length > 0
+  && missingRegistryE2e.length === 0
+  && extraE2eActions.length === 0
+  && registryKeys.length === uniqueAuditE2eActions.size
+) {
+  console.log(`✓ audit-expanded E2E covers all ${registryKeys.length} registry keys`)
+} else {
+  console.log(`✗ audit-expanded must cover every AUDIT_ACTION_REGISTRY key (missing: ${missingRegistryE2e.join(', ') || 'none'}, extra: ${extraE2eActions.join(', ') || 'none'})`)
+  ok = false
+}
 if (auditLabels.includes('OBSERVABILITY_PROBE_AUDIT = true')) {
   console.log('✓ OBSERVABILITY_PROBE_AUDIT gate enabled')
 } else {
@@ -1037,6 +1054,17 @@ if (existsSync('src/lib/audit-action-registry.ts')) {
   ok = false
 }
 
+const chartPrefetch = existsSync('src/lib/chart-prefetch.ts')
+  ? readFileSync('src/lib/chart-prefetch.ts', 'utf8')
+  : ''
+const appLayout = readFileSync('src/components/layout/app-layout.tsx', 'utf8')
+if (chartPrefetch.includes("import('recharts')") && appLayout.includes('prefetchChartBundles')) {
+  console.log('✓ chart bundles prefetch on app shell load')
+} else {
+  console.log('✗ app layout must prefetch recharts and chart routes')
+  ok = false
+}
+
 console.log('\nCI workflows:')
 if (ciWorkflow.includes('matrix') && ciWorkflow.includes('shard') && ciWorkflow.includes('--shard=${{ matrix.shard }}/4')) {
   console.log('✓ CI E2E sharding (4 parallel jobs) configured')
@@ -1065,6 +1093,13 @@ if (deployWorkflow.includes('smoke:supabase') && !deployWorkflow.includes('conti
 const nightlySmoke = existsSync('.github/workflows/supabase-smoke.yml')
   ? readFileSync('.github/workflows/supabase-smoke.yml', 'utf8')
   : ''
+if (nightlySmoke.includes('verify:operator')) {
+  console.log('✓ nightly smoke runs operator readiness')
+} else {
+  console.log('✗ supabase-smoke.yml must run verify:operator')
+  ok = false
+}
+
 if (nightlySmoke.includes('schedule:') && nightlySmoke.includes("cron: '0 6 * * *'")) {
   console.log('✓ nightly Supabase smoke schedule configured')
 } else {
