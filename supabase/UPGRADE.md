@@ -30,6 +30,10 @@ No schema changes required. Update frontend deploy and optional:
 - `npm run smoke:supabase` (expanded table/RPC checks)
 - Stripe webhook redeploy if using `stripe-webhook` audit logging
 
+## From 1.10.14 → 1.10.15
+
+No schema changes. Portal email badge sync E2E and hub SMS skip CSV export validation.
+
 ## From 1.10.13 → 1.10.14
 
 No schema changes. Portal SMS opt-out badge and hub scheduling SMS skip log E2E.

@@ -715,6 +715,8 @@ export const ru = {
       notification_hub_eta_sms_skip_audit: 'Hub: ETA SMS skip в диспетчерской',
       portal_sms_opt_out_badge_audit: 'Бейдж SMS opt-out в портале',
       notification_hub_scheduling_sms_skip_audit: 'Hub: SMS skip в расписании',
+      portal_email_opt_out_badge_audit: 'Синхронизация email-бейджа портала',
+      notification_hub_sms_skip_csv_audit: 'Экспорт CSV SMS skip в hub',
       multi_tenant: 'Мульти-тенант',
     },
     auditActions: {

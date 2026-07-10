@@ -19,6 +19,7 @@ test.describe('Customer notification prefs sync', () => {
     await page.goto('/portal/customer')
     await expect(page.getByTestId('customer-portal-notification-prefs')).toBeVisible()
     await expect(page.getByTestId('customer-portal-notify-email')).toHaveAttribute('data-state', 'unchecked')
+    await expect(page.getByTestId('customer-portal-email-optout-badge')).toBeVisible()
   })
 
   test('portal email opt-out syncs to staff CRM', async ({ page }) => {
@@ -31,6 +32,7 @@ test.describe('Customer notification prefs sync', () => {
       await portalEmailToggle.click()
       await expect(page.getByText(/настройки уведомлений сохранены|notification preferences saved/i).first()).toBeVisible({ timeout: 5000 })
     }
+    await expect(page.getByTestId('customer-portal-email-optout-badge')).toBeVisible()
 
     await page.evaluate(() => {
       sessionStorage.setItem('__e2e_storage_init__', '1')
@@ -66,6 +68,7 @@ test.describe('Customer notification prefs sync', () => {
     await page.goto('/portal/customer')
     await expect(page.getByTestId('customer-portal-notification-prefs')).toBeVisible()
     await expect(page.getByTestId('customer-portal-notify-sms')).toHaveAttribute('data-state', 'unchecked')
+    await expect(page.getByTestId('customer-portal-sms-optout-badge')).toBeVisible()
   })
 
   test('portal SMS opt-out syncs to staff CRM', async ({ page }) => {

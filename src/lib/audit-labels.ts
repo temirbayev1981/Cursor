@@ -181,6 +181,12 @@ export const PORTAL_SMS_OPT_OUT_BADGE_AUDIT = true as const
 /** Notification hub Skipped tab shows scheduling SMS opt-out entries. */
 export const NOTIFICATION_HUB_SCHEDULING_SMS_SKIP_AUDIT = true as const
 
+/** Portal email opt-out badge syncs with staff CRM notification prefs. */
+export const PORTAL_EMAIL_OPT_OUT_BADGE_AUDIT = true as const
+
+/** Hub skip log CSV export includes SMS channel entries. */
+export const NOTIFICATION_HUB_SMS_SKIP_CSV_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }
