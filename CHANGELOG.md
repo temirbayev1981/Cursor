@@ -12,6 +12,10 @@ Portal review EN and route optimizer i18n E2E.
 - `clearPortalReview()` E2E helper
 - E2E: portal review EN, dispatch route optimizer EN
 
+### Docs — System instructions guide
+- `INSTRUCTIONS.md`: modules, roles, portals, integrations, deployment reference (RU)
+- README and DEPLOYMENT links to instructions; E2E count updated to 134
+
 ## [1.6.2] — 2026-07-10
 
 Portal invoices EN, dispatch map i18n, jobs bulk on-hold.
