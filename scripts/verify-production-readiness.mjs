@@ -317,6 +317,13 @@ if (skipLogModule.includes('recordNotificationSkip') && skipLogModule.includes('
   ok = false
 }
 
+if (skipLogModule.includes('getNotificationSkipLogStats')) {
+  console.log('✓ notification skip log exposes email/SMS stats')
+} else {
+  console.log('✗ notification skip log must expose email/SMS stats')
+  ok = false
+}
+
 const hubPanel = readFileSync('src/components/settings/notification-hub-panel.tsx', 'utf8')
 if (hubPanel.includes('notification-hub-filter-skipped') && hubPanel.includes('getNotificationSkipLog')) {
   console.log('✓ notification hub exposes skipped filter tab')
@@ -329,6 +336,13 @@ if (hubPanel.includes('notification-hub-export-skip-log') && hubPanel.includes('
   console.log('✓ notification hub exports skip log CSV')
 } else {
   console.log('✗ notification hub must export skip log CSV')
+  ok = false
+}
+
+if (hubPanel.includes('notification-hub-summary') && hubPanel.includes('getNotificationSkipLogStats')) {
+  console.log('✓ notification hub summary shows skip breakdown')
+} else {
+  console.log('✗ notification hub summary must show skip breakdown')
   ok = false
 }
 
@@ -423,6 +437,13 @@ if (auditLabels.includes('NOTIFICATION_HUB_SMS_SKIP_CSV_AUDIT = true')) {
   ok = false
 }
 
+if (auditLabels.includes('NOTIFICATION_HUB_SKIP_SUMMARY_AUDIT = true')) {
+  console.log('✓ NOTIFICATION_HUB_SKIP_SUMMARY_AUDIT gate enabled')
+} else {
+  console.log('✗ NOTIFICATION_HUB_SKIP_SUMMARY_AUDIT must be true')
+  ok = false
+}
+
 const notificationsE2e = readFileSync('e2e/notifications.spec.ts', 'utf8')
 if (notificationsE2e.includes('scheduling skips customer SMS when opted out') && notificationsE2e.includes('scheduling queues customer SMS when enabled')) {
   console.log('✓ scheduling customer SMS E2E coverage present')
@@ -476,13 +497,6 @@ if (settingsE2e.includes('notification hub shows dispatch ETA SMS opt-out skip')
   console.log('✗ hub dispatch ETA SMS skip E2E test required')
   ok = false
 }
-
-if (settingsE2e.includes('notification hub shows dispatch ETA SMS opt-out skip')) {
-  console.log('✓ hub dispatch ETA SMS skip E2E coverage present')
-} else {
-  console.log('✗ hub dispatch ETA SMS skip E2E test required')
-  ok = false
-}
 if (settingsE2e.includes('notification hub shows scheduling SMS opt-out skip')) {
   console.log('✓ hub scheduling SMS skip E2E coverage present')
 } else {
@@ -501,6 +515,13 @@ if (settingsE2e.includes('notification hub exports SMS skip log CSV with channel
   console.log('✓ hub SMS skip CSV export E2E coverage present')
 } else {
   console.log('✗ hub SMS skip CSV export E2E test required')
+  ok = false
+}
+
+if (settingsE2e.includes('notification hub skip summary shows email and SMS counts')) {
+  console.log('✓ hub skip summary breakdown E2E coverage present')
+} else {
+  console.log('✗ hub skip summary breakdown E2E test required')
   ok = false
 }
 

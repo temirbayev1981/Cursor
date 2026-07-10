@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import {
   recordNotificationSkip,
   getNotificationSkipLog,
+  getNotificationSkipLogStats,
   clearNotificationSkipLog,
   exportNotificationSkipLogCsv,
 } from './notification-skip-log'
@@ -24,6 +25,14 @@ describe('notification-skip-log', () => {
     expect(log).toHaveLength(1)
     expect(log[0]?.to).toBe('optout@example.com')
     expect(log[0]?.reason).toBe('customer_opt_out')
+  })
+
+  it('getNotificationSkipLogStats counts email and sms skips', () => {
+    recordNotificationSkip({ to: 'a@b.com', channel: 'email', body: 'email body' })
+    recordNotificationSkip({ to: '+1555', channel: 'sms', body: 'sms body' })
+    recordNotificationSkip({ to: 'c@d.com', channel: 'email', body: 'email body 2' })
+
+    expect(getNotificationSkipLogStats()).toEqual({ total: 3, email: 2, sms: 1 })
   })
 
   it('exportNotificationSkipLogCsv includes header and skipped row', () => {

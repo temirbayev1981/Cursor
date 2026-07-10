@@ -10,6 +10,7 @@ import {
   getNotificationQueueFiltered,
   getNotificationQueueStats,
   getNotificationSkipLog,
+  getNotificationSkipLogStats,
   clearNotificationSkipLog,
   exportNotificationSkipLogCsv,
   retryFailedNotifications,
@@ -27,6 +28,7 @@ export function NotificationHubPanel({ onQueueChange }: NotificationHubPanelProp
   const [revision, setRevision] = useState(0)
 
   const stats = useMemo(() => getNotificationQueueStats(), [revision])
+  const skipStats = useMemo(() => getNotificationSkipLogStats(), [revision])
   const skipItems = useMemo(() => getNotificationSkipLog().slice(0, 12), [revision])
   const queueItems = useMemo(
     () => getNotificationQueueFiltered(filter === 'skipped' ? 'all' : filter).slice(0, 12),
@@ -92,11 +94,13 @@ export function NotificationHubPanel({ onQueueChange }: NotificationHubPanelProp
       <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between space-y-0">
         <div>
           <CardTitle>{t.settings.notificationHub}</CardTitle>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground mt-1" data-testid="notification-hub-summary">
             {t.settings.notificationHubSummary
               .replace('{total}', String(stats.total))
               .replace('{failed}', String(stats.failed))
-              .replace('{skipped}', String(stats.skipped))}
+              .replace('{skipped}', String(skipStats.total))
+              .replace('{emailSkips}', String(skipStats.email))
+              .replace('{smsSkips}', String(skipStats.sms))}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -111,7 +115,7 @@ export function NotificationHubPanel({ onQueueChange }: NotificationHubPanelProp
               {t.settings.notificationHubRetryFailed}
             </Button>
           )}
-          {stats.skipped > 0 && (
+          {skipStats.total > 0 && (
             <>
               <Button variant="outline" size="sm" data-testid="notification-hub-export-skip-log" onClick={handleExportSkipLog}>
                 {t.settings.notificationHubExportSkipLog}

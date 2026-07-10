@@ -2,7 +2,7 @@ import { getNotificationEndpoint, getSmsEndpoint } from '@/lib/env'
 import { getSupabaseAuthHeaders } from '@/lib/supabase'
 import { customerAllowsNotification } from '@/lib/customer-notification-prefs'
 import {
-  getNotificationSkipLog,
+  getNotificationSkipLogStats,
   recordNotificationSkip,
 } from '@/lib/notification-skip-log'
 import type { Customer } from '@/types'
@@ -11,7 +11,7 @@ export type NotificationChannel = 'email' | 'sms' | 'push'
 export type NotificationDeliveryStatus = 'queued' | 'sent' | 'failed'
 export type NotificationHubFilter = 'all' | NotificationChannel | 'skipped'
 
-export { getNotificationSkipLog, clearNotificationSkipLog, exportNotificationSkipLogCsv } from '@/lib/notification-skip-log'
+export { getNotificationSkipLog, getNotificationSkipLogStats, clearNotificationSkipLog, exportNotificationSkipLogCsv } from '@/lib/notification-skip-log'
 
 type NotificationLocale = 'en' | 'ru'
 
@@ -393,7 +393,7 @@ export function getNotificationQueueStats() {
     queued: queue.filter((i) => i.status === 'queued').length,
     failed: queue.filter((i) => i.status === 'failed').length,
     sent: queue.filter((i) => i.status === 'sent').length,
-    skipped: getNotificationSkipLog().length,
+    skipped: getNotificationSkipLogStats().total,
   }
 }
 

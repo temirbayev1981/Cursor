@@ -52,6 +52,15 @@ export function getNotificationSkipLogFiltered(channel: 'all' | 'email' | 'sms' 
   return log.filter((item) => item.channel === channel)
 }
 
+export function getNotificationSkipLogStats(): { total: number; email: number; sms: number } {
+  const log = loadSkipLog()
+  return {
+    total: log.length,
+    email: log.filter((item) => item.channel === 'email').length,
+    sms: log.filter((item) => item.channel === 'sms').length,
+  }
+}
+
 export function clearNotificationSkipLog(): void {
   saveSkipLog([])
 }
