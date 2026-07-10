@@ -52,15 +52,15 @@ npm run verify:production
 npm run test:e2e
 ```
 
-Open [http://localhost:5173](http://localhost:5173) and sign in with any credentials in demo mode.
+Open [http://localhost:5173](http://localhost:5173) after configuring Supabase (see below).
 
-**Current version:** 1.6.4 — see [RELEASE.md](./RELEASE.md) and [CHANGELOG.md](./CHANGELOG.md).
+**Current version:** 1.7.0 — see [RELEASE.md](./RELEASE.md) and [CHANGELOG.md](./CHANGELOG.md).
 
-Copy `.env.example` to `.env.local` to connect Supabase, Stripe, and other integrations.
+Copy `.env.example` to `.env.local` and set **Supabase** credentials (required). Add Stripe, maps, and notification webhooks for full production features.
 
-## Demo Mode
+## Requirements
 
-Without Supabase credentials, the app runs in **demo mode** with realistic sample data. To connect a live backend, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+**Supabase is required.** Without `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, the app shows a configuration screen instead of loading data. E2E tests use an in-memory mock backend (`VITE_E2E_MOCK_BACKEND=true` during Playwright builds). See [DEPLOYMENT.md](./DEPLOYMENT.md) for production setup.
 
 ## Project Structure
 
@@ -71,7 +71,7 @@ src/
 │   ├── shared/       # StatCard, DataTable, badges
 │   └── layout/       # Sidebar, AppLayout
 ├── contexts/         # Auth provider
-├── data/             # Demo/mock data
+├── data/             # Sample seed data for import & E2E
 ├── lib/              # Utils, AI engine, Supabase client
 ├── pages/            # All feature modules
 └── types/            # TypeScript definitions
@@ -118,7 +118,7 @@ See [CHANGELOG.md](./CHANGELOG.md) for release history.
 | Deploy guide | [DEPLOYMENT.md](./DEPLOYMENT.md) |
 | Release checklist | [RELEASE.md](./RELEASE.md) |
 
-Current version: **1.6.4**
+Current version: **1.7.0**
 
 ## Security
 

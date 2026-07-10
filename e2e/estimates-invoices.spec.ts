@@ -31,7 +31,7 @@ test.describe('Estimates & invoices', () => {
     await expect(page.getByText('E2E Test Estimate').first()).toBeVisible()
   })
 
-  test('send draft estimate queues demo notification', async ({ page }) => {
+  test('send draft estimate notifies customer', async ({ page }) => {
     await page.goto('/estimates')
     await expect(page.getByText('Deck Repair & Staining').first()).toBeVisible()
     await page.getByTestId('estimate-send-est-003').click()
@@ -47,7 +47,7 @@ test.describe('Estimates & invoices', () => {
     await expect(page.getByText(/счёт создан из сметы|invoice created from estimate/i).first()).toBeVisible({ timeout: 10000 })
   })
 
-  test('invoices demo payment marks sent invoice as paid', async ({ page }) => {
+  test('manual payment marks sent invoice as paid without Stripe', async ({ page }) => {
     await page.goto('/invoices')
     await expect(page.getByText(/к оплате|outstanding/i).first()).toBeVisible()
     await expect(page.getByText('INV-2026-0141').first()).toBeVisible()

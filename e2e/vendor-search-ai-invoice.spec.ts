@@ -57,7 +57,7 @@ test.describe('Global search & invoice send', () => {
     await expect(page).toHaveURL(/\/jobs/, { timeout: 10000 })
   })
 
-  test('send draft invoice emails customer in demo mode', async ({ page }) => {
+  test('send draft invoice queues customer email without webhook', async ({ page }) => {
     await seedDraftInvoice(page)
     await page.goto('/invoices')
     await expect(page.getByText('INV-E2E-DRAFT').first()).toBeVisible()

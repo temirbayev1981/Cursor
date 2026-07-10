@@ -170,7 +170,7 @@ export default function DispatchPage() {
           const feedback = notifyResultMessage(
             result,
             t.dispatch.smsSent.replace('{name}', tech?.name ?? ''),
-            t.dispatch.smsDemo.replace('{name}', tech?.name ?? '').replace('{title}', job.title),
+            t.dispatch.smsQueued.replace('{name}', tech?.name ?? '').replace('{title}', job.title),
             t.common.notificationFailed,
           )
           if (feedback.type === 'success') toast.success(feedback.message)
@@ -184,7 +184,7 @@ export default function DispatchPage() {
           const emailFeedback = notifyResultMessage(
             emailResult,
             t.dispatch.customerEmailSent.replace('{email}', customer.email),
-            t.dispatch.customerEmailDemo.replace('{email}', customer.email),
+            t.dispatch.customerEmailQueued.replace('{email}', customer.email),
             t.common.notificationFailed,
           )
           if (emailFeedback.type === 'success') toast.success(emailFeedback.message)

@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { useTheme } from '@/contexts/theme-context'
 import { useTranslation } from '@/contexts/locale-context'
 import { hasStripe, hasGoogleMaps, hasOpenAI, hasSupabase, hasNotificationConfigured, hasSmsConfigured } from '@/lib/env'
-import { useImportDemoSeed, useAuditLogs } from '@/hooks/use-entities'
+import { useImportSampleData, useAuditLogs } from '@/hooks/use-entities'
 import { getNotificationQueue } from '@/services/notification-service'
 import { getErrorReports } from '@/lib/observability'
 import { computePlatformHealth } from '@/lib/platform-health'
@@ -60,7 +60,7 @@ export default function SettingsPage() {
     sms: hasSmsConfigured ? 'connected' : 'configure',
   }
 
-  const importDemoSeed = useImportDemoSeed()
+  const importSampleData = useImportSampleData()
 
   useEffect(() => {
     void listTeamInvites(companyId).then(setPendingInvites)
@@ -87,10 +87,9 @@ export default function SettingsPage() {
     setUpgradingPlan(plan)
     try {
       const result = await startSubscriptionCheckout(plan, companyId)
-      if (result === 'demo') {
-        const updated = await updateCompanySubscription(companyId, plan)
-        setCurrentPlan(updated.subscription_plan)
-        toast.success(t.settings.planUpgradedDemo)
+      if (result === 'updated') {
+        setCurrentPlan(plan)
+        toast.success(t.settings.planUpgraded.replace('{plan}', plan))
       } else if (result === 'error') {
         toast.error(t.settings.checkoutFailed)
       }
@@ -414,17 +413,17 @@ export default function SettingsPage() {
                 <CardHeader><CardTitle>Supabase</CardTitle></CardHeader>
                 <CardContent className="flex items-center justify-between gap-4">
                   <p className="text-sm text-muted-foreground">
-                    {t.settings.importDemoDesc}
+                    {t.settings.importSampleDesc}
                   </p>
                   <Button
                     variant="outline"
-                    disabled={importDemoSeed.isPending}
-                    onClick={() => importDemoSeed.mutate(undefined, {
+                    disabled={importSampleData.isPending}
+                    onClick={() => importSampleData.mutate(undefined, {
                       onSuccess: (r) => toast.success(`${t.settings.imported}: ${r.imported}`),
                       onError: (e) => toast.error(e.message),
                     })}
                   >
-                    {t.settings.importDemoData}
+                    {t.settings.importSampleData}
                   </Button>
                 </CardContent>
               </Card>

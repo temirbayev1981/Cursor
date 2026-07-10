@@ -1,4 +1,4 @@
-import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { upsertRows } from '@/lib/supabase-queries'
 import { callRpc } from '@/lib/supabase-rpc'
 import { loadStore, saveStore, upsertStore } from '@/lib/data-store'
@@ -55,16 +55,10 @@ export function getPortalToken(): string | null {
 
 export function setPortalSession(session: PortalSession): void {
   sessionStorage.setItem(SESSION_KEY, JSON.stringify(session))
-  sessionStorage.removeItem('handymanos_portal_token')
 }
 
 export function clearPortalSession(): void {
   sessionStorage.removeItem(SESSION_KEY)
-  sessionStorage.removeItem('handymanos_portal_token')
-}
-
-export function isDemoPortalAccess(): boolean {
-  return DEMO_MODE && sessionStorage.getItem('handymanos_portal_token') === 'demo'
 }
 
 export async function createPortalLink(
@@ -90,10 +84,10 @@ export async function createPortalLink(
 
   upsertStore(TOKENS_KEY, record)
 
-  if (!DEMO_MODE && supabase) {
-    const { error } = await upsertRows('portal_tokens', record)
-    if (error) throw error
-  }
+  if (!supabase) throw new Error('Supabase not configured')
+
+  const { error } = await upsertRows('portal_tokens', record)
+  if (error) throw error
 
   const path = '/portal/access'
   const url = `${window.location.origin}${path}?token=${token}`
@@ -111,20 +105,19 @@ function sessionFromLocalToken(local: PortalToken): PortalSession {
 }
 
 export async function validatePortalToken(token: string): Promise<PortalSession | null> {
-  if (DEMO_MODE || !supabase) {
-    const localTokens = loadStore<PortalToken>(TOKENS_KEY)
-    const local = localTokens.find((t) => t.token === token)
-    if (local && new Date(local.expires_at).getTime() > Date.now()) {
-      return sessionFromLocalToken(local)
-    }
-    return null
-  }
+  if (!supabase) return null
 
   try {
     const { data, error } = await callRpc('validate_portal_token', { p_token: token })
     if (error) return null
     const rows = data
-    if (!rows || rows.length === 0) return null
+    if (!rows || rows.length === 0) {
+      const local = loadStore<PortalToken>(TOKENS_KEY).find((t) => t.token === token)
+      if (local && new Date(local.expires_at).getTime() > Date.now()) {
+        return sessionFromLocalToken(local)
+      }
+      return null
+    }
 
     const row = rows[0]
     const cached: PortalToken = {
@@ -147,6 +140,10 @@ export async function validatePortalToken(token: string): Promise<PortalSession 
       token,
     }
   } catch {
+    const local = loadStore<PortalToken>(TOKENS_KEY).find((t) => t.token === token)
+    if (local && new Date(local.expires_at).getTime() > Date.now()) {
+      return sessionFromLocalToken(local)
+    }
     return null
   }
 }
@@ -154,7 +151,7 @@ export async function validatePortalToken(token: string): Promise<PortalSession 
 export async function listPortalTokens(companyId: string): Promise<PortalToken[]> {
   const items = loadStore<PortalToken>(TOKENS_KEY).filter((t) => t.company_id === companyId)
 
-  if (DEMO_MODE || !supabase) return items
+  if (!supabase) return items
 
   try {
     const { data, error } = await supabase

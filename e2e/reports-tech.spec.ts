@@ -1,14 +1,9 @@
 import { test, expect } from '@playwright/test'
-import { seedInProgressTechJob } from './helpers/auth'
+import { loginAsOwner, seedInProgressTechJob } from './helpers/auth'
 
 test.describe('Reports and technician mobile', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      localStorage.setItem('handymanos_onboarding', 'complete')
-    })
-    await page.goto('/login')
-    await page.getByRole('button', { name: /войти|sign in/i }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
+    await loginAsOwner(page, 'ru')
   })
 
   test('reports page shows date filters and summary', async ({ page }) => {

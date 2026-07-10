@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { CreditCard, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { hasStripe } from '@/lib/env'
+import { getStripeCheckoutEndpoint, hasStripe } from '@/lib/env'
 import { formatCurrency } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useTranslation } from '@/contexts/locale-context'
@@ -37,17 +37,16 @@ export function StripePayButton({ invoice, customerEmail, portalToken, onSuccess
 
       if (result === 'redirected') return
 
-      if (result === 'error' && hasStripe) {
-        toast.error(t.payments.stripeCheckoutUnavailable)
+      if (!hasStripe && !getStripeCheckoutEndpoint()) {
+        await recordInvoicePayment(invoice, amount, 'cash', `manual_${Date.now()}`)
+        toast.success(t.invoices.paid, {
+          description: `${formatCurrency(amount)} — ${invoice.invoice_number}`,
+        })
+        onSuccess?.()
         return
       }
 
-      await new Promise((r) => setTimeout(r, 1200))
-      await recordInvoicePayment(invoice, amount, hasStripe ? 'stripe' : 'card', `demo_${Date.now()}`)
-      toast.success(t.invoices.paid, {
-        description: `${formatCurrency(amount)} — ${invoice.invoice_number}`,
-      })
-      onSuccess?.()
+      toast.error(t.payments.stripeCheckoutUnavailable)
     } finally {
       setLoading(false)
     }

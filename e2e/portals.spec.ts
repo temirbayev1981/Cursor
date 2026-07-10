@@ -1,11 +1,9 @@
 import { test, expect } from '@playwright/test'
-import { clearPortalReview } from './helpers/auth'
+import { clearPortalReview, setCustomerPortalSession, setPropertyPortalSession } from './helpers/auth'
 
 test.describe('Portals', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      sessionStorage.setItem('handymanos_portal_token', 'demo')
-    })
+    await setCustomerPortalSession(page)
   })
 
   test('customer portal review submission', async ({ page }) => {
@@ -39,6 +37,7 @@ test.describe('Portals', () => {
   })
 
   test('property portal submit request form', async ({ page }) => {
+    await setPropertyPortalSession(page)
     await page.goto('/portal/property')
     await expect(page.getByRole('heading', { name: /портал управляющей|property manager portal/i })).toBeVisible()
     await page.getByRole('button', { name: /подать заявку|submit request/i }).click()

@@ -1,31 +1,75 @@
 import { expect, type BrowserContext, type Page } from '@playwright/test'
 
+const E2E_PASSWORD = 'demo1234'
+const E2E_OWNER_EMAIL = 'owner@profixhandyman.com'
+
 export async function openCommandPalette(page: Page) {
   await page.evaluate(() => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true, cancelable: true }))
   })
 }
 
+const E2E_INIT_KEY = '__e2e_storage_init__'
+
+function storageInitScript(lang: string, onboarding: 'complete' | 'fresh') {
+  return `(() => {
+    if (sessionStorage.getItem('${E2E_INIT_KEY}')) return
+    localStorage.clear()
+    sessionStorage.clear()
+    sessionStorage.setItem('${E2E_INIT_KEY}', '1')
+    localStorage.setItem('handymanos_locale', ${JSON.stringify(lang)})
+    if (${JSON.stringify(onboarding)} === 'complete') {
+      localStorage.setItem('handymanos_onboarding', 'complete')
+    } else {
+      localStorage.removeItem('handymanos_onboarding')
+      localStorage.removeItem('handymanos_onboarding_data')
+    }
+  })()`
+}
+
 export async function loginAsOwner(page: Page, locale: 'ru' | 'en' = 'ru') {
-  await page.addInitScript((lang) => {
-    localStorage.setItem('handymanos_locale', lang)
-    localStorage.setItem('handymanos_onboarding', 'complete')
-  }, locale)
+  await page.addInitScript(storageInitScript(locale, 'complete'))
   await page.goto('/login')
+  await page.locator('#email').fill(E2E_OWNER_EMAIL)
+  await page.locator('#password').fill(E2E_PASSWORD)
   await page.getByRole('button', { name: /войти|sign in/i }).click()
   await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
 }
 
-/** Signs in as demo owner without completed onboarding — lands on wizard. */
+/** Signs in as owner without completed onboarding — lands on wizard. */
 export async function loginForOnboarding(page: Page, locale: 'ru' | 'en' = 'ru') {
-  await page.addInitScript((lang) => {
-    localStorage.setItem('handymanos_locale', lang)
-    localStorage.removeItem('handymanos_onboarding')
-    localStorage.removeItem('handymanos_onboarding_data')
-  }, locale)
+  await page.addInitScript(storageInitScript(locale, 'fresh'))
   await page.goto('/login')
+  await page.locator('#email').fill(E2E_OWNER_EMAIL)
+  await page.locator('#password').fill(E2E_PASSWORD)
   await page.getByRole('button', { name: /войти|sign in/i }).click()
   await expect(page).toHaveURL(/\/onboarding/, { timeout: 10000 })
+}
+
+export async function setCustomerPortalSession(page: Page) {
+  await page.addInitScript(() => {
+    sessionStorage.setItem('handymanos_portal_session', JSON.stringify({
+      customerId: 'cust-002',
+      companyId: 'comp-001',
+      portalType: 'customer',
+      customerName: 'Sarah Johnson',
+      expiresAt: Date.now() + 30 * 86400000,
+      token: 'e2e-portal-customer-token',
+    }))
+  })
+}
+
+export async function setPropertyPortalSession(page: Page) {
+  await page.addInitScript(() => {
+    sessionStorage.setItem('handymanos_portal_session', JSON.stringify({
+      customerId: 'cust-001',
+      companyId: 'comp-001',
+      portalType: 'property',
+      customerName: 'ABC Property Management',
+      expiresAt: Date.now() + 30 * 86400000,
+      token: 'e2e-portal-property-token',
+    }))
+  })
 }
 
 export async function seedDraftJob(page: Page, withTechnician = false) {
@@ -60,13 +104,19 @@ export async function seedDraftJob(page: Page, withTechnician = false) {
     if (idx >= 0) jobs[idx] = draft
     else jobs.push(draft)
     localStorage.setItem('handymanos_jobs', JSON.stringify(jobs))
+    const dbJobs = JSON.parse(localStorage.getItem('__e2e_supabase__jobs') || '[]') as Array<Record<string, unknown>>
+    const dbIdx = dbJobs.findIndex((j) => j.id === 'job-e2e-draft')
+    if (dbIdx >= 0) dbJobs[dbIdx] = draft
+    else dbJobs.push(draft)
+    localStorage.setItem('__e2e_supabase__jobs', JSON.stringify(dbJobs))
   }, withTechnician)
   await page.reload()
 }
 
-/** Seeds an in-progress job assigned to the default demo technician (emp-001). */
+/** Seeds an in-progress job assigned to the default technician (emp-001). */
 export async function seedInProgressTechJob(page: Page, technicianId = 'emp-001') {
   await page.evaluate((techId) => {
+    const linkProfileId = 'user-001'
     const jobs = JSON.parse(localStorage.getItem('handymanos_jobs') || '[]') as Array<Record<string, unknown>>
     const job = {
       id: 'job-e2e-tech-offline',
@@ -94,10 +144,23 @@ export async function seedInProgressTechJob(page: Page, technicianId = 'emp-001'
     if (idx >= 0) jobs[idx] = job
     else jobs.push(job)
     localStorage.setItem('handymanos_jobs', JSON.stringify(jobs))
+    const dbJobs = JSON.parse(localStorage.getItem('__e2e_supabase__jobs') || '[]') as Array<Record<string, unknown>>
+    const dbIdx = dbJobs.findIndex((j) => j.id === 'job-e2e-tech-offline')
+    if (dbIdx >= 0) dbJobs[dbIdx] = job
+    else dbJobs.push(job)
+    localStorage.setItem('__e2e_supabase__jobs', JSON.stringify(dbJobs))
+
+    for (const key of ['handymanos_employees', '__e2e_supabase__employees']) {
+      const employees = JSON.parse(localStorage.getItem(key) || '[]') as Array<Record<string, unknown>>
+      const empIdx = employees.findIndex((e) => e.id === techId)
+      if (empIdx >= 0) {
+        employees[empIdx] = { ...employees[empIdx], profile_id: linkProfileId }
+        localStorage.setItem(key, JSON.stringify(employees))
+      }
+    }
   }, technicianId)
   await page.reload()
 }
-
 /** Seeds a scheduled job with property for route optimizer E2E. */
 export async function seedScheduledRouteJob(page: Page) {
   await page.evaluate(() => {
@@ -128,6 +191,7 @@ export async function seedScheduledRouteJob(page: Page) {
     if (idx >= 0) jobs[idx] = job
     else jobs.push(job)
     localStorage.setItem('handymanos_jobs', JSON.stringify(jobs))
+    localStorage.setItem('__e2e_supabase__jobs', JSON.stringify(jobs))
   })
   await page.reload()
 }
@@ -174,6 +238,7 @@ export async function seedDraftInvoice(page: Page) {
     if (idx >= 0) invoices[idx] = invoice
     else invoices.push(invoice)
     localStorage.setItem('handymanos_invoices', JSON.stringify(invoices))
+    localStorage.setItem('__e2e_supabase__invoices', JSON.stringify(invoices))
   })
   await page.reload()
 }
@@ -186,6 +251,7 @@ export async function resetEstimateStatus(page: Page, estimateId: string, status
     const idx = estimates.findIndex((e) => e.id === id)
     if (idx >= 0) estimates[idx] = { ...estimates[idx], status: nextStatus }
     localStorage.setItem('handymanos_estimates', JSON.stringify(estimates))
+    localStorage.setItem('__e2e_supabase__estimates', JSON.stringify(estimates))
   }, { id: estimateId, nextStatus: status })
 }
 
@@ -216,6 +282,7 @@ export async function seedOnHoldJob(page: Page) {
     if (idx >= 0) jobs[idx] = job
     else jobs.push(job)
     localStorage.setItem('handymanos_jobs', JSON.stringify(jobs))
+    localStorage.setItem('__e2e_supabase__jobs', JSON.stringify(jobs))
   })
   await page.reload()
 }
@@ -249,6 +316,7 @@ export async function seedBulkDraftJobs(page: Page) {
       else jobs.push(draft)
     }
     localStorage.setItem('handymanos_jobs', JSON.stringify(jobs))
+    localStorage.setItem('__e2e_supabase__jobs', JSON.stringify(jobs))
   })
   await page.reload()
 }
@@ -284,6 +352,7 @@ export async function seedPortalCustomerInvoice(page: Page) {
     if (idx >= 0) invoices[idx] = invoice
     else invoices.push(invoice)
     localStorage.setItem('handymanos_invoices', JSON.stringify(invoices))
+    localStorage.setItem('__e2e_supabase__invoices', JSON.stringify(invoices))
   })
   await page.reload()
 }

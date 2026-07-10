@@ -5,7 +5,7 @@ const INVITE_TOKEN = 'test-invite-token-phase19'
 test.describe('Team invite flow', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript((token) => {
-      localStorage.setItem('handymanos_team_invites', JSON.stringify([{
+      const invite = {
         id: 'inv-e2e',
         company_id: 'comp-001',
         email: 'tech-invite@test.com',
@@ -13,7 +13,9 @@ test.describe('Team invite flow', () => {
         token,
         expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
         created_at: new Date().toISOString(),
-      }]))
+      }
+      localStorage.setItem('handymanos_team_invites', JSON.stringify([invite]))
+      localStorage.setItem('__e2e_supabase__team_invites', JSON.stringify([invite]))
     }, INVITE_TOKEN)
   })
 
@@ -46,7 +48,7 @@ test.describe('Team invite flow', () => {
   test('existing user signs in with invite to join another company', async ({ page }) => {
     const inviteToken = 'existing-user-invite-phase31'
     await page.addInitScript((token) => {
-      localStorage.setItem('handymanos_team_invites', JSON.stringify([{
+      const invite = {
         id: 'inv-existing',
         company_id: 'comp-002',
         email: 'owner@profixhandyman.com',
@@ -54,7 +56,9 @@ test.describe('Team invite flow', () => {
         token,
         expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
         created_at: new Date().toISOString(),
-      }]))
+      }
+      localStorage.setItem('handymanos_team_invites', JSON.stringify([invite]))
+      localStorage.setItem('__e2e_supabase__team_invites', JSON.stringify([invite]))
       localStorage.setItem('handymanos_onboarding', 'complete')
     }, inviteToken)
 

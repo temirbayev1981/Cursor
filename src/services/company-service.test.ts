@@ -5,9 +5,11 @@ import { listAccessibleCompanies, registerCompany, setActiveCompany, resolveActi
 describe('company-service', () => {
   beforeEach(() => {
     localStorage.clear()
+    registerCompany(DEMO_COMPANY)
+    registerCompany(DEMO_COMPANY_B)
   })
 
-  it('lists default demo companies', () => {
+  it('lists registered companies', () => {
     const companies = listAccessibleCompanies()
     expect(companies.some((company) => company.id === DEMO_COMPANY.id)).toBe(true)
     expect(companies.some((company) => company.id === DEMO_COMPANY_B.id)).toBe(true)
@@ -23,18 +25,18 @@ describe('company-service', () => {
     expect(active.name).toBe('Custom Co')
   })
 
-  it('fetchAccessibleCompanies returns demo registry in demo mode', async () => {
+  it('fetchAccessibleCompanies returns registered companies', async () => {
     const companies = await fetchAccessibleCompanies()
     expect(companies.length).toBeGreaterThanOrEqual(2)
   })
 
-  it('addCompanyMembership exposes invited company in demo list', () => {
+  it('addCompanyMembership exposes invited company in list', () => {
     addCompanyMembership('user-999', 'comp-002', 'dispatcher')
     const companies = listAccessibleCompanies('user-999')
     expect(companies.some((company) => company.id === 'comp-002')).toBe(true)
   })
 
-  it('updateCompanyProfile updates local storage in demo mode', async () => {
+  it('updateCompanyProfile updates local storage', async () => {
     setActiveCompany(DEMO_COMPANY)
     const updated = await updateCompanyProfile(DEMO_COMPANY.id, {
       name: 'Updated Handyman Co',

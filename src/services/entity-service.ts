@@ -4,10 +4,9 @@ import {
   DEMO_JOBS, DEMO_CUSTOMERS, DEMO_ESTIMATES, DEMO_INVOICES,
   DEMO_PROPERTIES, DEMO_EMPLOYEES, DEMO_MATERIALS, DEMO_VEHICLES, DEMO_EXPENSES, DEMO_SCHEDULE,
   DEMO_WORK_ORDERS, DEMO_SERVICES, DEMO_FUEL_LOGS,
-  DEMO_JOBS_B, DEMO_CUSTOMERS_B, DEMO_EMPLOYEES_B, DEMO_MATERIALS_B,
 } from '@/data/mock-data'
 import { matchCustomerFromVendorPO } from '@/lib/vendor-po-customer-match'
-import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { insertRows, upsertRows, type TableInsert, type TableRow } from '@/lib/supabase-queries'
 
 type EntityTable =
@@ -39,7 +38,7 @@ type EntityMap = {
   services: ServiceCatalogItem
 }
 
-const SEED: Partial<Record<keyof EntityMap, unknown[]>> = {
+const SAMPLE_SEED: Partial<Record<keyof EntityMap, unknown[]>> = {
   jobs: DEMO_JOBS,
   customers: DEMO_CUSTOMERS,
   estimates: DEMO_ESTIMATES,
@@ -52,13 +51,6 @@ const SEED: Partial<Record<keyof EntityMap, unknown[]>> = {
   schedules: DEMO_SCHEDULE,
   workOrders: DEMO_WORK_ORDERS,
   services: DEMO_SERVICES,
-}
-
-const SEED_B: Partial<Record<keyof EntityMap, unknown[]>> = {
-  jobs: DEMO_JOBS_B,
-  customers: DEMO_CUSTOMERS_B,
-  employees: DEMO_EMPLOYEES_B,
-  materials: DEMO_MATERIALS_B,
 }
 
 const KEY_MAP: Record<keyof EntityMap, string> = {
@@ -119,42 +111,12 @@ async function deleteCompanyEntity(table: EntityTable, id: string): Promise<void
   if (error) throw error
 }
 
-function ensureSeeded<K extends keyof EntityMap>(entity: K, companyId: string): EntityMap[K][] {
-  const key = KEY_MAP[entity]
-  const seededKey = `${key}_seeded_${companyId}`
-  let items = loadStore<EntityMap[K]>(key)
-  const companyItems = filterByCompany(items, companyId)
-
-  if (!localStorage.getItem(seededKey) && companyItems.length === 0) {
-    const seedSource = companyId === 'comp-002'
-      ? SEED_B[entity]
-      : companyId === 'comp-001'
-        ? SEED[entity]
-        : undefined
-
-    if (seedSource) {
-      const seededItems = (seedSource as EntityMap[K][]).map((item) => ({
-        ...item,
-        company_id: companyId,
-      }))
-      items = [...items, ...seededItems]
-      saveStore(key, items)
-    }
-
-    localStorage.setItem(seededKey, 'true')
-  }
-
-  return filterByCompany(items, companyId)
-}
-
 function loadLocalEntities<K extends keyof EntityMap>(entity: K, companyId: string): EntityMap[K][] {
   return filterByCompany(loadStore<EntityMap[K]>(KEY_MAP[entity]), companyId)
 }
 
 export async function listEntities<K extends keyof EntityMap>(entity: K, companyId: string): Promise<EntityMap[K][]> {
-  if (DEMO_MODE || !supabase) {
-    return ensureSeeded(entity, companyId)
-  }
+  if (!supabase) throw new Error('Supabase not configured')
 
   try {
     const items = await fetchCompanyEntities<EntityMap[K]>(TABLE_MAP[entity], companyId)
@@ -162,20 +124,15 @@ export async function listEntities<K extends keyof EntityMap>(entity: K, company
       saveStore(KEY_MAP[entity], items)
       return items
     }
-
     return loadLocalEntities(entity, companyId)
   } catch {
-    const local = loadLocalEntities(entity, companyId)
-    return local.length > 0 ? local : ensureSeeded(entity, companyId)
+    return loadLocalEntities(entity, companyId)
   }
 }
 
 export async function saveEntity<K extends keyof EntityMap>(entity: K, item: EntityMap[K]): Promise<EntityMap[K]> {
   upsertStore(KEY_MAP[entity], item)
-
-  if (DEMO_MODE || !supabase) {
-    return item
-  }
+  if (!supabase) throw new Error('Supabase not configured')
 
   const table = TABLE_MAP[entity]
   const data = await upsertCompanyEntity(table, item as TableInsert<typeof table>)
@@ -184,24 +141,19 @@ export async function saveEntity<K extends keyof EntityMap>(entity: K, item: Ent
 
 export async function deleteEntity<K extends keyof EntityMap>(entity: K, id: string): Promise<void> {
   removeFromStore(KEY_MAP[entity], id)
-
-  if (DEMO_MODE || !supabase) {
-    return
-  }
-
+  if (!supabase) throw new Error('Supabase not configured')
   await deleteCompanyEntity(TABLE_MAP[entity], id)
 }
 
-export async function importDemoSeedToSupabase(companyId: string): Promise<{ imported: number }> {
-  if (!supabase) {
-    throw new Error('Supabase is not configured')
-  }
+/** Import bundled sample records into the connected Supabase tenant (onboarding helper). */
+export async function importSampleData(companyId: string): Promise<{ imported: number }> {
+  if (!supabase) throw new Error('Supabase is not configured')
 
   let imported = 0
-  const entities = Object.keys(SEED) as (keyof EntityMap)[]
+  const entities = Object.keys(SAMPLE_SEED) as (keyof EntityMap)[]
 
   for (const entity of entities) {
-    const seedItems = SEED[entity] as EntityMap[typeof entity][]
+    const seedItems = SAMPLE_SEED[entity] as EntityMap[typeof entity][]
     const items = seedItems.map((i) => ({ ...i, company_id: companyId }))
     for (const item of items) {
       await saveEntity(entity, item)
@@ -212,10 +164,11 @@ export async function importDemoSeedToSupabase(companyId: string): Promise<{ imp
   for (const log of DEMO_FUEL_LOGS) {
     await saveFuelLog(log)
   }
-  localStorage.setItem(`${STORE_KEYS.fuelLogs}_seeded`, 'true')
 
   return { imported }
 }
+
+/** @deprecated Use importSampleData */
 
 export async function createJobFromVendorPO(
   po: import('@/types/vendor-po').VendorPORecord,
@@ -362,7 +315,7 @@ export async function logAudit(companyId: string, userId: string, action: string
   logs.unshift(log)
   saveStore(STORE_KEYS.auditLogs, logs.slice(0, 500))
 
-  if (DEMO_MODE || !supabase) return
+  if (!supabase) return
 
   try {
     await insertRows('audit_logs', log)
@@ -372,9 +325,8 @@ export async function logAudit(companyId: string, userId: string, action: string
 }
 
 export async function listAuditLogs(companyId: string): Promise<AuditLog[]> {
-  if (DEMO_MODE || !supabase) {
-    return loadStore<AuditLog>(STORE_KEYS.auditLogs).filter((l) => l.company_id === companyId)
-  }
+  const local = loadStore<AuditLog>(STORE_KEYS.auditLogs).filter((l) => l.company_id === companyId)
+  if (!supabase) return local
 
   try {
     const { data, error } = await supabase
@@ -398,8 +350,7 @@ export async function listAuditLogs(companyId: string): Promise<AuditLog[]> {
 
 export async function savePayment(payment: Payment): Promise<Payment> {
   upsertStore(STORE_KEYS.payments, payment)
-
-  if (DEMO_MODE || !supabase) return payment
+  if (!supabase) throw new Error('Supabase not configured')
 
   const { data, error } = await upsertRows('payments', payment)
     .select()
@@ -415,9 +366,7 @@ export async function listPayments(companyId: string): Promise<Payment[]> {
   const filterByCompanyInvoices = (payments: Payment[]) =>
     payments.filter((p) => invoiceIds.includes(p.invoice_id))
 
-  if (DEMO_MODE || !supabase) {
-    return filterByCompanyInvoices(loadStore<Payment>(STORE_KEYS.payments))
-  }
+  if (!supabase) return filterByCompanyInvoices(loadStore<Payment>(STORE_KEYS.payments))
 
   if (invoiceIds.length === 0) return []
 
@@ -442,21 +391,9 @@ export async function listPayments(companyId: string): Promise<Payment[]> {
   }
 }
 
-function ensureFuelLogsSeeded(): FuelLog[] {
-  const seeded = localStorage.getItem(`${STORE_KEYS.fuelLogs}_seeded`)
-  let items = loadStore<FuelLog>(STORE_KEYS.fuelLogs)
-  if (!seeded && items.length === 0) {
-    items = DEMO_FUEL_LOGS
-    saveStore(STORE_KEYS.fuelLogs, items)
-    localStorage.setItem(`${STORE_KEYS.fuelLogs}_seeded`, 'true')
-  }
-  return items
-}
-
 export async function saveFuelLog(log: FuelLog): Promise<FuelLog> {
   upsertStore(STORE_KEYS.fuelLogs, log)
-
-  if (DEMO_MODE || !supabase) return log
+  if (!supabase) throw new Error('Supabase not configured')
 
   const { data, error } = await upsertRows('fuel_logs', log)
     .select()
@@ -471,9 +408,7 @@ export async function listFuelLogs(companyId: string): Promise<FuelLog[]> {
   const vehicleIds = vehicles.map((v) => v.id)
   const filterByVehicles = (logs: FuelLog[]) => logs.filter((f) => vehicleIds.includes(f.vehicle_id))
 
-  if (DEMO_MODE || !supabase) {
-    return filterByVehicles(ensureFuelLogsSeeded())
-  }
+  if (!supabase) return filterByVehicles(loadStore<FuelLog>(STORE_KEYS.fuelLogs))
 
   if (vehicleIds.length === 0) return []
 
@@ -492,16 +427,15 @@ export async function listFuelLogs(companyId: string): Promise<FuelLog[]> {
       return items
     }
 
-    return filterByVehicles(ensureFuelLogsSeeded())
+    return filterByVehicles(loadStore<FuelLog>(STORE_KEYS.fuelLogs))
   } catch {
-    return filterByVehicles(ensureFuelLogsSeeded())
+    return filterByVehicles(loadStore<FuelLog>(STORE_KEYS.fuelLogs))
   }
 }
 
 export async function saveTimeEntry(entry: TimeEntry): Promise<TimeEntry> {
-  if (DEMO_MODE || !supabase) return entry
-
   upsertStore(STORE_KEYS.timeEntries, entry)
+  if (!supabase) throw new Error('Supabase not configured')
 
   const { data, error } = await upsertRows('time_entries', entry)
     .select()
@@ -514,7 +448,7 @@ export async function saveTimeEntry(entry: TimeEntry): Promise<TimeEntry> {
 export async function listTimeEntries(companyId: string): Promise<TimeEntry[]> {
   const local = loadStore<TimeEntry>(STORE_KEYS.timeEntries).filter((e) => e.company_id === companyId)
 
-  if (DEMO_MODE || !supabase) return local
+  if (!supabase) return local
 
   try {
     const { data, error } = await supabase

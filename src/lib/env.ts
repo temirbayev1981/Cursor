@@ -18,6 +18,9 @@ const envSchema = z.object({
 export const env = envSchema.parse(import.meta.env)
 
 export const hasSupabase = Boolean(env.VITE_SUPABASE_URL && env.VITE_SUPABASE_ANON_KEY)
+
+/** Playwright E2E only — in-memory Supabase shim (never set in production deploy). */
+export const isE2eMockBackend = import.meta.env.VITE_E2E_MOCK_BACKEND === 'true'
 export const hasStripe = Boolean(env.VITE_STRIPE_PUBLISHABLE_KEY)
 export const hasGoogleMaps = Boolean(env.VITE_GOOGLE_MAPS_API_KEY)
 export const hasNotificationWebhook = Boolean(env.VITE_NOTIFICATION_WEBHOOK_URL)
@@ -37,11 +40,13 @@ export function getSupabaseFunctionsUrl(): string | null {
 }
 
 export function getNotificationEndpoint(): string | undefined {
+  if (isE2eMockBackend && !env.VITE_NOTIFICATION_WEBHOOK_URL) return undefined
   return env.VITE_NOTIFICATION_WEBHOOK_URL
     ?? (hasSupabase ? `${getSupabaseFunctionsUrl()}/send-notification` : undefined)
 }
 
 export function getSmsEndpoint(): string | undefined {
+  if (isE2eMockBackend && !env.VITE_SMS_WEBHOOK_URL) return undefined
   return env.VITE_SMS_WEBHOOK_URL
     ?? (hasSupabase ? `${getSupabaseFunctionsUrl()}/send-sms` : undefined)
 }

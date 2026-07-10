@@ -1,5 +1,5 @@
 import type { VendorPORecord, VendorPOInput } from '@/types/vendor-po'
-import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { upsertRows } from '@/lib/supabase-queries'
 
 const STORAGE_KEY = 'handymanos_vendor_pos'
@@ -27,7 +27,7 @@ function toRecord(input: VendorPOInput): VendorPORecord {
 }
 
 export async function getVendorPOs(companyId: string): Promise<VendorPORecord[]> {
-  if (DEMO_MODE || !supabase) {
+  if (!supabase) {
     return loadLocal()
       .filter((r) => r.company_id === companyId)
       .sort((a, b) => b.created_at.localeCompare(a.created_at))
@@ -46,7 +46,7 @@ export async function getVendorPOs(companyId: string): Promise<VendorPORecord[]>
 export async function saveVendorPO(input: VendorPOInput): Promise<VendorPORecord> {
   const record = toRecord(input)
 
-  if (DEMO_MODE || !supabase) {
+  if (!supabase) {
     const existing = loadLocal()
     const duplicate = existing.find(
       (r) => r.vendor_po_number === record.vendor_po_number && r.company_id === record.company_id
@@ -80,7 +80,7 @@ export async function saveVendorPOBatch(inputs: VendorPOInput[]): Promise<Vendor
 }
 
 export async function deleteVendorPO(id: string): Promise<void> {
-  if (DEMO_MODE || !supabase) {
+  if (!supabase) {
     saveLocal(loadLocal().filter((r) => r.id !== id))
     return
   }
@@ -90,7 +90,7 @@ export async function deleteVendorPO(id: string): Promise<void> {
 }
 
 export async function seedVendorPOs(records: VendorPORecord[]): Promise<void> {
-  if (DEMO_MODE || !supabase) {
+  if (!supabase) {
     const existing = loadLocal()
     const merged = [...records]
     for (const item of existing) {

@@ -12,14 +12,13 @@ import { useAuth } from '@/contexts/auth-context'
 import { useTranslation } from '@/contexts/locale-context'
 import { LanguageSwitcher } from '@/components/shared/language-switcher'
 import { resolvePostAuthRoute } from '@/lib/permissions'
-import { DEMO_MODE } from '@/lib/supabase'
 import { getTeamInvitePreview } from '@/services/invite-service'
 import { toast } from 'sonner'
 import type { UserRole } from '@/types'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('owner@profixhandyman.com')
-  const [password, setPassword] = useState('demo1234')
+  const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [loading, setLoading] = useState(false)
@@ -27,7 +26,6 @@ export default function LoginPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const isPortal = searchParams.get('portal') === '1'
   const inviteToken = searchParams.get('invite') ?? undefined
   const [invitePreview, setInvitePreview] = useState<{ email: string; role: UserRole } | null>(null)
   const [inviteChecked, setInviteChecked] = useState(!inviteToken)
@@ -50,11 +48,6 @@ export default function LoginPage() {
       setInviteChecked(true)
     })
   }, [inviteToken])
-
-  const handlePortalDemo = () => {
-    sessionStorage.setItem('handymanos_portal_token', 'demo')
-    navigate('/portal/customer')
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -147,13 +140,6 @@ export default function LoginPage() {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </form>
-
-            {DEMO_MODE && <p className="text-xs text-center text-muted-foreground mt-4">{t.auth.demoHint}</p>}
-            {isPortal && DEMO_MODE && (
-              <Button type="button" variant="outline" className="w-full mt-3" onClick={handlePortalDemo}>
-                {t.auth.portalDemoAccess}
-              </Button>
-            )}
           </CardContent>
         </Card>
       </motion.div>

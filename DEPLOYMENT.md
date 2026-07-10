@@ -17,7 +17,7 @@ VITE_SUPABASE_URL=https://xxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJ...
 ```
 
-5. In the app: **Settings → System → Import demo data** to seed customers, jobs, estimates, and invoices into Supabase.
+5. In the app: **Settings → System → Import sample data** to seed customers, jobs, estimates, and invoices into Supabase.
 
 ### Hybrid offline cache
 
@@ -91,7 +91,7 @@ Events: `checkout.session.completed` (handles invoice payments and SaaS subscrip
 
 Settings → Billing uses `create-subscription-checkout` for Starter ($49), Professional ($99), Enterprise ($199) plans.
 
-Without Stripe keys, upgrades apply in demo mode (localStorage + Supabase `companies.subscription_plan`).
+Without Stripe keys, plan upgrades are unavailable — configure Stripe Checkout for SaaS billing.
 
 ```bash
 supabase functions deploy create-subscription-checkout
@@ -121,7 +121,7 @@ SMS is triggered when dispatch moves a job to **scheduled**.
 
 The schema creates a `handymanos` storage bucket with company-scoped RLS policies.
 
-Technician mobile app uploads job photos via `storage-service.ts`. Demo mode uses blob URLs locally.
+Technician mobile app uploads job photos via `storage-service.ts` to the Supabase `handymanos` bucket.
 
 Ensure the bucket exists after running `schema.sql` (Storage section at end of file).
 
@@ -167,7 +167,7 @@ supabase functions deploy openai-proxy
 When Supabase is configured, the app auto-routes AI requests to:
 `{SUPABASE_URL}/functions/v1/openai-proxy`
 
-Requires an authenticated Supabase session (JWT). Legacy `VITE_OPENAI_API_KEY` still works in demo/dev but is not recommended.
+Requires an authenticated Supabase session (JWT). Legacy `VITE_OPENAI_API_KEY` in the browser is not recommended for production.
 
 ---
 
@@ -178,7 +178,7 @@ Generate links from **Customers** page (link icon) or via `createPortalLink` ser
 - Customer portal: `/portal/access?token=...` → redirects to `/portal/customer`
 - Property manager portal: same flow with `portal_type: property`
 
-Tokens are stored in `portal_tokens` (7-day expiry). Demo mode uses localStorage.
+Tokens are stored in `portal_tokens` (7-day expiry) in Supabase.
 
 ---
 

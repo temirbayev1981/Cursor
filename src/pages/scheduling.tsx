@@ -81,7 +81,7 @@ export default function SchedulingPage() {
             const feedback = notifyResultMessage(
               result,
               t.scheduling.emailSent.replace('{email}', customer.email),
-              t.scheduling.emailDemo.replace('{email}', customer.email),
+              t.scheduling.emailQueued.replace('{email}', customer.email),
               t.common.notificationFailed,
             )
             if (feedback.type === 'success') toast.success(feedback.message)

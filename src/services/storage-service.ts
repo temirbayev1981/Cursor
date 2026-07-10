@@ -1,5 +1,5 @@
 import type { JobPhoto } from '@/types'
-import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { insertRows } from '@/lib/supabase-queries'
 import { loadStore, upsertStore, STORE_KEYS } from '@/lib/data-store'
 
@@ -7,7 +7,7 @@ const BUCKET = 'handymanos'
 const SIGNED_URL_TTL = 60 * 60 * 24 * 7
 
 async function resolveStorageUrl(stored: string): Promise<string> {
-  if (DEMO_MODE || !supabase || stored.startsWith('blob:') || stored.startsWith('http')) {
+  if (!supabase || stored.startsWith('blob:') || stored.startsWith('http')) {
     return stored
   }
 
@@ -22,24 +22,18 @@ export async function uploadJobPhoto(
   jobId: string,
   caption?: string
 ): Promise<JobPhoto> {
+  if (!supabase) throw new Error('Supabase not configured')
+
   const id = crypto.randomUUID()
   const ext = file.name.split('.').pop() ?? 'jpg'
   const path = `${companyId}/jobs/${jobId}/${id}.${ext}`
 
-  let storedPath = path
-  let url: string
+  const { error: uploadError } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, file, { upsert: true, contentType: file.type })
 
-  if (DEMO_MODE || !supabase) {
-    url = URL.createObjectURL(file)
-    storedPath = url
-  } else {
-    const { error: uploadError } = await supabase.storage
-      .from(BUCKET)
-      .upload(path, file, { upsert: true, contentType: file.type })
-
-    if (uploadError) throw uploadError
-    url = await resolveStorageUrl(path)
-  }
+  if (uploadError) throw uploadError
+  const url = await resolveStorageUrl(path)
 
   const photo: JobPhoto = {
     id,
@@ -50,17 +44,15 @@ export async function uploadJobPhoto(
     created_at: new Date().toISOString(),
   }
 
-  upsertStore(STORE_KEYS.photos, { ...photo, url: storedPath })
+  upsertStore(STORE_KEYS.photos, { ...photo, url: path })
 
-  if (!DEMO_MODE && supabase) {
-    await insertRows('photos', {
-      id: photo.id,
-      company_id: companyId,
-      job_id: jobId,
-      url: path,
-      caption: caption ?? null,
-    })
-  }
+  await insertRows('photos', {
+    id: photo.id,
+    company_id: companyId,
+    job_id: jobId,
+    url: path,
+    caption: caption ?? null,
+  })
 
   return { ...photo, url }
 }
@@ -71,22 +63,18 @@ export async function uploadDocument(
   entityType: string,
   entityId: string
 ): Promise<{ id: string; url: string; name: string }> {
+  if (!supabase) throw new Error('Supabase not configured')
+
   const id = crypto.randomUUID()
   const ext = file.name.split('.').pop() ?? 'bin'
   const path = `${companyId}/documents/${entityType}/${entityId}/${id}.${ext}`
 
-  let url: string
+  const { error: uploadError } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, file, { upsert: true, contentType: file.type })
 
-  if (DEMO_MODE || !supabase) {
-    url = URL.createObjectURL(file)
-  } else {
-    const { error: uploadError } = await supabase.storage
-      .from(BUCKET)
-      .upload(path, file, { upsert: true, contentType: file.type })
-
-    if (uploadError) throw uploadError
-    url = await resolveStorageUrl(path)
-  }
+  if (uploadError) throw uploadError
+  const url = await resolveStorageUrl(path)
 
   const doc = {
     id,
@@ -94,14 +82,12 @@ export async function uploadDocument(
     entity_type: entityType,
     entity_id: entityId,
     name: file.name,
-    file_url: DEMO_MODE || !supabase ? url : path,
+    file_url: path,
     file_type: file.type,
     created_at: new Date().toISOString(),
   }
 
-  if (!DEMO_MODE && supabase) {
-    await insertRows('documents', doc)
-  }
+  await insertRows('documents', doc)
 
   return { id, url, name: file.name }
 }

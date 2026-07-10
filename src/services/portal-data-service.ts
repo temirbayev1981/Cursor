@@ -1,5 +1,4 @@
 import type { Estimate, Invoice, Job } from '@/types'
-import { DEMO_MODE } from '@/lib/supabase'
 import { callRpc } from '@/lib/supabase-rpc'
 import { listEntities } from '@/services/entity-service'
 import { getPortalToken } from '@/services/portal-service'
@@ -12,11 +11,7 @@ async function fetchPortalRows<T extends Estimate | Invoice | Job>(
   filter: (rows: T[]) => T[],
 ): Promise<T[]> {
   const token = getPortalToken()
-
-  if (DEMO_MODE || !token) {
-    const rows = await listEntities(entity, portal.companyId) as T[]
-    return filter(rows)
-  }
+  if (!token) return []
 
   const { data, error } = await callRpc(rpc, { p_token: token })
   if (error || !data) {
@@ -59,7 +54,7 @@ export async function portalApproveEstimate(
   status: 'approved' | 'rejected',
 ): Promise<boolean> {
   const token = getPortalToken()
-  if (DEMO_MODE || !token) return false
+  if (!token) return false
 
   const { data, error } = await callRpc('portal_update_estimate_status', {
     p_token: token,
@@ -75,7 +70,7 @@ export async function portalSubmitJobRequest(
   priority: string,
 ): Promise<string | null> {
   const token = getPortalToken()
-  if (DEMO_MODE || !token) return null
+  if (!token) return null
 
   const { data, error } = await callRpc('portal_submit_job_request', {
     p_token: token,
@@ -105,13 +100,7 @@ export async function portalSubmitReview(
   if (rating < 1 || rating > 5) return false
 
   const token = getPortalToken()
-  if (DEMO_MODE || !token) {
-    localStorage.setItem(
-      getPortalReviewKey(portal.customerId),
-      JSON.stringify({ rating, comment, created_at: new Date().toISOString() }),
-    )
-    return true
-  }
+  if (!token) return false
 
   const { data, error } = await callRpc('portal_submit_review', {
     p_token: token,

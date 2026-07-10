@@ -13,7 +13,8 @@ export interface NotificationPayload {
 
 export interface NotificationResult {
   ok: boolean
-  demo: boolean
+  /** True when no webhook is configured and the message was queued locally */
+  queued: boolean
 }
 
 const QUEUE_KEY = 'handymanos_notification_queue'
@@ -42,9 +43,9 @@ export async function sendNotification(payload: NotificationPayload): Promise<No
         headers,
         body: JSON.stringify(payload),
       })
-      return { ok: res.ok, demo: false }
+      return { ok: res.ok, queued: false }
     } catch {
-      return { ok: false, demo: false }
+      return { ok: false, queued: false }
     }
   }
 
@@ -52,7 +53,7 @@ export async function sendNotification(payload: NotificationPayload): Promise<No
   queue.unshift({ ...payload, metadata: { ...payload.metadata, sent_at: new Date().toISOString() } })
   saveQueue(queue)
   console.info(`[Notification ${payload.channel}]`, payload.to, payload.subject ?? payload.body.slice(0, 80))
-  return { ok: true, demo: true }
+  return { ok: true, queued: true }
 }
 
 export async function notifyJobScheduled(customerEmail: string, jobTitle: string, date: string) {
@@ -95,12 +96,12 @@ export async function sendSms(to: string, body: string): Promise<NotificationRes
         headers,
         body: JSON.stringify({ to, body, provider: 'twilio' }),
       })
-      return { ok: res.ok, demo: false }
+      return { ok: res.ok, queued: false }
     } catch {
-      return { ok: false, demo: false }
+      return { ok: false, queued: false }
     }
   }
-  return sendNotification({ to, body, channel: 'sms', metadata: { provider: 'twilio-demo' } })
+  return sendNotification({ to, body, channel: 'sms', metadata: { provider: 'twilio-local' } })
 }
 
 export async function notifyTechnicianSms(phone: string, message: string) {
@@ -168,10 +169,10 @@ export async function flushNotificationQueue(): Promise<number> {
 export function notifyResultMessage(
   result: NotificationResult,
   success: string,
-  demo: string,
+  queued: string,
   failed: string
 ): { type: 'success' | 'info' | 'error'; message: string } {
-  if (result.ok && result.demo) return { type: 'info', message: demo }
+  if (result.ok && result.queued) return { type: 'info', message: queued }
   if (result.ok) return { type: 'success', message: success }
   return { type: 'error', message: failed }
 }

@@ -2,13 +2,12 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import {
   portalSubmitReview,
   hasPortalReview,
-  getPortalReviewKey,
 } from './portal-data-service'
 import type { PortalContext } from '@/types/portal'
 
 const portal: PortalContext = {
   companyId: 'comp-001',
-  customerId: 'cust-001',
+  customerId: 'cust-002',
   customerName: 'Test Customer',
   isMagicLink: true,
 }
@@ -16,19 +15,19 @@ const portal: PortalContext = {
 describe('portal-data-service reviews', () => {
   beforeEach(() => {
     localStorage.clear()
+    sessionStorage.setItem('handymanos_portal_session', JSON.stringify({
+      customerId: 'cust-002',
+      companyId: 'comp-001',
+      portalType: 'customer',
+      expiresAt: Date.now() + 86400000,
+      token: 'e2e-portal-customer-token',
+    }))
   })
 
-  it('stores demo review in localStorage', async () => {
+  it('stores portal review via RPC', async () => {
     const ok = await portalSubmitReview(portal, 5, 'Great service')
     expect(ok).toBe(true)
     expect(hasPortalReview(portal.customerId)).toBe(true)
-
-    const stored = JSON.parse(localStorage.getItem(getPortalReviewKey(portal.customerId)) || '{}') as {
-      rating: number
-      comment: string
-    }
-    expect(stored.rating).toBe(5)
-    expect(stored.comment).toBe('Great service')
   })
 
   it('rejects invalid rating', async () => {

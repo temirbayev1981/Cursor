@@ -134,7 +134,7 @@ describe('offline-sync-service', () => {
     expect(jobs.find((j) => j.id === job.id)?.status).toBe('completed')
   })
 
-  it('applies photo_upload in demo mode', async () => {
+  it('applies photo_upload offline', async () => {
     const tinyPng = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
     const ok = await applyOfflineAction(
       {

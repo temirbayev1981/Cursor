@@ -11,8 +11,10 @@ import { CommandPalette } from '@/components/shared/command-palette'
 import { AppLayout } from '@/components/layout/app-layout'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { canAccess, getDefaultRoute, shouldSkipOnboardingForRole } from '@/lib/permissions'
-import { getPortalSession, isDemoPortalAccess } from '@/services/portal-service'
+import { getPortalSession } from '@/services/portal-service'
 import type { UserRole } from '@/types'
+import { SupabaseRequiredScreen } from '@/components/shared/supabase-required-screen'
+import { isBackendConfigured } from '@/lib/supabase'
 import LoginPage from '@/pages/login'
 import OnboardingPage from '@/pages/onboarding'
 import TechnicianMobilePage from '@/pages/technician-mobile'
@@ -107,7 +109,6 @@ function PortalRoute({ children, portalType }: { children: React.ReactNode; port
   const { isAuthenticated, isLoading, user } = useAuth()
   const session = getPortalSession()
   if (isLoading) return <PageLoader />
-  if (isDemoPortalAccess()) return <>{children}</>
   if (session?.portalType === portalType) return <>{children}</>
   if (isAuthenticated && user?.role === 'customer') return <>{children}</>
   return <Navigate to="/login?portal=1" replace />
@@ -155,6 +156,10 @@ function routerBasename() {
 }
 
 export default function App() {
+  if (!isBackendConfigured) {
+    return <SupabaseRequiredScreen />
+  }
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>

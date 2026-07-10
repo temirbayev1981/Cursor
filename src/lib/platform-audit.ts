@@ -1,4 +1,5 @@
-import { DEMO_MODE } from '@/lib/supabase'
+import { isE2eMockBackend } from '@/lib/env'
+import { isBackendConfigured } from '@/lib/supabase'
 import { computePlatformHealth } from '@/lib/platform-health'
 
 export interface PlatformAuditCheck {
@@ -24,13 +25,15 @@ export function computePlatformAudit(): PlatformAuditReport {
   const localeConfigured = typeof localStorage !== 'undefined'
     && Boolean(localStorage.getItem('handymanos_locale') || localStorage.getItem('handymanos_onboarding'))
 
+  const liveBackend = isBackendConfigured && !isE2eMockBackend
+
   const qualityChecks: PlatformAuditCheck[] = [
-    { id: 'live_backend', label: 'Live backend', ok: !DEMO_MODE, weight: 1.5 },
+    { id: 'live_backend', label: 'Live backend', ok: liveBackend, weight: 1.5 },
     { id: 'i18n', label: 'Localization', ok: localeConfigured, weight: 0.5 },
     { id: 'offline_ready', label: 'Offline-ready PWA', ok: health.checks.find((c) => c.id === 'offline_sync')?.ok ?? false, weight: 0.5 },
-    { id: 'typed_data', label: 'Type-safe Supabase queries', ok: !DEMO_MODE, weight: 1 },
-    { id: 'portal_rpc', label: 'Portal server RPCs', ok: !DEMO_MODE, weight: 0.5 },
-    { id: 'multi_tenant', label: 'Multi-company membership', ok: !DEMO_MODE, weight: 0.5 },
+    { id: 'typed_data', label: 'Type-safe Supabase queries', ok: liveBackend, weight: 1 },
+    { id: 'portal_rpc', label: 'Portal server RPCs', ok: liveBackend, weight: 0.5 },
+    { id: 'multi_tenant', label: 'Multi-company membership', ok: liveBackend, weight: 0.5 },
   ]
 
   const qualityWeight = qualityChecks.reduce((sum, check) => sum + check.weight, 0)
@@ -52,7 +55,7 @@ export function computePlatformAudit(): PlatformAuditReport {
     'C'
 
   const recommendations: string[] = []
-  if (DEMO_MODE) recommendations.push('Connect Supabase (VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY)')
+  if (!liveBackend) recommendations.push('Connect Supabase (VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY)')
   if (!health.checks.find((check) => check.id === 'stripe')?.ok) {
     recommendations.push('Configure Stripe for online payments')
   }
@@ -69,7 +72,7 @@ export function computePlatformAudit(): PlatformAuditReport {
     recommendations.push('Platform is production-ready — monitor Settings → System metrics')
   }
 
-  const readyForProduction = score >= 8.5 && hasSupabaseFromHealth(health.checks) && !DEMO_MODE
+  const readyForProduction = score >= 8.5 && hasSupabaseFromHealth(health.checks) && liveBackend
 
   return {
     score,
@@ -81,7 +84,7 @@ export function computePlatformAudit(): PlatformAuditReport {
     readyForProduction,
     summary: readyForProduction
       ? 'Production-ready SaaS platform with integrations and quality gates passed.'
-      : 'Functional demo platform — connect live services to reach production grade.',
+      : 'Configure live Supabase and integrations to reach production grade.',
   }
 }
 

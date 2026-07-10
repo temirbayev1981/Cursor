@@ -6,8 +6,9 @@ import {
   hasNotificationConfigured,
   hasSmsConfigured,
   hasObservability,
+  isE2eMockBackend,
 } from '@/lib/env'
-import { DEMO_MODE } from '@/lib/supabase'
+import { isBackendConfigured } from '@/lib/supabase'
 
 export interface PlatformHealthCheck {
   id: string
@@ -32,7 +33,7 @@ export function computePlatformHealth(): PlatformHealthReport {
 
   const checks: PlatformHealthCheck[] = [
     { id: 'supabase', label: 'Supabase', ok: hasSupabase, weight: 2 },
-    { id: 'data_mode', label: 'Live data mode', ok: !DEMO_MODE, weight: 1 },
+    { id: 'data_mode', label: 'Live data mode', ok: isBackendConfigured, weight: 1 },
     { id: 'stripe', label: 'Stripe', ok: hasStripe, weight: 1.5 },
     { id: 'email', label: 'Email', ok: hasNotificationConfigured, weight: 1 },
     { id: 'sms', label: 'SMS', ok: hasSmsConfigured, weight: 1 },
@@ -59,6 +60,6 @@ export function computePlatformHealth(): PlatformHealthReport {
     score,
     grade,
     checks,
-    readyForProduction: score >= 8 && hasSupabase && !DEMO_MODE,
+    readyForProduction: score >= 8 && hasSupabase && !isE2eMockBackend,
   }
 }

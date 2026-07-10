@@ -7,7 +7,7 @@ test.describe('Settings billing & team', () => {
     await loginAsOwner(page, 'ru')
   })
 
-  test('billing upgrade to enterprise updates current plan in demo', async ({ page }) => {
+  test('billing upgrade to enterprise updates current plan without Stripe in E2E', async ({ page }) => {
     await page.goto('/settings')
     await page.getByRole('tab', { name: /оплата|billing/i }).click()
 

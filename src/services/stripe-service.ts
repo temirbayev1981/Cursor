@@ -26,13 +26,11 @@ export async function startStripeCheckout(params: {
   portalToken?: string
   successUrl?: string
   cancelUrl?: string
-}): Promise<'redirected' | 'demo' | 'error'> {
+}): Promise<'redirected' | 'error'> {
   const endpoint = getStripeCheckoutEndpoint()
 
-  if (!hasStripe) return 'demo'
-
-  if (!endpoint) {
-    return 'demo'
+  if (!hasStripe || !endpoint) {
+    return 'error'
   }
 
   try {

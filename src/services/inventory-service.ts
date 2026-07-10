@@ -1,7 +1,7 @@
 import type { InventoryTransaction, InventoryTransactionType, Material } from '@/types'
 import { listEntities, saveEntity } from '@/services/entity-service'
 import { loadStore, saveStore, upsertStore, STORE_KEYS } from '@/lib/data-store'
-import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { insertRows } from '@/lib/supabase-queries'
 
 export async function listInventoryTransactions(companyId: string): Promise<InventoryTransaction[]> {
@@ -10,7 +10,7 @@ export async function listInventoryTransactions(companyId: string): Promise<Inve
   const local = loadStore<InventoryTransaction>(STORE_KEYS.inventory)
     .filter((t) => materialIdList.includes(t.material_id))
 
-  if (DEMO_MODE || !supabase) return local
+  if (!supabase) return local
 
   if (materialIdList.length === 0) return local
 
@@ -60,9 +60,9 @@ export async function recordInventoryTransaction(
 
   upsertStore(STORE_KEYS.inventory, transaction)
 
-  if (!DEMO_MODE && supabase) {
-    await insertRows('inventory', transaction)
-  }
+  if (!supabase) return { transaction, material: updatedMaterial }
+
+  await insertRows('inventory', transaction)
 
   return { transaction, material: updatedMaterial }
 }

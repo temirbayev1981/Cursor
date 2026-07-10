@@ -8,7 +8,7 @@ describe('storage-service', () => {
     localStorage.clear()
   })
 
-  it('uploadJobPhoto stores photo in demo mode and listJobPhotos returns it', async () => {
+  it('uploadJobPhoto stores photo and listJobPhotos returns signed url', async () => {
     const tinyPng = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
     const file = base64ToFile(tinyPng, 'field.jpg', 'image/jpeg')
 
@@ -23,6 +23,6 @@ describe('storage-service', () => {
     const listed = await listJobPhotos('job-001')
     expect(listed).toHaveLength(1)
     expect(listed[0].id).toBe(photo.id)
-    expect(listed[0].url).toMatch(/^blob:/)
+    expect(listed[0].url).toMatch(/^https:\/\/e2e\.local\//)
   })
 })

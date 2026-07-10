@@ -1,11 +1,10 @@
 import type { Company, Profile, UserRole, Employee } from '@/types'
 import type { Json } from '@/types/database'
-import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { insertRows, upsertRows } from '@/lib/supabase-queries'
-import { DEMO_COMPANY, DEMO_COMPANY_B } from '@/data/mock-data'
 import { shouldSkipOnboardingForRole } from '@/lib/permissions'
 import { getTeamInvitePreview, acceptTeamInvite } from '@/services/invite-service'
-import { addCompanyMembership, registerCompany } from '@/services/company-service'
+import { addCompanyMembership } from '@/services/company-service'
 import { setTechOnboardingPending } from '@/services/tech-onboarding-service'
 import { loadStore, STORE_KEYS } from '@/lib/data-store'
 import { saveEntity } from '@/services/entity-service'
@@ -41,20 +40,17 @@ async function ensureEmployeeForInvite(
   })
 }
 
-function getStoredCompanyForInvite(companyId: string): Company {
-  if (companyId === DEMO_COMPANY_B.id) return DEMO_COMPANY_B
-  if (companyId === DEMO_COMPANY.id) return DEMO_COMPANY
+async function fetchCompanyById(companyId: string): Promise<Company> {
+  if (!supabase) throw new Error('Supabase not configured')
 
-  try {
-    const raw = localStorage.getItem('handymanos_company')
-    if (raw) {
-      const stored = JSON.parse(raw) as Company
-      if (stored.id === companyId) return stored
-    }
-  } catch {
-    // ignore
-  }
-  return { ...DEMO_COMPANY, id: companyId }
+  const { data: company, error } = await supabase
+    .from('companies')
+    .select('*')
+    .eq('id', companyId)
+    .single()
+
+  if (error || !company) throw new Error('Company not found')
+  return company as unknown as Company
 }
 
 export async function acceptInviteForCurrentUser(
@@ -73,19 +69,9 @@ export async function acceptInviteForCurrentUser(
 
   addCompanyMembership(profileId, invite.company_id, invite.role)
 
-  if (DEMO_MODE) {
-    const company = getStoredCompanyForInvite(invite.company_id)
-    registerCompany(company)
-    return { company, role: invite.role }
-  }
-
   if (!supabase) throw new Error('Supabase not configured')
 
-  const { data: company } = await supabase
-    .from('companies')
-    .select('*')
-    .eq('id', invite.company_id)
-    .single()
+  const company = await fetchCompanyById(invite.company_id)
 
   const { data: profileRow } = await supabase
     .from('profiles')
@@ -94,7 +80,7 @@ export async function acceptInviteForCurrentUser(
     .single()
 
   return {
-    company: (company as unknown as Company) ?? getStoredCompanyForInvite(invite.company_id),
+    company,
     role: ((profileRow as Profile | null)?.role ?? invite.role) as UserRole,
   }
 }
@@ -109,26 +95,6 @@ export async function registerUserWithInvite(
   if (!preview) throw new Error('Invalid or expired invite')
   if (preview.email.toLowerCase() !== email.toLowerCase().trim()) {
     throw new Error('Email does not match invite')
-  }
-
-  if (DEMO_MODE) {
-    const invite = await acceptTeamInvite(inviteToken)
-    if (!invite) throw new Error('Invalid or expired invite')
-
-    const profile: Profile = {
-      id: crypto.randomUUID(),
-      company_id: invite.company_id,
-      email,
-      full_name: fullName,
-      role: invite.role,
-      created_at: new Date().toISOString(),
-    }
-    addCompanyMembership(profile.id, invite.company_id, invite.role)
-    const company = getStoredCompanyForInvite(invite.company_id)
-    registerCompany(company)
-    await ensureEmployeeForInvite(profile.id, invite.company_id, fullName, invite.role)
-    if (invite.role === 'technician') setTechOnboardingPending(true)
-    return { profile, company }
   }
 
   if (!supabase) throw new Error('Supabase not configured')
@@ -163,16 +129,9 @@ export async function registerUserWithInvite(
   await ensureEmployeeForInvite(linkedProfile.id, preview.company_id, fullName, preview.role)
   if (preview.role === 'technician') setTechOnboardingPending(true)
 
-  const { data: company } = await supabase
-    .from('companies')
-    .select('*')
-    .eq('id', preview.company_id)
-    .single()
+  const company = await fetchCompanyById(preview.company_id)
 
-  return {
-    profile: linkedProfile,
-    company: (company as unknown as Company) ?? DEMO_COMPANY,
-  }
+  return { profile: linkedProfile, company }
 }
 
 export async function registerUserWithCompany(
@@ -236,7 +195,6 @@ export async function registerUserWithCompany(
 }
 
 export async function loadUserSession(): Promise<{ profile: Profile; company: Company } | null> {
-  if (DEMO_MODE) return null
   if (!supabase) return null
 
   const { data: { session } } = await supabase.auth.getSession()
@@ -251,18 +209,11 @@ export async function loadUserSession(): Promise<{ profile: Profile; company: Co
   if (!profile) return null
 
   const typedProfile = profile as unknown as Profile
-  if (!typedProfile.company_id) return { profile: typedProfile, company: DEMO_COMPANY }
+  if (!typedProfile.company_id) return null
 
-  const { data: company } = await supabase
-    .from('companies')
-    .select('*')
-    .eq('id', typedProfile.company_id)
-    .single()
+  const company = await fetchCompanyById(typedProfile.company_id)
 
-  return {
-    profile: typedProfile,
-    company: (company as unknown as Company) ?? DEMO_COMPANY,
-  }
+  return { profile: typedProfile, company }
 }
 
 export function isOnboardingComplete(company: Company | null): boolean {

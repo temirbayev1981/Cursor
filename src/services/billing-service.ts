@@ -1,6 +1,6 @@
 import type { Company, SubscriptionPlan } from '@/types'
-import { hasStripe, getStripeSubscriptionEndpoint } from '@/lib/env'
-import { getSupabaseAuthHeaders, supabase, DEMO_MODE } from '@/lib/supabase'
+import { hasStripe, getStripeSubscriptionEndpoint, isE2eMockBackend } from '@/lib/env'
+import { getSupabaseAuthHeaders, supabase } from '@/lib/supabase'
 import { updateRows } from '@/lib/supabase-queries'
 import { getStoredCompany } from '@/services/onboarding-service'
 
@@ -43,9 +43,9 @@ export async function updateCompanySubscription(
 
   localStorage.setItem('handymanos_company', JSON.stringify(updated))
 
-  if (!DEMO_MODE && supabase) {
-    await updateRows('companies', { subscription_plan: plan }, 'id', companyId)
-  }
+  if (!supabase) throw new Error('Supabase not configured')
+
+  await updateRows('companies', { subscription_plan: plan }, 'id', companyId)
 
   return updated
 }
@@ -53,12 +53,16 @@ export async function updateCompanySubscription(
 export async function startSubscriptionCheckout(
   plan: SubscriptionPlan,
   companyId: string
-): Promise<'redirected' | 'demo' | 'error'> {
+): Promise<'redirected' | 'updated' | 'error'> {
   const endpoint = getStripeSubscriptionEndpoint()
 
-  if (!hasStripe || !endpoint) {
+  if (isE2eMockBackend && (!hasStripe || !endpoint)) {
     await updateCompanySubscription(companyId, plan)
-    return 'demo'
+    return 'updated'
+  }
+
+  if (!hasStripe || !endpoint) {
+    return 'error'
   }
 
   try {

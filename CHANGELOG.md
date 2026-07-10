@@ -2,6 +2,21 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.7.0] — 2026-07-10
+
+Production-only release: demo mode removed, Supabase required.
+
+### Phase 69 — Remove demo mode (production-only)
+- **Breaking:** `DEMO_MODE` removed — app requires Supabase (`VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY`)
+- `SupabaseRequiredScreen` when backend is not configured
+- Auth, entity, company, portal, invite, billing, and Stripe services use Supabase only
+- E2E/CI: in-memory Supabase mock (`VITE_E2E_MOCK_BACKEND`) for Playwright and Vitest
+- Removed demo UI: login hints, sidebar banner, portal demo bypass
+- Notifications: `queued` flag instead of `demo`; local queue when webhooks are unset
+- Settings: **Import sample data** (renamed from demo import)
+- i18n cleanup: removed demo-mode strings
+- Updated `.env.example`, README, DEPLOYMENT
+
 ## [1.6.4] — 2026-07-10
 
 Audit P1 fixes: i18n toasts, expense categories, bulk delete confirm.

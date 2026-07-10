@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { loginAsOwner, seedBulkDraftJobs, seedPortalCustomerInvoice } from './helpers/auth'
+import { loginAsOwner, seedBulkDraftJobs, seedPortalCustomerInvoice, setCustomerPortalSession } from './helpers/auth'
 
 test.describe('Report PDF i18n', () => {
   test('Russian locale uses Russian PDF labels', async ({ page }) => {
@@ -56,9 +56,7 @@ test.describe('Jobs bulk technician assign', () => {
 
 test.describe('Customer portal invoice pay', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      sessionStorage.setItem('handymanos_portal_token', 'demo')
-    })
+    await setCustomerPortalSession(page)
   })
 
   test('demo pay button records portal invoice payment', async ({ page }) => {

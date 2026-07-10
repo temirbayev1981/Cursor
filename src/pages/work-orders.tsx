@@ -198,7 +198,7 @@ export default function WorkOrdersPage() {
                     onClick={() => seedVendorPOs.mutate()}
                     disabled={seedVendorPOs.isPending}
                   >
-                    {t.vendorPO.loadDemo}
+                    {t.vendorPO.loadSampleData}
                   </Button>
                 </div>
               </CardContent>

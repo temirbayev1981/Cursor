@@ -8,16 +8,16 @@ test.describe('Dispatch notifications', () => {
     await seedDraftJob(page, true)
   })
 
-  test('status select to scheduled queues demo SMS and customer email', async ({ page }) => {
+  test('status select to scheduled queues SMS and customer email locally', async ({ page }) => {
     await page.goto('/dispatch')
     await expect(page.getByTestId('dispatch-card-job-e2e-draft')).toBeVisible()
 
     await page.getByTestId('dispatch-status-job-e2e-draft').click()
     await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
 
-    await expect(page.getByText(/SMS \(демо\)|SMS \(demo\)/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/SMS.*очереди|SMS queued locally/i).first()).toBeVisible({ timeout: 5000 })
     await expect(page.getByText(/Marcus Thompson/i).first()).toBeVisible()
-    await expect(page.getByText(/Email \(демо\)|Email \(demo\)/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/Email.*очереди|email queued/i).first()).toBeVisible({ timeout: 5000 })
     await expect(page.getByText(/workorders@abcprop\.com/i).first()).toBeVisible()
   })
 

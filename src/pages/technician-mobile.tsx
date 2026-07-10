@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { useTranslation } from '@/contexts/locale-context'
 import { useOnlineStatus } from '@/hooks/use-online-status'
 import { useQueryClient } from '@tanstack/react-query'
-import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import { loadStore, saveStore, upsertStore, STORE_KEYS } from '@/lib/data-store'
 import { queueOfflineAction, getOfflineQueue, syncOfflineQueue } from '@/lib/pwa'
@@ -79,7 +79,7 @@ export default function TechnicianMobilePage() {
     ?? (activeEntry as { start_time?: string } | undefined)?.start_time
 
   useEffect(() => {
-    if (DEMO_MODE || !supabase || !myEmployee?.id) return
+    if (!supabase || !myEmployee?.id) return
     const client = supabase
 
     const channel = client

@@ -65,6 +65,7 @@ export async function applyOfflineAction(
       ?? next.find((e) => e.job_id === job_id && e.end)
     if (closed) {
       await saveTimeEntry(toTimeEntry(closed, context, end))
+      saveStore(STORE_KEYS.timeEntries, next)
     }
     return true
   }

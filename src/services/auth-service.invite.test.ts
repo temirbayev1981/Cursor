@@ -15,7 +15,7 @@ describe('auth-service invite', () => {
     ).rejects.toThrow(/email/i)
   })
 
-  it('acceptInviteForCurrentUser adds membership for existing user in demo', async () => {
+  it('acceptInviteForCurrentUser adds membership for existing user', async () => {
     const { token } = await createTeamInvite('comp-002', 'owner@profixhandyman.com', 'dispatcher')
 
     const result = await acceptInviteForCurrentUser('user-001', 'owner@profixhandyman.com', token)

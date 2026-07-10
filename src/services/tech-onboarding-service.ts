@@ -1,5 +1,5 @@
 import type { Employee } from '@/types'
-import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { updateRows } from '@/lib/supabase-queries'
 import { loadStore, STORE_KEYS } from '@/lib/data-store'
 import { saveEntity } from '@/services/entity-service'
@@ -37,9 +37,9 @@ export async function completeTechOnboarding(
   userId: string,
   companyId: string,
 ): Promise<void> {
-  if (!DEMO_MODE && supabase) {
-    await updateRows('profiles', { full_name: data.fullName, phone: data.phone }, 'id', userId)
-  }
+  if (!supabase) throw new Error('Supabase not configured')
+
+  await updateRows('profiles', { full_name: data.fullName, phone: data.phone }, 'id', userId)
 
   const existing = loadStore<Employee>(STORE_KEYS.employees).find(
     (employee) => employee.profile_id === userId && employee.company_id === companyId,

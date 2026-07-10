@@ -1,7 +1,6 @@
 import type { Company, Profile, UserRole } from '@/types'
-import { DEMO_COMPANY, DEMO_COMPANY_B } from '@/data/mock-data'
 import { getStoredCompany } from '@/services/onboarding-service'
-import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { updateRows } from '@/lib/supabase-queries'
 import { callRpc } from '@/lib/supabase-rpc'
 
@@ -38,12 +37,6 @@ export function getMembershipCompanyIds(profileId: string): string[] {
     .map((item) => item.company_id)
 }
 
-function companyById(companyId: string): Company | undefined {
-  if (companyId === DEMO_COMPANY.id) return DEMO_COMPANY
-  if (companyId === DEMO_COMPANY_B.id) return DEMO_COMPANY_B
-  return loadRegistry().find((company) => company.id === companyId)
-}
-
 function loadRegistry(): Company[] {
   try {
     const raw = localStorage.getItem(REGISTRY_KEY)
@@ -63,20 +56,15 @@ export function listAccessibleCompanies(profileId?: string): Company[] {
   const byId = new Map<string, Company>()
   const stored = getStoredCompany()
 
-  byId.set(DEMO_COMPANY.id, stored?.id === DEMO_COMPANY.id ? stored : DEMO_COMPANY)
-  byId.set(DEMO_COMPANY_B.id, DEMO_COMPANY_B)
-
   for (const company of loadRegistry()) {
     byId.set(company.id, company)
   }
 
-  if (stored && !byId.has(stored.id)) {
-    byId.set(stored.id, stored)
-  }
+  if (stored) byId.set(stored.id, stored)
 
   if (profileId) {
     for (const companyId of getMembershipCompanyIds(profileId)) {
-      const company = companyById(companyId)
+      const company = byId.get(companyId) ?? loadRegistry().find((c) => c.id === companyId)
       if (company) byId.set(company.id, company)
     }
   }
@@ -100,9 +88,8 @@ export function getActiveCompanyId(): string | null {
   return localStorage.getItem(ACTIVE_COMPANY_KEY)
 }
 
-/** Persist active company to Supabase profile (demo switcher uses local registry only). */
 export async function syncActiveCompanyToProfile(profileId: string, companyId: string): Promise<void> {
-  if (DEMO_MODE || !supabase) return
+  if (!supabase) throw new Error('Supabase not configured')
 
   const { error } = await updateRows('profiles', { company_id: companyId }, 'id', profileId)
   if (error) throw error
@@ -125,27 +112,25 @@ export async function updateCompanyProfile(
   localStorage.setItem('handymanos_company', JSON.stringify(updated))
   registerCompany(updated)
 
-  if (!DEMO_MODE && supabase) {
-    const { error } = await updateRows(
-      'companies',
-      {
-        name: patch.name,
-        email: patch.email,
-        phone: patch.phone || undefined,
-        address: patch.address || undefined,
-      },
-      'id',
-      companyId,
-    )
-    if (error) throw error
-  }
+  if (!supabase) throw new Error('Supabase not configured')
+
+  const { error } = await updateRows(
+    'companies',
+    {
+      name: patch.name,
+      email: patch.email,
+      phone: patch.phone || undefined,
+      address: patch.address || undefined,
+    },
+    'id',
+    companyId,
+  )
+  if (error) throw error
 
   return updated
 }
 
 export async function fetchAccessibleCompanies(profile?: Profile | null): Promise<Company[]> {
-  if (DEMO_MODE) return listAccessibleCompanies(profile?.id)
-
   const byId = new Map<string, Company>()
   for (const company of loadRegistry()) {
     byId.set(company.id, company)
@@ -171,10 +156,6 @@ export async function fetchAccessibleCompanies(profile?: Profile | null): Promis
         byId.set(companyRow.id, companyRow)
       }
     }
-  }
-
-  if (byId.size === 0) {
-    byId.set(DEMO_COMPANY.id, DEMO_COMPANY)
   }
 
   return Array.from(byId.values()).sort((a, b) => a.name.localeCompare(b.name))

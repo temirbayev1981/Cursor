@@ -12,7 +12,7 @@ describe('entity-service', () => {
     localStorage.clear()
   })
 
-  it('seeds and scopes jobs to company in demo mode', async () => {
+  it('loads sample jobs scoped to company', async () => {
     const jobs = await listEntities('jobs', 'comp-001')
     expect(jobs.length).toBeGreaterThan(0)
     expect(jobs.every((job) => job.company_id === 'comp-001')).toBe(true)

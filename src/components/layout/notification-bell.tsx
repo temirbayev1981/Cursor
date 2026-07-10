@@ -107,7 +107,7 @@ export function NotificationBell() {
                       <span className="truncate text-xs font-medium">{item.to}</span>
                       {item.metadata?.sent_at && (
                         <Badge variant="outline" className="ml-auto shrink-0 text-[10px]">
-                          {t.header.demoQueued}
+                          {t.header.queuedLocally}
                         </Badge>
                       )}
                     </div>

@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test'
-import { loginAsOwner, clearPortalReview, resetEstimateStatus, seedBulkDraftJobs, seedOnHoldJob, seedPortalCustomerInvoice } from './helpers/auth'
+import { loginAsOwner, clearPortalReview, resetEstimateStatus, seedBulkDraftJobs, seedOnHoldJob, seedPortalCustomerInvoice, setPropertyPortalSession, setCustomerPortalSession } from './helpers/auth'
 
 test.describe('Property portal English', () => {
   test.beforeEach(async ({ page }) => {
+    await setPropertyPortalSession(page)
     await page.addInitScript(() => {
-      sessionStorage.setItem('handymanos_portal_token', 'demo')
       localStorage.setItem('handymanos_locale', 'en')
     })
   })
@@ -78,8 +78,8 @@ test.describe('Jobs bulk cancel', () => {
 
 test.describe('Customer portal English', () => {
   test.beforeEach(async ({ page }) => {
+    await setCustomerPortalSession(page)
     await page.addInitScript(() => {
-      sessionStorage.setItem('handymanos_portal_token', 'demo')
       localStorage.setItem('handymanos_locale', 'en')
     })
   })

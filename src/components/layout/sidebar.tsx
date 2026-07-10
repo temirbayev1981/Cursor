@@ -31,7 +31,6 @@ import { Button } from '@/components/ui/button'
 import { LanguageSwitcher } from '@/components/shared/language-switcher'
 import { CompanySwitcher } from '@/components/shared/company-switcher'
 import { canAccess } from '@/lib/permissions'
-import { DEMO_MODE } from '@/lib/supabase'
 
 const navItems = [
   { key: 'dashboard' as const, href: '/dashboard', icon: LayoutDashboard },
@@ -153,11 +152,6 @@ export function Sidebar({
           </div>
         )}
         <CompanySwitcher collapsed={!showLabels} />
-        {DEMO_MODE && showLabels && (
-          <div className="mb-3 rounded-lg bg-accent/10 px-3 py-2 text-xs text-accent">
-            {t.common.demoMode}
-          </div>
-        )}
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9 shrink-0">
             <AvatarFallback>{getInitials(user?.full_name || 'U')}</AvatarFallback>

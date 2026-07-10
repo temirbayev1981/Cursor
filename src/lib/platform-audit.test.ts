@@ -13,7 +13,7 @@ describe('platform-audit', () => {
     expect(report.grade).toMatch(/^[A-C][+-]?$/)
   })
 
-  it('recommends observability when unset in demo mode', () => {
+  it('recommends observability when unset', () => {
     const report = computePlatformAudit()
     expect(report.recommendations.some((r) => /sentry|error webhook|мониторинг/i.test(r))).toBe(true)
   })
