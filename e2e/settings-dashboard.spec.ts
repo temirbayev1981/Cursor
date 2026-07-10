@@ -90,6 +90,7 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('platform-audit-check-notification_hub_scheduling_sms_skip_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-portal_email_opt_out_badge_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-notification_hub_sms_skip_csv_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-notification_hub_skip_summary_audit')).toBeVisible()
     await expect(page.getByTestId('notification-hub')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history-entry-0')).toBeVisible()
@@ -281,6 +282,34 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByText(/журнал пропусков очищен|skip log cleared/i).first()).toBeVisible({ timeout: 5000 })
     await page.getByTestId('notification-hub-filter-skipped').click()
     await expect(page.getByText(/chen\.family@email\.com/i)).not.toBeVisible()
+  })
+
+  test('notification hub skip summary shows email and SMS counts', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await clearNotificationQueue(page)
+    await page.evaluate(() => {
+      localStorage.setItem('handymanos_customer_notify_prefs_cust-004', JSON.stringify({ email: false, sms: true }))
+      localStorage.setItem('handymanos_customer_notify_prefs_cust-001', JSON.stringify({ email: true, sms: false }))
+    })
+    await page.goto('/estimates')
+    await page.getByTestId('estimate-send-est-003').click()
+    await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+
+    await seedDraftJob(page, true)
+    await page.goto('/dispatch')
+    await page.getByTestId('dispatch-status-job-e2e-draft').click()
+    await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
+    await expect(page.getByText(/SMS.*пропущено|SMS skipped|opt-out/i).first()).toBeVisible({ timeout: 5000 })
+
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /system|система/i }).click()
+    const summary = page.getByTestId('notification-hub-summary')
+    await expect(summary).toBeVisible()
+    await expect(summary).toContainText(/пропущено:\s*2|2 skipped/i)
+    await expect(summary).toContainText(/1 email/i)
+    await expect(summary).toContainText(/1 SMS/i)
+    await expect(page.getByTestId('notification-hub-export-skip-log')).toBeVisible()
+    await expect(page.getByTestId('notification-hub-clear-skip-log')).toBeVisible()
   })
 
   test('notification hub exports SMS skip log CSV with channel column', async ({ page }) => {

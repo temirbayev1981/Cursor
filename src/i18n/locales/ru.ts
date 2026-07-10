@@ -717,6 +717,7 @@ export const ru = {
       notification_hub_scheduling_sms_skip_audit: 'Hub: SMS skip в расписании',
       portal_email_opt_out_badge_audit: 'Синхронизация email-бейджа портала',
       notification_hub_sms_skip_csv_audit: 'Экспорт CSV SMS skip в hub',
+      notification_hub_skip_summary_audit: 'Сводка skip в hub (email/SMS)',
       multi_tenant: 'Мульти-тенант',
     },
     auditActions: {
@@ -777,7 +778,7 @@ export const ru = {
     notificationQueueFlushed: 'Отправлено уведомлений: {count}',
     notificationQueueFlushPending: 'Webhook не настроен — сообщения остаются в локальной очереди',
     notificationHub: 'Центр уведомлений',
-    notificationHubSummary: 'В очереди: {total} · ошибок: {failed} · пропущено: {skipped}',
+    notificationHubSummary: 'В очереди: {total} · ошибок: {failed} · пропущено: {skipped} ({emailSkips} email · {smsSkips} SMS)',
     notificationHubEmail: 'Email',
     notificationHubSms: 'SMS',
     notificationHubSkipped: 'Пропущено',

@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.10.15
+# HandymanOS AI — Release 1.10.16
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.15`**, current package **1.10.15**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.16`**, current package **1.10.16**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -130,6 +130,10 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Locale-aware notification templates; observability probe gate uses live results
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
+
+### 1.10.16 — Hub skip summary breakdown
+- Hub summary shows skipped count with email/SMS channel breakdown
+- Platform audit `notification_hub_skip_summary_audit` gate
 
 ### 1.10.15 — Portal email badge & SMS skip CSV
 - Portal email/SMS opt-out badge sync E2E with staff CRM

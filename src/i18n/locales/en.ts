@@ -719,6 +719,7 @@ export const en: TranslationKeys = {
       notification_hub_scheduling_sms_skip_audit: 'Hub scheduling SMS skip',
       portal_email_opt_out_badge_audit: 'Portal email opt-out badge sync',
       notification_hub_sms_skip_csv_audit: 'Hub SMS skip CSV export',
+      notification_hub_skip_summary_audit: 'Hub skip summary breakdown',
       multi_tenant: 'Multi-tenant',
     },
     auditActions: {
@@ -779,7 +780,7 @@ export const en: TranslationKeys = {
     notificationQueueFlushed: '{count} notification(s) sent',
     notificationQueueFlushPending: 'No webhooks configured — messages remain queued locally',
     notificationHub: 'Notifications hub',
-    notificationHubSummary: '{total} in queue · {failed} failed · {skipped} skipped',
+    notificationHubSummary: '{total} in queue · {failed} failed · {skipped} skipped ({emailSkips} email · {smsSkips} SMS)',
     notificationHubEmail: 'Email',
     notificationHubSms: 'SMS',
     notificationHubSkipped: 'Skipped',

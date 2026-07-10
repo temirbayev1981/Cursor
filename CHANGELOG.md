@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.10.16] — 2026-07-10
+
+Notification hub skip summary with email/SMS breakdown.
+
+### Phase 114 — Hub skip summary breakdown
+- `getNotificationSkipLogStats()` — total, email, and SMS skip counts
+- Hub summary: `{skipped} skipped ({emailSkips} email · {smsSkips} SMS)`
+- E2E: estimate email skip + dispatch SMS skip shows summary `2 skipped (1 email · 1 SMS)`
+- Platform audit: `notification_hub_skip_summary_audit` gate
+- **224** E2E tests, **161** unit tests
+
 ## [1.10.15] — 2026-07-10
 
 Portal email badge sync and hub SMS skip CSV export.
