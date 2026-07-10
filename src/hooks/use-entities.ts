@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
-import { listEntities, saveEntity, createJobFromVendorPO, createEstimateFromJob, createInvoiceFromEstimate, createScheduleFromJob, importDemoSeedToSupabase, listFuelLogs, listAuditLogs, logAudit } from '@/services/entity-service'
+import { listEntities, saveEntity, deleteEntity, createJobFromVendorPO, createEstimateFromJob, createInvoiceFromEstimate, createScheduleFromJob, importDemoSeedToSupabase, listFuelLogs, listAuditLogs, logAudit } from '@/services/entity-service'
 import { recordInvoicePayment, sendInvoiceToCustomer } from '@/services/payment-service'
 import { listInventoryTransactions, applyMaterialsOnJob, receiveStock } from '@/services/inventory-service'
 import type { Job, Customer, Estimate, Invoice, Employee, Material, Vehicle, Expense } from '@/types'
@@ -177,6 +177,19 @@ export function useBulkScheduleJobs() {
           assigned_technician_id: technicianId,
           scheduled_date: job.scheduled_date ?? scheduledDate,
         })
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs', companyId] }),
+  })
+}
+
+export function useBulkDeleteJobs() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: async (jobs: Job[]) => {
+      for (const job of jobs) {
+        await deleteEntity('jobs', job.id)
       }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs', companyId] }),

@@ -47,6 +47,21 @@ type ReportTab = 'financial' | 'profit' | 'technicians' | 'customers' | 'service
 
 const PIE_COLORS = ['#0ea5e9', '#fbbf24', '#22c55e', '#ef4444', '#8b5cf6', '#f97316']
 
+function localizeExpenseChart(
+  chart: ReturnType<typeof computeExpenseBreakdown>,
+  labels: { labor: string; materials: string; fuel: string },
+): ReturnType<typeof computeExpenseBreakdown> {
+  const map: Record<string, string> = {
+    Labor: labels.labor,
+    Materials: labels.materials,
+    Fuel: labels.fuel,
+  }
+  return chart.map((point) => ({
+    ...point,
+    name: map[point.name] ?? point.name,
+  }))
+}
+
 function defaultStartDate() {
   return format(subMonths(new Date(), 6), 'yyyy-MM-dd')
 }
@@ -123,7 +138,11 @@ export default function ReportsPage() {
       jobProfitability: t.reports.profit,
       job: t.jobs.job,
       costs: t.reports.costs,
+      expenseBreakdown: t.reports.expenseBreakdown,
+      category: t.expenses.category,
+      amount: t.expenses.amount,
     }
+    const expenseLabels = { labor: t.dashboard.labor, materials: t.dashboard.materials, fuel: t.dashboard.fuel }
     exportReportPdf({
       title: t.reports.title,
       dateRangeLabel,
@@ -150,6 +169,7 @@ export default function ReportsPage() {
               }
             })
         : undefined,
+      expenses: activeTab === 'expenses' ? localizeExpenseChart(expenseChart, expenseLabels) : undefined,
     })
   }
 
@@ -230,7 +250,7 @@ export default function ReportsPage() {
           <TabsTrigger value="technicians" data-testid="reports-tab-technicians">{t.reports.technicians}</TabsTrigger>
           <TabsTrigger value="customers" data-testid="reports-tab-customers">{t.reports.customers}</TabsTrigger>
           <TabsTrigger value="services" data-testid="reports-tab-services">{t.reports.services}</TabsTrigger>
-          <TabsTrigger value="expenses">{t.reports.expenses}</TabsTrigger>
+          <TabsTrigger value="expenses" data-testid="reports-tab-expenses">{t.reports.expenses}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="financial">

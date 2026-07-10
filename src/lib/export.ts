@@ -86,6 +86,9 @@ export interface ReportPdfLabels {
   jobProfitability: string
   job: string
   costs: string
+  expenseBreakdown: string
+  category: string
+  amount: string
 }
 
 export interface ReportPdfData {
@@ -105,6 +108,7 @@ export interface ReportPdfData {
     profit: number
     margin: number
   }>
+  expenses?: ChartDataPoint[]
   labels: ReportPdfLabels
 }
 
@@ -203,6 +207,14 @@ export function exportReportPdf(data: ReportPdfData) {
     rows.push(`<h2>${escapeHtml(labels.jobProfitability)}</h2><table><tr><th>${escapeHtml(labels.job)}</th><th>${escapeHtml(labels.customer)}</th><th>${escapeHtml(labels.revenue)}</th><th>${escapeHtml(labels.costs)}</th><th>${escapeHtml(labels.profit)}</th><th>${escapeHtml(labels.margin)}</th></tr>`)
     for (const row of data.profitJobs) {
       rows.push(`<tr><td>${escapeHtml(row.title)}</td><td>${escapeHtml(row.customer)}</td><td>$${row.revenue.toFixed(2)}</td><td>$${row.costs.toFixed(2)}</td><td>$${row.profit.toFixed(2)}</td><td>${row.margin}%</td></tr>`)
+    }
+    rows.push('</table>')
+  }
+
+  if (data.expenses?.length) {
+    rows.push(`<h2>${escapeHtml(labels.expenseBreakdown)}</h2><table><tr><th>${escapeHtml(labels.category)}</th><th>${escapeHtml(labels.amount)}</th></tr>`)
+    for (const row of data.expenses) {
+      rows.push(`<tr><td>${escapeHtml(row.name)}</td><td>$${(row.value ?? 0).toFixed(2)}</td></tr>`)
     }
     rows.push('</table>')
   }
@@ -426,6 +438,9 @@ export function exportReportPdfPlaceholder(title: string) {
       jobProfitability: 'Job profitability',
       job: 'Job',
       costs: 'Costs',
+      expenseBreakdown: 'Expense breakdown',
+      category: 'Category',
+      amount: 'Amount',
     },
   })
 }

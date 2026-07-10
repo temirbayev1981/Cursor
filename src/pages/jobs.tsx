@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/contexts/auth-context'
-import { useJobs, useCustomers, useEmployees, useSaveJob, useBulkUpdateJobStatus, useBulkAssignTechnician, useBulkScheduleJobs } from '@/hooks/use-entities'
+import { useJobs, useCustomers, useEmployees, useSaveJob, useBulkUpdateJobStatus, useBulkAssignTechnician, useBulkScheduleJobs, useBulkDeleteJobs } from '@/hooks/use-entities'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
@@ -40,6 +40,7 @@ export default function JobsPage() {
   const bulkUpdateStatus = useBulkUpdateJobStatus()
   const bulkAssignTechnician = useBulkAssignTechnician()
   const bulkScheduleJobs = useBulkScheduleJobs()
+  const bulkDeleteJobs = useBulkDeleteJobs()
 
   const activeTechnicians = employees.filter((e) => e.is_active && e.billing_rate > 0)
 
@@ -84,6 +85,17 @@ export default function JobsPage() {
         },
       },
     )
+  }
+
+  const handleBulkDelete = () => {
+    const selected = jobs.filter((job) => selectedIds.has(job.id))
+    if (selected.length === 0) return
+    bulkDeleteJobs.mutate(selected, {
+      onSuccess: () => {
+        toast.success(t.jobs.bulkDeleted.replace('{count}', String(selected.length)))
+        setSelectedIds(new Set())
+      },
+    })
   }
 
   const handleBulkSchedule = () => {
@@ -247,6 +259,15 @@ export default function JobsPage() {
             data-testid="jobs-bulk-cancel"
           >
             {t.jobs.bulkCancel}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleBulkDelete}
+            disabled={bulkDeleteJobs.isPending}
+            data-testid="jobs-bulk-delete"
+          >
+            {t.jobs.bulkDelete}
           </Button>
         </div>
       )}

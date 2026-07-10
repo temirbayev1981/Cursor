@@ -243,3 +243,53 @@ test.describe('Report PDF customers tab', () => {
     await popup.close()
   })
 })
+
+test.describe('Report PDF expenses tab', () => {
+  test('Russian locale exports expense breakdown labels', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await page.goto('/reports')
+    await page.getByTestId('reports-tab-expenses').click()
+
+    const popupPromise = page.waitForEvent('popup')
+    await page.getByTestId('reports-export-pdf').click()
+    const popup = await popupPromise
+
+    await expect(popup.locator('body')).toContainText(/Структура расходов/i)
+    await expect(popup.locator('body')).toContainText(/Труд/i)
+    await popup.close()
+  })
+
+  test('English locale exports expense breakdown labels', async ({ page }) => {
+    await loginAsOwner(page, 'en')
+    await page.goto('/reports')
+    await page.getByTestId('reports-tab-expenses').click()
+
+    const popupPromise = page.waitForEvent('popup')
+    await page.getByTestId('reports-export-pdf').click()
+    const popup = await popupPromise
+
+    await expect(popup.locator('body')).toContainText(/Expense Breakdown/i)
+    await expect(popup.locator('body')).toContainText(/Labor/i)
+    await popup.close()
+  })
+})
+
+test.describe('Jobs bulk delete', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await seedBulkDraftJobs(page)
+  })
+
+  test('bulk delete removes selected draft jobs', async ({ page }) => {
+    await page.goto('/jobs')
+    await page.getByRole('tab', { name: /черновик|draft/i }).click()
+
+    await page.getByTestId('job-select-job-bulk-001').check()
+    await page.getByTestId('job-select-job-bulk-002').check()
+    await page.getByTestId('jobs-bulk-delete').click()
+
+    await expect(page.getByText(/удалено заказов:\s*2|deleted 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText('E2E Bulk Draft A')).toHaveCount(0)
+    await expect(page.getByText('E2E Bulk Draft B')).toHaveCount(0)
+  })
+})

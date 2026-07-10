@@ -1,19 +1,20 @@
-# HandymanOS AI — Release 1.6.0
+# HandymanOS AI — Release 1.6.1
 
-Report profit/financial PDF i18n, jobs on-hold tab, and customer portal EN approve/decline on **1.5.7**.
+Report expenses PDF i18n and jobs bulk delete on **1.6.0**.
 
-## What's new in 1.6.0
+## What's new in 1.6.1
 
-- Jobs **On Hold** filter tab with `jobs-tab-on-hold`
-- Report PDF i18n E2E for profit and financial tabs
-- Customer portal English approve/decline estimate E2E
-- `seedOnHoldJob()` and `resetEstimateStatus()` E2E helpers
-- E2E: 127 tests total across 30 spec files
+- Report PDF **expenses** tab export with localized category labels
+- `reports-tab-expenses` testid for E2E
+- Jobs **bulk delete** action with `jobs-bulk-delete` button
+- `useBulkDeleteJobs()` hook via `deleteEntity`
+- E2E: expenses PDF i18n (RU/EN), bulk delete draft jobs
+- E2E: **130** tests total across 30 spec files
 
 ## Test coverage
 
 - Unit: **83**
-- E2E: **127** (30 spec files)
+- E2E: **130** (30 spec files)
 
 ## Deploy
 
@@ -22,10 +23,10 @@ npm run verify:production
 npm run test:e2e
 
 git checkout main
-git merge cursor/phase-64-profit-pdf-on-hold-1b4a
+git merge cursor/phase-65-expenses-pdf-bulk-delete-1b4a
 git push origin main
 ```
 
 ## Merge chain
 
-`#24` → … → `#56` → **#57**
+`#24` → … → `#57` → **#58**

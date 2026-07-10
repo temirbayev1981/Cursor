@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.6.1] — 2026-07-10
+
+Report expenses PDF i18n and jobs bulk delete.
+
+### Phase 65 — Expenses PDF & bulk delete
+- Report PDF expenses tab export with localized Labor/Materials/Fuel labels
+- `reports-tab-expenses` testid
+- Jobs bulk delete with `jobs-bulk-delete` and `useBulkDeleteJobs()`
+- E2E: expenses PDF i18n, bulk delete draft jobs
+
 ## [1.6.0] — 2026-07-10
 
 Report profit/financial PDF i18n, jobs on-hold tab, portal EN approve/decline.

@@ -203,6 +203,8 @@ export const ru = {
     bulkScheduled: 'Запланировано заказов: {count}',
     bulkCancel: 'Отменить',
     bulkCancelled: 'Отменено заказов: {count}',
+    bulkDelete: 'Удалить',
+    bulkDeleted: 'Удалено заказов: {count}',
     onHold: 'Приостановленные',
     cancelled: 'Отменённые',
   },
