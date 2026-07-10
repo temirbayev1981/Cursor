@@ -215,7 +215,10 @@ export async function setPageOnline(page: Page, context: BrowserContext) {
 }
 
 export async function clearNotificationQueue(page: Page) {
-  await page.evaluate(() => localStorage.removeItem('handymanos_notification_queue'))
+  await page.evaluate(() => {
+    localStorage.removeItem('handymanos_notification_queue')
+    localStorage.removeItem('handymanos_notification_skip_log')
+  })
 }
 
 /** Seeds a draft invoice for send-flow E2E. */

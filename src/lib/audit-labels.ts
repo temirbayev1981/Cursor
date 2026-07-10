@@ -145,6 +145,9 @@ export const NOTIFY_SKIPPED_TOAST_AUDIT = true as const
 /** Portal notification preference changes sync to staff CRM customer record. */
 export const PORTAL_STAFF_NOTIFY_SYNC_AUDIT = true as const
 
+/** Notification hub records and filters customer opt-out skips. */
+export const NOTIFICATION_HUB_SKIP_LOG_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }

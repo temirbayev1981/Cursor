@@ -86,8 +86,9 @@ if (process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_ANON_KEY) {
 console.log('\nOperator checklist:')
 console.log('1. Settings → System — platform audit score ≥ 8.5')
 console.log('2. Settings → Integrations — Refresh probes, verify Live badges')
-console.log('3. Settings → System — review probe history and notification queue')
-console.log('4. POST_RELEASE.md — GitHub Secrets and Edge Function secrets')
+console.log('3. Settings → System — review probe history, notification queue, and skipped opt-out log')
+console.log('4. smoke:supabase — portal_get/update_notification_preferences RPCs')
+console.log('5. POST_RELEASE.md — GitHub Secrets and Edge Function secrets')
 
 if (!ok) {
   console.error('\nOperator readiness check failed')

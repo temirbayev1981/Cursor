@@ -1,11 +1,17 @@
 import { getNotificationEndpoint, getSmsEndpoint } from '@/lib/env'
 import { getSupabaseAuthHeaders } from '@/lib/supabase'
 import { customerAllowsNotification } from '@/lib/customer-notification-prefs'
+import {
+  getNotificationSkipLog,
+  recordNotificationSkip,
+} from '@/lib/notification-skip-log'
 import type { Customer } from '@/types'
 
 export type NotificationChannel = 'email' | 'sms' | 'push'
 export type NotificationDeliveryStatus = 'queued' | 'sent' | 'failed'
-export type NotificationHubFilter = 'all' | NotificationChannel
+export type NotificationHubFilter = 'all' | NotificationChannel | 'skipped'
+
+export { getNotificationSkipLog, clearNotificationSkipLog } from '@/lib/notification-skip-log'
 
 type NotificationLocale = 'en' | 'ru'
 
@@ -154,6 +160,16 @@ export async function sendNotification(payload: NotificationPayload): Promise<No
   return { ok: true, queued: true }
 }
 
+function skipCustomerEmail(
+  to: string,
+  subject: string,
+  body: string,
+  metadata?: Record<string, string>,
+): NotificationResult {
+  recordNotificationSkip({ to, channel: 'email', subject, body, metadata })
+  return { ok: true, queued: false, skipped: true }
+}
+
 export async function notifyJobScheduled(
   customerEmail: string,
   jobTitle: string,
@@ -161,10 +177,15 @@ export async function notifyJobScheduled(
   customerId?: string,
   customer?: Pick<Customer, 'notification_preferences'>,
 ) {
-  if (customerId && !customerAllowsNotification(customerId, 'email', customer)) {
-    return { ok: true, queued: false, skipped: true }
-  }
   const tpl = notifyTemplates()
+  if (customerId && !customerAllowsNotification(customerId, 'email', customer)) {
+    return skipCustomerEmail(
+      customerEmail,
+      tpl.jobScheduledSubject(jobTitle),
+      tpl.jobScheduledBody(jobTitle, date),
+      { type: 'job_scheduled', customer_id: customerId },
+    )
+  }
   return sendNotification({
     to: customerEmail,
     subject: tpl.jobScheduledSubject(jobTitle),
@@ -181,10 +202,15 @@ export async function notifyCustomerEta(
   customerId?: string,
   customer?: Pick<Customer, 'notification_preferences'>,
 ) {
-  if (customerId && !customerAllowsNotification(customerId, 'email', customer)) {
-    return { ok: true, queued: false, skipped: true }
-  }
   const tpl = notifyTemplates()
+  if (customerId && !customerAllowsNotification(customerId, 'email', customer)) {
+    return skipCustomerEmail(
+      customerEmail,
+      tpl.jobEtaSubject(jobTitle),
+      tpl.jobEtaBody(jobTitle, eta),
+      { type: 'job_eta', customer_id: customerId },
+    )
+  }
   return sendNotification({
     to: customerEmail,
     subject: tpl.jobEtaSubject(jobTitle),
@@ -201,10 +227,15 @@ export async function notifyInvoiceSent(
   customerId?: string,
   customer?: Pick<Customer, 'notification_preferences'>,
 ) {
-  if (customerId && !customerAllowsNotification(customerId, 'email', customer)) {
-    return { ok: true, queued: false, skipped: true }
-  }
   const tpl = notifyTemplates()
+  if (customerId && !customerAllowsNotification(customerId, 'email', customer)) {
+    return skipCustomerEmail(
+      customerEmail,
+      tpl.invoiceSentSubject(invoiceNumber),
+      tpl.invoiceSentBody(invoiceNumber, amount),
+      { type: 'invoice_sent', customer_id: customerId },
+    )
+  }
   return sendNotification({
     to: customerEmail,
     subject: tpl.invoiceSentSubject(invoiceNumber),
@@ -221,10 +252,15 @@ export async function notifyEstimateSent(
   customerId?: string,
   customer?: Pick<Customer, 'notification_preferences'>,
 ) {
-  if (customerId && !customerAllowsNotification(customerId, 'email', customer)) {
-    return { ok: true, queued: false, skipped: true }
-  }
   const tpl = notifyTemplates()
+  if (customerId && !customerAllowsNotification(customerId, 'email', customer)) {
+    return skipCustomerEmail(
+      customerEmail,
+      tpl.estimateSentSubject(title),
+      tpl.estimateSentBody(title, total),
+      { type: 'estimate_sent', customer_id: customerId },
+    )
+  }
   return sendNotification({
     to: customerEmail,
     subject: tpl.estimateSentSubject(title),
@@ -278,6 +314,7 @@ export function getNotificationQueueStats() {
     queued: queue.filter((i) => i.status === 'queued').length,
     failed: queue.filter((i) => i.status === 'failed').length,
     sent: queue.filter((i) => i.status === 'sent').length,
+    skipped: getNotificationSkipLog().length,
   }
 }
 

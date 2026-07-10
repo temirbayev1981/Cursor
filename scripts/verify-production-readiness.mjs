@@ -302,6 +302,29 @@ if (auditLabels.includes('PORTAL_STAFF_NOTIFY_SYNC_AUDIT = true')) {
   ok = false
 }
 
+if (auditLabels.includes('NOTIFICATION_HUB_SKIP_LOG_AUDIT = true')) {
+  console.log('✓ NOTIFICATION_HUB_SKIP_LOG_AUDIT gate enabled')
+} else {
+  console.log('✗ NOTIFICATION_HUB_SKIP_LOG_AUDIT must be true')
+  ok = false
+}
+
+const skipLogModule = readFileSync('src/lib/notification-skip-log.ts', 'utf8')
+if (skipLogModule.includes('recordNotificationSkip') && skipLogModule.includes('handymanos_notification_skip_log')) {
+  console.log('✓ notification-skip-log module persists opt-out skips')
+} else {
+  console.log('✗ notification-skip-log module must persist opt-out skips')
+  ok = false
+}
+
+const hubPanel = readFileSync('src/components/settings/notification-hub-panel.tsx', 'utf8')
+if (hubPanel.includes('notification-hub-filter-skipped') && hubPanel.includes('getNotificationSkipLog')) {
+  console.log('✓ notification hub exposes skipped filter tab')
+} else {
+  console.log('✗ notification hub must expose skipped filter tab')
+  ok = false
+}
+
 const customerForm = readFileSync('src/components/forms/customer-form.tsx', 'utf8')
 if (customerForm.includes('customer-form-notify-email') && customerForm.includes('notification_preferences')) {
   console.log('✓ customer form exposes notification preference toggles')
