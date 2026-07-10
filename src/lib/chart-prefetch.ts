@@ -4,7 +4,6 @@ let chartBundlesPrefetched = false
 export function prefetchChartBundles(): void {
   if (chartBundlesPrefetched || typeof window === 'undefined') return
   chartBundlesPrefetched = true
-  void import('recharts')
-  void import('@/pages/dashboard')
-  void import('@/pages/reports')
+  void import('@/components/charts/dashboard-charts')
+  void import('@/components/charts/reports-recharts')
 }

@@ -39,6 +39,7 @@ npm run smoke:supabase       # needs live Supabase in .env.local
 
 - Push to `main` runs **Deploy** workflow (verify → lint → test → E2E → Pages)
 - **Supabase smoke** runs in CI on `main` and nightly (`supabase-smoke.yml`); fails when secrets are set and smoke fails
+- **Live E2E smoke** runs nightly (`nightly-live-e2e.yml` at 07:00 UTC) when Supabase secrets are set
 - Manual smoke: **Actions → Supabase smoke → Run workflow**
 
 ## 5. First login in production
@@ -54,14 +55,14 @@ npm run smoke:supabase       # needs live Supabase in .env.local
 
 ## 7. Tags and rollback
 
-Current release tag: **`v1.13.3`**
+Current release tag: **`v1.13.4`**
 
 ```bash
-git tag -a v1.13.3 -m "HandymanOS AI 1.13.3"
-git push origin v1.13.3
+git tag -a v1.13.4 -m "HandymanOS AI 1.13.4"
+git push origin v1.13.4
 ```
 
-Rollback: `git checkout v1.13.3` or reset `main` to a prior tag (team policy).
+Rollback: `git checkout v1.13.4` or reset `main` to a prior tag (team policy).
 
 ## 8. Close stale PRs
 

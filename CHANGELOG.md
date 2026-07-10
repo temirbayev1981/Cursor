@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.13.4] — 2026-07-10
+
+Lazy recharts chunks and live-backend E2E smoke.
+
+### Phase 130 — Lazy recharts & live E2E
+- Dashboard and reports pages lazy-load recharts via `dashboard-charts` and `reports-recharts` chunks
+- `chart-prefetch.ts` warms lazy chart modules after app shell load
+- `playwright.live.config.ts` + `live-backend-smoke.spec.ts` for nightly live Supabase E2E
+- verify-production: lazy chart chunk gates and live E2E workflow checks
+- **230** E2E tests (mock), **3** live smoke tests (nightly when secrets set), **168** unit tests
+
 ## [1.13.3] — 2026-07-10
 
 Chart prefetch and registry-driven E2E sync.
