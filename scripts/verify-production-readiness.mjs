@@ -280,10 +280,32 @@ if (auditLabels.includes('TECH_OFFLINE_SYNC_AUDIT = true')) {
   ok = false
 }
 
-if (auditLabels.includes('FIELD_OPS_MILESTONE_AUDIT = true')) {
-  console.log('✓ FIELD_OPS_MILESTONE_AUDIT gate enabled')
+if (auditLabels.includes('FIELD_OPS_MILESTONE_AUDIT =')) {
+  console.log('✓ FIELD_OPS_MILESTONE_AUDIT gate computed from sub-gates')
 } else {
-  console.log('✗ FIELD_OPS_MILESTONE_AUDIT must be true')
+  console.log('✗ FIELD_OPS_MILESTONE_AUDIT must be computed from sub-gates')
+  ok = false
+}
+
+const billingService = readFileSync('src/services/billing-service.ts', 'utf8')
+if (billingService.includes('STRIPE_WEBHOOK_AUDIT = true')) {
+  console.log('✓ STRIPE_WEBHOOK_AUDIT gate enabled')
+} else {
+  console.log('✗ STRIPE_WEBHOOK_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('AUDIT_I18N_COVERAGE = AUDIT_ACTION_COUNT >= 40')) {
+  console.log('✓ AUDIT_I18N_COVERAGE gate enabled')
+} else {
+  console.log('✗ AUDIT_I18N_COVERAGE must derive from AUDIT_ACTION_COUNT')
+  ok = false
+}
+
+if (auditLabels.includes('INTEGRATION_PROBES_AUDIT = true')) {
+  console.log('✓ INTEGRATION_PROBES_AUDIT gate enabled')
+} else {
+  console.log('✗ INTEGRATION_PROBES_AUDIT must be true')
   ok = false
 }
 
@@ -857,6 +879,16 @@ if (
   && settingsE2e.includes('platform-audit-check-dispatch_audit')
   && settingsE2e.includes('platform-audit-check-tech_offline_sync_audit')
   && settingsE2e.includes('platform-audit-check-field_ops_milestone_audit')
+) {
+  console.log('✓ core field-ops audit E2E coverage present')
+} else {
+  console.log('✗ core field-ops audit E2E visibility required')
+  ok = false
+}
+
+if (
+  settingsE2e.includes('platform-audit-check-stripe_webhook_audit')
+  && settingsE2e.includes('platform-audit-check-audit_i18n')
   && settingsE2e.includes('platform-audit-check-onboarding_audit')
   && settingsE2e.includes('platform-audit-check-vendor_po_audit')
   && settingsE2e.includes('platform-audit-check-company_profile_audit')
@@ -872,9 +904,9 @@ if (
   && settingsE2e.includes('platform-audit-check-estimate_create_audit')
   && settingsE2e.includes('platform-audit-check-entity_update_audit')
 ) {
-  console.log('✓ field-ops milestone audit E2E coverage present')
+  console.log('✓ platform ops audit E2E coverage present')
 } else {
-  console.log('✗ field-ops milestone audit E2E visibility required')
+  console.log('✗ platform ops audit E2E visibility required')
   ok = false
 }
 

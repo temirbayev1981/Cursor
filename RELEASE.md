@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.12.6
+# HandymanOS AI — Release 1.13.0
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.12.6`**, current package **1.12.6**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.13.0`**, current package **1.13.0**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -130,6 +130,11 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Locale-aware notification templates; observability probe gate uses live results
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
+
+### 1.13.0 — Field-ops milestone wrap-up
+- `FIELD_OPS_MILESTONE_AUDIT` computed from core sub-gates (inventory, fleet, expense, fuel, dispatch, offline sync)
+- Settings exposes `stripe_webhook_audit` and `audit_i18n` checks
+- verify-production split: core field-ops vs platform-ops visibility
 
 ### 1.12.6 — Sample import, portal requests, estimate & entity audit visibility
 - Settings exposes `sample_import_audit`, `portal_requests_audit`, `estimate_create_audit`, `entity_update_audit`
