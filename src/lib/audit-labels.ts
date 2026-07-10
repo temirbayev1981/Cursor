@@ -76,6 +76,15 @@ export const VENDOR_PO_AUDIT = true as const
 /** Company profile updates write audit_logs. */
 export const COMPANY_PROFILE_AUDIT = true as const
 
+/** Customer portal actions write audit_logs. */
+export const PORTAL_AUDIT = true as const
+
+/** Multi-company switch writes audit_logs. */
+export const COMPANY_SWITCH_AUDIT = true as const
+
+/** Team invite acceptance writes audit_logs. */
+export const INVITE_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }

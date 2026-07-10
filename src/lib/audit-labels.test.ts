@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatAuditAction, isAuditActionKey, countUniqueAuditActions, COMPANY_PROFILE_AUDIT, DISPATCH_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, VENDOR_PO_AUDIT } from './audit-labels'
+import { formatAuditAction, isAuditActionKey, countUniqueAuditActions, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INVITE_AUDIT, PORTAL_AUDIT, VENDOR_PO_AUDIT } from './audit-labels'
 
 describe('audit-labels', () => {
   const labels = {
@@ -65,6 +65,16 @@ describe('audit-labels', () => {
     expect(isAuditActionKey('company.profile_update')).toBe(true)
     expect(VENDOR_PO_AUDIT).toBe(true)
     expect(COMPANY_PROFILE_AUDIT).toBe(true)
+  })
+
+  it('recognizes v1.8.6 portal and tenant audit gates', () => {
+    expect(isAuditActionKey('portal.estimate_approve')).toBe(true)
+    expect(isAuditActionKey('portal.invoice_payment')).toBe(true)
+    expect(isAuditActionKey('company.switch')).toBe(true)
+    expect(isAuditActionKey('invite.accept')).toBe(true)
+    expect(PORTAL_AUDIT).toBe(true)
+    expect(COMPANY_SWITCH_AUDIT).toBe(true)
+    expect(INVITE_AUDIT).toBe(true)
   })
 
   it('counts unique audit actions in log', () => {

@@ -1,5 +1,13 @@
 import { test, expect } from '@playwright/test'
-import { loginAsOwner, loginForOnboarding, openSettingsAuditTab, seedDraftJob, seedInProgressTechJob } from './helpers/auth'
+import {
+  loginAsOwner,
+  loginForOnboarding,
+  openSettingsAuditTab,
+  resetEstimateStatus,
+  seedDraftJob,
+  seedInProgressTechJob,
+  seedPortalCustomerInvoice,
+} from './helpers/auth'
 
 test.describe('Expanded audit log E2E', () => {
   test.beforeEach(async ({ page }) => {
@@ -259,6 +267,96 @@ test.describe('Vendor PO audit E2E', () => {
     await openSettingsAuditTab(page)
     await expect(page.locator('[data-audit-action="emergency_alert"]').first()).toBeVisible({ timeout: 10000 })
     await expect(page.getByText(/аварийный vendor po|emergency vendor po alert/i).first()).toBeVisible()
+  })
+})
+
+test.describe('Portal audit E2E', () => {
+  test('portal estimate approve appears in audit log', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await resetEstimateStatus(page, 'est-004', 'sent')
+    await page.evaluate(() => {
+      sessionStorage.setItem('handymanos_portal_session', JSON.stringify({
+        customerId: 'cust-002',
+        companyId: 'comp-001',
+        portalType: 'customer',
+        customerName: 'Sarah Johnson',
+        expiresAt: Date.now() + 30 * 86400000,
+        token: 'e2e-portal-customer-token',
+      }))
+    })
+    await page.goto('/portal/customer')
+    await page.getByTestId('portal-estimate-approve-est-004').click()
+    await expect(page.getByText(/утверждена|approved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="portal.estimate_approve"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/смета утверждена в портале|portal estimate approved/i).first()).toBeVisible()
+  })
+
+  test('portal invoice payment appears in audit log', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await seedPortalCustomerInvoice(page)
+    await page.evaluate(() => {
+      sessionStorage.setItem('handymanos_portal_session', JSON.stringify({
+        customerId: 'cust-002',
+        companyId: 'comp-001',
+        portalType: 'customer',
+        customerName: 'Sarah Johnson',
+        expiresAt: Date.now() + 30 * 86400000,
+        token: 'e2e-portal-customer-token',
+      }))
+    })
+    await page.goto('/portal/customer')
+    await page.getByTestId('invoice-pay-inv-portal-e2e').click()
+    await expect(page.getByTestId('invoice-pay-inv-portal-e2e')).not.toBeVisible({ timeout: 15000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="portal.invoice_payment"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/оплата счёта в портале|portal invoice payment/i).first()).toBeVisible()
+  })
+})
+
+test.describe('Tenant audit E2E', () => {
+  test('company switch appears in audit log', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await page.goto('/dashboard')
+    const switcher = page.getByRole('combobox')
+    await switcher.click()
+    await page.getByRole('option', { name: /Sunrise Property Services/i }).click()
+    await expect(page.getByText(/компания переключена|company switched/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="company.switch"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/переключение компании|active company switched/i).first()).toBeVisible()
+  })
+
+  test('invite accept appears in audit log', async ({ page }) => {
+    const inviteToken = 'audit-invite-accept-e2e'
+    await page.addInitScript((token) => {
+      const invite = {
+        id: 'inv-audit-e2e',
+        company_id: 'comp-002',
+        email: 'owner@profixhandyman.com',
+        role: 'admin',
+        token,
+        expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
+        created_at: new Date().toISOString(),
+      }
+      localStorage.setItem('handymanos_team_invites', JSON.stringify([invite]))
+      localStorage.setItem('__e2e_supabase__team_invites', JSON.stringify([invite]))
+      localStorage.setItem('handymanos_onboarding', 'complete')
+    }, inviteToken)
+
+    await page.goto(`/login?invite=${inviteToken}`)
+    await page.getByRole('tab', { name: /вход|sign in/i }).click()
+    await page.locator('input[type="email"]').fill('owner@profixhandyman.com')
+    await page.locator('input[type="password"]').fill('demo1234')
+    await page.getByRole('button', { name: /войти|sign in/i }).click()
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="invite.accept"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/приглашение принято|invite accepted/i).first()).toBeVisible()
   })
 })
 

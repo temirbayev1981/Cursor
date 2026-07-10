@@ -1,7 +1,7 @@
 import { hasSupabase, isE2eMockBackend } from '@/lib/env'
 import { computePlatformHealth } from '@/lib/platform-health'
 import { TYPED_SUPABASE_QUERIES } from '@/lib/supabase-queries'
-import { AUDIT_I18N_COVERAGE, COMPANY_PROFILE_AUDIT, DISPATCH_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, VENDOR_PO_AUDIT } from '@/lib/audit-labels'
+import { AUDIT_I18N_COVERAGE, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INVITE_AUDIT, PORTAL_AUDIT, VENDOR_PO_AUDIT } from '@/lib/audit-labels'
 import { MULTI_TENANT_SUPPORTED, MULTI_TENANT_MEMBERSHIP_RPC } from '@/services/company-service'
 import { PORTAL_RPC_ENFORCED } from '@/services/portal-data-service'
 import { STRIPE_WEBHOOK_AUDIT } from '@/services/billing-service'
@@ -62,6 +62,9 @@ export function computePlatformAudit(): PlatformAuditReport {
     { id: 'dispatch_audit', label: 'Dispatch audit logging', ok: liveBackend && DISPATCH_AUDIT, weight: 0.5 },
     { id: 'vendor_po_audit', label: 'Vendor PO audit logging', ok: liveBackend && VENDOR_PO_AUDIT, weight: 0.5 },
     { id: 'company_profile_audit', label: 'Company profile audit logging', ok: liveBackend && COMPANY_PROFILE_AUDIT, weight: 0.5 },
+    { id: 'portal_audit', label: 'Portal audit logging', ok: liveBackend && PORTAL_AUDIT, weight: 0.5 },
+    { id: 'company_switch_audit', label: 'Company switch audit logging', ok: liveBackend && COMPANY_SWITCH_AUDIT, weight: 0.5 },
+    { id: 'invite_audit', label: 'Invite accept audit logging', ok: liveBackend && INVITE_AUDIT, weight: 0.5 },
     { id: 'multi_tenant', label: 'Multi-company membership', ok: liveBackend && MULTI_TENANT_SUPPORTED && Boolean(MULTI_TENANT_MEMBERSHIP_RPC), weight: 0.5 },
   ]
 

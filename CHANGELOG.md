@@ -2,6 +2,14 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.8.6] — 2026-07-10
+
+Portal and tenant audit E2E.
+
+### Phase 88 — Portal & tenant audit
+- Platform audit: `portal_audit`, `company_switch_audit`, `invite_audit` gates
+- E2E: portal estimate approve, portal invoice payment, company switch, invite accept → audit log
+
 ## [1.8.5] — 2026-07-10
 
 Vendor PO and company profile audit E2E.

@@ -30,6 +30,10 @@ No schema changes required. Update frontend deploy and optional:
 - `npm run smoke:supabase` (expanded table/RPC checks)
 - Stripe webhook redeploy if using `stripe-webhook` audit logging
 
+## From 1.8.5 → 1.8.6
+
+No schema changes. Portal and tenant audit E2E; platform audit gates.
+
 ## From 1.8.4 → 1.8.5
 
 No schema changes. Vendor PO and company profile audit E2E; platform audit gates.
