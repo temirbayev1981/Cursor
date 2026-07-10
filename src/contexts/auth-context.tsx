@@ -5,7 +5,7 @@ import { DEMO_COMPANY } from '@/data/mock-data'
 import { getStoredCompany, persistOnboarding } from '@/services/onboarding-service'
 import { registerUserWithCompany, loadUserSession, markOnboardingCompleteForInvitedMember, resolveOnboardingState } from '@/services/auth-service'
 import { type PostAuthState } from '@/lib/permissions'
-import { resolveActiveCompany, setActiveCompany, registerCompany, listAccessibleCompanies } from '@/services/company-service'
+import { resolveActiveCompany, setActiveCompany, registerCompany, listAccessibleCompanies, syncActiveCompanyToProfile } from '@/services/company-service'
 import { logAudit } from '@/services/entity-service'
 import { setTechOnboardingPending } from '@/services/tech-onboarding-service'
 
@@ -169,6 +169,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setActiveCompany(nextCompany)
     setCompany(nextCompany)
     setUser({ ...user, company_id: companyId })
+
+    if (!DEMO_MODE) {
+      await syncActiveCompanyToProfile(user.id, companyId)
+    }
+
     await logAudit(companyId, user.id, 'company.switch', 'company', companyId)
   }
 

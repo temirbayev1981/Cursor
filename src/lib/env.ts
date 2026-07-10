@@ -12,6 +12,7 @@ const envSchema = z.object({
   VITE_NOTIFICATION_WEBHOOK_URL: z.string().optional(),
   VITE_SMS_WEBHOOK_URL: z.string().optional(),
   VITE_SENTRY_DSN: z.string().optional(),
+  VITE_ERROR_WEBHOOK_URL: z.string().optional(),
 })
 
 export const env = envSchema.parse(import.meta.env)

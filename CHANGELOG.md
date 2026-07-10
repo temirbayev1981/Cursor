@@ -4,6 +4,14 @@ All notable changes to HandymanOS AI are documented here.
 
 ## [Unreleased]
 
+### Phase 25 — P2 polish (audit follow-up)
+- `switchCompany` syncs `profiles.company_id` to Supabase in production
+- Offline sync returns `false` for unknown queue actions
+- Error boundary i18n (EN/RU via locale storage)
+- Vite manual chunks: recharts, pdfjs, xlsx, supabase
+- Sentry DSN proper store API; optional `VITE_ERROR_WEBHOOK_URL`
+- Edge rate limits keyed by user + client IP; bucket cleanup
+
 ### Security & portal hardening (audit fixes)
 - Portal RPCs: `get_portal_estimates/invoices/jobs`, `portal_update_estimate_status`, `portal_submit_job_request`
 - Portal validation RPC-first in production (no localStorage bypass)

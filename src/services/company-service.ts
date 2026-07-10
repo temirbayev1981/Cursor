@@ -2,6 +2,7 @@ import type { Company, Profile } from '@/types'
 import { DEMO_COMPANY, DEMO_COMPANY_B } from '@/data/mock-data'
 import { getStoredCompany } from '@/services/onboarding-service'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { updateRows } from '@/lib/supabase-queries'
 
 const REGISTRY_KEY = 'handymanos_company_registry'
 const ACTIVE_COMPANY_KEY = 'handymanos_active_company'
@@ -53,6 +54,14 @@ export function setActiveCompany(company: Company): void {
 
 export function getActiveCompanyId(): string | null {
   return localStorage.getItem(ACTIVE_COMPANY_KEY)
+}
+
+/** Persist active company to Supabase profile (demo switcher uses local registry only). */
+export async function syncActiveCompanyToProfile(profileId: string, companyId: string): Promise<void> {
+  if (DEMO_MODE || !supabase) return
+
+  const { error } = await updateRows('profiles', { company_id: companyId }, 'id', profileId)
+  if (error) throw error
 }
 
 export async function fetchAccessibleCompanies(profile?: Profile | null): Promise<Company[]> {

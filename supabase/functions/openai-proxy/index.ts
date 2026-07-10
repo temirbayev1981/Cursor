@@ -5,7 +5,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { handleCors, jsonResponse } from '../_shared/cors.ts'
 import { verifyAuth } from '../_shared/auth.ts'
-import { checkRateLimit, rateLimitResponse } from '../_shared/rate-limit.ts'
+import { checkRateLimit, clientRateLimitKey, rateLimitResponse } from '../_shared/rate-limit.ts'
 
 serve(async (req) => {
   const cors = handleCors(req)
@@ -17,7 +17,7 @@ serve(async (req) => {
       return jsonResponse({ error: 'Unauthorized' }, 401)
     }
 
-    const rate = checkRateLimit(`openai:${auth.userId}`, 20)
+    const rate = checkRateLimit(`openai:${clientRateLimitKey(req, auth.userId)}`, 20)
     if (!rate.ok) return rateLimitResponse(rate.retryAfter ?? 60)
 
     const openaiKey = Deno.env.get('OPENAI_API_KEY')

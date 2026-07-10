@@ -47,6 +47,9 @@ export const en: TranslationKeys = {
     perMonth: '/mo',
     step: 'Step',
     of: 'of',
+    errorTitle: 'Something went wrong',
+    errorUnknown: 'Unknown error',
+    reload: 'Reload',
   },
   nav: {
     dashboard: 'Dashboard',

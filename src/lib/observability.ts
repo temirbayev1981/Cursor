@@ -19,21 +19,58 @@ function saveReport(report: ErrorReport) {
   }
 }
 
-async function sendToWebhook(report: ErrorReport) {
-  const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined
-  if (!dsn) return
+function parseSentryDsn(dsn: string): { storeUrl: string; publicKey: string } | null {
+  try {
+    const url = new URL(dsn)
+    const publicKey = url.username
+    const projectId = url.pathname.replace(/^\//, '')
+    if (!publicKey || !projectId) return null
+    return {
+      storeUrl: `${url.protocol}//${url.host}/api/${projectId}/store/`,
+      publicKey,
+    }
+  } catch {
+    return null
+  }
+}
+
+async function sendToSentry(report: ErrorReport, dsn: string) {
+  const parsed = parseSentryDsn(dsn)
+  if (!parsed) return
 
   try {
-    await fetch(dsn, {
+    await fetch(parsed.storeUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Sentry-Auth': `Sentry sentry_version=7, sentry_client=handymanos/1.0, sentry_key=${parsed.publicKey}`,
+      },
       body: JSON.stringify({
-        event_id: crypto.randomUUID(),
+        event_id: crypto.randomUUID().replace(/-/g, ''),
         timestamp: report.timestamp,
+        platform: 'javascript',
         message: report.message,
-        exception: { values: [{ type: 'Error', value: report.message, stacktrace: report.stack }] },
+        exception: {
+          values: [{
+            type: 'Error',
+            value: report.message,
+            stacktrace: report.stack ? { frames: [{ filename: report.url, function: '?' }] } : undefined,
+          }],
+        },
         request: { url: report.url },
       }),
+    })
+  } catch {
+    // silent fail for observability
+  }
+}
+
+async function sendToWebhook(report: ErrorReport, webhookUrl: string) {
+  try {
+    await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(report),
     })
   } catch {
     // silent fail for observability
@@ -52,7 +89,12 @@ export function captureError(error: Error, componentStack?: string) {
   if (import.meta.env.DEV) {
     console.error('[Observability]', report)
   }
-  void sendToWebhook(report)
+
+  const sentryDsn = import.meta.env.VITE_SENTRY_DSN as string | undefined
+  const webhookUrl = import.meta.env.VITE_ERROR_WEBHOOK_URL as string | undefined
+
+  if (sentryDsn) void sendToSentry(report, sentryDsn)
+  else if (webhookUrl) void sendToWebhook(report, webhookUrl)
 }
 
 export function initObservability() {

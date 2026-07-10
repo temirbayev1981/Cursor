@@ -45,6 +45,9 @@ export const ru = {
     perMonth: '/мес',
     step: 'Шаг',
     of: 'из',
+    errorTitle: 'Что-то пошло не так',
+    errorUnknown: 'Неизвестная ошибка',
+    reload: 'Перезагрузить',
   },
   nav: {
     dashboard: 'Панель',

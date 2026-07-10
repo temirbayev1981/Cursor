@@ -88,5 +88,5 @@ export async function applyOfflineAction(
     return true
   }
 
-  return true
+  return false
 }
