@@ -196,6 +196,9 @@ export const ru = {
     bulkStatus: 'Новый статус',
     bulkApply: 'Применить',
     bulkUpdated: 'Обновлено заказов: {count}',
+    bulkTechnician: 'Мастер',
+    bulkAssign: 'Назначить',
+    bulkAssigned: 'Назначено мастеров: {count}',
   },
   workOrders: {
     title: 'Наряды',
@@ -484,6 +487,12 @@ export const ru = {
     expenses: 'Расходы',
     expenseBreakdown: 'Структура расходов',
     vsPrevious: 'к пред. периоду',
+    pdf: {
+      revenueByMonth: 'Выручка по месяцам',
+      month: 'Месяц',
+      name: 'Имя',
+      service: 'Услуга',
+    },
   },
   ai: {
     title: 'ИИ-бизнес-помощник',

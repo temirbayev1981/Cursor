@@ -1,18 +1,17 @@
-# HandymanOS AI — Release 1.5.3
+# HandymanOS AI — Release 1.5.4
 
-Estimate PDF i18n and jobs bulk actions on **1.5.2**.
+Report PDF i18n, bulk technician assign, and portal pay on **1.5.3**.
 
-## What's new in 1.5.3
+## What's new in 1.5.4
 
-- Localized estimate PDF export (Russian and English labels)
-- Jobs bulk status updates with checkbox selection and apply bar
-- `useBulkUpdateJobStatus()` for batch job status changes
-- E2E: estimate PDF i18n, jobs bulk schedule + select-all (105 tests total)
+- Localized report PDF export (Russian and English labels)
+- Jobs bulk technician assignment bar with `useBulkAssignTechnician()`
+- E2E: report PDF i18n, bulk assign, customer portal demo pay (109 tests total)
 
 ## Test coverage
 
 - Unit: **83**
-- E2E: **105** (28 spec files)
+- E2E: **109** (29 spec files)
 
 ## Deploy
 
@@ -21,10 +20,10 @@ npm run verify:production
 npm run test:e2e
 
 git checkout main
-git merge cursor/phase-59-estimate-i18n-jobs-bulk-1b4a
+git merge cursor/phase-60-report-i18n-portal-bulk-1b4a
 git push origin main
 ```
 
 ## Merge chain
 
-`#24` → … → `#51` → **#52**
+`#24` → … → `#52` → **#53**

@@ -106,11 +106,30 @@ export default function ReportsPage() {
   }
 
   const handleExportPdf = () => {
+    const pdfLabels = {
+      jobs: t.nav.jobs,
+      revenue: t.dashboard.revenue,
+      profit: t.reports.netProfit,
+      margin: t.reports.margin,
+      revenueByMonth: t.reports.pdf.revenueByMonth,
+      month: t.reports.pdf.month,
+      technicianPerformance: t.reports.techPerformance,
+      name: t.reports.pdf.name,
+      efficiency: t.reports.efficiency,
+      serviceProfitability: t.reports.serviceProfit,
+      service: t.reports.pdf.service,
+      customers: t.reports.customers,
+      customer: t.customers.customer,
+      jobProfitability: t.reports.profit,
+      job: t.jobs.job,
+      costs: t.reports.costs,
+    }
     exportReportPdf({
       title: t.reports.title,
       dateRangeLabel,
       activeTab: tabLabels[activeTab],
       summary,
+      labels: pdfLabels,
       revenueChart: activeTab === 'financial' ? revenueChart : undefined,
       technicians: activeTab === 'technicians' ? techChart : undefined,
       services: activeTab === 'services' ? serviceChart : undefined,

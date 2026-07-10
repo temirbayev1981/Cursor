@@ -2,6 +2,15 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.5.4] — 2026-07-10
+
+Localized report PDF, jobs bulk technician assign, portal invoice pay E2E.
+
+### Phase 60 — Report i18n PDF, bulk assign & portal pay
+- Localized `exportReportPdf()` labels (RU/EN) via `t.reports.pdf`
+- Jobs bulk technician assignment with `useBulkAssignTechnician()`
+- E2E: report PDF i18n, bulk assign, portal demo pay (`reports-portal-bulk.spec.ts`)
+
 ## [1.5.3] — 2026-07-10
 
 Localized estimate PDF export and jobs bulk status actions.

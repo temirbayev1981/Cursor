@@ -211,3 +211,31 @@ export async function seedBulkDraftJobs(page: Page) {
   })
   await page.reload()
 }
+
+/** Seeds unpaid invoice for demo customer portal (cust-002). */
+export async function seedPortalCustomerInvoice(page: Page) {
+  await page.evaluate(() => {
+    const invoices = JSON.parse(localStorage.getItem('handymanos_invoices') || '[]') as Array<Record<string, unknown>>
+    const invoice = {
+      id: 'inv-portal-e2e',
+      company_id: 'comp-001',
+      customer_id: 'cust-002',
+      invoice_number: 'INV-PORTAL-E2E',
+      status: 'sent',
+      subtotal: 300,
+      tax: 24.75,
+      total: 324.75,
+      amount_paid: 0,
+      due_date: new Date(Date.now() + 14 * 86400000).toISOString(),
+      line_items: [
+        { id: 'li-portal-e2e', description: 'Portal E2E service', quantity: 1, unit_price: 300, total: 300, type: 'service' },
+      ],
+      created_at: new Date().toISOString(),
+    }
+    const idx = invoices.findIndex((i) => i.id === 'inv-portal-e2e')
+    if (idx >= 0) invoices[idx] = invoice
+    else invoices.push(invoice)
+    localStorage.setItem('handymanos_invoices', JSON.stringify(invoices))
+  })
+  await page.reload()
+}

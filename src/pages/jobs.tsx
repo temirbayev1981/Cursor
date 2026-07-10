@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/contexts/auth-context'
-import { useJobs, useCustomers, useEmployees, useSaveJob, useBulkUpdateJobStatus } from '@/hooks/use-entities'
+import { useJobs, useCustomers, useEmployees, useSaveJob, useBulkUpdateJobStatus, useBulkAssignTechnician } from '@/hooks/use-entities'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
@@ -30,6 +30,7 @@ export default function JobsPage() {
   const [showForm, setShowForm] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [bulkStatus, setBulkStatus] = useState<JobStatus>('scheduled')
+  const [bulkTechnicianId, setBulkTechnicianId] = useState('emp-002')
   const { company } = useAuth()
   const companyId = company?.id ?? 'comp-001'
   const { data: jobs = [], isLoading } = useJobs()
@@ -37,6 +38,9 @@ export default function JobsPage() {
   const { data: employees = [] } = useEmployees()
   const saveJob = useSaveJob()
   const bulkUpdateStatus = useBulkUpdateJobStatus()
+  const bulkAssignTechnician = useBulkAssignTechnician()
+
+  const activeTechnicians = employees.filter((e) => e.is_active && e.billing_rate > 0)
 
   const filtered = jobs.filter((job) => {
     const matchesSearch = job.title.toLowerCase().includes(search.toLowerCase())
@@ -65,6 +69,20 @@ export default function JobsPage() {
       }
       return next
     })
+  }
+
+  const handleBulkAssign = () => {
+    const selected = jobs.filter((job) => selectedIds.has(job.id))
+    if (selected.length === 0) return
+    bulkAssignTechnician.mutate(
+      { jobs: selected, technicianId: bulkTechnicianId },
+      {
+        onSuccess: () => {
+          toast.success(t.jobs.bulkAssigned.replace('{count}', String(selected.length)))
+          setSelectedIds(new Set())
+        },
+      },
+    )
   }
 
   const handleBulkApply = () => {
@@ -161,6 +179,27 @@ export default function JobsPage() {
           <Button size="sm" onClick={handleBulkApply} disabled={bulkUpdateStatus.isPending} data-testid="jobs-bulk-apply">
             {t.jobs.bulkApply}
           </Button>
+          <Select value={bulkTechnicianId} onValueChange={setBulkTechnicianId}>
+            <SelectTrigger className="w-48 h-9" data-testid="jobs-bulk-technician">
+              <SelectValue placeholder={t.jobs.bulkTechnician} />
+            </SelectTrigger>
+            <SelectContent>
+              {activeTechnicians.map((tech) => (
+                <SelectItem key={tech.id} value={tech.id}>
+                  {tech.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleBulkAssign}
+            disabled={bulkAssignTechnician.isPending}
+            data-testid="jobs-bulk-assign"
+          >
+            {t.jobs.bulkAssign}
+          </Button>
         </div>
       )}
 
@@ -187,7 +226,7 @@ export default function JobsPage() {
                   </div>
                 </DataTableCell>
                 <DataTableCell>{customer?.name}</DataTableCell>
-                <DataTableCell>{tech?.name || '—'}</DataTableCell>
+                <DataTableCell data-testid={`job-technician-${job.id}`}>{tech?.name || '—'}</DataTableCell>
                 <DataTableCell><JobStatusBadge status={job.status} /></DataTableCell>
                 <DataTableCell><PriorityBadge priority={job.priority} /></DataTableCell>
                 <DataTableCell className="font-medium">{formatCurrency(job.revenue)}</DataTableCell>

@@ -69,6 +69,25 @@ export function exportFinancialReport(
   exportFullReport(jobs, customers, [], filename)
 }
 
+export interface ReportPdfLabels {
+  jobs: string
+  revenue: string
+  profit: string
+  margin: string
+  revenueByMonth: string
+  month: string
+  technicianPerformance: string
+  name: string
+  efficiency: string
+  serviceProfitability: string
+  service: string
+  customers: string
+  customer: string
+  jobProfitability: string
+  job: string
+  costs: string
+}
+
 export interface ReportPdfData {
   title: string
   dateRangeLabel: string
@@ -86,6 +105,7 @@ export interface ReportPdfData {
     profit: number
     margin: number
   }>
+  labels: ReportPdfLabels
 }
 
 export function exportFullReport(
@@ -144,10 +164,11 @@ function escapeHtml(value: string): string {
 }
 
 export function exportReportPdf(data: ReportPdfData) {
+  const { labels } = data
   const rows: string[] = []
 
   if (data.revenueChart?.length) {
-    rows.push('<h2>Revenue by month</h2><table><tr><th>Month</th><th>Revenue</th><th>Profit</th></tr>')
+    rows.push(`<h2>${escapeHtml(labels.revenueByMonth)}</h2><table><tr><th>${escapeHtml(labels.month)}</th><th>${escapeHtml(labels.revenue)}</th><th>${escapeHtml(labels.profit)}</th></tr>`)
     for (const row of data.revenueChart) {
       rows.push(`<tr><td>${escapeHtml(row.name)}</td><td>$${(row.revenue ?? 0).toFixed(2)}</td><td>$${(row.profit ?? 0).toFixed(2)}</td></tr>`)
     }
@@ -155,7 +176,7 @@ export function exportReportPdf(data: ReportPdfData) {
   }
 
   if (data.technicians?.length) {
-    rows.push('<h2>Technician performance</h2><table><tr><th>Name</th><th>Revenue</th><th>Jobs</th><th>Efficiency</th></tr>')
+    rows.push(`<h2>${escapeHtml(labels.technicianPerformance)}</h2><table><tr><th>${escapeHtml(labels.name)}</th><th>${escapeHtml(labels.revenue)}</th><th>${escapeHtml(labels.jobs)}</th><th>${escapeHtml(labels.efficiency)}</th></tr>`)
     for (const row of data.technicians) {
       rows.push(`<tr><td>${escapeHtml(row.name)}</td><td>$${(row.revenue ?? 0).toFixed(2)}</td><td>${row.jobs ?? 0}</td><td>${row.efficiency ?? 0}%</td></tr>`)
     }
@@ -163,7 +184,7 @@ export function exportReportPdf(data: ReportPdfData) {
   }
 
   if (data.services?.length) {
-    rows.push('<h2>Service profitability</h2><table><tr><th>Service</th><th>Profit</th><th>Jobs</th></tr>')
+    rows.push(`<h2>${escapeHtml(labels.serviceProfitability)}</h2><table><tr><th>${escapeHtml(labels.service)}</th><th>${escapeHtml(labels.profit)}</th><th>${escapeHtml(labels.jobs)}</th></tr>`)
     for (const row of data.services) {
       rows.push(`<tr><td>${escapeHtml(row.name)}</td><td>$${(row.profit ?? 0).toFixed(2)}</td><td>${row.jobs ?? 0}</td></tr>`)
     }
@@ -171,7 +192,7 @@ export function exportReportPdf(data: ReportPdfData) {
   }
 
   if (data.customers?.length) {
-    rows.push('<h2>Customers</h2><table><tr><th>Customer</th><th>Revenue</th><th>Jobs</th></tr>')
+    rows.push(`<h2>${escapeHtml(labels.customers)}</h2><table><tr><th>${escapeHtml(labels.customer)}</th><th>${escapeHtml(labels.revenue)}</th><th>${escapeHtml(labels.jobs)}</th></tr>`)
     for (const customer of data.customers) {
       rows.push(`<tr><td>${escapeHtml(customer.name)}</td><td>$${customer.total_revenue.toFixed(2)}</td><td>${customer.job_count}</td></tr>`)
     }
@@ -179,7 +200,7 @@ export function exportReportPdf(data: ReportPdfData) {
   }
 
   if (data.profitJobs?.length) {
-    rows.push('<h2>Job profitability</h2><table><tr><th>Job</th><th>Customer</th><th>Revenue</th><th>Costs</th><th>Profit</th><th>Margin</th></tr>')
+    rows.push(`<h2>${escapeHtml(labels.jobProfitability)}</h2><table><tr><th>${escapeHtml(labels.job)}</th><th>${escapeHtml(labels.customer)}</th><th>${escapeHtml(labels.revenue)}</th><th>${escapeHtml(labels.costs)}</th><th>${escapeHtml(labels.profit)}</th><th>${escapeHtml(labels.margin)}</th></tr>`)
     for (const row of data.profitJobs) {
       rows.push(`<tr><td>${escapeHtml(row.title)}</td><td>${escapeHtml(row.customer)}</td><td>$${row.revenue.toFixed(2)}</td><td>$${row.costs.toFixed(2)}</td><td>$${row.profit.toFixed(2)}</td><td>${row.margin}%</td></tr>`)
     }
@@ -206,10 +227,10 @@ export function exportReportPdf(data: ReportPdfData) {
   <h1>${escapeHtml(data.title)}</h1>
   <p class="meta">${escapeHtml(data.dateRangeLabel)} · ${escapeHtml(data.activeTab)}</p>
   <div class="summary">
-    <div><strong>Jobs</strong><br>${data.summary.jobs}</div>
-    <div><strong>Revenue</strong><br>$${data.summary.revenue.toFixed(2)}</div>
-    <div><strong>Profit</strong><br>$${data.summary.profit.toFixed(2)}</div>
-    <div><strong>Margin</strong><br>${data.summary.margin}%</div>
+    <div><strong>${escapeHtml(labels.jobs)}</strong><br>${data.summary.jobs}</div>
+    <div><strong>${escapeHtml(labels.revenue)}</strong><br>$${data.summary.revenue.toFixed(2)}</div>
+    <div><strong>${escapeHtml(labels.profit)}</strong><br>$${data.summary.profit.toFixed(2)}</div>
+    <div><strong>${escapeHtml(labels.margin)}</strong><br>${data.summary.margin}%</div>
   </div>
   ${rows.join('\n')}
 </body>
@@ -391,6 +412,24 @@ export function exportReportPdfPlaceholder(title: string) {
     dateRangeLabel: 'All time',
     activeTab: 'Summary',
     summary: { jobs: 0, revenue: 0, profit: 0, margin: 0 },
+    labels: {
+      jobs: 'Jobs',
+      revenue: 'Revenue',
+      profit: 'Profit',
+      margin: 'Margin',
+      revenueByMonth: 'Revenue by month',
+      month: 'Month',
+      technicianPerformance: 'Technician performance',
+      name: 'Name',
+      efficiency: 'Efficiency',
+      serviceProfitability: 'Service profitability',
+      service: 'Service',
+      customers: 'Customers',
+      customer: 'Customer',
+      jobProfitability: 'Job profitability',
+      job: 'Job',
+      costs: 'Costs',
+    },
   })
 }
 

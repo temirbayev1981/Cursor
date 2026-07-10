@@ -198,6 +198,9 @@ export const en: TranslationKeys = {
     bulkStatus: 'New status',
     bulkApply: 'Apply',
     bulkUpdated: 'Updated {count} jobs',
+    bulkTechnician: 'Technician',
+    bulkAssign: 'Assign',
+    bulkAssigned: 'Assigned technician to {count} jobs',
   },
   workOrders: {
     title: 'Work Orders',
@@ -486,6 +489,12 @@ export const en: TranslationKeys = {
     expenses: 'Expenses',
     expenseBreakdown: 'Expense Breakdown',
     vsPrevious: 'vs previous period',
+    pdf: {
+      revenueByMonth: 'Revenue by month',
+      month: 'Month',
+      name: 'Name',
+      service: 'Service',
+    },
   },
   ai: {
     title: 'AI Business Assistant',
