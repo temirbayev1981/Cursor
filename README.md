@@ -54,7 +54,7 @@ npm run test:e2e
 
 Open [http://localhost:5173](http://localhost:5173) after configuring Supabase (see below).
 
-**Current version:** 1.7.4 — see [RELEASE.md](./RELEASE.md) and [CHANGELOG.md](./CHANGELOG.md).
+**Current version:** 1.7.5 — see [RELEASE.md](./RELEASE.md) and [CHANGELOG.md](./CHANGELOG.md).
 
 Copy `.env.example` to `.env.local` and set **Supabase** credentials (required). Add Stripe, maps, and notification webhooks for full production features.
 
@@ -119,9 +119,10 @@ See [CHANGELOG.md](./CHANGELOG.md) for release history. To merge the 1.7.x PR st
 | Platform audit | Settings → System (score ≥ 8.5 with live integrations) |
 | Deploy guide | [DEPLOYMENT.md](./DEPLOYMENT.md) |
 | Release checklist | [RELEASE.md](./RELEASE.md) |
-| Merge stacked PRs | [MERGE.md](./MERGE.md) |
+| Merge stacked PRs | [MERGE.md](./MERGE.md) (completed) |
+| Post-release ops | [POST_RELEASE.md](./POST_RELEASE.md) |
 
-Current version: **1.7.4**
+Current version: **1.7.5**
 
 ## Security
 

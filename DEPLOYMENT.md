@@ -302,6 +302,8 @@ Service worker (`public/sw.js`) is registered in production builds. Ensure your 
 
 ## Checklist
 
+See also [POST_RELEASE.md](./POST_RELEASE.md) for the full operator checklist after merging to `main`.
+
 - [ ] `npm run verify:production` passes locally
 - [ ] `supabase/schema.sql` applied
 - [ ] Sample data imported via Settings → System (or real data entered)

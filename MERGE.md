@@ -1,6 +1,9 @@
 # Merging the 1.7.x release stack
 
-HandymanOS AI **1.7.4** is delivered as a chain of stacked pull requests. Merge them **in order** into `main` so each PR builds on the previous one.
+> **Completed (2026-07-10):** stack merged to `main`, tag **`v1.7.4`**.  
+> For ongoing deploy steps, see [POST_RELEASE.md](./POST_RELEASE.md).
+
+HandymanOS AI **1.7.4** was delivered as a chain of stacked pull requests. The instructions below are kept for reference.
 
 ## PR order
 

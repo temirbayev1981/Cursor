@@ -31,6 +31,8 @@ jobs:
       - run: npm run verify:production
       - run: npm run lint
       - run: npm run test
+      - name: Resolve app version
+        run: echo "VITE_APP_VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_ENV"
       - name: Supabase smoke (optional)
         if: ${{ secrets.VITE_SUPABASE_URL != '' && secrets.VITE_SUPABASE_ANON_KEY != '' }}
         continue-on-error: true
@@ -51,7 +53,7 @@ jobs:
           VITE_SMS_WEBHOOK_URL: ${{ secrets.VITE_SMS_WEBHOOK_URL }}
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
           VITE_ERROR_WEBHOOK_URL: ${{ secrets.VITE_ERROR_WEBHOOK_URL }}
-          VITE_APP_VERSION: 1.7.4
+          VITE_APP_VERSION: ${{ env.VITE_APP_VERSION }}
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - uses: actions/upload-pages-artifact@v3

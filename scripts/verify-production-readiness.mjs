@@ -18,6 +18,7 @@ const requiredFiles = [
   'RELEASE.md',
   'DEPLOYMENT.md',
   'MERGE.md',
+  'POST_RELEASE.md',
   '.github/workflows/deploy.yml',
   '.github/workflows/ci.yml',
   '.github/workflows/supabase-smoke.yml',
@@ -101,7 +102,7 @@ for (const token of schemaChecks) {
 }
 
 const deployment = readFileSync('DEPLOYMENT.md', 'utf8')
-const deploymentChecks = ['verify:production', 'npm run test:e2e', 'team_invites', 'openai-proxy', 'MERGE.md']
+const deploymentChecks = ['verify:production', 'npm run test:e2e', 'team_invites', 'openai-proxy', 'MERGE.md', 'POST_RELEASE.md']
 console.log('\nDEPLOYMENT.md:')
 for (const token of deploymentChecks) {
   if (deployment.includes(token)) {
@@ -113,10 +114,15 @@ for (const token of deploymentChecks) {
 }
 
 console.log('\nVersion sync:')
-if (deployWorkflow.includes(`VITE_APP_VERSION: ${pkg.version}`)) {
-  console.log(`✓ deploy.yml VITE_APP_VERSION matches package.json (${pkg.version})`)
+const usesPackageVersion =
+  deployWorkflow.includes('require(\'./package.json\').version')
+  || deployWorkflow.includes('package.json").version')
+  || deployWorkflow.includes('VITE_APP_VERSION=$(node')
+const hasHardcodedVersion = deployWorkflow.includes(`VITE_APP_VERSION: ${pkg.version}`)
+if (usesPackageVersion || hasHardcodedVersion) {
+  console.log(`✓ deploy.yml sets VITE_APP_VERSION from package.json (${pkg.version})`)
 } else {
-  console.log(`✗ deploy.yml VITE_APP_VERSION must match package.json (${pkg.version})`)
+  console.log(`✗ deploy.yml must set VITE_APP_VERSION from package.json (${pkg.version})`)
   ok = false
 }
 
@@ -137,4 +143,4 @@ if (!ok) {
 }
 
 console.log('\n✓ Production readiness check passed')
-console.log('Next: configure GitHub secrets, apply schema.sql, deploy Edge Functions, merge to main')
+console.log('Next: configure GitHub secrets, apply schema.sql, deploy Edge Functions — see POST_RELEASE.md')

@@ -1,6 +1,6 @@
 # HandymanOS AI — Release 1.7.4
 
-**Status:** merged to `main` and tagged **`v1.7.4`** (2026-07-10).
+**Status:** merged to `main` (tag **`v1.7.4`**, current package **1.7.5** post-release tooling).
 
 Consolidated **1.7.x** production release (stacked PRs #63–#68).
 
@@ -30,28 +30,25 @@ Consolidated **1.7.x** production release (stacked PRs #63–#68).
 
 ## Test coverage
 
-- Unit: **99+** (`npm test`)
+- Unit: **100** (`npm test`)
 - E2E: **138/138** (`npm run test:e2e`)
 
 ## Deploy
 
 ```bash
-# Required
+# Required in .env.local or GitHub Secrets
 VITE_SUPABASE_URL=https://xxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJ...
 
 npm run verify:production
 npm run test
 npm run test:e2e
-
-git checkout main
-# Merge chain: #63 → #64 → #65 → #66 → #67
-git push origin main
+npm run smoke:supabase   # optional, live Supabase
 ```
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for secrets, Edge Functions, and schema setup.
+Push to `main` triggers GitHub Pages deploy. See [POST_RELEASE.md](./POST_RELEASE.md) for the operator checklist.
 
-See [MERGE.md](./MERGE.md) for merging the stacked PR chain into `main`.
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for secrets, Edge Functions, and schema setup.
 
 ## Merge chain
 

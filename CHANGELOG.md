@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.7.5] — 2026-07-10
+
+Post-release ops and CI improvements.
+
+### Phase 76 — Post-release
+- POST_RELEASE.md: operator checklist (secrets, Supabase, smoke, audit)
+- deploy.yml: VITE_APP_VERSION from package.json (no manual sync)
+- MERGE.md / RELEASE.md: mark 1.7.4 stack as merged
+- verify:production: dynamic version check, POST_RELEASE required
+
 ## [1.7.4] — 2026-07-10
 
 Audit P4: localized audit log, release sync.
