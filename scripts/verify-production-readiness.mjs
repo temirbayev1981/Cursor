@@ -316,6 +316,27 @@ if (auditLabels.includes('PORTAL_AUDIT = true')) {
   ok = false
 }
 
+if (auditLabels.includes('COMPANY_SWITCH_AUDIT = true')) {
+  console.log('✓ COMPANY_SWITCH_AUDIT gate enabled')
+} else {
+  console.log('✗ COMPANY_SWITCH_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('INVITE_AUDIT = true')) {
+  console.log('✓ INVITE_AUDIT gate enabled')
+} else {
+  console.log('✗ INVITE_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('BULK_OPS_AUDIT = true')) {
+  console.log('✓ BULK_OPS_AUDIT gate enabled')
+} else {
+  console.log('✗ BULK_OPS_AUDIT must be true')
+  ok = false
+}
+
 const techOfflineE2e = readFileSync('e2e/tech-offline.spec.ts', 'utf8')
 if (techOfflineE2e.includes('saving job notes offline queues action and syncs when online')) {
   console.log('✓ technician offline sync E2E coverage present')
@@ -349,6 +370,13 @@ if (auditExpanded.includes('company profile update appears in audit log') && aud
   console.log('✓ company profile and portal audit E2E coverage present')
 } else {
   console.log('✗ company profile and portal audit E2E tests required')
+  ok = false
+}
+
+if (auditExpanded.includes('company switch appears in audit log') && auditExpanded.includes('invite accept appears in audit log') && auditExpanded.includes('bulk cancel appears in audit log')) {
+  console.log('✓ company switch, invite, and bulk ops audit E2E coverage present')
+} else {
+  console.log('✗ company switch, invite, and bulk ops audit E2E tests required')
   ok = false
 }
 
@@ -765,6 +793,9 @@ if (
   && settingsE2e.includes('platform-audit-check-vendor_po_audit')
   && settingsE2e.includes('platform-audit-check-company_profile_audit')
   && settingsE2e.includes('platform-audit-check-portal_audit')
+  && settingsE2e.includes('platform-audit-check-company_switch_audit')
+  && settingsE2e.includes('platform-audit-check-invite_audit')
+  && settingsE2e.includes('platform-audit-check-bulk_ops_audit')
 ) {
   console.log('✓ field-ops milestone audit E2E coverage present')
 } else {

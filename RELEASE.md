@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.12.3
+# HandymanOS AI — Release 1.12.4
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.12.3`**, current package **1.12.3**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.12.4`**, current package **1.12.4**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -130,6 +130,11 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Locale-aware notification templates; observability probe gate uses live results
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
+
+### 1.12.4 — Company switch, invite & bulk ops audit visibility
+- Settings exposes `company_switch_audit`, `invite_audit`, `bulk_ops_audit` platform checks
+- verify-production gates for company switch, invite accept, and bulk cancel E2E in audit-expanded
+- Lint: fix react-hooks exhaustive-deps in notification hub and settings metrics
 
 ### 1.12.3 — Company profile & portal audit visibility
 - Settings exposes `company_profile_audit` and `portal_audit` platform checks

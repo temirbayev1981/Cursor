@@ -30,6 +30,10 @@ No schema changes required. Update frontend deploy and optional:
 - `npm run smoke:supabase` (expanded table/RPC checks)
 - Stripe webhook redeploy if using `stripe-webhook` audit logging
 
+## From 1.12.3 → 1.12.4
+
+No schema changes. Company switch, invite, and bulk ops audit visibility in Settings.
+
 ## From 1.12.2 → 1.12.3
 
 No schema changes. Field-ops company profile and portal audit visibility in Settings.
