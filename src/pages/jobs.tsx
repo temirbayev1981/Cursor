@@ -69,7 +69,7 @@ export default function JobsPage() {
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder={t.jobs.search} className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder={t.jobs.search} className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} data-testid="jobs-search" />
         </div>
         <Tabs value={statusFilter} onValueChange={setStatusFilter}>
           <TabsList>

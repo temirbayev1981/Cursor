@@ -2,6 +2,15 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.3.6] — 2026-07-10
+
+Jobs and customers CRUD E2E.
+
+### Phase 47 — Jobs & customers E2E
+- E2E: create customer, search filter, portal link copy (`jobs-customers.spec.ts`)
+- E2E: create job, search filter, draft status tab
+- `data-testid` on job/customer forms, search inputs, portal link button
+
 ## [1.3.5] — 2026-07-10
 
 Estimates and invoices workflow E2E.

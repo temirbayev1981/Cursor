@@ -83,7 +83,7 @@ export default function CustomersPage() {
 
       <div className="relative max-w-sm mb-6">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder={t.customers.search} className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <Input placeholder={t.customers.search} className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} data-testid="customers-search" />
       </div>
 
       <DataTable headers={[t.customers.customer, t.customers.type, t.customers.contact, t.customers.jobs, t.customers.revenue, t.common.since, '']}>
@@ -114,6 +114,7 @@ export default function CustomersPage() {
                 variant="ghost"
                 size="icon"
                 title={t.customers.copyPortalLink}
+                data-testid={`customer-portal-link-${customer.id}`}
                 onClick={() => void handlePortalLink(customer, customer.type === 'property_management' ? 'property' : 'customer')}
               >
                 <Link2 className="h-4 w-4" />
