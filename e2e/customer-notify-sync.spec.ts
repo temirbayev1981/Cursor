@@ -21,6 +21,34 @@ test.describe('Customer notification prefs sync', () => {
     await expect(page.getByTestId('customer-portal-notify-email')).toHaveAttribute('data-state', 'unchecked')
   })
 
+  test('portal email opt-out syncs to staff CRM', async ({ page }) => {
+    await setCustomerPortalSession(page)
+    await page.goto('/portal/customer')
+    await expect(page.getByTestId('customer-portal-notification-prefs')).toBeVisible()
+
+    const portalEmailToggle = page.getByTestId('customer-portal-notify-email')
+    if ((await portalEmailToggle.getAttribute('data-state')) === 'checked') {
+      await portalEmailToggle.click()
+      await expect(page.getByText(/настройки уведомлений сохранены|notification preferences saved/i).first()).toBeVisible({ timeout: 5000 })
+    }
+
+    await page.evaluate(() => {
+      sessionStorage.setItem('__e2e_storage_init__', '1')
+      localStorage.setItem('handymanos_locale', 'ru')
+      localStorage.setItem('handymanos_onboarding', 'complete')
+    })
+    await page.goto('/login')
+    await page.locator('#email').fill('owner@profixhandyman.com')
+    await page.locator('#password').fill('demo1234')
+    await page.getByRole('button', { name: /войти|sign in/i }).click()
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
+
+    await page.goto('/customers')
+    await expect(page.getByTestId('customer-email-optout-cust-002')).toBeVisible({ timeout: 10000 })
+    await page.getByTestId('customer-edit-cust-002').click()
+    await expect(page.getByTestId('customer-form-notify-email')).toHaveAttribute('data-state', 'unchecked')
+  })
+
   test('dispatch skipped toast uses entity prefs from staff CRM', async ({ page }) => {
     await loginAsOwner(page, 'ru')
     await seedDraftJob(page, true)

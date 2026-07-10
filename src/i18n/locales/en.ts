@@ -688,6 +688,7 @@ export const en: TranslationKeys = {
       notification_opt_out_audit: 'Notification opt-out',
       staff_customer_notify_audit: 'Staff customer notify prefs',
       notify_skipped_toast_audit: 'Skipped notification toasts',
+      portal_staff_notify_sync_audit: 'Portal → staff notify sync',
       multi_tenant: 'Multi-tenant',
     },
     auditActions: {
