@@ -10,6 +10,7 @@ import {
   getNotificationQueueFiltered,
   getNotificationQueueStats,
   getNotificationSkipLog,
+  getNotificationSkipLogFiltered,
   getNotificationSkipLogStats,
   clearNotificationSkipLog,
   exportNotificationSkipLogCsv,
@@ -29,13 +30,45 @@ export function NotificationHubPanel({ onQueueChange }: NotificationHubPanelProp
 
   const stats = useMemo(() => getNotificationQueueStats(), [revision])
   const skipStats = useMemo(() => getNotificationSkipLogStats(), [revision])
-  const skipItems = useMemo(() => getNotificationSkipLog().slice(0, 12), [revision])
+  const skipItems = useMemo(() => {
+    if (filter === 'email') return getNotificationSkipLogFiltered('email').slice(0, 12)
+    if (filter === 'sms') return getNotificationSkipLogFiltered('sms').slice(0, 12)
+    if (filter === 'skipped') return getNotificationSkipLog().slice(0, 12)
+    return []
+  }, [filter, revision])
   const queueItems = useMemo(
-    () => getNotificationQueueFiltered(filter === 'skipped' ? 'all' : filter).slice(0, 12),
+    () => getNotificationQueueFiltered(filter === 'skipped' || filter === 'all' ? 'all' : filter).slice(0, 12),
     [filter, revision],
   )
-  const showingSkipped = filter === 'skipped'
-  const items = showingSkipped ? skipItems : queueItems
+  const showingSkippedOnly = filter === 'skipped'
+  const showingChannelSkips = filter === 'email' || filter === 'sms'
+  const hasItems = skipItems.length > 0 || queueItems.length > 0
+
+  const renderSkipItem = (skip: ReturnType<typeof getNotificationSkipLog>[number]) => (
+    <div
+      key={skip.id}
+      className="rounded-lg bg-secondary/30 p-3 text-sm"
+      data-testid={`notification-hub-skip-${skip.id}`}
+    >
+      <div className="flex items-center justify-between gap-2 mb-1">
+        <div className="flex items-center gap-2 min-w-0">
+          {skip.channel === 'sms'
+            ? <MessageSquare className="h-3.5 w-3.5 shrink-0 text-primary" />
+            : <Mail className="h-3.5 w-3.5 shrink-0 text-primary" />}
+          <span className="truncate font-medium">{skip.to}</span>
+        </div>
+        <Badge variant="outline" data-testid={`notification-hub-status-${skip.id}`}>
+          {statusLabel('skipped')}
+        </Badge>
+      </div>
+      <p className="truncate">{skip.subject ?? skip.body}</p>
+      <p className="text-xs text-muted-foreground mt-1">
+        {skip.channel === 'sms'
+          ? t.settings.notificationHubSkipReasonSms
+          : t.settings.notificationHubSkipReasonEmail}
+      </p>
+    </div>
+  )
 
   const bump = () => {
     setRevision((n) => n + 1)
@@ -136,37 +169,13 @@ export function NotificationHubPanel({ onQueueChange }: NotificationHubPanelProp
             <TabsTrigger value="skipped" data-testid="notification-hub-filter-skipped">{t.settings.notificationHubSkipped}</TabsTrigger>
           </TabsList>
         </Tabs>
-        {items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t.settings.notificationQueueEmpty}</p>
-        ) : (
+        {hasItems ? (
           <div className="space-y-2 max-h-64 overflow-y-auto">
-            {filter === 'skipped'
-              ? skipItems.map((skip) => (
-                  <div
-                    key={skip.id}
-                    className="rounded-lg bg-secondary/30 p-3 text-sm"
-                    data-testid={`notification-hub-skip-${skip.id}`}
-                  >
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <div className="flex items-center gap-2 min-w-0">
-                        {skip.channel === 'sms'
-                          ? <MessageSquare className="h-3.5 w-3.5 shrink-0 text-primary" />
-                          : <Mail className="h-3.5 w-3.5 shrink-0 text-primary" />}
-                        <span className="truncate font-medium">{skip.to}</span>
-                      </div>
-                      <Badge variant="outline" data-testid={`notification-hub-status-${skip.id}`}>
-                        {statusLabel('skipped')}
-                      </Badge>
-                    </div>
-                    <p className="truncate">{skip.subject ?? skip.body}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {skip.channel === 'sms'
-                        ? t.settings.notificationHubSkipReasonSms
-                        : t.settings.notificationHubSkipReasonEmail}
-                    </p>
-                  </div>
-                ))
-              : queueItems.map((item) => {
+            {showingSkippedOnly || showingChannelSkips
+              ? skipItems.map(renderSkipItem)
+              : null}
+            {!showingSkippedOnly
+              ? queueItems.map((item) => {
                   const Icon = item.channel === 'sms' ? MessageSquare : Mail
                   return (
                     <div
@@ -194,8 +203,11 @@ export function NotificationHubPanel({ onQueueChange }: NotificationHubPanelProp
                       )}
                     </div>
                   )
-                })}
+                })
+              : null}
           </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">{t.settings.notificationQueueEmpty}</p>
         )}
       </CardContent>
     </Card>

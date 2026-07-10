@@ -96,6 +96,7 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('platform-audit-check-notification_hub_eta_email_skip_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-notification_hub_invoice_email_skip_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-notification_milestone_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-notification_hub_skip_channel_filter_audit')).toBeVisible()
     await expect(page.getByTestId('notification-hub')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history-entry-0')).toBeVisible()
@@ -161,6 +162,44 @@ test.describe('Settings billing & team', () => {
     await page.getByTestId('notification-hub-filter-sms').click()
     await expect(page.getByTestId('notification-hub-item-hub-e2e-sms')).toBeVisible()
     await expect(page.getByTestId('notification-hub-item-hub-e2e-email')).not.toBeVisible()
+  })
+
+  test('notification hub filters skipped email and sms by channel tab', async ({ page }) => {
+    await page.evaluate(() => {
+      localStorage.setItem('handymanos_notification_skip_log', JSON.stringify([
+        {
+          id: 'skip-email',
+          to: 'email@test.com',
+          channel: 'email',
+          subject: 'Email skip',
+          body: 'Email body',
+          reason: 'customer_opt_out',
+          created_at: new Date().toISOString(),
+        },
+        {
+          id: 'skip-sms',
+          to: '+15551234567',
+          channel: 'sms',
+          body: 'SMS body',
+          reason: 'customer_opt_out',
+          created_at: new Date().toISOString(),
+        },
+      ]))
+    })
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /system|система/i }).click()
+
+    await page.getByTestId('notification-hub-filter-skipped').click()
+    await expect(page.getByTestId('notification-hub-skip-skip-email')).toBeVisible()
+    await expect(page.getByTestId('notification-hub-skip-skip-sms')).toBeVisible()
+
+    await page.getByTestId('notification-hub-filter-email').click()
+    await expect(page.getByTestId('notification-hub-skip-skip-email')).toBeVisible()
+    await expect(page.getByTestId('notification-hub-skip-skip-sms')).not.toBeVisible()
+
+    await page.getByTestId('notification-hub-filter-sms').click()
+    await expect(page.getByTestId('notification-hub-skip-skip-sms')).toBeVisible()
+    await expect(page.getByTestId('notification-hub-skip-skip-email')).not.toBeVisible()
   })
 
   test('notification hub shows skipped opt-out log', async ({ page }) => {
