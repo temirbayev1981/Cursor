@@ -1,20 +1,20 @@
-# HandymanOS AI — Release 1.2.4
+# HandymanOS AI — Release 1.2.5
 
-Performance and PWA polish on **1.2.3**.
+Technician offline sync E2E on **1.2.4**.
 
-## What's new in 1.2.4
+## What's new in 1.2.5
+
+- E2E: technician mobile offline notes save → queue → online sync (25 tests total)
+- E2E: clock-in offline → queue → sync when reconnected
+- Unit tests for `clock_in` and `update_job` offline actions
+- Shared Playwright helpers for offline simulation
+
+## Prior releases (1.2.4)
 
 - Vite bundle splitting: main chunk ~176 KB (was ~569 KB)
 - Service worker cache `handymanos-v2`
-- E2E: PWA manifest + service worker registration (23 tests total)
+- E2E: PWA manifest + service worker registration
 - Unit tests for offline queue
-
-## Prior releases (1.2.3)
-
-- Expanded `npm run verify:production` (Edge Functions, schema, E2E specs)
-- CI runs `verify:production` on every push/PR
-- DEPLOYMENT.md: GitHub secrets, existing-user invite sign-in
-- E2E: scheduling demo email notification
 
 ## GitHub repository secrets (production deploy)
 
@@ -55,21 +55,21 @@ supabase functions deploy stripe-webhook --no-verify-jwt
 
 # Merge to main triggers deploy workflow
 git checkout main
-git merge cursor/phase-35-production-hardening-1b4a
+git merge cursor/phase-37-tech-offline-e2e-1b4a
 git push origin main
 ```
 
+## Merge chain (open PRs)
+
+For full stack from Phase 31 onward:
+
+`#24` → `#25` → `#26` → `#27` → `#28` → `#29` → `#30`
+
+Or merge `cursor/phase-37-tech-offline-e2e-1b4a` directly for the complete feature set.
+
 ## Post-deploy verification
 
-1. Open GitHub Pages URL (Settings → Pages)
-2. Sign in — demo mode works without credentials
-3. With Supabase: register owner → onboarding → Settings → System (audit ≥ 8.5)
-4. Customer portal: approve estimate, pay invoice, submit review
-5. Property portal: submit maintenance request
-6. AI Assistant: suggested questions return localized fallback answers
-7. Work Orders → Vendor PO: compliance checklist in selected locale
-8. Language switcher: dashboard title updates RU ↔ EN
-
-## Version history
-
-See [CHANGELOG.md](./CHANGELOG.md).
+1. Open GitHub Pages URL — login works in demo mode
+2. `/tech` — offline badge, pending sync, notes save
+3. Settings → System — platform audit score visible
+4. Customer portal link from job detail works

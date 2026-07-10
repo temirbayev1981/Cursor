@@ -499,9 +499,9 @@ export async function listFuelLogs(companyId: string): Promise<FuelLog[]> {
 }
 
 export async function saveTimeEntry(entry: TimeEntry): Promise<TimeEntry> {
-  upsertStore(STORE_KEYS.timeEntries, entry)
-
   if (DEMO_MODE || !supabase) return entry
+
+  upsertStore(STORE_KEYS.timeEntries, entry)
 
   const { data, error } = await upsertRows('time_entries', entry)
     .select()

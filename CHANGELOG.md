@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.2.5] — 2026-07-10
+
+Technician offline sync E2E coverage.
+
+### Phase 37 — Tech mobile offline E2E
+- E2E: save job notes offline → queue → sync when online (`e2e/tech-offline.spec.ts`)
+- E2E: clock-in offline → queue → sync when online
+- Shared E2E helpers: `seedInProgressTechJob`, `setPageOffline`, `setPageOnline`
+- Unit tests: `clock_in` and `update_job` in `offline-sync-service.test.ts`
+- `verify:production` checks `e2e/tech-offline.spec.ts`
+
 ## [1.2.4] — 2026-07-10
 
 Performance and PWA polish.
