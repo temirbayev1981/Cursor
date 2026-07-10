@@ -1,4 +1,4 @@
-import { Plus, Sparkles, FileSpreadsheet, Send, X } from 'lucide-react'
+import { Plus, Sparkles, FileSpreadsheet, Send, X, Download } from 'lucide-react'
 import { useState } from 'react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
@@ -13,6 +13,7 @@ import { generateInvoiceNumber } from '@/services/payment-service'
 import { notifyEstimateSent } from '@/services/notification-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { generateSmartEstimate } from '@/lib/ai'
+import { exportEstimatePdf } from '@/lib/export'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
@@ -73,6 +74,21 @@ export default function EstimatesPage() {
       { estimate: est, invoiceNumber: generateInvoiceNumber(invoices) },
       { onSuccess: () => toast.success('Счёт создан из сметы') }
     )
+  }
+
+  const handleExportPdf = (est: Estimate, customerName: string) => {
+    exportEstimatePdf({
+      title: est.title,
+      customerName,
+      status: est.status,
+      laborHours: est.labor_hours,
+      laborRate: est.labor_rate,
+      materialCost: est.material_cost,
+      total: est.total,
+      validUntil: est.valid_until,
+      lineItems: est.line_items,
+      companyName: company?.name,
+    })
   }
 
   return (
@@ -165,6 +181,15 @@ export default function EstimatesPage() {
               <DataTableCell className="text-muted-foreground">{formatDate(est.valid_until, dateLocale)}</DataTableCell>
               <DataTableCell>
                 <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    title={t.common.exportPdf}
+                    onClick={() => handleExportPdf(est, customer?.name ?? '')}
+                    data-testid={`estimate-export-pdf-${est.id}`}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
                   {est.status === 'draft' && (
                     <Button size="sm" variant="ghost" onClick={() => handleSend(est)} data-testid={`estimate-send-${est.id}`}>
                       <Send className="h-4 w-4" />

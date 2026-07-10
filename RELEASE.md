@@ -1,19 +1,28 @@
-# HandymanOS AI — Release 1.4.7
+# HandymanOS AI — Release 1.5.0
 
-Vendor PO, search, AI follow-up, and invoice send E2E on **1.4.6**.
+Release consolidating Phases 50–55 on **1.4.7**.
 
-## What's new in 1.4.7
+## What's new in 1.5.0
 
-- E2E: vendor PO multi-site badge + emergency priority rows
-- E2E: AI assistant multi-turn conversation
-- E2E: global header search → jobs navigation
-- E2E: draft invoice send (90 tests total)
-- `seedDraftInvoice` helper; search and vendor PO testids
+- **Estimate PDF export** — print-ready preview per estimate row
+- E2E: estimate PDF title, total, line items (92 tests total)
+- Consolidates E2E coverage from Phases 50–55
+
+## Included since 1.4.2
+
+| Phase | Focus |
+|-------|--------|
+| 50 | Properties & inventory E2E |
+| 51 | Technicians, theme, reports E2E |
+| 52 | Dispatch DnD, AI chat, reports PDF |
+| 53 | Settings billing/team, dashboard |
+| 54 | Onboarding, invite errors, vendor export |
+| 55 | Vendor multi-site, search, invoice send |
 
 ## Test coverage
 
 - Unit: **83**
-- E2E: **90** (24 spec files)
+- E2E: **92** (25 spec files)
 
 ## Deploy
 
@@ -22,10 +31,10 @@ npm run verify:production
 npm run test:e2e
 
 git checkout main
-git merge cursor/phase-55-vendor-search-ai-invoice-e2e-1b4a
+git merge cursor/phase-56-estimate-pdf-release-1b4a
 git push origin main
 ```
 
 ## Merge chain
 
-`#24` → … → `#47` → **#48**
+`#24` → … → `#48` → **#49**

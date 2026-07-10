@@ -2,6 +2,24 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.5.0] — 2026-07-10
+
+Release consolidating Phases 50–55 (properties, technicians, dispatch, settings, onboarding, vendor PO).
+
+### Phase 56 — Estimate PDF export & release consolidation
+- `exportEstimatePdf()` with print-ready HTML preview
+- PDF export button on each estimate row
+- E2E: estimate PDF preview title, total, line items (`estimate-pdf-release.spec.ts`)
+- Version bump to **1.5.0**, 92 E2E tests total
+
+### Phases 50–55 (included in 1.5.0)
+- **50:** Properties & job inventory E2E
+- **51:** Technicians, theme toggle, reports export E2E
+- **52:** Dispatch DnD, AI chat input, reports PDF E2E
+- **53:** Settings billing/team, dashboard analytics E2E
+- **54:** Onboarding wizard, invite errors, vendor Excel export E2E
+- **55:** Vendor PO multi-site, global search, AI follow-up, invoice send E2E
+
 ## [1.4.7] — 2026-07-10
 
 Vendor PO multi-site, AI follow-up, search & invoice send E2E.

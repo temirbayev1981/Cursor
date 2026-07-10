@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx'
 import type { VendorPORecord } from '@/types/vendor-po'
-import type { Job, Customer, Employee } from '@/types'
+import type { Job, Customer, Employee, Estimate } from '@/types'
 import type { ChartDataPoint } from '@/lib/analytics'
 import { computeTechnicianPerformance, computeServiceProfitability, computeReportSummary } from '@/lib/analytics'
 
@@ -212,6 +212,68 @@ export function exportReportPdf(data: ReportPdfData) {
     <div><strong>Margin</strong><br>${data.summary.margin}%</div>
   </div>
   ${rows.join('\n')}
+</body>
+</html>`
+
+  const win = window.open('', '_blank')
+  if (!win) return
+  win.document.write(html)
+  win.document.close()
+  win.focus()
+  win.print()
+}
+
+export interface EstimatePdfData {
+  title: string
+  customerName: string
+  status: string
+  laborHours: number
+  laborRate: number
+  materialCost: number
+  total: number
+  validUntil: string
+  lineItems: Estimate['line_items']
+  companyName?: string
+}
+
+export function exportEstimatePdf(data: EstimatePdfData) {
+  const lineRows = data.lineItems.length
+    ? data.lineItems.map((item) =>
+        `<tr><td>${escapeHtml(item.description)}</td><td>${item.quantity}</td><td>$${item.unit_price.toFixed(2)}</td><td>$${item.total.toFixed(2)}</td></tr>`,
+      ).join('\n')
+    : '<tr><td colspan="4">No line items</td></tr>'
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>${escapeHtml(data.title)}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 24px; color: #111; }
+    h1 { margin-bottom: 4px; }
+    .meta { color: #555; margin-bottom: 24px; }
+    .summary { display: flex; gap: 24px; margin-bottom: 24px; flex-wrap: wrap; }
+    .summary div { background: #f4f4f5; padding: 12px 16px; border-radius: 8px; min-width: 120px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f8fafc; }
+    .total { font-size: 1.25rem; font-weight: 700; text-align: right; }
+  </style>
+</head>
+<body>
+  <h1>${escapeHtml(data.title)}</h1>
+  <p class="meta">${escapeHtml(data.companyName ?? 'HandymanOS AI')} · ${escapeHtml(data.customerName)} · ${escapeHtml(data.status)}</p>
+  <div class="summary">
+    <div><strong>Labor</strong><br>${data.laborHours}h @ $${data.laborRate.toFixed(2)}/hr</div>
+    <div><strong>Materials</strong><br>$${data.materialCost.toFixed(2)}</div>
+    <div><strong>Valid until</strong><br>${escapeHtml(data.validUntil)}</div>
+  </div>
+  <h2>Line items</h2>
+  <table>
+    <tr><th>Description</th><th>Qty</th><th>Unit</th><th>Total</th></tr>
+    ${lineRows}
+  </table>
+  <p class="total">Total: $${data.total.toFixed(2)}</p>
 </body>
 </html>`
 
