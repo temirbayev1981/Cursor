@@ -65,4 +65,50 @@ test.describe('Technician mobile offline sync', () => {
     })
     await expect(page.getByText(/ожидает синхронизации|pending sync/i)).toHaveCount(0)
   })
+
+  test('clock-out offline queues action and syncs when online', async ({ page, context }) => {
+    await page.goto('/tech')
+    await expect(page.getByText(/E2E Offline Tech Job/i)).toBeVisible()
+
+    await page.getByRole('button', { name: /отметить приход|clock in/i }).first().click()
+
+    await setPageOffline(page, context)
+    await page.getByRole('button', { name: /отметить уход|clock out/i }).first().click()
+    await expect(page.getByText(/1.*ожидает синхронизации|1.*pending sync/i).first()).toBeVisible()
+
+    const queueLen = await page.evaluate(() => {
+      const queue = JSON.parse(localStorage.getItem('handymanos_offline_queue') || '[]') as Array<{ type: string }>
+      return queue.filter((a) => a.type === 'clock_out').length
+    })
+    expect(queueLen).toBe(1)
+
+    await setPageOnline(page, context)
+    await expect(page.getByText(/офлайн-данные синхронизированы|offline data synced/i).first()).toBeVisible({
+      timeout: 10000,
+    })
+    await expect(page.getByText(/ожидает синхронизации|pending sync/i)).toHaveCount(0)
+  })
+
+  test('completing job offline queues status update and syncs when online', async ({ page, context }) => {
+    await page.goto('/tech')
+    await expect(page.getByText(/E2E Offline Tech Job/i)).toBeVisible()
+
+    await setPageOffline(page, context)
+    await page.getByRole('button', { name: /завершить|complete job/i }).first().click()
+
+    await expect(page.getByText(/сохранено офлайн|saved offline/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/1.*ожидает синхронизации|1.*pending sync/i).first()).toBeVisible()
+
+    const queueLen = await page.evaluate(() => {
+      const queue = JSON.parse(localStorage.getItem('handymanos_offline_queue') || '[]') as Array<{ type: string }>
+      return queue.filter((a) => a.type === 'update_job_status').length
+    })
+    expect(queueLen).toBe(1)
+
+    await setPageOnline(page, context)
+    await expect(page.getByText(/офлайн-данные синхронизированы|offline data synced/i).first()).toBeVisible({
+      timeout: 10000,
+    })
+    await expect(page.getByText(/ожидает синхронизации|pending sync/i)).toHaveCount(0)
+  })
 })

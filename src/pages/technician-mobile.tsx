@@ -75,6 +75,9 @@ export default function TechnicianMobilePage() {
     ? timeEntries.find((e) => e.job_id === activeJobId && !e.end)
     : undefined
 
+  const activeEntryStart = activeEntry?.start
+    ?? (activeEntry as { start_time?: string } | undefined)?.start_time
+
   useEffect(() => {
     if (DEMO_MODE || !supabase || !myEmployee?.id) return
     const client = supabase
@@ -289,7 +292,7 @@ export default function TechnicianMobilePage() {
               {myEmployee?.name ?? user?.full_name} · {t.techMobile.today}
             </p>
           </div>
-          <div className="flex flex-col items-end gap-1">
+          <div className="flex flex-col items-end gap-1" aria-live="polite">
             <Badge variant={online ? 'success' : 'destructive'} className="text-xs">
               {online ? t.techMobile.online : <><WifiOff className="h-3 w-3 mr-1" />{t.techMobile.offline}</>}
             </Badge>
@@ -394,7 +397,7 @@ export default function TechnicianMobilePage() {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t.techMobile.arrival}</span>
-                <span>{activeEntry ? formatDateTime(activeEntry.start) : '—'}</span>
+                <span>{activeEntryStart ? formatDateTime(activeEntryStart) : '—'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">GPS</span>

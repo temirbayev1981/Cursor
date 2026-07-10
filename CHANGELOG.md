@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.2.7] — 2026-07-10
+
+Complete technician offline sync coverage and mobile a11y.
+
+### Phase 39 — Tech offline completion
+- E2E: clock-out offline → queue → sync when online
+- E2E: complete job offline (`update_job_status`) → sync
+- Unit tests: `clock_out`, `update_job_status`, `photo_upload` in offline-sync-service
+- Unit test: `syncOfflineQueue` partial failure keeps failed items
+- Job notes dialog: `role="dialog"`, `aria-modal`, labelled close
+- Technician mobile: `aria-live` on connection status; safe `start_time` fallback for GPS
+
 ## [1.2.6] — 2026-07-10
 
 Dispatch notification coverage without fragile drag-and-drop E2E.

@@ -1,18 +1,18 @@
-# HandymanOS AI — Release 1.2.6
+# HandymanOS AI — Release 1.2.7
 
-Dispatch notification E2E on **1.2.5**.
+Technician offline sync completion on **1.2.6**.
 
-## What's new in 1.2.6
+## What's new in 1.2.7
 
-- Dispatch board: status select on each job card (alternative to drag-and-drop)
-- E2E: draft → scheduled triggers demo SMS to technician + email to customer (27 tests total)
-- Unit tests for `notification-service` (queue, demo mode, result messages)
-- `seedDraftJob` includes `scheduled_date` when technician is assigned
+- E2E: clock-out and complete-job offline flows sync when reconnected (29 tests total)
+- All five offline action types now have unit test coverage
+- `syncOfflineQueue` partial-failure behavior tested
+- Job notes dialog and tech mobile connection badge accessibility improvements
 
-## Prior releases (1.2.5)
+## Prior releases (1.2.6)
 
-- E2E: technician mobile offline notes + clock-in sync
-- Fix: `saveTimeEntry` demo mode no longer corrupts `LocalTimeEntry` store
+- Dispatch board status select + notification E2E
+- `notification-service` unit tests (8 tests)
 
 ## GitHub repository secrets (production deploy)
 
@@ -40,32 +40,14 @@ npm run verify:production
 npm run verify:release
 npm run test:e2e
 
-# Supabase backend — re-apply full schema after upgrade:
-# supabase/schema.sql (portal RPCs, rate limits, company_members, customer_reviews)
-
-# Deploy Edge Functions:
-supabase functions deploy create-checkout-session
-supabase functions deploy create-subscription-checkout
-supabase functions deploy openai-proxy
-supabase functions deploy send-notification
-supabase functions deploy send-sms
-supabase functions deploy stripe-webhook --no-verify-jwt
-
 # Merge to main triggers deploy workflow
 git checkout main
-git merge cursor/phase-38-dispatch-notifications-1b4a
+git merge cursor/phase-39-tech-offline-complete-1b4a
 git push origin main
 ```
 
 ## Merge chain (open PRs)
 
-`#24` → `#25` → `#26` → `#27` → `#28` → `#29` → `#30` → **#31**
+`#24` → … → `#31` → **#32**
 
-Or merge `cursor/phase-38-dispatch-notifications-1b4a` directly for the complete feature set.
-
-## Post-deploy verification
-
-1. Open GitHub Pages URL — login works in demo mode
-2. `/dispatch` — change job status via select; demo SMS/email toasts appear
-3. `/tech` — offline badge and sync flows work
-4. Settings → System — platform audit score visible
+Or merge `cursor/phase-39-tech-offline-complete-1b4a` directly for the complete feature set.

@@ -34,4 +34,14 @@ describe('pwa offline queue', () => {
     removeOfflineActions([first.id])
     expect(getOfflineQueue()).toHaveLength(1)
   })
+
+  it('syncOfflineQueue keeps failed actions in queue', async () => {
+    queueOfflineAction('fail', { id: 1 })
+    queueOfflineAction('ok', { id: 2 })
+    const result = await syncOfflineQueue(async (action) => action.type === 'ok')
+    expect(result.processed).toBe(1)
+    expect(result.failed).toBe(1)
+    expect(getOfflineQueue()).toHaveLength(1)
+    expect(getOfflineQueue()[0].type).toBe('fail')
+  })
 })
