@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.5.2] — 2026-07-10
+
+Dispatch map E2E, localized invoice PDF export, multi-PDF vendor PO batch.
+
+### Phase 58 — Dispatch map, i18n invoice PDF & vendor PO batch
+- Localized `exportInvoicePdf()` labels (RU/EN) via `t.invoices.pdf`
+- `data-testid` on dispatch job map card and map fallback/canvas
+- E2E: dispatch job map addresses, invoice PDF i18n (`dispatch-map-i18n-pdf.spec.ts`)
+- E2E: multi-PDF vendor PO batch upload (2 records)
+- Fixture: `e2e/fixtures/vendor-po-emergency.pdf`
+
 ## [1.5.1] — 2026-07-10
 
 Invoice PDF export and billing/work orders E2E.

@@ -440,6 +440,15 @@ export const ru = {
     dueDate: 'Срок оплаты',
     payNow: 'Оплатить',
     paymentReceived: 'Оплата получена',
+    pdf: {
+      invoiceTitle: 'Счёт',
+      lineItems: 'Позиции',
+      description: 'Описание',
+      qty: 'Кол-во',
+      unit: 'Цена',
+      balance: 'Баланс',
+      noLineItems: 'Нет позиций',
+    },
   },
   reports: {
     title: 'Отчёты',

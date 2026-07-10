@@ -285,6 +285,21 @@ export function exportEstimatePdf(data: EstimatePdfData) {
   win.print()
 }
 
+export interface InvoicePdfLabels {
+  invoiceTitle: string
+  subtotal: string
+  tax: string
+  dueDate: string
+  paid: string
+  balance: string
+  lineItems: string
+  description: string
+  qty: string
+  unit: string
+  total: string
+  noLineItems: string
+}
+
 export interface InvoicePdfData {
   invoiceNumber: string
   customerName: string
@@ -296,14 +311,16 @@ export interface InvoicePdfData {
   dueDate: string
   lineItems: Invoice['line_items']
   companyName?: string
+  labels: InvoicePdfLabels
 }
 
 export function exportInvoicePdf(data: InvoicePdfData) {
+  const { labels } = data
   const lineRows = data.lineItems.length
     ? data.lineItems.map((item) =>
         `<tr><td>${escapeHtml(item.description)}</td><td>${item.quantity}</td><td>$${item.unit_price.toFixed(2)}</td><td>$${item.total.toFixed(2)}</td></tr>`,
       ).join('\n')
-    : '<tr><td colspan="4">No line items</td></tr>'
+    : `<tr><td colspan="4">${escapeHtml(labels.noLineItems)}</td></tr>`
 
   const balance = data.total - data.amountPaid
 
@@ -325,21 +342,21 @@ export function exportInvoicePdf(data: InvoicePdfData) {
   </style>
 </head>
 <body>
-  <h1>Invoice ${escapeHtml(data.invoiceNumber)}</h1>
+  <h1>${escapeHtml(labels.invoiceTitle)} ${escapeHtml(data.invoiceNumber)}</h1>
   <p class="meta">${escapeHtml(data.companyName ?? 'HandymanOS AI')} · ${escapeHtml(data.customerName)} · ${escapeHtml(data.status)}</p>
   <div class="summary">
-    <div><strong>Subtotal</strong><br>$${data.subtotal.toFixed(2)}</div>
-    <div><strong>Tax</strong><br>$${data.tax.toFixed(2)}</div>
-    <div><strong>Due date</strong><br>${escapeHtml(data.dueDate)}</div>
-    <div><strong>Paid</strong><br>$${data.amountPaid.toFixed(2)}</div>
-    <div><strong>Balance</strong><br>$${balance.toFixed(2)}</div>
+    <div><strong>${escapeHtml(labels.subtotal)}</strong><br>$${data.subtotal.toFixed(2)}</div>
+    <div><strong>${escapeHtml(labels.tax)}</strong><br>$${data.tax.toFixed(2)}</div>
+    <div><strong>${escapeHtml(labels.dueDate)}</strong><br>${escapeHtml(data.dueDate)}</div>
+    <div><strong>${escapeHtml(labels.paid)}</strong><br>$${data.amountPaid.toFixed(2)}</div>
+    <div><strong>${escapeHtml(labels.balance)}</strong><br>$${balance.toFixed(2)}</div>
   </div>
-  <h2>Line items</h2>
+  <h2>${escapeHtml(labels.lineItems)}</h2>
   <table>
-    <tr><th>Description</th><th>Qty</th><th>Unit</th><th>Total</th></tr>
+    <tr><th>${escapeHtml(labels.description)}</th><th>${escapeHtml(labels.qty)}</th><th>${escapeHtml(labels.unit)}</th><th>${escapeHtml(labels.total)}</th></tr>
     ${lineRows}
   </table>
-  <p class="total">Total: $${data.total.toFixed(2)}</p>
+  <p class="total">${escapeHtml(labels.total)}: $${data.total.toFixed(2)}</p>
 </body>
 </html>`
 

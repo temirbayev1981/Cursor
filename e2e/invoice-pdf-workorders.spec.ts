@@ -27,7 +27,7 @@ test.describe('Invoice PDF export', () => {
     const popup = await popupPromise
 
     await expect(popup.locator('body')).toContainText(/Rental turnover/i)
-    await expect(popup.locator('body')).toContainText(/Balance/i)
+    await expect(popup.locator('body')).toContainText(/Баланс|Balance/i)
     await expect(popup.locator('body')).toContainText('$4546.50')
     await popup.close()
   })

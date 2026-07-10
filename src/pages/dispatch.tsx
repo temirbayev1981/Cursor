@@ -249,7 +249,7 @@ export default function DispatchPage() {
       </DndContext>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        <Card>
+        <Card data-testid="dispatch-job-map">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2"><MapPin className="h-4 w-4" />{t.dispatch.jobMapTitle}</CardTitle>
           </CardHeader>

@@ -35,4 +35,19 @@ test.describe('Work orders vendor PO', () => {
     await expect(page.getByText(/заказ создан из 207872-02|job created from 207872-02/i).first()).toBeVisible()
     await expect(page.getByText(/REPLACE:.*BUILDING INTERIOR/i).first()).toBeVisible()
   })
+
+  test('multi-PDF batch upload parses two vendor PO records', async ({ page }) => {
+    await page.goto('/work-orders')
+
+    const dropzone = page.getByTestId('work-orders-vendor-po-dropzone')
+    await dropzone.locator('input[type="file"]').setInputFiles([
+      'e2e/fixtures/vendor-po-sample.pdf',
+      'e2e/fixtures/vendor-po-emergency.pdf',
+    ])
+
+    await expect(page.getByText(/успешно разобран.*: 2|parsed and saved.*: 2/i).first()).toBeVisible({ timeout: 20000 })
+    await expect(page.getByTestId('vendor-po-record-count')).toHaveText('2', { timeout: 10000 })
+    await expect(page.getByText('207872-02').first()).toBeVisible()
+    await expect(page.getByText('210214-01').first()).toBeVisible()
+  })
 })

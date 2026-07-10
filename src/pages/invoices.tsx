@@ -96,6 +96,20 @@ export default function InvoicesPage() {
       dueDate: invoice.due_date,
       lineItems: invoice.line_items,
       companyName: company?.name,
+      labels: {
+        invoiceTitle: t.invoices.pdf.invoiceTitle,
+        subtotal: t.invoices.subtotal,
+        tax: t.invoices.tax,
+        dueDate: t.invoices.dueDate,
+        paid: t.invoices.paid,
+        balance: t.invoices.pdf.balance,
+        lineItems: t.invoices.pdf.lineItems,
+        description: t.invoices.pdf.description,
+        qty: t.invoices.pdf.qty,
+        unit: t.invoices.pdf.unit,
+        total: t.invoices.total,
+        noLineItems: t.invoices.pdf.noLineItems,
+      },
     })
   }
 

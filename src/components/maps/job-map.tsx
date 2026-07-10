@@ -58,7 +58,7 @@ export function JobMap({ addresses = [], className = 'h-48' }: JobMapProps) {
 
   if (!hasGoogleMaps) {
     return (
-      <div className={`rounded-lg bg-secondary/30 flex flex-col items-center justify-center text-muted-foreground text-sm gap-2 ${className}`}>
+      <div data-testid="dispatch-job-map-fallback" className={`rounded-lg bg-secondary/30 flex flex-col items-center justify-center text-muted-foreground text-sm gap-2 ${className}`}>
         <MapPin className="h-8 w-8 opacity-50" />
         <p>Google Maps — укажите VITE_GOOGLE_MAPS_API_KEY</p>
         {addresses.length > 0 && (
@@ -76,5 +76,5 @@ export function JobMap({ addresses = [], className = 'h-48' }: JobMapProps) {
     )
   }
 
-  return <div ref={mapRef} className={`rounded-lg ${className}`} />
+  return <div ref={mapRef} data-testid="dispatch-job-map-canvas" className={`rounded-lg ${className}`} />
 }

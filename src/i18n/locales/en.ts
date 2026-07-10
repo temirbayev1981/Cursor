@@ -442,6 +442,15 @@ export const en: TranslationKeys = {
     dueDate: 'Due Date',
     payNow: 'Pay Now',
     paymentReceived: 'Payment received',
+    pdf: {
+      invoiceTitle: 'Invoice',
+      lineItems: 'Line items',
+      description: 'Description',
+      qty: 'Qty',
+      unit: 'Unit',
+      balance: 'Balance',
+      noLineItems: 'No line items',
+    },
   },
   reports: {
     title: 'Reports',
