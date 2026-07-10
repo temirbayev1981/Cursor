@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
 import { listEntities, saveEntity, createJobFromVendorPO, createEstimateFromJob, createInvoiceFromEstimate, createScheduleFromJob, importDemoSeedToSupabase, listFuelLogs, listAuditLogs, logAudit } from '@/services/entity-service'
 import { recordInvoicePayment, sendInvoiceToCustomer } from '@/services/payment-service'
-import { listInventoryTransactions, useMaterialsOnJob, receiveStock } from '@/services/inventory-service'
+import { listInventoryTransactions, applyMaterialsOnJob, receiveStock } from '@/services/inventory-service'
 import type { Job, Customer, Estimate, Invoice, Employee, Material, Vehicle, Expense } from '@/types'
 import type { VendorPORecord } from '@/types/vendor-po'
 
@@ -312,7 +312,7 @@ export function useInventoryTransactions() {
       companyId: string
       jobId: string
       items: { materialId: string; quantity: number }[]
-    }) => useMaterialsOnJob(params.companyId, params.jobId, params.items),
+    }) => applyMaterialsOnJob(params.companyId, params.jobId, params.items),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['inventory', companyId] })
       qc.invalidateQueries({ queryKey: ['materials', companyId] })

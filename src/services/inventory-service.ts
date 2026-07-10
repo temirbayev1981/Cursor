@@ -67,7 +67,7 @@ export async function recordInventoryTransaction(
   return { transaction, material: updatedMaterial }
 }
 
-export async function useMaterialsOnJob(
+export async function applyMaterialsOnJob(
   companyId: string,
   jobId: string,
   items: { materialId: string; quantity: number }[]

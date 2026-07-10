@@ -98,6 +98,18 @@ supabase/
 
 See [CHANGELOG.md](./CHANGELOG.md) for release history.
 
+## Production readiness
+
+| Check | Command / location |
+|-------|-------------------|
+| Release gate | `npm run verify:release` |
+| E2E smoke tests | `npm run test:e2e` |
+| Platform audit | Settings → System (score ≥ 8.5 with live integrations) |
+| Deploy guide | [DEPLOYMENT.md](./DEPLOYMENT.md) |
+| Release checklist | [RELEASE.md](./RELEASE.md) |
+
+Current version: **1.1.0**
+
 ## Security
 
 - Row Level Security on all tables

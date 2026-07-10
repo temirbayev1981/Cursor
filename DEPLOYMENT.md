@@ -190,7 +190,20 @@ On signup, the user joins the existing company with the invited role (`team_invi
 
 ## 11. Build & deploy frontend
 
+### GitHub Pages (automated)
+
+Push to `main` triggers `.github/workflows/deploy.yml`. Configure repository secrets (see [RELEASE.md](./RELEASE.md)):
+
+- `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` — live backend
+- `VITE_STRIPE_PUBLISHABLE_KEY` — payments
+- Optional: maps, notifications, SMS, Sentry
+
+`VITE_BASE_PATH` is set automatically to `/{repo-name}/` for project pages.
+
+### Manual deploy
+
 ```bash
+npm run verify:release
 npm run build
 # Deploy dist/ to Vercel, Netlify, Cloudflare Pages, etc.
 ```

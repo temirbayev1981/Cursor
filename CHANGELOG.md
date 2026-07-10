@@ -4,6 +4,18 @@ All notable changes to HandymanOS AI are documented here.
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-07-10
+
+Platform consolidation release (Phases 8–24).
+
+### Phase 24 — Release consolidation
+- Version bump to 1.1.0
+- `npm run verify:release` — lint + unit tests + build gate
+- GitHub Pages deploy injects `VITE_*` secrets from repository settings
+- `RELEASE.md` with production checklist and secrets table
+- Auto GitHub Release tag on push to `main`
+- Lint fixes: service worker JS types, rename `applyMaterialsOnJob`
+
 ### Phase 23 — Type safety & release prep
 - Typed `supabase-queries` helper (`insertRows`, `upsertRows`, `updateRows`)
 - Centralized Supabase type casts in lib layer (services no longer use `as never`)
