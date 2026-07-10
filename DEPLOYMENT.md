@@ -46,7 +46,8 @@ After deploy:
 
 ```bash
 npm run verify:production
-npm run test:e2e   # 185 tests across 31 spec files
+npm run verify:operator   # post-deploy operator checklist (needs VITE_SUPABASE_*)
+npm run test:e2e   # 186 tests across 31 spec files
 npm run smoke:supabase   # optional, needs live Supabase env
 ```
 

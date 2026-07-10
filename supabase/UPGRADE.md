@@ -30,6 +30,14 @@ No schema changes required. Update frontend deploy and optional:
 - `npm run smoke:supabase` (expanded table/RPC checks)
 - Stripe webhook redeploy if using `stripe-webhook` audit logging
 
+## From 1.9.5 → 1.10.0
+
+Schema additions for operator tooling and customer notification prefs:
+
+1. Re-run **`schema.sql`** (adds `integration_probe_runs` table + `customers.notification_preferences` JSONB)
+2. Redeploy frontend (notification hub, dispatch bulk SMS, portal prefs)
+3. Optional: `npm run verify:operator` with `VITE_SUPABASE_*` and `SMOKE_EDGE_FUNCTIONS=1` in CI
+
 ## From 1.9.4 → 1.9.5
 
 No schema changes. Locale-aware notifications; observability probe gate fix; notification flush in Settings.
