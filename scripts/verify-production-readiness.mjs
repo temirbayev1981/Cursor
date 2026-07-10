@@ -1058,10 +1058,64 @@ const chartPrefetch = existsSync('src/lib/chart-prefetch.ts')
   ? readFileSync('src/lib/chart-prefetch.ts', 'utf8')
   : ''
 const appLayout = readFileSync('src/components/layout/app-layout.tsx', 'utf8')
-if (chartPrefetch.includes("import('recharts')") && appLayout.includes('prefetchChartBundles')) {
+const dashboardPage = readFileSync('src/pages/dashboard.tsx', 'utf8')
+const reportsPage = readFileSync('src/pages/reports.tsx', 'utf8')
+const lazyDashboardCharts = existsSync('src/components/charts/lazy-dashboard-charts.tsx')
+  ? readFileSync('src/components/charts/lazy-dashboard-charts.tsx', 'utf8')
+  : ''
+const lazyReportsCharts = existsSync('src/components/charts/lazy-reports-charts.tsx')
+  ? readFileSync('src/components/charts/lazy-reports-charts.tsx', 'utf8')
+  : ''
+
+if (
+  chartPrefetch.includes("import('@/components/charts/dashboard-charts')")
+  && chartPrefetch.includes("import('@/components/charts/reports-recharts')")
+  && appLayout.includes('prefetchChartBundles')
+) {
   console.log('✓ chart bundles prefetch on app shell load')
 } else {
-  console.log('✗ app layout must prefetch recharts and chart routes')
+  console.log('✗ app layout must prefetch lazy chart chunks')
+  ok = false
+}
+
+if (
+  !dashboardPage.includes("from 'recharts'")
+  && !reportsPage.includes("from 'recharts'")
+  && lazyDashboardCharts.includes('lazy(')
+  && lazyReportsCharts.includes('lazy(')
+) {
+  console.log('✓ dashboard and reports lazy-load recharts chunks')
+} else {
+  console.log('✗ pages must use lazy chart components instead of direct recharts imports')
+  ok = false
+}
+
+const livePlaywright = existsSync('playwright.live.config.ts')
+  ? readFileSync('playwright.live.config.ts', 'utf8')
+  : ''
+const liveE2e = existsSync('e2e/live-backend-smoke.spec.ts')
+  ? readFileSync('e2e/live-backend-smoke.spec.ts', 'utf8')
+  : ''
+const nightlyLiveE2e = existsSync('.github/workflows/nightly-live-e2e.yml')
+  ? readFileSync('.github/workflows/nightly-live-e2e.yml', 'utf8')
+  : ''
+
+if (
+  livePlaywright.includes("testMatch: 'live-backend-smoke.spec.ts'")
+  && !livePlaywright.includes('VITE_E2E_MOCK_BACKEND')
+  && liveE2e.includes('Live backend smoke')
+  && nightlyLiveE2e.includes('LIVE_E2E_OPTIONAL')
+) {
+  console.log('✓ live-backend E2E smoke configured')
+} else {
+  console.log('✗ playwright.live.config.ts and live-backend-smoke E2E required')
+  ok = false
+}
+
+if (nightlyLiveE2e.includes('schedule:') && nightlyLiveE2e.includes("cron: '0 7 * * *'")) {
+  console.log('✓ nightly live E2E schedule configured')
+} else {
+  console.log('✗ nightly-live-e2e.yml must include daily cron schedule')
   ok = false
 }
 

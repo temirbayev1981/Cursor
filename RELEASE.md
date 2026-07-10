@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.13.3
+# HandymanOS AI — Release 1.13.4
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.13.3`**, current package **1.13.3**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.13.4`**, current package **1.13.4**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -130,6 +130,10 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Locale-aware notification templates; observability probe gate uses live results
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
+
+### 1.13.4 — Lazy recharts & live E2E
+- Dashboard/reports lazy-load recharts chunks (smaller initial bundle)
+- Nightly `nightly-live-e2e.yml` smoke against live Supabase when secrets are set
 
 ### 1.13.3 — Chart prefetch & registry E2E sync
 - Prefetch recharts/dashboard/reports on app shell load

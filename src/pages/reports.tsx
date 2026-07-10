@@ -1,24 +1,11 @@
 import { useMemo, useState } from 'react'
 import { Download, FileSpreadsheet } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts'
 import {
   computeRevenueChart,
   computeServiceProfitability,
@@ -30,12 +17,13 @@ import {
   filterJobsByDateRange,
   filterExpensesByDateRange,
   filterFuelLogsByDateRange,
-  hasRevenueData,
-  hasProfitData,
-  hasTechnicianData,
-  hasValueData,
 } from '@/lib/analytics'
-import { ChartEmpty } from '@/components/shared/chart-empty'
+import {
+  LazyReportsExpensesChart,
+  LazyReportsFinancialChart,
+  LazyReportsServicesChart,
+  LazyReportsTechniciansChart,
+} from '@/components/charts/lazy-reports-charts'
 import { useJobs, useCustomers, useEmployees, useExpenses, useFuelLogs } from '@/hooks/use-entities'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { formatCurrency } from '@/lib/utils'
@@ -45,8 +33,6 @@ import { useTranslation } from '@/contexts/locale-context'
 import { subMonths, format } from 'date-fns'
 
 type ReportTab = 'financial' | 'profit' | 'technicians' | 'customers' | 'services' | 'expenses'
-
-const PIE_COLORS = ['#0ea5e9', '#fbbf24', '#22c55e', '#ef4444', '#8b5cf6', '#f97316']
 
 function defaultStartDate() {
   return format(subMonths(new Date(), 6), 'yyyy-MM-dd')
@@ -176,6 +162,17 @@ export default function ReportsPage() {
     })
   }
 
+  const reportChartLabels = {
+    revenueReport: t.reports.revenueReport,
+    techPerformance: t.reports.techPerformance,
+    serviceProfit: t.reports.serviceProfit,
+    expenseBreakdown: t.reports.expenseBreakdown,
+    revenue: t.dashboard.revenue,
+    jobs: t.nav.jobs,
+    efficiency: t.reports.efficiency,
+    noData: t.common.noData,
+  }
+
   if (jobsLoading || custLoading) return <TableSkeleton rows={6} cols={4} />
 
   return (
@@ -257,25 +254,7 @@ export default function ReportsPage() {
         </TabsList>
 
         <TabsContent value="financial">
-          <Card>
-            <CardHeader><CardTitle>{t.reports.revenueReport}</CardTitle></CardHeader>
-            <CardContent>
-              {hasRevenueData(revenueChart) ? (
-              <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={revenueChart}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
-                  <XAxis dataKey="name" stroke="#94a3b8" />
-                  <YAxis stroke="#94a3b8" tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip />
-                  <Bar dataKey="revenue" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="profit" fill="#22c55e" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-              ) : (
-                <ChartEmpty message={t.common.noData} height={350} />
-              )}
-            </CardContent>
-          </Card>
+          <LazyReportsFinancialChart revenueChart={revenueChart} labels={reportChartLabels} />
         </TabsContent>
 
         <TabsContent value="profit">
@@ -313,26 +292,7 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="technicians">
-          <Card>
-            <CardHeader><CardTitle>{t.reports.techPerformance}</CardTitle></CardHeader>
-            <CardContent>
-              {hasTechnicianData(techChart) ? (
-              <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={techChart}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
-                  <XAxis dataKey="name" stroke="#94a3b8" />
-                  <YAxis stroke="#94a3b8" />
-                  <Tooltip />
-                  <Bar dataKey="revenue" fill="#fbbf24" name={t.dashboard.revenue} radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="jobs" fill="#0ea5e9" name={t.nav.jobs} radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="efficiency" fill="#22c55e" name={t.reports.efficiency} radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-              ) : (
-                <ChartEmpty message={t.common.noData} height={350} />
-              )}
-            </CardContent>
-          </Card>
+          <LazyReportsTechniciansChart techChart={techChart} labels={reportChartLabels} />
         </TabsContent>
 
         <TabsContent value="customers">
@@ -352,56 +312,11 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="services">
-          <Card>
-            <CardHeader><CardTitle>{t.reports.serviceProfit}</CardTitle></CardHeader>
-            <CardContent>
-              {hasProfitData(serviceChart) ? (
-              <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={serviceChart}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
-                  <XAxis dataKey="name" stroke="#94a3b8" />
-                  <YAxis stroke="#94a3b8" />
-                  <Tooltip />
-                  <Bar dataKey="profit" fill="#22c55e" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-              ) : (
-                <ChartEmpty message={t.common.noData} height={350} />
-              )}
-            </CardContent>
-          </Card>
+          <LazyReportsServicesChart serviceChart={serviceChart} labels={reportChartLabels} />
         </TabsContent>
 
         <TabsContent value="expenses">
-          <Card>
-            <CardHeader><CardTitle>{t.reports.expenseBreakdown}</CardTitle></CardHeader>
-            <CardContent>
-              {hasValueData(localizedExpenseChart) ? (
-                <ResponsiveContainer width="100%" height={350}>
-                  <PieChart>
-                    <Pie
-                      data={localizedExpenseChart}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={70}
-                      outerRadius={110}
-                      paddingAngle={4}
-                      dataKey="value"
-                      nameKey="name"
-                    >
-                      {localizedExpenseChart.map((_, index) => (
-                        <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <ChartEmpty message={t.common.noData} height={350} />
-              )}
-            </CardContent>
-          </Card>
+          <LazyReportsExpensesChart expenseChart={localizedExpenseChart} labels={reportChartLabels} />
         </TabsContent>
       </Tabs>
     </div>
