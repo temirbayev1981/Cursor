@@ -324,6 +324,13 @@ if (skipLogModule.includes('getNotificationSkipLogStats')) {
   ok = false
 }
 
+if (skipLogModule.includes('exportNotificationSkipLogCsv') && skipLogModule.includes('# summary:')) {
+  console.log('✓ notification skip log CSV includes email/SMS summary')
+} else {
+  console.log('✗ notification skip log CSV must include email/SMS summary')
+  ok = false
+}
+
 const hubPanel = readFileSync('src/components/settings/notification-hub-panel.tsx', 'utf8')
 if (hubPanel.includes('notification-hub-filter-skipped') && hubPanel.includes('getNotificationSkipLog')) {
   console.log('✓ notification hub exposes skipped filter tab')
@@ -493,11 +500,18 @@ if (auditLabels.includes('NOTIFICATION_HUB_SKIP_CHANNEL_FILTER_AUDIT = true')) {
   ok = false
 }
 
+if (auditLabels.includes('NOTIFICATION_HUB_EMAIL_SKIP_CSV_AUDIT = true')) {
+  console.log('✓ NOTIFICATION_HUB_EMAIL_SKIP_CSV_AUDIT gate enabled')
+} else {
+  console.log('✗ NOTIFICATION_HUB_EMAIL_SKIP_CSV_AUDIT must be true')
+  ok = false
+}
+
 const notificationGateCount = (auditLabels.match(/export const NOTIFICATION_\w+_AUDIT = true/g) ?? []).length
-if (notificationGateCount >= 15) {
+if (notificationGateCount >= 16) {
   console.log(`✓ ${notificationGateCount} notification audit gates enabled`)
 } else {
-  console.log(`✗ expected at least 15 notification audit gates, found ${notificationGateCount}`)
+  console.log(`✗ expected at least 16 notification audit gates, found ${notificationGateCount}`)
   ok = false
 }
 
@@ -572,6 +586,13 @@ if (settingsE2e.includes('notification hub exports SMS skip log CSV with channel
   console.log('✓ hub SMS skip CSV export E2E coverage present')
 } else {
   console.log('✗ hub SMS skip CSV export E2E test required')
+  ok = false
+}
+
+if (settingsE2e.includes('notification hub exports email skip log CSV with channel column')) {
+  console.log('✓ hub email skip CSV export E2E coverage present')
+} else {
+  console.log('✗ hub email skip CSV export E2E test required')
   ok = false
 }
 

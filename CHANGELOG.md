@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.11.2] — 2026-07-10
+
+Hub skip CSV summary and email channel export.
+
+### Phase 118 — Hub skip CSV email channel
+- Skip log CSV prepends `# summary: N skipped (X email · Y SMS)` header
+- E2E: email skip CSV export includes channel column and email address
+- E2E: SMS skip CSV export validates summary line
+- Platform audit: `notification_hub_email_skip_csv_audit` gate
+- **230** E2E tests, **163** unit tests
+
 ## [1.11.1] — 2026-07-10
 
 Hub skip log channel filtering.

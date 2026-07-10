@@ -97,6 +97,7 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('platform-audit-check-notification_hub_invoice_email_skip_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-notification_milestone_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-notification_hub_skip_channel_filter_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-notification_hub_email_skip_csv_audit')).toBeVisible()
     await expect(page.getByTestId('notification-hub')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history-entry-0')).toBeVisible()
@@ -456,9 +457,34 @@ test.describe('Settings billing & team', () => {
     const csvPath = await download.path()
     expect(csvPath).toBeTruthy()
     const csv = readFileSync(csvPath!, 'utf8')
+    expect(csv).toMatch(/# summary: 1 skipped \(0 email · 1 SMS\)/)
     expect(csv).toContain('channel')
     expect(csv).toContain('"sms"')
     expect(csv).toMatch(/555.*234.*5678|\(555\) 234-5678/)
+  })
+
+  test('notification hub exports email skip log CSV with channel column', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await clearNotificationQueue(page)
+    await page.evaluate(() => {
+      localStorage.setItem('handymanos_customer_notify_prefs_cust-004', JSON.stringify({ email: false, sms: true }))
+    })
+    await page.goto('/estimates')
+    await page.getByTestId('estimate-send-est-003').click()
+    await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /system|система/i }).click()
+    const downloadPromise = page.waitForEvent('download')
+    await page.getByTestId('notification-hub-export-skip-log').click()
+    const download = await downloadPromise
+    const csvPath = await download.path()
+    expect(csvPath).toBeTruthy()
+    const csv = readFileSync(csvPath!, 'utf8')
+    expect(csv).toMatch(/# summary: 1 skipped \(1 email · 0 SMS\)/)
+    expect(csv).toContain('channel')
+    expect(csv).toContain('"email"')
+    expect(csv).toContain('chen.family@email.com')
   })
 })
 
