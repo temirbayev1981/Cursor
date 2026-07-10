@@ -1,5 +1,6 @@
 import type { UserRole } from '@/types'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { callRpc } from '@/lib/supabase-rpc'
 import { loadStore, saveStore, upsertStore } from '@/lib/data-store'
 
 export interface TeamInvite {
@@ -76,18 +77,21 @@ export async function getTeamInvitePreview(token: string): Promise<TeamInvitePre
   if (DEMO_MODE || !supabase) return null
 
   try {
-    const { data, error } = await supabase.rpc(
-      'get_team_invite' as never,
-      { p_token: token } as never
-    )
+    const { data, error } = await callRpc('get_team_invite', { p_token: token })
     if (error) return null
-    const rows = data as Array<TeamInvitePreview & { accepted_at?: string }> | null
+    const rows = data
     if (!rows || rows.length === 0) return null
 
     const row = rows[0]
     if (row.accepted_at) return null
     if (new Date(row.expires_at).getTime() <= Date.now()) return null
-    return row
+    return {
+      email: row.email,
+      role: row.role as UserRole,
+      company_id: row.company_id,
+      company_name: row.company_name,
+      expires_at: row.expires_at,
+    }
   } catch {
     return null
   }
@@ -103,10 +107,8 @@ export async function acceptTeamInvite(token: string): Promise<TeamInvite | null
   saveStore(INVITES_KEY, invites)
 
   if (!DEMO_MODE && supabase) {
-    await supabase
-      .from('team_invites')
-      .update({ accepted_at: invite.accepted_at } as never)
-      .eq('token', token)
+    const { data, error } = await callRpc('accept_team_invite', { p_token: token })
+    if (error || !data) return null
   }
 
   return invite

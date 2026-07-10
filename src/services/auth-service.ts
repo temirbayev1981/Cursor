@@ -60,10 +60,16 @@ export async function registerUserWithInvite(
     created_at: new Date().toISOString(),
   }
 
-  const { error: profileError } = await supabase.from('profiles').upsert(profile as never)
-  if (profileError) throw profileError
+  const accepted = await acceptTeamInvite(inviteToken)
+  if (!accepted) throw new Error('Failed to accept invite')
 
-  await acceptTeamInvite(inviteToken)
+  const { data: profileRow } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', authData.user.id)
+    .single()
+
+  const linkedProfile = (profileRow as unknown as Profile) ?? profile
 
   const { data: company } = await supabase
     .from('companies')
@@ -72,7 +78,7 @@ export async function registerUserWithInvite(
     .single()
 
   return {
-    profile,
+    profile: linkedProfile,
     company: (company as unknown as Company) ?? DEMO_COMPANY,
   }
 }

@@ -159,10 +159,12 @@ export interface Database {
           name: string
           category: string
           supplier: string
-          unit_cost: number
+          cost: number
           markup_percent: number
+          customer_price: number
           quantity: number
           reorder_level: number
+          unit: string
           created_at: string
         }
         Insert: Partial<Database['public']['Tables']['materials']['Row']>
@@ -249,9 +251,75 @@ export interface Database {
         Insert: Partial<Database['public']['Tables']['audit_logs']['Row']>
         Update: Partial<Database['public']['Tables']['audit_logs']['Row']>
       }
+      portal_tokens: {
+        Row: {
+          id: string
+          company_id: string
+          customer_id: string
+          portal_type: string
+          token: string
+          email: string | null
+          expires_at: string
+          created_at: string
+        }
+        Insert: Partial<Database['public']['Tables']['portal_tokens']['Row']>
+        Update: Partial<Database['public']['Tables']['portal_tokens']['Row']>
+      }
+      team_invites: {
+        Row: {
+          id: string
+          company_id: string
+          email: string
+          role: string
+          token: string
+          invited_by: string | null
+          expires_at: string
+          accepted_at: string | null
+          created_at: string
+        }
+        Insert: Partial<Database['public']['Tables']['team_invites']['Row']>
+        Update: Partial<Database['public']['Tables']['team_invites']['Row']>
+      }
+      time_entries: {
+        Row: {
+          id: string
+          company_id: string
+          job_id: string
+          employee_id: string | null
+          profile_id: string | null
+          start_time: string
+          end_time: string | null
+          lat: number | null
+          lng: number | null
+          created_at: string
+        }
+        Insert: Partial<Database['public']['Tables']['time_entries']['Row']>
+        Update: Partial<Database['public']['Tables']['time_entries']['Row']>
+      }
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      validate_portal_token: {
+        Args: { p_token: string }
+        Returns: Array<{ customer_id: string; portal_type: string; company_id: string }>
+      }
+      get_team_invite: {
+        Args: { p_token: string }
+        Returns: Array<{
+          email: string
+          role: string
+          company_id: string
+          company_name: string
+          expires_at: string
+          accepted_at: string | null
+        }>
+      }
+      accept_team_invite: {
+        Args: { p_token: string }
+        Returns: boolean
+      }
+    }
     Enums: Record<string, never>
+    CompositeTypes: Record<string, never>
   }
 }

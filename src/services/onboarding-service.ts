@@ -37,8 +37,7 @@ export async function persistOnboarding(data: OnboardingData, companyId: string,
   }
 
   if (!DEMO_MODE && supabase) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).from('companies').upsert(company)
+    await supabase.from('companies').upsert(company as never)
   } else {
     localStorage.setItem('handymanos_company', JSON.stringify(company))
   }

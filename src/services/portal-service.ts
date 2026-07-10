@@ -1,4 +1,5 @@
 import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { callRpc } from '@/lib/supabase-rpc'
 import { loadStore, saveStore, upsertStore } from '@/lib/data-store'
 
 export type PortalType = 'customer' | 'property'
@@ -108,12 +109,9 @@ export async function validatePortalToken(token: string): Promise<PortalSession 
   if (DEMO_MODE || !supabase) return null
 
   try {
-    const { data, error } = await supabase.rpc(
-      'validate_portal_token' as never,
-      { p_token: token } as never
-    )
+    const { data, error } = await callRpc('validate_portal_token', { p_token: token })
     if (error) return null
-    const rows = data as Array<{ customer_id: string; portal_type: PortalType; company_id: string }> | null
+    const rows = data
     if (!rows || rows.length === 0) return null
 
     const row = rows[0]
@@ -121,7 +119,7 @@ export async function validatePortalToken(token: string): Promise<PortalSession 
     return {
       customerId: row.customer_id,
       companyId: row.company_id,
-      portalType: row.portal_type,
+      portalType: row.portal_type as PortalType,
       expiresAt: dbToken
         ? new Date(dbToken.expires_at).getTime()
         : Date.now() + 7 * 86400000,

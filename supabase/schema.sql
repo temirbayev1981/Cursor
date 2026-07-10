@@ -667,6 +667,45 @@ $$;
 GRANT EXECUTE ON FUNCTION validate_portal_token(TEXT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION get_team_invite(TEXT) TO anon, authenticated;
 
+-- Accept invite: mark accepted and link profile to company (bypasses team_invites RLS)
+CREATE OR REPLACE FUNCTION accept_team_invite(p_token TEXT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_invite team_invites%ROWTYPE;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RETURN FALSE;
+  END IF;
+
+  SELECT * INTO v_invite
+  FROM team_invites
+  WHERE token = p_token
+    AND accepted_at IS NULL
+    AND expires_at > NOW();
+
+  IF NOT FOUND THEN
+    RETURN FALSE;
+  END IF;
+
+  UPDATE team_invites
+  SET accepted_at = NOW()
+  WHERE id = v_invite.id;
+
+  UPDATE profiles
+  SET company_id = v_invite.company_id,
+      role = v_invite.role
+  WHERE id = auth.uid();
+
+  RETURN TRUE;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION accept_team_invite(TEXT) TO authenticated;
+
 -- Time entries (technician clock in/out)
 CREATE TABLE time_entries (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

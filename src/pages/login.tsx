@@ -131,7 +131,7 @@ export default function LoginPage() {
             {DEMO_MODE && <p className="text-xs text-center text-muted-foreground mt-4">{t.auth.demoHint}</p>}
             {isPortal && DEMO_MODE && (
               <Button type="button" variant="outline" className="w-full mt-3" onClick={handlePortalDemo}>
-                Демо-доступ к порталу клиента
+                {t.auth.portalDemoAccess}
               </Button>
             )}
           </CardContent>
