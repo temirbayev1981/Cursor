@@ -87,7 +87,7 @@ export default function DashboardPage() {
     <div>
       <PageHeader title={t.dashboard.title} description={t.dashboard.description} />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" data-testid="dashboard-stat-cards">
         <StatCard title={t.dashboard.revenueToday} value={metrics.revenueToday} icon={DollarSign} format="currency" trend={comparison.revenueTrend} delay={0} />
         <StatCard title={t.dashboard.revenueMonth} value={metrics.revenueMonth} icon={TrendingUp} format="currency" trend={comparison.revenueTrend} delay={0.05} />
         <StatCard title={t.dashboard.openJobs} value={metrics.openJobs} icon={Briefcase} subtitle={`${metrics.completedJobs} ${t.common.completedThisMonth}`} trend={comparison.jobsTrend} delay={0.1} />
@@ -101,7 +101,7 @@ export default function DashboardPage() {
         <StatCard title={t.dashboard.profitMargin} value={metrics.profitMargin} icon={CheckCircle} format="percent" trend={comparison.profitTrend} delay={0.35} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" data-testid="dashboard-charts">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           <Card>
             <CardHeader><CardTitle>{t.dashboard.revenueProfitTrends}</CardTitle></CardHeader>
@@ -211,7 +211,7 @@ export default function DashboardPage() {
         </motion.div>
       </div>
 
-      <Card>
+      <Card data-testid="dashboard-recent-jobs">
         <CardHeader><CardTitle>{t.dashboard.recentJobs}</CardTitle></CardHeader>
         <CardContent>
           <div className="space-y-3">

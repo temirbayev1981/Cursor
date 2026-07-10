@@ -203,7 +203,7 @@ export default function SettingsPage() {
               const planData = t.settings.plans[plan.key]
               const isCurrent = currentPlan === plan.key
               return (
-                <Card key={plan.key} className={isCurrent ? 'border-primary' : ''}>
+                <Card key={plan.key} className={isCurrent ? 'border-primary' : ''} data-testid={`billing-plan-${plan.key}`}>
                   <CardContent className="p-5">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="font-semibold">{planData.name}</h3>
@@ -220,6 +220,7 @@ export default function SettingsPage() {
                         variant="outline"
                         className="w-full"
                         disabled={upgradingPlan === plan.key}
+                        data-testid={`billing-upgrade-${plan.key}`}
                         onClick={() => void handleUpgrade(plan.key)}
                       >
                         {upgradingPlan === plan.key ? '...' : t.common.upgrade}
@@ -265,6 +266,7 @@ export default function SettingsPage() {
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
                     placeholder="tech@company.com"
+                    data-testid="team-invite-email"
                   />
                 </div>
                 <div>
@@ -280,7 +282,7 @@ export default function SettingsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={() => void handleSendInvite()} disabled={inviteLoading || !inviteEmail.includes('@')}>
+                <Button onClick={() => void handleSendInvite()} disabled={inviteLoading || !inviteEmail.includes('@')} data-testid="team-invite-submit">
                   {t.settings.sendInvite}
                 </Button>
               </CardContent>
@@ -288,7 +290,7 @@ export default function SettingsPage() {
 
             <Card>
               <CardHeader><CardTitle>{t.settings.pendingInvites}</CardTitle></CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-2" data-testid="team-pending-invites">
                 {pendingInvites.length === 0 ? (
                   <p className="text-sm text-muted-foreground">{t.settings.noPendingInvites}</p>
                 ) : (

@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.4.5] — 2026-07-10
+
+Settings billing/team and dashboard analytics E2E.
+
+### Phase 53 — Settings & dashboard E2E
+- E2E: billing plan upgrade in demo mode (`settings-dashboard.spec.ts`)
+- E2E: team invite creates pending invite row
+- E2E: dashboard stat cards, charts, recent jobs
+- `data-testid` on billing plans, team invite form, dashboard sections
+
 ## [1.4.4] — 2026-07-10
 
 Dispatch drag-and-drop, AI chat input, and reports PDF E2E.
