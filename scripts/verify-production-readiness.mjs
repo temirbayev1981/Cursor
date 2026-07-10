@@ -358,6 +358,34 @@ if (auditLabels.includes('INVOICE_AUDIT = true')) {
   ok = false
 }
 
+if (auditLabels.includes('SAMPLE_IMPORT_AUDIT = true')) {
+  console.log('✓ SAMPLE_IMPORT_AUDIT gate enabled')
+} else {
+  console.log('✗ SAMPLE_IMPORT_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('PORTAL_REQUESTS_AUDIT = true')) {
+  console.log('✓ PORTAL_REQUESTS_AUDIT gate enabled')
+} else {
+  console.log('✗ PORTAL_REQUESTS_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('ESTIMATE_CREATE_AUDIT = true')) {
+  console.log('✓ ESTIMATE_CREATE_AUDIT gate enabled')
+} else {
+  console.log('✗ ESTIMATE_CREATE_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('ENTITY_UPDATE_AUDIT = true')) {
+  console.log('✓ ENTITY_UPDATE_AUDIT gate enabled')
+} else {
+  console.log('✗ ENTITY_UPDATE_AUDIT must be true')
+  ok = false
+}
+
 const techOfflineE2e = readFileSync('e2e/tech-offline.spec.ts', 'utf8')
 if (techOfflineE2e.includes('saving job notes offline queues action and syncs when online')) {
   console.log('✓ technician offline sync E2E coverage present')
@@ -405,6 +433,18 @@ if (auditExpanded.includes('billing plan upgrade appears in audit log') && audit
   console.log('✓ billing, team invite, and invoice audit E2E coverage present')
 } else {
   console.log('✗ billing, team invite, and invoice audit E2E tests required')
+  ok = false
+}
+
+if (
+  auditExpanded.includes('sample import appears in audit log')
+  && auditExpanded.includes('portal job submit appears in audit log')
+  && auditExpanded.includes('estimate created from job')
+  && auditExpanded.includes('customer update appears in audit log')
+) {
+  console.log('✓ sample import, portal requests, estimate create, and entity update audit E2E coverage present')
+} else {
+  console.log('✗ sample import, portal requests, estimate create, and entity update audit E2E tests required')
   ok = false
 }
 
@@ -827,6 +867,10 @@ if (
   && settingsE2e.includes('platform-audit-check-billing_plan_audit')
   && settingsE2e.includes('platform-audit-check-team_invite_audit')
   && settingsE2e.includes('platform-audit-check-invoice_audit')
+  && settingsE2e.includes('platform-audit-check-sample_import_audit')
+  && settingsE2e.includes('platform-audit-check-portal_requests_audit')
+  && settingsE2e.includes('platform-audit-check-estimate_create_audit')
+  && settingsE2e.includes('platform-audit-check-entity_update_audit')
 ) {
   console.log('✓ field-ops milestone audit E2E coverage present')
 } else {
