@@ -18,6 +18,7 @@ describe('portal-service', () => {
     const session = await validatePortalToken(token)
     expect(session?.customerId).toBe('cust-001')
     expect(session?.portalType).toBe('customer')
+    expect(session?.token).toBe(token)
   })
 
   it('stores and clears portal session', () => {
@@ -26,6 +27,7 @@ describe('portal-service', () => {
       companyId: 'comp-001',
       portalType: 'customer',
       expiresAt: Date.now() + 3600000,
+      token: 'test-token',
     })
     expect(getPortalSession()?.customerId).toBe('cust-001')
     clearPortalSession()
@@ -38,6 +40,7 @@ describe('portal-service', () => {
       companyId: 'comp-001',
       portalType: 'customer',
       expiresAt: Date.now() - 1000,
+      token: 'expired-token',
     })
     expect(getPortalSession()).toBeNull()
   })

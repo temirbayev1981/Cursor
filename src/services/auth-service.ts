@@ -61,6 +61,9 @@ export async function registerUserWithInvite(
 ): Promise<{ profile: Profile; company: Company }> {
   const preview = await getTeamInvitePreview(inviteToken)
   if (!preview) throw new Error('Invalid or expired invite')
+  if (preview.email.toLowerCase() !== email.toLowerCase().trim()) {
+    throw new Error('Email does not match invite')
+  }
 
   if (DEMO_MODE) {
     const invite = await acceptTeamInvite(inviteToken)

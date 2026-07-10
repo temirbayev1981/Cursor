@@ -445,7 +445,33 @@ export interface Database {
     Functions: {
       validate_portal_token: {
         Args: { p_token: string }
-        Returns: Array<{ customer_id: string; portal_type: string; company_id: string }>
+        Returns: Array<{
+          customer_id: string
+          portal_type: string
+          company_id: string
+          expires_at: string
+          customer_name: string
+        }>
+      }
+      get_portal_estimates: {
+        Args: { p_token: string }
+        Returns: Database['public']['Tables']['estimates']['Row'][]
+      }
+      get_portal_invoices: {
+        Args: { p_token: string }
+        Returns: Database['public']['Tables']['invoices']['Row'][]
+      }
+      get_portal_jobs: {
+        Args: { p_token: string }
+        Returns: Database['public']['Tables']['jobs']['Row'][]
+      }
+      portal_update_estimate_status: {
+        Args: { p_token: string; p_estimate_id: string; p_status: string }
+        Returns: boolean
+      }
+      portal_submit_job_request: {
+        Args: { p_token: string; p_title: string; p_description: string; p_priority?: string }
+        Returns: string | null
       }
       get_team_invite: {
         Args: { p_token: string }

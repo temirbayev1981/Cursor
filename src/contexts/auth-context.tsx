@@ -63,20 +63,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('handymanos_auth', 'true')
     }
     setIsLoading(false)
-
-    if (supabase) {
-      supabase.auth.onAuthStateChange(async (_event, authSession) => {
-        if (!authSession) {
-          setUser(null)
-          setCompany(null)
-          setOnboardingComplete(false)
-          localStorage.removeItem('handymanos_auth')
-        }
-      })
-    }
   }, [])
 
-  useEffect(() => { restoreSession() }, [restoreSession])
+  useEffect(() => { void restoreSession() }, [restoreSession])
+
+  useEffect(() => {
+    if (!supabase || DEMO_MODE) return
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, authSession) => {
+      if (!authSession) {
+        setUser(null)
+        setCompany(null)
+        setOnboardingComplete(false)
+        localStorage.removeItem('handymanos_auth')
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const signUp = async (email: string, password: string, fullName: string, inviteToken?: string): Promise<PostAuthState> => {
     if (DEMO_MODE) {

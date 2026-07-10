@@ -635,14 +635,119 @@ CREATE POLICY "Company members can manage team invites" ON team_invites
 
 -- Public token validation (no auth required — used by portal access page)
 CREATE OR REPLACE FUNCTION validate_portal_token(p_token TEXT)
-RETURNS TABLE (customer_id UUID, portal_type TEXT, company_id UUID)
+RETURNS TABLE (customer_id UUID, portal_type TEXT, company_id UUID, expires_at TIMESTAMPTZ, customer_name TEXT)
 LANGUAGE sql
 SECURITY DEFINER
 STABLE
+SET search_path = public
 AS $$
-  SELECT customer_id, portal_type, company_id
-  FROM portal_tokens
-  WHERE token = p_token AND expires_at > NOW()
+  SELECT pt.customer_id, pt.portal_type, pt.company_id, pt.expires_at, c.name AS customer_name
+  FROM portal_tokens pt
+  JOIN customers c ON c.id = pt.customer_id
+  WHERE pt.token = p_token AND pt.expires_at > NOW()
+$$;
+
+CREATE OR REPLACE FUNCTION get_portal_estimates(p_token TEXT)
+RETURNS SETOF estimates
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT e.*
+  FROM estimates e
+  INNER JOIN portal_tokens pt ON pt.token = p_token AND pt.expires_at > NOW()
+  WHERE e.company_id = pt.company_id AND e.customer_id = pt.customer_id
+  ORDER BY e.created_at DESC
+$$;
+
+CREATE OR REPLACE FUNCTION get_portal_invoices(p_token TEXT)
+RETURNS SETOF invoices
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT i.*
+  FROM invoices i
+  INNER JOIN portal_tokens pt ON pt.token = p_token AND pt.expires_at > NOW()
+  WHERE i.company_id = pt.company_id AND i.customer_id = pt.customer_id
+  ORDER BY i.created_at DESC
+$$;
+
+CREATE OR REPLACE FUNCTION get_portal_jobs(p_token TEXT)
+RETURNS SETOF jobs
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT j.*
+  FROM jobs j
+  INNER JOIN portal_tokens pt ON pt.token = p_token AND pt.expires_at > NOW()
+  WHERE j.company_id = pt.company_id AND j.customer_id = pt.customer_id
+  ORDER BY j.created_at DESC
+$$;
+
+CREATE OR REPLACE FUNCTION portal_update_estimate_status(
+  p_token TEXT,
+  p_estimate_id UUID,
+  p_status TEXT
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  pt portal_tokens%ROWTYPE;
+BEGIN
+  SELECT * INTO pt FROM portal_tokens WHERE token = p_token AND expires_at > NOW();
+  IF NOT FOUND THEN RETURN FALSE; END IF;
+  IF p_status NOT IN ('approved', 'rejected') THEN RETURN FALSE; END IF;
+
+  UPDATE estimates
+  SET status = p_status
+  WHERE id = p_estimate_id
+    AND company_id = pt.company_id
+    AND customer_id = pt.customer_id
+    AND status = 'sent';
+
+  RETURN FOUND;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION portal_submit_job_request(
+  p_token TEXT,
+  p_title TEXT,
+  p_description TEXT,
+  p_priority TEXT DEFAULT 'medium'
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  pt portal_tokens%ROWTYPE;
+  v_job_id UUID;
+BEGIN
+  SELECT * INTO pt FROM portal_tokens WHERE token = p_token AND expires_at > NOW();
+  IF NOT FOUND THEN RETURN NULL; END IF;
+  IF pt.portal_type <> 'property' THEN RETURN NULL; END IF;
+
+  v_job_id := uuid_generate_v4();
+  INSERT INTO jobs (
+    id, company_id, customer_id, title, description, status, priority,
+    estimated_hours, actual_hours, revenue, labor_cost, material_cost,
+    fuel_cost, overhead_cost, profit, profit_margin
+  ) VALUES (
+    v_job_id, pt.company_id, pt.customer_id, p_title, p_description, 'draft',
+    COALESCE(p_priority, 'medium'), 2, 0, 0, 0, 0, 0, 0, 0, 0
+  );
+
+  RETURN v_job_id;
+END;
 $$;
 
 CREATE OR REPLACE FUNCTION get_team_invite(p_token TEXT)
@@ -665,6 +770,11 @@ AS $$
 $$;
 
 GRANT EXECUTE ON FUNCTION validate_portal_token(TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION get_portal_estimates(TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION get_portal_invoices(TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION get_portal_jobs(TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION portal_update_estimate_status(TEXT, UUID, TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION portal_submit_job_request(TEXT, TEXT, TEXT, TEXT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION get_team_invite(TEXT) TO anon, authenticated;
 
 -- Accept invite: mark accepted and link profile to company (bypasses team_invites RLS)
@@ -688,6 +798,10 @@ BEGIN
     AND expires_at > NOW();
 
   IF NOT FOUND THEN
+    RETURN FALSE;
+  END IF;
+
+  IF lower((SELECT email FROM auth.users WHERE id = auth.uid())) <> lower(v_invite.email) THEN
     RETURN FALSE;
   END IF;
 
@@ -728,10 +842,10 @@ ALTER TABLE time_entries ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Company members can manage time entries" ON time_entries
   FOR ALL USING (company_id = get_user_company_id());
 
--- Storage bucket for job photos and documents
+-- Storage bucket for job photos and documents (private — use signed URLs)
 INSERT INTO storage.buckets (id, name, public)
-VALUES ('handymanos', 'handymanos', true)
-ON CONFLICT (id) DO NOTHING;
+VALUES ('handymanos', 'handymanos', false)
+ON CONFLICT (id) DO UPDATE SET public = false;
 
 CREATE POLICY "Company members can read files" ON storage.objects
   FOR SELECT USING (

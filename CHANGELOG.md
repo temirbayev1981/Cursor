@@ -4,6 +4,15 @@ All notable changes to HandymanOS AI are documented here.
 
 ## [Unreleased]
 
+### Security & portal hardening (audit fixes)
+- Portal RPCs: `get_portal_estimates/invoices/jobs`, `portal_update_estimate_status`, `portal_submit_job_request`
+- Portal validation RPC-first in production (no localStorage bypass)
+- Portal pages use scoped data hooks + server mutations
+- Invite accept: RPC-first, email must match invite
+- Stripe checkout: requires auth or portal token + amount validation
+- Storage bucket private with signed URLs
+- Auth listener leak fixed; platform audit quality gates updated
+
 ### Mobile layout
 - Responsive drawer navigation on phones (hamburger menu, full-width content)
 - Safe-area insets for iOS notch/home indicator

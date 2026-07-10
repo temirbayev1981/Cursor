@@ -12,10 +12,11 @@ import type { Invoice } from '@/types'
 interface StripePayButtonProps {
   invoice: Invoice
   customerEmail?: string
+  portalToken?: string
   onSuccess?: () => void
 }
 
-export function StripePayButton({ invoice, customerEmail, onSuccess }: StripePayButtonProps) {
+export function StripePayButton({ invoice, customerEmail, portalToken, onSuccess }: StripePayButtonProps) {
   const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const amount = invoice.total - invoice.amount_paid
@@ -29,6 +30,9 @@ export function StripePayButton({ invoice, customerEmail, onSuccess }: StripePay
         invoiceNumber: invoice.invoice_number,
         amount,
         customerEmail,
+        portalToken,
+        successUrl: portalToken ? `${window.location.origin}/portal/customer?paid=${invoice.id}` : undefined,
+        cancelUrl: portalToken ? `${window.location.origin}/portal/customer` : undefined,
       })
 
       if (result === 'redirected') return

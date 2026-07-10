@@ -98,7 +98,46 @@ export async function getTeamInvitePreview(token: string): Promise<TeamInvitePre
   }
 }
 
+function inviteFromPreview(token: string, preview: TeamInvitePreview): TeamInvite {
+  const local = loadStore<TeamInvite>(INVITES_KEY).find((i) => i.token === token)
+  return {
+    id: local?.id ?? crypto.randomUUID(),
+    company_id: preview.company_id,
+    email: preview.email,
+    role: preview.role,
+    token,
+    invited_by: local?.invited_by,
+    expires_at: preview.expires_at,
+    accepted_at: new Date().toISOString(),
+    created_at: local?.created_at ?? new Date().toISOString(),
+  }
+}
+
 export async function acceptTeamInvite(token: string): Promise<TeamInvite | null> {
+  const preview = await getTeamInvitePreview(token)
+
+  if (!DEMO_MODE && supabase) {
+    if (!preview) {
+      const local = loadStore<TeamInvite>(INVITES_KEY).find((i) => i.token === token)
+      if (!local?.accepted_at) return null
+      return local
+    }
+
+    const { data, error } = await callRpc('accept_team_invite', { p_token: token })
+    if (error || !data) return null
+
+    const invite = inviteFromPreview(token, preview)
+    const invites = loadStore<TeamInvite>(INVITES_KEY)
+    const idx = invites.findIndex((i) => i.token === token)
+    if (idx >= 0) {
+      invites[idx] = invite
+      saveStore(INVITES_KEY, invites)
+    } else {
+      upsertStore(INVITES_KEY, invite)
+    }
+    return invite
+  }
+
   const invites = loadStore<TeamInvite>(INVITES_KEY)
   const idx = invites.findIndex((i) => i.token === token)
   if (idx < 0) return null
@@ -106,12 +145,6 @@ export async function acceptTeamInvite(token: string): Promise<TeamInvite | null
   const invite = { ...invites[idx], accepted_at: new Date().toISOString() }
   invites[idx] = invite
   saveStore(INVITES_KEY, invites)
-
-  if (!DEMO_MODE && supabase) {
-    const { data, error } = await callRpc('accept_team_invite', { p_token: token })
-    if (error || !data) return null
-  }
-
   return invite
 }
 
