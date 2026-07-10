@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.8.0
+# HandymanOS AI — Release 1.8.1
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.8.0`**, current package **1.8.0**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.8.1`**, current package **1.8.1**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -58,10 +58,15 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Platform audit `inventory_audit` gate; **32** localized audit actions
 - E2E: schedule, inventory receive/apply → audit log
 
+### 1.8.1 — Catalog & onboarding audit
+- Audit: material/property CRUD, owner onboarding complete
+- Platform audit `onboarding_audit` gate; **37** localized audit actions
+- E2E: material create, onboarding wizard → audit log
+
 ## Test coverage
 
-- Unit: **106** (`npm test`)
-- E2E: **146/146** (`npm run test:e2e`)
+- Unit: **107** (`npm test`)
+- E2E: **148/148** (`npm run test:e2e`)
 
 ## Deploy
 

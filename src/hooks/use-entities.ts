@@ -331,9 +331,26 @@ export function useConvertEstimateToInvoice() {
 export function useSaveProperty() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
-    mutationFn: (property: import('@/types').Property) => saveEntity('properties', property),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['properties', companyId] }),
+    mutationFn: async (property: import('@/types').Property) => {
+      const existing = await listEntities('properties', companyId) as import('@/types').Property[]
+      const isNew = !existing.some((p) => p.id === property.id)
+      await saveEntity('properties', property)
+      return { property, isNew }
+    },
+    onSuccess: ({ property, isNew }) => {
+      if (user) {
+        void logAudit(
+          companyId,
+          user.id,
+          isNew ? 'property.create' : 'property.update',
+          'property',
+          property.id,
+        )
+      }
+      qc.invalidateQueries({ queryKey: ['properties', companyId] })
+    },
   })
 }
 
@@ -349,9 +366,26 @@ export function useSaveEmployee() {
 export function useSaveMaterial() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
-    mutationFn: (material: Material) => saveEntity('materials', material),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['materials', companyId] }),
+    mutationFn: async (material: Material) => {
+      const existing = await listEntities('materials', companyId) as Material[]
+      const isNew = !existing.some((m) => m.id === material.id)
+      await saveEntity('materials', material)
+      return { material, isNew }
+    },
+    onSuccess: ({ material, isNew }) => {
+      if (user) {
+        void logAudit(
+          companyId,
+          user.id,
+          isNew ? 'material.create' : 'material.update',
+          'material',
+          material.id,
+        )
+      }
+      qc.invalidateQueries({ queryKey: ['materials', companyId] })
+    },
   })
 }
 

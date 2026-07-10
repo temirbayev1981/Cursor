@@ -1,6 +1,6 @@
 # Merging the 1.7.x release stack
 
-> **Completed (2026-07-10):** full **1.7.x** stack + **`v1.8.0`** audit milestone merged to `main`.  
+> **Completed (2026-07-10):** full **1.7.x** stack + **`v1.8.x`** audit releases merged to `main`.  
 > For ongoing deploy steps, see [POST_RELEASE.md](./POST_RELEASE.md).
 
 HandymanOS AI **1.7.4** was delivered as a chain of stacked pull requests. The instructions below are kept for reference.

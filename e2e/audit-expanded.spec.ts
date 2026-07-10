@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { loginAsOwner, openSettingsAuditTab, seedDraftJob, seedInProgressTechJob } from './helpers/auth'
+import { loginAsOwner, loginForOnboarding, openSettingsAuditTab, seedDraftJob, seedInProgressTechJob } from './helpers/auth'
 
 test.describe('Expanded audit log E2E', () => {
   test.beforeEach(async ({ page }) => {
@@ -106,5 +106,39 @@ test.describe('Expanded audit log E2E', () => {
 
     await openSettingsAuditTab(page)
     await expect(page.locator('[data-audit-action="inventory.apply"]').first()).toBeVisible({ timeout: 10000 })
+  })
+
+  test('material create appears in audit log', async ({ page }) => {
+    await page.goto('/materials')
+    await page.getByRole('button', { name: /добавить материал|add material/i }).click()
+    const form = page.getByTestId('material-form')
+    await form.locator('input').first().fill('E2E Audit Material')
+    await form.locator('input').nth(1).fill('General')
+    await form.locator('input').nth(2).fill('Supplier')
+    await form.locator('input[type="number"]').first().fill('9.99')
+    await page.getByTestId('material-form-submit').click()
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="material.create"]').first()).toBeVisible({ timeout: 10000 })
+  })
+})
+
+test.describe('Onboarding audit E2E', () => {
+  test('onboarding complete appears in audit log', async ({ page }) => {
+    await loginForOnboarding(page, 'ru')
+    await page.getByTestId('onboarding-company-name').fill('E2E Audit Onboarding Co')
+    await page.getByTestId('onboarding-next').click()
+    await page.getByTestId('onboarding-service').filter({ hasText: /сантехника|plumbing/i }).click()
+    await page.getByTestId('onboarding-next').click()
+    await page.getByTestId('onboarding-next').click()
+    await page.getByTestId('onboarding-next').click()
+    await page.getByTestId('onboarding-next').click()
+    await page.getByTestId('onboarding-complete').click()
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="onboarding.complete"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/онбординг завершён|onboarding completed/i).first()).toBeVisible()
   })
 })

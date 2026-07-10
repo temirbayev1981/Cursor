@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.8.1] — 2026-07-10
+
+Catalog CRUD and onboarding audit.
+
+### Phase 83 — Catalog & onboarding audit
+- `logAudit`: `material.create`/`material.update`, `property.create`/`property.update`, `onboarding.complete`
+- Platform audit: `onboarding_audit` quality gate (`ONBOARDING_AUDIT`)
+- E2E: material create + onboarding complete → audit log
+- **37** localized audit actions
+
 ## [1.8.0] — 2026-07-10
 
 **Milestone:** full core-ops audit coverage (inventory + scheduling E2E).

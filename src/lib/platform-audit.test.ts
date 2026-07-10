@@ -3,6 +3,7 @@ import { computePlatformAudit } from './platform-audit'
 import { PORTAL_RPC_ENFORCED } from '@/services/portal-data-service'
 import { STRIPE_WEBHOOK_AUDIT } from '@/services/billing-service'
 import { INVENTORY_AUDIT } from '@/services/inventory-service'
+import { ONBOARDING_AUDIT } from '@/services/onboarding-service'
 import { AUDIT_I18N_COVERAGE } from '@/lib/audit-labels'
 import { TYPED_SUPABASE_QUERIES } from '@/lib/supabase-queries'
 import { MULTI_TENANT_SUPPORTED, MULTI_TENANT_MEMBERSHIP_RPC } from '@/services/company-service'
@@ -44,6 +45,7 @@ describe('platform-audit', () => {
     expect(STRIPE_WEBHOOK_AUDIT).toBe(true)
     expect(AUDIT_I18N_COVERAGE).toBe(true)
     expect(INVENTORY_AUDIT).toBe(true)
+    expect(ONBOARDING_AUDIT).toBe(true)
     expect(TYPED_SUPABASE_QUERIES).toBe(true)
     expect(MULTI_TENANT_SUPPORTED).toBe(true)
     expect(MULTI_TENANT_MEMBERSHIP_RPC).toBe('get_accessible_companies')
@@ -54,6 +56,7 @@ describe('platform-audit', () => {
     const stripeAudit = report.checks.find((check) => check.id === 'stripe_webhook_audit')
     const auditI18n = report.checks.find((check) => check.id === 'audit_i18n')
     const inventoryAudit = report.checks.find((check) => check.id === 'inventory_audit')
+    const onboardingAudit = report.checks.find((check) => check.id === 'onboarding_audit')
     const multi = report.checks.find((check) => check.id === 'multi_tenant')
     const liveBackend = report.checks.find((check) => check.id === 'live_backend')
 
@@ -62,6 +65,7 @@ describe('platform-audit', () => {
     expect(stripeAudit?.ok).toBe(Boolean(liveBackend?.ok))
     expect(auditI18n?.ok).toBe(Boolean(liveBackend?.ok))
     expect(inventoryAudit?.ok).toBe(Boolean(liveBackend?.ok))
+    expect(onboardingAudit?.ok).toBe(Boolean(liveBackend?.ok))
     expect(multi?.ok).toBe(Boolean(liveBackend?.ok))
   })
 })

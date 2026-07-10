@@ -34,6 +34,11 @@ const AUDIT_ACTION_KEYS = new Set<string>([
   'estimate.sent',
   'inventory.receive',
   'inventory.apply',
+  'material.create',
+  'material.update',
+  'property.create',
+  'property.update',
+  'onboarding.complete',
 ])
 
 export function isAuditActionKey(action: string): action is AuditActionKey {
@@ -43,7 +48,7 @@ export function isAuditActionKey(action: string): action is AuditActionKey {
 /** Number of localized audit action keys (quality gate for platform audit). */
 export const AUDIT_ACTION_COUNT = AUDIT_ACTION_KEYS.size
 
-export const AUDIT_I18N_COVERAGE = AUDIT_ACTION_COUNT >= 30
+export const AUDIT_I18N_COVERAGE = AUDIT_ACTION_COUNT >= 35
 
 export function formatAuditAction(
   action: string,

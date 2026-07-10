@@ -1,10 +1,13 @@
 import type { OnboardingData, Company, Employee, Vehicle, Material } from '@/types'
 import type { Json } from '@/types/database'
-import { saveEntity } from '@/services/entity-service'
+import { saveEntity, logAudit } from '@/services/entity-service'
 import { supabase } from '@/lib/supabase'
 import { upsertRows } from '@/lib/supabase-queries'
 
 const ONBOARDING_KEY = 'handymanos_onboarding_data'
+
+/** Owner onboarding wizard writes audit_logs on completion. */
+export const ONBOARDING_AUDIT = true as const
 
 export function loadOnboardingData(): OnboardingData | null {
   try {
@@ -104,6 +107,7 @@ export async function persistOnboarding(data: OnboardingData, companyId: string,
   }
 
   localStorage.setItem('handymanos_onboarding', 'complete')
+  await logAudit(companyId, userId, 'onboarding.complete', 'company', companyId)
   return company
 }
 

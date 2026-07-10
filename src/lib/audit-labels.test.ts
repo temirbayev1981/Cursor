@@ -33,4 +33,10 @@ describe('audit-labels', () => {
     expect(isAuditActionKey('inventory.receive')).toBe(true)
     expect(isAuditActionKey('inventory.apply')).toBe(true)
   })
+
+  it('recognizes v1.8.1 catalog and onboarding audit keys', () => {
+    expect(isAuditActionKey('material.create')).toBe(true)
+    expect(isAuditActionKey('property.create')).toBe(true)
+    expect(isAuditActionKey('onboarding.complete')).toBe(true)
+  })
 })
