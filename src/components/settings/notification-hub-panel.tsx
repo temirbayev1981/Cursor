@@ -10,6 +10,8 @@ import {
   getNotificationQueueFiltered,
   getNotificationQueueStats,
   getNotificationSkipLog,
+  clearNotificationSkipLog,
+  exportNotificationSkipLogCsv,
   retryFailedNotifications,
   type NotificationHubFilter,
 } from '@/services/notification-service'
@@ -60,6 +62,24 @@ export function NotificationHubPanel({ onQueueChange }: NotificationHubPanelProp
     })
   }
 
+  const handleExportSkipLog = () => {
+    const csv = exportNotificationSkipLogCsv()
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `handymanos-skip-log-${new Date().toISOString().slice(0, 10)}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+    toast.success(t.settings.notificationHubSkipLogExported)
+  }
+
+  const handleClearSkipLog = () => {
+    clearNotificationSkipLog()
+    bump()
+    toast.success(t.settings.notificationHubSkipLogCleared)
+  }
+
   const statusLabel = (status: string) => {
     if (status === 'sent') return t.settings.notificationStatusSent
     if (status === 'failed') return t.settings.notificationStatusFailed
@@ -91,6 +111,16 @@ export function NotificationHubPanel({ onQueueChange }: NotificationHubPanelProp
               {t.settings.notificationHubRetryFailed}
             </Button>
           )}
+          {stats.skipped > 0 && (
+            <>
+              <Button variant="outline" size="sm" data-testid="notification-hub-export-skip-log" onClick={handleExportSkipLog}>
+                {t.settings.notificationHubExportSkipLog}
+              </Button>
+              <Button variant="outline" size="sm" data-testid="notification-hub-clear-skip-log" onClick={handleClearSkipLog}>
+                {t.settings.notificationHubClearSkipLog}
+              </Button>
+            </>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -115,7 +145,9 @@ export function NotificationHubPanel({ onQueueChange }: NotificationHubPanelProp
                   >
                     <div className="flex items-center justify-between gap-2 mb-1">
                       <div className="flex items-center gap-2 min-w-0">
-                        <Mail className="h-3.5 w-3.5 shrink-0 text-primary" />
+                        {skip.channel === 'sms'
+                          ? <MessageSquare className="h-3.5 w-3.5 shrink-0 text-primary" />
+                          : <Mail className="h-3.5 w-3.5 shrink-0 text-primary" />}
                         <span className="truncate font-medium">{skip.to}</span>
                       </div>
                       <Badge variant="outline" data-testid={`notification-hub-status-${skip.id}`}>

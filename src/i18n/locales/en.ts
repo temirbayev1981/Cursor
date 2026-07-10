@@ -690,6 +690,7 @@ export const en: TranslationKeys = {
       notify_skipped_toast_audit: 'Skipped notification toasts',
       portal_staff_notify_sync_audit: 'Portal → staff notify sync',
       notification_hub_skip_log_audit: 'Notification hub skip log',
+      notification_hub_skip_ops_audit: 'Skip log export & clear',
       multi_tenant: 'Multi-tenant',
     },
     auditActions: {
@@ -755,6 +756,10 @@ export const en: TranslationKeys = {
     notificationHubSms: 'SMS',
     notificationHubSkipped: 'Skipped',
     notificationHubSkipReason: 'Customer opted out of email',
+    notificationHubExportSkipLog: 'Export skip log',
+    notificationHubClearSkipLog: 'Clear skip log',
+    notificationHubSkipLogExported: 'Skip log exported',
+    notificationHubSkipLogCleared: 'Skip log cleared',
     notificationHubRetryFailed: 'Retry failed',
     notificationHubRetried: '{count} notification(s) retried',
     notificationHubNoRetry: 'No messages could be delivered — check webhooks',
