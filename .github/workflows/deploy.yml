@@ -28,6 +28,7 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npm run verify:production
       - run: npm run lint
       - run: npm run test
       - run: npm run build
@@ -43,7 +44,7 @@ jobs:
           VITE_SMS_WEBHOOK_URL: ${{ secrets.VITE_SMS_WEBHOOK_URL }}
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
           VITE_ERROR_WEBHOOK_URL: ${{ secrets.VITE_ERROR_WEBHOOK_URL }}
-          VITE_APP_VERSION: 1.2.7
+          VITE_APP_VERSION: 1.2.8
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - uses: actions/upload-pages-artifact@v3

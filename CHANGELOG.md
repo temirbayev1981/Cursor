@@ -2,6 +2,21 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.2.8] — 2026-07-10
+
+Error boundary, portal errors, and CI/docs parity.
+
+### Phase 40 — Error boundary & portal errors
+- E2E crash route (`/e2e/crash`) gated by `VITE_ENABLE_E2E_ROUTES` at build time
+- E2E: error boundary RU/EN copy + `handymanos_error_reports` capture
+- E2E: portal access invalid/missing token error states
+- Unit tests: `observability.ts` (`captureError`, report cap)
+- `role="alert"` on error boundary and portal access errors
+- `verify:production` auto-discovers all `e2e/*.spec.ts` files
+- Deploy workflow runs `verify:production` before build
+- DEPLOYMENT.md / README version and test-count fixes
+- `reports-tech` E2E: explicit assertions instead of silent skips
+
 ## [1.2.7] — 2026-07-10
 
 Complete technician offline sync coverage and mobile a11y.

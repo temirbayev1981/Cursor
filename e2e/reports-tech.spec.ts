@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { seedInProgressTechJob } from './helpers/auth'
 
 test.describe('Reports and technician mobile', () => {
   test.beforeEach(async ({ page }) => {
@@ -27,9 +28,10 @@ test.describe('Reports and technician mobile', () => {
   })
 
   test('technician can open job notes dialog', async ({ page }) => {
+    await seedInProgressTechJob(page)
     await page.goto('/tech')
     const notesButton = page.getByRole('button', { name: /заметки|notes/i }).first()
-    if (await notesButton.count() === 0) return
+    await expect(notesButton).toBeVisible()
     await notesButton.click()
     await expect(page.getByPlaceholder(/заметки с объекта|field notes/i)).toBeVisible()
     await page.getByRole('button', { name: /сохранить|save/i }).click()
@@ -38,7 +40,7 @@ test.describe('Reports and technician mobile', () => {
   test('company switcher changes tenant jobs', async ({ page }) => {
     await page.goto('/dashboard')
     const switcher = page.getByRole('combobox').first()
-    if (await switcher.count() === 0) return
+    await expect(switcher).toBeVisible()
     await switcher.click()
     await page.getByRole('option', { name: /Sunrise Property Services/i }).click()
     await page.goto('/jobs')

@@ -6,6 +6,11 @@ const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
 
 console.log(`HandymanOS AI v${pkg.version} — production readiness check\n`)
 
+const e2eSpecs = readdirSync('e2e')
+  .filter((name) => name.endsWith('.spec.ts'))
+  .map((name) => `e2e/${name}`)
+  .sort()
+
 const requiredFiles = [
   'supabase/schema.sql',
   'RELEASE.md',
@@ -13,11 +18,8 @@ const requiredFiles = [
   '.github/workflows/deploy.yml',
   '.github/workflows/ci.yml',
   'src/i18n/ai-fallbacks.ts',
-  'e2e/i18n-ai-vendor.spec.ts',
-  'e2e/notifications.spec.ts',
-  'e2e/pwa.spec.ts',
-  'e2e/tech-offline.spec.ts',
-  'e2e/dispatch-notifications.spec.ts',
+  'e2e/error-boundary.spec.ts',
+  ...e2eSpecs,
   'public/manifest.json',
   'public/sw.js',
   'supabase/functions/create-checkout-session/index.ts',
@@ -35,7 +37,18 @@ const edgeFunctions = [
 
 let ok = true
 
-for (const file of requiredFiles) {
+console.log(`E2E specs (${e2eSpecs.length}):`)
+for (const file of e2eSpecs) {
+  if (existsSync(file)) {
+    console.log(`✓ ${file}`)
+  } else {
+    console.log(`✗ missing: ${file}`)
+    ok = false
+  }
+}
+
+console.log('')
+for (const file of requiredFiles.filter((f) => !f.startsWith('e2e/'))) {
   if (existsSync(file)) {
     console.log(`✓ ${file}`)
   } else {

@@ -41,7 +41,7 @@ No schema changes required. Frontend-only release (i18n, AI fallbacks, invite si
 
 ```bash
 npm run verify:production
-npm run test:e2e   # 21 tests
+npm run test:e2e   # 33 tests (see e2e/*.spec.ts)
 ```
 
 Merge to `main` to redeploy GitHub Pages with `VITE_APP_VERSION` from the release branch.

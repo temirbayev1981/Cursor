@@ -33,7 +33,7 @@ export default function PortalAccessPage() {
     return (
       <div className="gradient-bg safe-x min-h-[100dvh] flex items-center justify-center p-4">
         <div className="text-center safe-top safe-bottom">
-          <p className="text-destructive mb-4">{error}</p>
+          <p className="text-destructive mb-4" role="alert">{error}</p>
           <a href="/login?portal=1" className="text-primary underline text-sm">
             {t.portalAccess.backToLogin}
           </a>

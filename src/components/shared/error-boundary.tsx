@@ -34,7 +34,7 @@ export class ErrorBoundary extends Component<Props, State> {
       const copy = errorCopy()
       return (
         <div className="gradient-bg flex min-h-[100dvh] items-center justify-center p-6">
-          <div className="glass-card max-w-md space-y-4 p-8 text-center">
+          <div className="glass-card max-w-md space-y-4 p-8 text-center" role="alert">
             <h1 className="text-xl font-bold">{copy.errorTitle}</h1>
             <p className="text-sm text-muted-foreground">
               {this.state.error?.message || copy.errorUnknown}

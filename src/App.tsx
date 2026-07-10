@@ -38,6 +38,9 @@ const SettingsPage = lazy(() => import('@/pages/settings'))
 const PropertyPortalPage = lazy(() => import('@/pages/property-portal'))
 const CustomerPortalPage = lazy(() => import('@/pages/customer-portal'))
 const PortalAccessPage = lazy(() => import('@/pages/portal-access'))
+const E2eCrashPage = lazy(() => import('@/pages/e2e-crash'))
+
+const enableE2eRoutes = import.meta.env.VITE_ENABLE_E2E_ROUTES === 'true'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 60_000, retry: 1 } },
@@ -119,6 +122,7 @@ function AppRoutes() {
         <Route path="/tech-onboarding" element={<TechOnboardingRoute><TechnicianOnboardingPage /></TechOnboardingRoute>} />
         <Route path="/tech" element={<TechnicianRoute><TechnicianMobilePage /></TechnicianRoute>} />
         <Route path="/portal/access" element={<PortalAccessPage />} />
+        {enableE2eRoutes && <Route path="/e2e/crash" element={<E2eCrashPage />} />}
         <Route path="/portal/property" element={<PortalRoute portalType="property"><PropertyPortalPage /></PortalRoute>} />
         <Route path="/portal/customer" element={<PortalRoute portalType="customer"><CustomerPortalPage /></PortalRoute>} />
         <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>

@@ -1,37 +1,20 @@
-# HandymanOS AI — Release 1.2.7
+# HandymanOS AI — Release 1.2.8
 
-Technician offline sync completion on **1.2.6**.
+Error boundary and portal error coverage on **1.2.7**.
 
-## What's new in 1.2.7
+## What's new in 1.2.8
 
-- E2E: clock-out and complete-job offline flows sync when reconnected (29 tests total)
-- All five offline action types now have unit test coverage
-- `syncOfflineQueue` partial-failure behavior tested
-- Job notes dialog and tech mobile connection badge accessibility improvements
+- E2E: error boundary localized UI + error report capture (33 tests total)
+- E2E: portal `/portal/access` invalid and expired token paths
+- Unit tests: `observability` error report storage
+- Deploy workflow runs `verify:production` (parity with CI)
+- `verify:production` gates all E2E spec files automatically
+- Docs: version and test counts updated
 
-## Prior releases (1.2.6)
+## Prior releases (1.2.7)
 
-- Dispatch board status select + notification E2E
-- `notification-service` unit tests (8 tests)
-
-## GitHub repository secrets (production deploy)
-
-Configure under **Settings → Secrets and variables → Actions**:
-
-| Secret | Required | Purpose |
-|--------|----------|---------|
-| `VITE_SUPABASE_URL` | Recommended | Live backend |
-| `VITE_SUPABASE_ANON_KEY` | Recommended | Supabase client |
-| `VITE_STRIPE_PUBLISHABLE_KEY` | Optional | Online payments |
-| `VITE_STRIPE_CHECKOUT_ENDPOINT` | Optional | Override checkout URL |
-| `VITE_STRIPE_SUBSCRIPTION_ENDPOINT` | Optional | Override subscription URL |
-| `VITE_GOOGLE_MAPS_API_KEY` | Optional | Dispatch maps |
-| `VITE_NOTIFICATION_WEBHOOK_URL` | Optional | Email notifications |
-| `VITE_SMS_WEBHOOK_URL` | Optional | SMS dispatch alerts |
-| `VITE_SENTRY_DSN` | Optional | Error monitoring (Sentry SDK) |
-| `VITE_ERROR_WEBHOOK_URL` | Optional | Custom error webhook fallback |
-
-Without Supabase secrets, GitHub Pages deploys in **demo mode** (fully functional offline).
+- Complete technician offline E2E (clock-out, complete job)
+- All five offline action types unit-tested
 
 ## Release checklist
 
@@ -40,14 +23,11 @@ npm run verify:production
 npm run verify:release
 npm run test:e2e
 
-# Merge to main triggers deploy workflow
 git checkout main
-git merge cursor/phase-39-tech-offline-complete-1b4a
+git merge cursor/phase-40-error-portal-ci-1b4a
 git push origin main
 ```
 
 ## Merge chain (open PRs)
 
-`#24` → … → `#31` → **#32**
-
-Or merge `cursor/phase-39-tech-offline-complete-1b4a` directly for the complete feature set.
+`#24` → … → `#32` → **#33**

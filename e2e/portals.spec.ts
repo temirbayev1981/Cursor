@@ -63,3 +63,16 @@ test.describe('Portal magic link', () => {
     await expect(page.getByRole('heading', { name: /клиентский портал|customer portal/i })).toBeVisible()
   })
 })
+
+test.describe('Portal access errors', () => {
+  test('shows invalid link when token is missing', async ({ page }) => {
+    await page.goto('/portal/access')
+    await expect(page.getByRole('alert')).toContainText(/ссылка недействительна|invalid link/i)
+    await expect(page.getByRole('link', { name: /вернуться ко входу|back to login/i })).toBeVisible()
+  })
+
+  test('shows expired link for unknown token', async ({ page }) => {
+    await page.goto('/portal/access?token=invalid-token-phase40')
+    await expect(page.getByRole('alert')).toContainText(/истекл|expired|invalid/i)
+  })
+})
