@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
 import { AuthProvider, useAuth } from '@/contexts/auth-context'
+import { LocaleProvider } from '@/contexts/locale-context'
 import { AppLayout } from '@/components/layout/app-layout'
 import LoginPage from '@/pages/login'
 import OnboardingPage from '@/pages/onboarding'
@@ -86,12 +87,14 @@ function AppRoutes() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <AppRoutes />
-          <Toaster theme="dark" position="top-right" richColors />
-        </BrowserRouter>
-      </AuthProvider>
+      <LocaleProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <AppRoutes />
+            <Toaster theme="dark" position="top-right" richColors />
+          </BrowserRouter>
+        </AuthProvider>
+      </LocaleProvider>
     </QueryClientProvider>
   )
 }

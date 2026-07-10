@@ -9,8 +9,11 @@ import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DEMO_JOBS, DEMO_CUSTOMERS, DEMO_EMPLOYEES } from '@/data/mock-data'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { useTranslation } from '@/contexts/locale-context'
 
 export default function JobsPage() {
+  const { t, locale } = useTranslation()
+  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
 
@@ -23,12 +26,12 @@ export default function JobsPage() {
   return (
     <div>
       <PageHeader
-        title="Jobs"
-        description="Manage all active and completed jobs"
+        title={t.jobs.title}
+        description={t.jobs.description}
         actions={
           <Button>
             <Plus className="h-4 w-4" />
-            New Job
+            {t.jobs.newJob}
           </Button>
         }
       />
@@ -36,20 +39,20 @@ export default function JobsPage() {
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search jobs..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder={t.jobs.search} className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Tabs value={statusFilter} onValueChange={setStatusFilter}>
           <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
-            <TabsTrigger value="in_progress">In Progress</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
+            <TabsTrigger value="all">{t.common.all}</TabsTrigger>
+            <TabsTrigger value="scheduled">{t.jobs.scheduled}</TabsTrigger>
+            <TabsTrigger value="in_progress">{t.jobs.inProgress}</TabsTrigger>
+            <TabsTrigger value="completed">{t.jobs.completed}</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <DataTable headers={['Job', 'Customer', 'Technician', 'Status', 'Priority', 'Revenue', 'Profit', 'Scheduled']}>
+        <DataTable headers={[t.jobs.job, t.jobs.customer, t.jobs.technician, t.jobs.status, t.jobs.priority, t.jobs.revenue, t.jobs.profit, t.jobs.scheduledDate]}>
           {filtered.map((job) => {
             const customer = DEMO_CUSTOMERS.find((c) => c.id === job.customer_id)
             const tech = DEMO_EMPLOYEES.find((e) => e.id === job.assigned_technician_id)
@@ -58,7 +61,7 @@ export default function JobsPage() {
                 <DataTableCell>
                   <div>
                     <p className="font-medium">{job.title}</p>
-                    <p className="text-xs text-muted-foreground">{job.estimated_hours}h estimated</p>
+                    <p className="text-xs text-muted-foreground">{job.estimated_hours}{t.common.hours} {t.jobs.estimated}</p>
                   </div>
                 </DataTableCell>
                 <DataTableCell>{customer?.name}</DataTableCell>
@@ -70,7 +73,7 @@ export default function JobsPage() {
                   {job.profit_margin > 0 ? <ProfitIndicator margin={job.profit_margin} /> : '—'}
                 </DataTableCell>
                 <DataTableCell className="text-muted-foreground">
-                  {job.scheduled_date ? formatDate(job.scheduled_date) : '—'}
+                  {job.scheduled_date ? formatDate(job.scheduled_date, dateLocale) : '—'}
                 </DataTableCell>
               </DataTableRow>
             )

@@ -6,16 +6,18 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { DEMO_EMPLOYEES } from '@/data/mock-data'
 import { calculateTrueHourlyCost, formatCurrency, getInitials } from '@/lib/utils'
+import { useTranslation } from '@/contexts/locale-context'
 
 export default function TechniciansPage() {
+  const { t } = useTranslation()
   const techs = DEMO_EMPLOYEES.filter((e) => e.billing_rate > 0)
 
   return (
     <div>
       <PageHeader
-        title="Technicians"
-        description="Employee costing and labor rate calculator"
-        actions={<Button><Plus className="h-4 w-4" />Add Technician</Button>}
+        title={t.technicians.title}
+        description={t.technicians.description}
+        actions={<Button><Plus className="h-4 w-4" />{t.technicians.addTechnician}</Button>}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -43,19 +45,19 @@ export default function TechniciansPage() {
 
                 <div className="space-y-2 text-sm border-t border-border pt-4">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Wage</span>
-                    <span>{formatCurrency(tech.hourly_wage)}/hr</span>
+                    <span className="text-muted-foreground">{t.technicians.wage}</span>
+                    <span>{formatCurrency(tech.hourly_wage)}/{t.common.hr}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">True Cost</span>
-                    <span className="font-medium text-warning">{formatCurrency(trueCost)}/hr</span>
+                    <span className="text-muted-foreground">{t.technicians.trueCost}</span>
+                    <span className="font-medium text-warning">{formatCurrency(trueCost)}/{t.common.hr}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Billing Rate</span>
-                    <span className="font-medium text-primary">{formatCurrency(tech.billing_rate)}/hr</span>
+                    <span className="text-muted-foreground">{t.technicians.billingRate}</span>
+                    <span className="font-medium text-primary">{formatCurrency(tech.billing_rate)}/{t.common.hr}</span>
                   </div>
                   <div className="flex justify-between border-t border-border pt-2">
-                    <span className="text-muted-foreground">Margin</span>
+                    <span className="text-muted-foreground">{t.technicians.margin}</span>
                     <Badge variant={margin >= 50 ? 'success' : 'warning'}>{margin.toFixed(0)}%</Badge>
                   </div>
                 </div>

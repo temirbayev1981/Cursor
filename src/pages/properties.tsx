@@ -4,14 +4,17 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DEMO_PROPERTIES, DEMO_CUSTOMERS } from '@/data/mock-data'
+import { useTranslation } from '@/contexts/locale-context'
 
 export default function PropertiesPage() {
+  const { t } = useTranslation()
+
   return (
     <div>
       <PageHeader
-        title="Properties"
-        description="Manage properties linked to customers"
-        actions={<Button><Plus className="h-4 w-4" />Add Property</Button>}
+        title={t.properties.title}
+        description={t.properties.description}
+        actions={<Button><Plus className="h-4 w-4" />{t.properties.addProperty}</Button>}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -28,9 +31,9 @@ export default function PropertiesPage() {
                   <Badge variant="outline">{prop.property_type}</Badge>
                 </div>
                 {prop.unit_number && (
-                  <p className="text-sm">Unit: <span className="font-medium">{prop.unit_number}</span></p>
+                  <p className="text-sm">{t.common.unit}: <span className="font-medium">{prop.unit_number}</span></p>
                 )}
-                <p className="text-sm text-muted-foreground">Owner: {customer?.name}</p>
+                <p className="text-sm text-muted-foreground">{t.common.owner}: {customer?.name}</p>
                 {prop.access_notes && (
                   <p className="text-xs bg-secondary/50 rounded p-2">{prop.access_notes}</p>
                 )}

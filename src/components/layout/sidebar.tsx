@@ -22,27 +22,29 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/auth-context'
+import { useTranslation } from '@/contexts/locale-context'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { getInitials } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { LanguageSwitcher } from '@/components/shared/language-switcher'
 import { DEMO_MODE } from '@/lib/supabase'
 
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Jobs', href: '/jobs', icon: Briefcase },
-  { name: 'Work Orders', href: '/work-orders', icon: ClipboardList },
-  { name: 'Estimates', href: '/estimates', icon: FileText },
-  { name: 'Customers', href: '/customers', icon: Users },
-  { name: 'Properties', href: '/properties', icon: Building2 },
-  { name: 'Scheduling', href: '/scheduling', icon: Calendar },
-  { name: 'Technicians', href: '/technicians', icon: Wrench },
-  { name: 'Materials', href: '/materials', icon: Package },
-  { name: 'Vehicles', href: '/vehicles', icon: Truck },
-  { name: 'Expenses', href: '/expenses', icon: Receipt },
-  { name: 'Invoices', href: '/invoices', icon: FileSpreadsheet },
-  { name: 'Reports', href: '/reports', icon: BarChart3 },
-  { name: 'AI Assistant', href: '/ai-assistant', icon: Bot },
-  { name: 'Settings', href: '/settings', icon: Settings },
+const navItems = [
+  { key: 'dashboard' as const, href: '/dashboard', icon: LayoutDashboard },
+  { key: 'jobs' as const, href: '/jobs', icon: Briefcase },
+  { key: 'workOrders' as const, href: '/work-orders', icon: ClipboardList },
+  { key: 'estimates' as const, href: '/estimates', icon: FileText },
+  { key: 'customers' as const, href: '/customers', icon: Users },
+  { key: 'properties' as const, href: '/properties', icon: Building2 },
+  { key: 'scheduling' as const, href: '/scheduling', icon: Calendar },
+  { key: 'technicians' as const, href: '/technicians', icon: Wrench },
+  { key: 'materials' as const, href: '/materials', icon: Package },
+  { key: 'vehicles' as const, href: '/vehicles', icon: Truck },
+  { key: 'expenses' as const, href: '/expenses', icon: Receipt },
+  { key: 'invoices' as const, href: '/invoices', icon: FileSpreadsheet },
+  { key: 'reports' as const, href: '/reports', icon: BarChart3 },
+  { key: 'aiAssistant' as const, href: '/ai-assistant', icon: Bot },
+  { key: 'settings' as const, href: '/settings', icon: Settings },
 ]
 
 interface SidebarProps {
@@ -53,6 +55,7 @@ interface SidebarProps {
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const location = useLocation()
   const { user, company, signOut } = useAuth()
+  const { t } = useTranslation()
 
   return (
     <motion.aside
@@ -82,10 +85,11 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       <nav className="flex-1 overflow-y-auto scrollbar-thin py-4 px-2">
         <ul className="space-y-1">
-          {navigation.map((item) => {
+          {navItems.map((item) => {
             const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/')
+            const name = t.nav[item.key]
             return (
-              <li key={item.name}>
+              <li key={item.key}>
                 <NavLink
                   to={item.href}
                   className={cn(
@@ -94,10 +98,10 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                       ? 'bg-primary/10 text-primary'
                       : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
                   )}
-                  title={collapsed ? item.name : undefined}
+                  title={collapsed ? name : undefined}
                 >
                   <item.icon className="h-5 w-5 shrink-0" />
-                  {!collapsed && <span>{item.name}</span>}
+                  {!collapsed && <span>{name}</span>}
                 </NavLink>
               </li>
             )
@@ -106,9 +110,14 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       </nav>
 
       <div className="border-t border-border p-3">
+        {!collapsed && (
+          <div className="mb-3">
+            <LanguageSwitcher />
+          </div>
+        )}
         {DEMO_MODE && !collapsed && (
           <div className="mb-3 rounded-lg bg-accent/10 px-3 py-2 text-xs text-accent">
-            Demo Mode — Connect Supabase for live data
+            {t.common.demoMode}
           </div>
         )}
         <div className="flex items-center gap-3">

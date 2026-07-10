@@ -5,31 +5,33 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DEMO_MATERIALS } from '@/data/mock-data'
 import { formatCurrencyPrecise } from '@/lib/utils'
+import { useTranslation } from '@/contexts/locale-context'
 
 export default function MaterialsPage() {
+  const { t } = useTranslation()
   const lowStock = DEMO_MATERIALS.filter((m) => m.quantity <= m.reorder_level)
 
   return (
     <div>
       <PageHeader
-        title="Materials"
-        description="Inventory management with automatic pricing"
-        actions={<Button><Plus className="h-4 w-4" />Add Material</Button>}
+        title={t.materials.title}
+        description={t.materials.description}
+        actions={<Button><Plus className="h-4 w-4" />{t.materials.addMaterial}</Button>}
       />
 
       {lowStock.length > 0 && (
         <div className="glass-card border-warning/30 p-4 mb-6 flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 text-warning" />
           <div>
-            <p className="font-medium text-warning">Low Inventory Alert</p>
+            <p className="font-medium text-warning">{t.materials.lowStockAlert}</p>
             <p className="text-sm text-muted-foreground">
-              {lowStock.map((m) => m.name).join(', ')} — reorder suggested
+              {lowStock.map((m) => m.name).join(', ')} {t.materials.reorderSuggested}
             </p>
           </div>
         </div>
       )}
 
-      <DataTable headers={['Material', 'Category', 'Supplier', 'Cost', 'Markup', 'Customer Price', 'Qty', 'Status']}>
+      <DataTable headers={[t.materials.material, t.materials.category, t.materials.supplier, t.materials.cost, t.materials.markup, t.materials.customerPrice, t.materials.qty, t.materials.stockStatus]}>
         {DEMO_MATERIALS.map((mat) => {
           const isLow = mat.quantity <= mat.reorder_level
           return (
@@ -43,7 +45,7 @@ export default function MaterialsPage() {
               <DataTableCell>{mat.quantity} {mat.unit}</DataTableCell>
               <DataTableCell>
                 <Badge variant={isLow ? 'warning' : 'success'}>
-                  {isLow ? 'Low Stock' : 'In Stock'}
+                  {isLow ? t.materials.lowStock : t.materials.inStock}
                 </Badge>
               </DataTableCell>
             </DataTableRow>

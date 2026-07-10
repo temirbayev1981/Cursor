@@ -38,6 +38,7 @@ import {
   DEMO_CUSTOMERS,
 } from '@/data/mock-data'
 import { formatCurrency } from '@/lib/utils'
+import { useTranslation } from '@/contexts/locale-context'
 
 const PIE_COLORS = ['#0ea5e9', '#fbbf24', '#22c55e', '#ef4444', '#8b5cf6', '#f97316']
 
@@ -58,35 +59,36 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
 }
 
 export default function DashboardPage() {
+  const { t } = useTranslation()
   const metrics = DEMO_DASHBOARD
   const recentJobs = DEMO_JOBS.slice(0, 4)
 
   return (
     <div>
       <PageHeader
-        title="Executive Dashboard"
-        description="Real-time business performance overview"
+        title={t.dashboard.title}
+        description={t.dashboard.description}
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard title="Revenue Today" value={metrics.revenueToday} icon={DollarSign} format="currency" trend={12.5} delay={0} />
-        <StatCard title="Revenue This Month" value={metrics.revenueMonth} icon={TrendingUp} format="currency" trend={4.0} delay={0.05} />
-        <StatCard title="Open Jobs" value={metrics.openJobs} icon={Briefcase} subtitle={`${metrics.completedJobs} completed this month`} delay={0.1} />
-        <StatCard title="Pending Estimates" value={metrics.pendingEstimates} icon={FileText} delay={0.15} />
+        <StatCard title={t.dashboard.revenueToday} value={metrics.revenueToday} icon={DollarSign} format="currency" trend={12.5} delay={0} />
+        <StatCard title={t.dashboard.revenueMonth} value={metrics.revenueMonth} icon={TrendingUp} format="currency" trend={4.0} delay={0.05} />
+        <StatCard title={t.dashboard.openJobs} value={metrics.openJobs} icon={Briefcase} subtitle={`${metrics.completedJobs} ${t.common.completedThisMonth}`} delay={0.1} />
+        <StatCard title={t.dashboard.pendingEstimates} value={metrics.pendingEstimates} icon={FileText} delay={0.15} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard title="Labor Cost" value={metrics.laborCost} icon={Users} format="currency" delay={0.2} />
-        <StatCard title="Material Cost" value={metrics.materialCost} icon={Package} format="currency" delay={0.25} />
-        <StatCard title="Fuel Expenses" value={metrics.fuelExpenses} icon={Fuel} format="currency" delay={0.3} />
-        <StatCard title="Profit Margin" value={metrics.profitMargin} icon={CheckCircle} format="percent" delay={0.35} />
+        <StatCard title={t.dashboard.laborCost} value={metrics.laborCost} icon={Users} format="currency" delay={0.2} />
+        <StatCard title={t.dashboard.materialCost} value={metrics.materialCost} icon={Package} format="currency" delay={0.25} />
+        <StatCard title={t.dashboard.fuelExpenses} value={metrics.fuelExpenses} icon={Fuel} format="currency" delay={0.3} />
+        <StatCard title={t.dashboard.profitMargin} value={metrics.profitMargin} icon={CheckCircle} format="percent" delay={0.35} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           <Card>
             <CardHeader>
-              <CardTitle>Revenue & Profit Trends</CardTitle>
+              <CardTitle>{t.dashboard.revenueProfitTrends}</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -106,8 +108,8 @@ export default function DashboardPage() {
                   <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
-                  <Area type="monotone" dataKey="revenue" stroke="#0ea5e9" fill="url(#revenueGrad)" strokeWidth={2} />
-                  <Area type="monotone" dataKey="profit" stroke="#22c55e" fill="url(#profitGrad)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="revenue" name={t.dashboard.revenue} stroke="#0ea5e9" fill="url(#revenueGrad)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="profit" name={t.dashboard.profit} stroke="#22c55e" fill="url(#profitGrad)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             </CardContent>
@@ -117,7 +119,7 @@ export default function DashboardPage() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
           <Card>
             <CardHeader>
-              <CardTitle>Expense Breakdown</CardTitle>
+              <CardTitle>{t.dashboard.expenseBreakdown}</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -149,7 +151,7 @@ export default function DashboardPage() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
           <Card>
             <CardHeader>
-              <CardTitle>Most Profitable Services</CardTitle>
+              <CardTitle>{t.dashboard.profitableServices}</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={280}>
@@ -168,7 +170,7 @@ export default function DashboardPage() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
           <Card>
             <CardHeader>
-              <CardTitle>Technician Performance</CardTitle>
+              <CardTitle>{t.dashboard.technicianPerformance}</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={280}>
@@ -177,7 +179,7 @@ export default function DashboardPage() {
                   <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
                   <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="revenue" fill="#fbbf24" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="revenue" name={t.dashboard.revenue} fill="#fbbf24" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -187,7 +189,7 @@ export default function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Jobs</CardTitle>
+          <CardTitle>{t.dashboard.recentJobs}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">

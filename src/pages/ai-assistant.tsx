@@ -8,26 +8,27 @@ import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { askBusinessAssistant } from '@/lib/ai'
 import type { AIChatMessage } from '@/types'
-
-const SUGGESTED_QUESTIONS = [
-  'Which jobs lost money this month?',
-  'How much should I charge for replacing a door?',
-  'Which technician is most profitable?',
-  'How can I increase profit?',
-]
+import { useTranslation } from '@/contexts/locale-context'
 
 export default function AIAssistantPage() {
-  const [messages, setMessages] = useState<AIChatMessage[]>([
-    {
-      id: 'welcome',
-      role: 'assistant',
-      content: "Hello! I'm your HandymanOS AI business consultant. I can analyze your jobs, pricing, technicians, and profitability. What would you like to know?",
-      timestamp: new Date().toISOString(),
-    },
-  ])
+  const { t, locale } = useTranslation()
+  const [messages, setMessages] = useState<AIChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  const suggestedQuestions = [t.ai.q1, t.ai.q2, t.ai.q3, t.ai.q4]
+
+  useEffect(() => {
+    setMessages([
+      {
+        id: 'welcome',
+        role: 'assistant',
+        content: t.ai.welcome,
+        timestamp: new Date().toISOString(),
+      },
+    ])
+  }, [locale, t.ai.welcome])
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -47,7 +48,7 @@ export default function AIAssistantPage() {
     setLoading(true)
 
     try {
-      const response = await askBusinessAssistant(text)
+      const response = await askBusinessAssistant(text, locale)
       setMessages((prev) => [
         ...prev,
         {
@@ -65,8 +66,8 @@ export default function AIAssistantPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
       <PageHeader
-        title="AI Business Assistant"
-        description="Get insights, pricing recommendations, and business intelligence"
+        title={t.ai.title}
+        description={t.ai.description}
       />
 
       <div className="flex flex-1 gap-6 min-h-0">
@@ -103,7 +104,7 @@ export default function AIAssistantPage() {
                       <Bot className="h-4 w-4 text-primary animate-pulse" />
                     </div>
                     <div className="bg-secondary/50 rounded-xl px-4 py-3 text-sm text-muted-foreground">
-                      Analyzing your business data...
+                      {t.ai.analyzing}
                     </div>
                   </div>
                 )}
@@ -122,7 +123,7 @@ export default function AIAssistantPage() {
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask about jobs, pricing, technicians..."
+                  placeholder={t.ai.placeholder}
                   disabled={loading}
                 />
                 <Button type="submit" disabled={loading || !input.trim()}>
@@ -138,10 +139,10 @@ export default function AIAssistantPage() {
             <CardContent className="p-4">
               <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-accent" />
-                Suggested Questions
+                {t.ai.suggested}
               </h3>
               <div className="space-y-2">
-                {SUGGESTED_QUESTIONS.map((q) => (
+                {suggestedQuestions.map((q) => (
                   <button
                     key={q}
                     onClick={() => sendMessage(q)}

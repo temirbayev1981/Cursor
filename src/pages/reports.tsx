@@ -21,33 +21,36 @@ import {
 } from '@/data/mock-data'
 import { formatCurrency } from '@/lib/utils'
 import { ProfitIndicator } from '@/components/shared/status-badge'
+import { useTranslation } from '@/contexts/locale-context'
 
 export default function ReportsPage() {
+  const { t } = useTranslation()
+
   return (
     <div>
       <PageHeader
-        title="Reports"
-        description="Financial, profit, and performance analytics"
+        title={t.reports.title}
+        description={t.reports.description}
         actions={
           <>
-            <Button variant="outline"><Download className="h-4 w-4" />Export PDF</Button>
-            <Button variant="outline"><FileSpreadsheet className="h-4 w-4" />Export CSV</Button>
+            <Button variant="outline"><Download className="h-4 w-4" />{t.common.exportPdf}</Button>
+            <Button variant="outline"><FileSpreadsheet className="h-4 w-4" />{t.common.exportCsv}</Button>
           </>
         }
       />
 
       <Tabs defaultValue="financial">
         <TabsList className="mb-6">
-          <TabsTrigger value="financial">Financial</TabsTrigger>
-          <TabsTrigger value="profit">Job Profitability</TabsTrigger>
-          <TabsTrigger value="technicians">Technicians</TabsTrigger>
-          <TabsTrigger value="customers">Customers</TabsTrigger>
-          <TabsTrigger value="services">Services</TabsTrigger>
+          <TabsTrigger value="financial">{t.reports.financial}</TabsTrigger>
+          <TabsTrigger value="profit">{t.reports.profit}</TabsTrigger>
+          <TabsTrigger value="technicians">{t.reports.technicians}</TabsTrigger>
+          <TabsTrigger value="customers">{t.reports.customers}</TabsTrigger>
+          <TabsTrigger value="services">{t.reports.services}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="financial">
           <Card>
-            <CardHeader><CardTitle>Revenue Report</CardTitle></CardHeader>
+            <CardHeader><CardTitle>{t.reports.revenueReport}</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={350}>
                 <BarChart data={REVENUE_CHART_DATA}>
@@ -77,15 +80,15 @@ export default function ReportsPage() {
                     </div>
                     <div className="flex items-center gap-6 text-sm">
                       <div className="text-right">
-                        <p className="text-muted-foreground">Revenue</p>
+                        <p className="text-muted-foreground">{t.dashboard.revenue}</p>
                         <p className="font-semibold text-success">{formatCurrency(job.revenue)}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-muted-foreground">Costs</p>
+                        <p className="text-muted-foreground">{t.reports.costs}</p>
                         <p className="font-semibold text-destructive">{formatCurrency(totalCost)}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-muted-foreground">Net Profit</p>
+                        <p className="text-muted-foreground">{t.reports.netProfit}</p>
                         <p className="font-semibold">{formatCurrency(job.profit)}</p>
                       </div>
                       <ProfitIndicator margin={job.profit_margin} />
@@ -99,7 +102,7 @@ export default function ReportsPage() {
 
         <TabsContent value="technicians">
           <Card>
-            <CardHeader><CardTitle>Technician Performance</CardTitle></CardHeader>
+            <CardHeader><CardTitle>{t.reports.techPerformance}</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={350}>
                 <BarChart data={TECHNICIAN_PERFORMANCE}>
@@ -107,8 +110,8 @@ export default function ReportsPage() {
                   <XAxis dataKey="name" stroke="#94a3b8" />
                   <YAxis stroke="#94a3b8" />
                   <Tooltip />
-                  <Bar dataKey="revenue" fill="#fbbf24" name="Revenue" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="jobs" fill="#0ea5e9" name="Jobs" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="revenue" fill="#fbbf24" name={t.dashboard.revenue} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="jobs" fill="#0ea5e9" name={t.nav.jobs} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -122,7 +125,7 @@ export default function ReportsPage() {
                 <CardContent className="p-4 flex justify-between items-center">
                   <div>
                     <p className="font-medium">{c.name}</p>
-                    <p className="text-sm text-muted-foreground">{c.job_count} jobs</p>
+                    <p className="text-sm text-muted-foreground">{c.job_count} {t.reports.jobsCount}</p>
                   </div>
                   <p className="text-lg font-bold">{formatCurrency(c.total_revenue)}</p>
                 </CardContent>
@@ -133,7 +136,7 @@ export default function ReportsPage() {
 
         <TabsContent value="services">
           <Card>
-            <CardHeader><CardTitle>Service Profitability</CardTitle></CardHeader>
+            <CardHeader><CardTitle>{t.reports.serviceProfit}</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={350}>
                 <BarChart data={SERVICE_PROFITABILITY}>

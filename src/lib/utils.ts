@@ -27,16 +27,16 @@ export function formatPercent(value: number): string {
   return `${value.toFixed(1)}%`
 }
 
-export function formatDate(date: string | Date): string {
-  return new Intl.DateTimeFormat('en-US', {
+export function formatDate(date: string | Date, locale = 'ru-RU'): string {
+  return new Intl.DateTimeFormat(locale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
   }).format(new Date(date))
 }
 
-export function formatDateTime(date: string | Date): string {
-  return new Intl.DateTimeFormat('en-US', {
+export function formatDateTime(date: string | Date, locale = 'ru-RU'): string {
+  return new Intl.DateTimeFormat(locale, {
     month: 'short',
     day: 'numeric',
     hour: 'numeric',

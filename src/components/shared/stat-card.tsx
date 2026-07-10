@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion'
-import { cn, formatCurrency, formatPercent } from '@/lib/utils'
 import type { LucideIcon } from 'lucide-react'
 import { TrendingDown, TrendingUp } from 'lucide-react'
+import { cn, formatCurrency, formatPercent } from '@/lib/utils'
+import { useTranslation } from '@/contexts/locale-context'
 
 interface StatCardProps {
   title: string
@@ -24,6 +25,8 @@ export function StatCard({
   className,
   delay = 0,
 }: StatCardProps) {
+  const { t } = useTranslation()
+
   const formattedValue =
     format === 'currency' && typeof value === 'number'
       ? formatCurrency(value)
@@ -46,7 +49,7 @@ export function StatCard({
           {trend !== undefined && (
             <div className={cn('flex items-center gap-1 text-xs font-medium', trend >= 0 ? 'text-success' : 'text-destructive')}>
               {trend >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-              {Math.abs(trend)}% vs last month
+              {Math.abs(trend)}% {t.common.vsLastMonth}
             </div>
           )}
         </div>

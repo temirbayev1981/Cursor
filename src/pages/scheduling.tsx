@@ -7,8 +7,10 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DEMO_SCHEDULE, DEMO_EMPLOYEES } from '@/data/mock-data'
 import { addDays, format, startOfWeek, isSameDay } from 'date-fns'
+import { useTranslation } from '@/contexts/locale-context'
 
 export default function SchedulingPage() {
+  const { t } = useTranslation()
   const [view, setView] = useState<'day' | 'week' | 'month'>('week')
   const [currentDate, setCurrentDate] = useState(new Date('2026-07-10'))
 
@@ -21,15 +23,15 @@ export default function SchedulingPage() {
   return (
     <div>
       <PageHeader
-        title="Scheduling"
-        description="Drag-and-drop calendar with route optimization"
+        title={t.scheduling.title}
+        description={t.scheduling.description}
         actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" size="icon" onClick={() => setCurrentDate(addDays(currentDate, -7))}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <span className="text-sm font-medium px-2">
-              {format(weekStart, 'MMM d')} – {format(addDays(weekStart, 6), 'MMM d, yyyy')}
+              {format(weekStart, 'MMM d', { locale: undefined })} – {format(addDays(weekStart, 6), 'MMM d, yyyy', { locale: undefined })}
             </span>
             <Button variant="outline" size="icon" onClick={() => setCurrentDate(addDays(currentDate, 7))}>
               <ChevronRight className="h-4 w-4" />
@@ -41,9 +43,9 @@ export default function SchedulingPage() {
       <div className="flex gap-4 mb-6">
         <Tabs value={view} onValueChange={(v) => setView(v as typeof view)}>
           <TabsList>
-            <TabsTrigger value="day">Day</TabsTrigger>
-            <TabsTrigger value="week">Week</TabsTrigger>
-            <TabsTrigger value="month">Month</TabsTrigger>
+            <TabsTrigger value="day">{t.scheduling.day}</TabsTrigger>
+            <TabsTrigger value="week">{t.scheduling.week}</TabsTrigger>
+            <TabsTrigger value="month">{t.scheduling.month}</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -58,7 +60,7 @@ export default function SchedulingPage() {
                 <Card key={day.toISOString()} className={isToday ? 'border-primary/50' : ''}>
                   <CardContent className="p-3">
                     <div className="text-center mb-3">
-                      <p className="text-xs text-muted-foreground">{format(day, 'EEE')}</p>
+                      <p className="text-xs text-muted-foreground">{format(day, 'EEE', { locale: undefined })}</p>
                       <p className={`text-lg font-bold ${isToday ? 'text-primary' : ''}`}>{format(day, 'd')}</p>
                     </div>
                     <div className="space-y-2">
@@ -70,7 +72,7 @@ export default function SchedulingPage() {
                             <p className="text-muted-foreground">{tech?.name}</p>
                             <p className="text-muted-foreground flex items-center gap-1 mt-1">
                               <Clock className="h-3 w-3" />
-                              {format(new Date(event.start_time), 'h:mm a')}
+                              {format(new Date(event.start_time), 'h:mm a', { locale: undefined })}
                             </p>
                           </div>
                         )
@@ -86,10 +88,10 @@ export default function SchedulingPage() {
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Route Optimization</CardTitle>
+              <CardTitle className="text-base">{t.scheduling.routeOptimization}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">Today's optimized route saves 12 miles and 28 minutes.</p>
+              <p className="text-sm text-muted-foreground">{t.scheduling.routeSaved}</p>
               {DEMO_SCHEDULE.slice(0, 3).map((event, i) => (
                 <div key={event.id} className="flex items-start gap-3 text-sm">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">{i + 1}</span>
@@ -101,19 +103,19 @@ export default function SchedulingPage() {
                   </div>
                 </div>
               ))}
-              <Button variant="outline" className="w-full" size="sm">Open in Google Maps</Button>
+              <Button variant="outline" className="w-full" size="sm">{t.scheduling.openMaps}</Button>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Technician Availability</CardTitle>
+              <CardTitle className="text-base">{t.scheduling.availability}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {DEMO_EMPLOYEES.filter((e) => e.billing_rate > 0).map((tech) => (
                 <div key={tech.id} className="flex items-center justify-between text-sm">
                   <span>{tech.name}</span>
-                  <Badge variant="success">Available</Badge>
+                  <Badge variant="success">{t.scheduling.available}</Badge>
                 </div>
               ))}
             </CardContent>
