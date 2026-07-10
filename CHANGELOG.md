@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.10.8] — 2026-07-10
+
+Customer SMS notifications with opt-out respect in dispatch and scheduling.
+
+### Phase 106 — Customer SMS opt-out
+- `notifyCustomerJobScheduledSms` / `notifyCustomerEtaSms` respect `customerAllowsNotification(..., 'sms')`
+- Dispatch and scheduling send customer SMS when phone present and SMS enabled
+- Hub skipped tab: channel-specific reason labels (email vs SMS)
+- E2E: dispatch SMS skip (default opt-out) and SMS queued when enabled via customer form
+- Platform audit: `customer_sms_opt_out_audit` gate
+- **203** E2E tests, **157** unit tests
+
 ## [1.10.7] — 2026-07-10
 
 Notification hub skip log operator export and clear.

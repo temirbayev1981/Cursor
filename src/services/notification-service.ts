@@ -27,6 +27,8 @@ const NOTIFY_TEMPLATES = {
     estimateSentBody: (title: string, total: number) =>
       `Estimate "${title}" for $${total.toFixed(2)} has been sent. Please review and approve.`,
     bulkTechSms: (count: number) => `You have ${count} job(s) scheduled today. Check HandymanOS for details.`,
+    jobScheduledSms: (title: string, when: string) => `HandymanOS: "${title}" scheduled for ${when}.`,
+    jobEtaSms: (title: string, eta: string) => `HandymanOS: Technician en route for "${title}". ETA: ${eta}.`,
   },
   ru: {
     jobScheduledSubject: (title: string) => `Заказ запланирован: ${title}`,
@@ -39,6 +41,8 @@ const NOTIFY_TEMPLATES = {
     estimateSentBody: (title: string, total: number) =>
       `Вам отправлена смета «${title}» на сумму $${total.toFixed(2)}. Пожалуйста, ознакомьтесь и утвердите.`,
     bulkTechSms: (count: number) => `У вас ${count} заказ(ов) на сегодня. Подробности в HandymanOS.`,
+    jobScheduledSms: (title: string, when: string) => `HandymanOS: «${title}» запланирован на ${when}.`,
+    jobEtaSms: (title: string, eta: string) => `HandymanOS: мастер в пути по заказу «${title}». ETA: ${eta}.`,
   },
 } as const
 
@@ -170,6 +174,15 @@ function skipCustomerEmail(
   return { ok: true, queued: false, skipped: true }
 }
 
+function skipCustomerSms(
+  to: string,
+  body: string,
+  metadata?: Record<string, string>,
+): NotificationResult {
+  recordNotificationSkip({ to, channel: 'sms', body, metadata })
+  return { ok: true, queued: false, skipped: true }
+}
+
 export async function notifyJobScheduled(
   customerEmail: string,
   jobTitle: string,
@@ -276,6 +289,36 @@ export async function sendSms(to: string, body: string): Promise<NotificationRes
 
 export async function notifyTechnicianSms(phone: string, message: string) {
   return sendSms(phone, message)
+}
+
+export async function notifyCustomerJobScheduledSms(
+  phone: string,
+  jobTitle: string,
+  when: string,
+  customerId?: string,
+  customer?: Pick<Customer, 'notification_preferences'>,
+) {
+  const tpl = notifyTemplates()
+  const body = tpl.jobScheduledSms(jobTitle, when)
+  if (customerId && !customerAllowsNotification(customerId, 'sms', customer)) {
+    return skipCustomerSms(phone, body, { type: 'job_scheduled_sms', customer_id: customerId })
+  }
+  return sendSms(phone, body)
+}
+
+export async function notifyCustomerEtaSms(
+  phone: string,
+  jobTitle: string,
+  eta: string,
+  customerId?: string,
+  customer?: Pick<Customer, 'notification_preferences'>,
+) {
+  const tpl = notifyTemplates()
+  const body = tpl.jobEtaSms(jobTitle, eta)
+  if (customerId && !customerAllowsNotification(customerId, 'sms', customer)) {
+    return skipCustomerSms(phone, body, { type: 'job_eta_sms', customer_id: customerId })
+  }
+  return sendSms(phone, body)
 }
 
 export async function notifyBulkTechnicianSms(

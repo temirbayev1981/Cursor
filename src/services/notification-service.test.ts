@@ -6,6 +6,8 @@ import {
   notifyEstimateSent,
   notifyInvoiceSent,
   notifyTechnicianSms,
+  notifyCustomerJobScheduledSms,
+  notifyCustomerEtaSms,
   notifyResultMessage,
   getNotificationQueue,
   getNotificationQueueFiltered,
@@ -98,6 +100,30 @@ describe('notification-service', () => {
     const [item] = getNotificationQueue()
     expect(item.subject).toContain('scheduled')
     expect(item.body).toContain('Fix faucet')
+  })
+
+  it('notifyCustomerJobScheduledSms skips when customer disabled SMS prefs', async () => {
+    saveCustomerNotificationPreferences('cust-no-sms', { email: true, sms: false })
+    const result = await notifyCustomerJobScheduledSms('(555) 999-0000', 'Fix', 'Jul 10', 'cust-no-sms')
+    expect(result).toEqual({ ok: true, queued: false, skipped: true })
+    expect(getNotificationSkipLog()[0]?.channel).toBe('sms')
+    localStorage.removeItem('handymanos_customer_notify_prefs_cust-no-sms')
+  })
+
+  it('notifyCustomerJobScheduledSms queues SMS when customer allows SMS', async () => {
+    saveCustomerNotificationPreferences('cust-sms', { email: true, sms: true })
+    const result = await notifyCustomerJobScheduledSms('(555) 999-0001', 'Fix', 'Jul 10', 'cust-sms')
+    expect(result.ok).toBe(true)
+    expect(result.queued).toBe(true)
+    expect(getNotificationQueueFiltered('sms')).toHaveLength(1)
+    localStorage.removeItem('handymanos_customer_notify_prefs_cust-sms')
+  })
+
+  it('notifyCustomerEtaSms skips when customer disabled SMS prefs', async () => {
+    saveCustomerNotificationPreferences('cust-no-sms', { email: true, sms: false })
+    const result = await notifyCustomerEtaSms('(555) 999-0000', 'Fix', '30 min', 'cust-no-sms')
+    expect(result).toEqual({ ok: true, queued: false, skipped: true })
+    localStorage.removeItem('handymanos_customer_notify_prefs_cust-no-sms')
   })
 
   it('notifyTechnicianSms queues SMS without webhook', async () => {

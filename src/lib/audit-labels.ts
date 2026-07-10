@@ -151,6 +151,9 @@ export const NOTIFICATION_HUB_SKIP_LOG_AUDIT = true as const
 /** Notification hub exports and clears skip log for operators. */
 export const NOTIFICATION_HUB_SKIP_OPS_AUDIT = true as const
 
+/** Customer SMS notifications respect SMS opt-out in dispatch/scheduling. */
+export const CUSTOMER_SMS_OPT_OUT_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }

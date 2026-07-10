@@ -30,6 +30,10 @@ No schema changes required. Update frontend deploy and optional:
 - `npm run smoke:supabase` (expanded table/RPC checks)
 - Stripe webhook redeploy if using `stripe-webhook` audit logging
 
+## From 1.10.7 → 1.10.8
+
+No schema changes. Customer SMS notifications in dispatch/scheduling with SMS opt-out respect.
+
 ## From 1.10.6 → 1.10.7
 
 No schema changes. Notification hub skip log export/clear for operators.
