@@ -7,6 +7,7 @@ import {
   seedDraftJob,
   seedInProgressTechJob,
   seedPortalCustomerInvoice,
+  seedBulkDraftJobs,
 } from './helpers/auth'
 
 test.describe('Expanded audit log E2E', () => {
@@ -357,6 +358,67 @@ test.describe('Tenant audit E2E', () => {
     await openSettingsAuditTab(page)
     await expect(page.locator('[data-audit-action="invite.accept"]').first()).toBeVisible({ timeout: 10000 })
     await expect(page.getByText(/приглашение принято|invite accepted/i).first()).toBeVisible()
+  })
+})
+
+test.describe('Bulk & billing audit E2E', () => {
+  test.beforeEach(async ({ page, context }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+    await loginAsOwner(page, 'ru')
+    await seedBulkDraftJobs(page)
+  })
+
+  test('bulk cancel appears in audit log', async ({ page }) => {
+    await page.goto('/jobs')
+    await page.getByRole('tab', { name: /черновик|draft/i }).click()
+    await page.getByTestId('job-select-job-bulk-001').check()
+    await page.getByTestId('job-select-job-bulk-002').check()
+    await page.getByTestId('jobs-bulk-cancel').click()
+    await expect(page.getByText(/отменено заказов:\s*2|cancelled 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="jobs.bulk_cancel"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/массовая отмена заказов|bulk cancelled jobs/i).first()).toBeVisible()
+  })
+
+  test('bulk assign appears in audit log', async ({ page }) => {
+    await page.goto('/jobs')
+    await page.getByRole('tab', { name: /черновик|draft/i }).click()
+    await page.getByTestId('job-select-job-bulk-001').check()
+    await page.getByTestId('job-select-job-bulk-002').check()
+    await page.getByTestId('jobs-bulk-technician').click()
+    await page.getByRole('option', { name: /Marcus Thompson/i }).click()
+    await page.getByTestId('jobs-bulk-assign').click()
+    await expect(page.getByText(/назначено мастеров:\s*2|assigned technician to 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="jobs.bulk_assign"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/массовое назначение мастера|bulk assigned technician/i).first()).toBeVisible()
+  })
+
+  test('billing plan upgrade appears in audit log', async ({ page }) => {
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /оплата|billing/i }).click()
+    await page.getByTestId('billing-upgrade-enterprise').click()
+    await expect(page.getByText(/план обновлён|plan upgraded/i).first()).toBeVisible({ timeout: 10000 })
+
+    await page.getByRole('tab', { name: /system|система/i }).click()
+    await expect(page.getByTestId('audit-log-list')).toBeVisible()
+    await expect(page.locator('[data-audit-action="billing.plan_upgrade"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/план подписки обновлён|subscription plan upgraded/i).first()).toBeVisible()
+  })
+
+  test('team invite sent appears in audit log', async ({ page }) => {
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /команда|team/i }).click()
+    await page.getByTestId('team-invite-email').fill('bulk-audit-invite@test.com')
+    await page.getByTestId('team-invite-submit').click()
+    await expect(page.getByText(/ссылка-приглашение скопирована|invite link copied/i).first()).toBeVisible({ timeout: 10000 })
+
+    await page.getByRole('tab', { name: /system|система/i }).click()
+    await expect(page.getByTestId('audit-log-list')).toBeVisible()
+    await expect(page.locator('[data-audit-action="team.invite_sent"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/приглашение в команду отправлено|team invite sent/i).first()).toBeVisible()
   })
 })
 

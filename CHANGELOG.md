@@ -2,6 +2,14 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.8.7] — 2026-07-10
+
+Bulk ops and billing/team audit E2E.
+
+### Phase 89 — Bulk & billing audit
+- Platform audit: `bulk_ops_audit`, `billing_plan_audit`, `team_invite_audit` gates
+- E2E: bulk cancel/assign, plan upgrade, team invite → audit log
+
 ## [1.8.6] — 2026-07-10
 
 Portal and tenant audit E2E.

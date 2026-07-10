@@ -4,7 +4,7 @@ import { PORTAL_RPC_ENFORCED } from '@/services/portal-data-service'
 import { STRIPE_WEBHOOK_AUDIT } from '@/services/billing-service'
 import { INVENTORY_AUDIT } from '@/services/inventory-service'
 import { ONBOARDING_AUDIT } from '@/services/onboarding-service'
-import { AUDIT_I18N_COVERAGE, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INVITE_AUDIT, PORTAL_AUDIT, VENDOR_PO_AUDIT } from '@/lib/audit-labels'
+import { AUDIT_I18N_COVERAGE, BILLING_PLAN_AUDIT, BULK_OPS_AUDIT, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INVITE_AUDIT, PORTAL_AUDIT, TEAM_INVITE_AUDIT, VENDOR_PO_AUDIT } from '@/lib/audit-labels'
 import { TYPED_SUPABASE_QUERIES } from '@/lib/supabase-queries'
 import { MULTI_TENANT_SUPPORTED, MULTI_TENANT_MEMBERSHIP_RPC } from '@/services/company-service'
 
@@ -55,6 +55,9 @@ describe('platform-audit', () => {
     expect(PORTAL_AUDIT).toBe(true)
     expect(COMPANY_SWITCH_AUDIT).toBe(true)
     expect(INVITE_AUDIT).toBe(true)
+    expect(BULK_OPS_AUDIT).toBe(true)
+    expect(BILLING_PLAN_AUDIT).toBe(true)
+    expect(TEAM_INVITE_AUDIT).toBe(true)
     expect(TYPED_SUPABASE_QUERIES).toBe(true)
     expect(MULTI_TENANT_SUPPORTED).toBe(true)
     expect(MULTI_TENANT_MEMBERSHIP_RPC).toBe('get_accessible_companies')
@@ -75,6 +78,9 @@ describe('platform-audit', () => {
     const portalAudit = report.checks.find((check) => check.id === 'portal_audit')
     const companySwitchAudit = report.checks.find((check) => check.id === 'company_switch_audit')
     const inviteAudit = report.checks.find((check) => check.id === 'invite_audit')
+    const bulkOpsAudit = report.checks.find((check) => check.id === 'bulk_ops_audit')
+    const billingPlanAudit = report.checks.find((check) => check.id === 'billing_plan_audit')
+    const teamInviteAudit = report.checks.find((check) => check.id === 'team_invite_audit')
     const multi = report.checks.find((check) => check.id === 'multi_tenant')
     const liveBackend = report.checks.find((check) => check.id === 'live_backend')
 
@@ -93,6 +99,9 @@ describe('platform-audit', () => {
     expect(portalAudit?.ok).toBe(Boolean(liveBackend?.ok))
     expect(companySwitchAudit?.ok).toBe(Boolean(liveBackend?.ok))
     expect(inviteAudit?.ok).toBe(Boolean(liveBackend?.ok))
+    expect(bulkOpsAudit?.ok).toBe(Boolean(liveBackend?.ok))
+    expect(billingPlanAudit?.ok).toBe(Boolean(liveBackend?.ok))
+    expect(teamInviteAudit?.ok).toBe(Boolean(liveBackend?.ok))
     expect(multi?.ok).toBe(Boolean(liveBackend?.ok))
   })
 })

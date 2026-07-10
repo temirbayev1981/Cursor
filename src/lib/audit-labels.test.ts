@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatAuditAction, isAuditActionKey, countUniqueAuditActions, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INVITE_AUDIT, PORTAL_AUDIT, VENDOR_PO_AUDIT } from './audit-labels'
+import { formatAuditAction, isAuditActionKey, countUniqueAuditActions, BILLING_PLAN_AUDIT, BULK_OPS_AUDIT, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INVITE_AUDIT, PORTAL_AUDIT, TEAM_INVITE_AUDIT, VENDOR_PO_AUDIT } from './audit-labels'
 
 describe('audit-labels', () => {
   const labels = {
@@ -75,6 +75,16 @@ describe('audit-labels', () => {
     expect(PORTAL_AUDIT).toBe(true)
     expect(COMPANY_SWITCH_AUDIT).toBe(true)
     expect(INVITE_AUDIT).toBe(true)
+  })
+
+  it('recognizes v1.8.7 bulk and billing audit gates', () => {
+    expect(isAuditActionKey('jobs.bulk_cancel')).toBe(true)
+    expect(isAuditActionKey('jobs.bulk_assign')).toBe(true)
+    expect(isAuditActionKey('billing.plan_upgrade')).toBe(true)
+    expect(isAuditActionKey('team.invite_sent')).toBe(true)
+    expect(BULK_OPS_AUDIT).toBe(true)
+    expect(BILLING_PLAN_AUDIT).toBe(true)
+    expect(TEAM_INVITE_AUDIT).toBe(true)
   })
 
   it('counts unique audit actions in log', () => {

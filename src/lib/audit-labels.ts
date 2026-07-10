@@ -85,6 +85,15 @@ export const COMPANY_SWITCH_AUDIT = true as const
 /** Team invite acceptance writes audit_logs. */
 export const INVITE_AUDIT = true as const
 
+/** Bulk job operations write audit_logs. */
+export const BULK_OPS_AUDIT = true as const
+
+/** Billing plan upgrades write audit_logs. */
+export const BILLING_PLAN_AUDIT = true as const
+
+/** Team invite sends write audit_logs. */
+export const TEAM_INVITE_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }
