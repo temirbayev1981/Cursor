@@ -188,9 +188,11 @@ export default function DispatchPage() {
             t.dispatch.customerEmailSent.replace('{email}', customer.email),
             t.dispatch.customerEmailQueued.replace('{email}', customer.email),
             t.common.notificationFailed,
+            t.dispatch.customerEmailSkipped.replace('{email}', customer.email),
           )
           if (emailFeedback.type === 'success') toast.success(emailFeedback.message)
           else if (emailFeedback.type === 'info') toast.info(emailFeedback.message)
+          else toast.error(emailFeedback.message)
         }
       }
 
@@ -204,9 +206,11 @@ export default function DispatchPage() {
             t.dispatch.customerEtaSent.replace('{email}', customer.email),
             t.dispatch.customerEtaQueued.replace('{email}', customer.email),
             t.common.notificationFailed,
+            t.dispatch.customerEtaSkipped.replace('{email}', customer.email),
           )
           if (etaFeedback.type === 'success') toast.success(etaFeedback.message)
           else if (etaFeedback.type === 'info') toast.info(etaFeedback.message)
+          else toast.error(etaFeedback.message)
         }
       }
     },

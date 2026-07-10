@@ -366,7 +366,9 @@ export function notifyResultMessage(
   success: string,
   queued: string,
   failed: string,
+  skipped?: string,
 ): { type: 'success' | 'info' | 'error'; message: string } {
+  if (result.ok && result.skipped) return { type: 'info', message: skipped ?? success }
   if (result.ok && result.queued) return { type: 'info', message: queued }
   if (result.ok) return { type: 'success', message: success }
   return { type: 'error', message: failed }

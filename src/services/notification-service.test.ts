@@ -52,6 +52,17 @@ describe('notification-service', () => {
     expect(result).toEqual({ type: 'error', message: 'Failed' })
   })
 
+  it('notifyResultMessage returns skipped info when customer opted out', () => {
+    const result = notifyResultMessage(
+      { ok: true, queued: false, skipped: true },
+      'Live success',
+      'Queued message',
+      'Failed',
+      'Skipped message',
+    )
+    expect(result).toEqual({ type: 'info', message: 'Skipped message' })
+  })
+
   it('sendNotification queues email when no webhook is configured', async () => {
     const result = await sendNotification({
       to: 'test@example.com',

@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.10.3] — 2026-07-10
+
+Staff CRM notification preferences and skipped-notification UX.
+
+### Phase 101 — Staff customer notify prefs
+- Customer form: email/SMS notification toggles persisted on `customers.notification_preferences`
+- Customers table badge when email notifications are disabled
+- `notifyResultMessage` handles `skipped`; dispatch/scheduling show opt-out toasts
+- E2E: customer form prefs, estimate send opt-out (`est-003` / `cust-004`)
+- Platform audit: `staff_customer_notify_audit` gate
+- **194** E2E tests, **147** unit tests
+
 ## [1.10.2] — 2026-07-10
 
 Consistent customer email opt-out across all notification flows.

@@ -16,6 +16,7 @@ import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
 import type { Customer } from '@/types'
 import { createPortalLink } from '@/services/portal-service'
+import { saveCustomerNotificationPreferences, customerAllowsNotification } from '@/lib/customer-notification-prefs'
 
 const CUSTOMER_TYPE_KEYS = ['residential', 'commercial', 'property_management'] as const
 
@@ -46,6 +47,13 @@ export default function CustomersPage() {
   const handleSave = (customer: Customer) => {
     saveCustomer.mutate(customer, {
       onSuccess: () => {
+        const prefs = customer.notification_preferences
+        if (prefs) {
+          saveCustomerNotificationPreferences(customer.id, {
+            email: prefs.email ?? true,
+            sms: prefs.sms ?? false,
+          })
+        }
         toast.success(t.common.save)
         setShowForm(false)
         setEditingCustomer(null)
@@ -110,6 +118,15 @@ export default function CustomersPage() {
               <div>
                 <p className="font-medium">{customer.name}</p>
                 <p className="text-xs text-muted-foreground">{customer.address}</p>
+                {!customerAllowsNotification(customer.id, 'email', customer) && (
+                  <Badge
+                    variant="secondary"
+                    className="mt-1 text-xs"
+                    data-testid={`customer-email-optout-${customer.id}`}
+                  >
+                    {t.customers.emailOptOut}
+                  </Badge>
+                )}
               </div>
             </DataTableCell>
             <DataTableCell>

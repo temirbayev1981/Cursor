@@ -39,6 +39,15 @@ test.describe('Estimates & invoices', () => {
     await expect(page.getByText(/смета отправлена.*chen\.family@email\.com/i).first()).toBeVisible({ timeout: 10000 })
   })
 
+  test('send draft estimate skips email when customer opted out', async ({ page }) => {
+    await page.evaluate(() => {
+      localStorage.setItem('handymanos_customer_notify_prefs_cust-004', JSON.stringify({ email: false, sms: false }))
+    })
+    await page.goto('/estimates')
+    await page.getByTestId('estimate-send-est-003').click()
+    await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+  })
+
   test('convert sent estimate to invoice', async ({ page }) => {
     await page.goto('/estimates')
     await expect(page.getByText('Leaking Faucet Repair').first()).toBeVisible()

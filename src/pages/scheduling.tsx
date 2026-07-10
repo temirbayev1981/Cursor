@@ -86,6 +86,7 @@ export default function SchedulingPage() {
               t.scheduling.emailSent.replace('{email}', customer.email),
               t.scheduling.emailQueued.replace('{email}', customer.email),
               t.common.notificationFailed,
+              t.scheduling.emailSkipped.replace('{email}', customer.email),
             )
             if (feedback.type === 'success') toast.success(feedback.message)
             else if (feedback.type === 'info') toast.info(feedback.message)
