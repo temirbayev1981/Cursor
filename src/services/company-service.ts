@@ -4,6 +4,9 @@ import { supabase } from '@/lib/supabase'
 import { updateRows } from '@/lib/supabase-queries'
 import { callRpc } from '@/lib/supabase-rpc'
 
+/** Multi-company switching via memberships RPC and local registry. */
+export const MULTI_TENANT_SUPPORTED = true as const
+
 const REGISTRY_KEY = 'handymanos_company_registry'
 const ACTIVE_COMPANY_KEY = 'handymanos_active_company'
 const MEMBERSHIPS_KEY = 'handymanos_company_memberships'

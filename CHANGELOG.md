@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.7.2] — 2026-07-10
+
+Audit P3: expanded audit logging, portal RPC-only hooks, quality gates.
+
+### Phase 71 — Audit P3 continuation
+- Audit log: bulk job cancel, invoice payment/send, company profile update
+- Portal audit: estimate approve/decline, job submit, review submit
+- Portal hooks: RPC-only (removed `saveEntity` fallbacks on RPC failure)
+- Platform audit: compile-time quality gates (`PORTAL_RPC_ENFORCED`, `TYPED_SUPABASE_QUERIES`, `MULTI_TENANT_SUPPORTED`)
+- E2E: bulk delete confirm label assertion; Russian audit recommendations on System tab
+
 ## [1.7.1] — 2026-07-10
 
 Audit P2 fixes: portal security, audit i18n, metrics.

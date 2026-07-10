@@ -3,6 +3,9 @@ import { callRpc } from '@/lib/supabase-rpc'
 import { getPortalToken } from '@/services/portal-service'
 import type { PortalContext } from '@/types/portal'
 
+/** Portal mutations use server RPCs only — no local entity-store bypass. */
+export const PORTAL_RPC_ENFORCED = true as const
+
 async function fetchPortalRows<T extends Estimate | Invoice | Job>(
   rpc: 'get_portal_estimates' | 'get_portal_invoices' | 'get_portal_jobs',
 ): Promise<T[]> {

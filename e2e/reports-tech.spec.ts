@@ -57,4 +57,11 @@ test.describe('Reports and technician mobile', () => {
     await expect(page.getByText(/platform audit|аудит платформы/i).first()).toBeVisible()
     await expect(page.getByText(/offline queue|офлайн-очередь/i).first()).toBeVisible()
   })
+
+  test('settings system tab shows localized audit recommendations in Russian', async ({ page }) => {
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /system|система/i }).click()
+    await expect(page.getByText(/Подключите Supabase/i).first()).toBeVisible()
+    await expect(page.getByText(/Настройте Stripe/i).first()).toBeVisible()
+  })
 })

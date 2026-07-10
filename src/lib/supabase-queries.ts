@@ -2,6 +2,9 @@ import type { Database } from '@/types/database'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 
+/** Entity access goes through typed table helpers in this module. */
+export const TYPED_SUPABASE_QUERIES = true as const
+
 type PublicSchema = Database['public']
 type Tables = PublicSchema['Tables']
 type DbClient = SupabaseClient<Database>

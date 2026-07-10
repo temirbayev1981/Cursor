@@ -9,7 +9,7 @@ import {
   portalSubmitReview,
 } from '@/services/portal-data-service'
 import { getPortalToken } from '@/services/portal-service'
-import { saveEntity } from '@/services/entity-service'
+import { logAudit } from '@/services/entity-service'
 import type { Estimate, Job } from '@/types'
 
 export function usePortalEstimates(portalType: 'customer' | 'property' = 'customer') {
@@ -53,16 +53,17 @@ export function usePortalEstimateAction() {
   return useMutation({
     mutationFn: async ({ estimate, status }: { estimate: Estimate; status: Estimate['status'] }) => {
       if (status !== 'approved' && status !== 'rejected') return false
+      if (!token || !portal) throw new Error('Portal session required')
 
-      if (token && portal) {
-        const ok = await portalApproveEstimate(estimate.id, status)
-        if (ok) return true
-      }
-
-      await saveEntity('estimates', { ...estimate, status })
+      const ok = await portalApproveEstimate(estimate.id, status)
+      if (!ok) throw new Error('Failed to update estimate status')
       return true
     },
-    onSuccess: () => {
+    onSuccess: (_data, { estimate, status }) => {
+      if (portal) {
+        const action = status === 'approved' ? 'portal.estimate_approve' : 'portal.estimate_decline'
+        void logAudit(portal.companyId, portal.customerId, action, 'estimate', estimate.id)
+      }
       qc.invalidateQueries({ queryKey: ['portal-estimates'] })
     },
   })
@@ -75,15 +76,14 @@ export function usePortalJobSubmit() {
 
   return useMutation({
     mutationFn: async (job: Job) => {
-      if (token && portal) {
-        const id = await portalSubmitJobRequest(job.title, job.description, job.priority)
-        if (id) return id
-      }
+      if (!token || !portal) throw new Error('Portal session required')
 
-      await saveEntity('jobs', job)
-      return job.id
+      const id = await portalSubmitJobRequest(job.title, job.description, job.priority)
+      if (!id) throw new Error('Failed to submit job request')
+      return id
     },
-    onSuccess: () => {
+    onSuccess: (jobId) => {
+      if (portal) void logAudit(portal.companyId, portal.customerId, 'portal.job_submit', 'job', jobId)
       qc.invalidateQueries({ queryKey: ['portal-jobs'] })
     },
   })
@@ -96,6 +96,11 @@ export function usePortalReviewSubmit() {
     mutationFn: async ({ rating, comment }: { rating: number; comment: string }) => {
       if (!portal) return false
       return portalSubmitReview(portal, rating, comment)
+    },
+    onSuccess: (ok) => {
+      if (ok && portal) {
+        void logAudit(portal.companyId, portal.customerId, 'portal.review_submit', 'customer', portal.customerId)
+      }
     },
   })
 }

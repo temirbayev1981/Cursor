@@ -48,7 +48,7 @@ describe('portal-data-service reviews', () => {
   })
 
   it('returns empty estimates when RPC fails (no localStorage bypass)', async () => {
-    vi.mocked(callRpc).mockResolvedValueOnce({ data: null, error: { message: 'rpc failed' } })
+    vi.mocked(callRpc).mockResolvedValueOnce({ data: null, error: Object.assign(new Error('rpc failed'), { message: 'rpc failed' }) })
     const rows = await fetchPortalEstimates(portal)
     expect(rows).toEqual([])
   })

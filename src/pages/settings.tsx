@@ -140,6 +140,7 @@ export default function SettingsPage() {
     setCompanySaving(true)
     try {
       await updateCompanyDetails(companyForm)
+      if (user) void logAudit(companyId, user.id, 'company.profile_update', 'company', companyId)
       toast.success(t.settings.saveChanges)
     } catch {
       toast.error(t.settings.companySaveFailed)

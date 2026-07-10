@@ -141,13 +141,21 @@ export function useUpdateJobStatus() {
 export function useBulkUpdateJobStatus() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
     mutationFn: async ({ jobs, status }: { jobs: Job[]; status: Job['status'] }) => {
       for (const job of jobs) {
         await saveEntity('jobs', { ...job, status })
       }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs', companyId] }),
+    onSuccess: (_data, { jobs, status }) => {
+      if (user && status === 'cancelled') {
+        for (const job of jobs) {
+          void logAudit(companyId, user.id, 'jobs.bulk_cancel', 'job', job.id)
+        }
+      }
+      qc.invalidateQueries({ queryKey: ['jobs', companyId] })
+    },
   })
 }
 
@@ -217,20 +225,28 @@ export function useSaveInvoice() {
 export function usePayInvoice() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
     mutationFn: ({ invoice, amount }: { invoice: Invoice; amount: number }) =>
       recordInvoicePayment(invoice, amount),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['invoices', companyId] }),
+    onSuccess: (_data, { invoice }) => {
+      if (user) void logAudit(companyId, user.id, 'invoice.payment', 'invoice', invoice.id)
+      qc.invalidateQueries({ queryKey: ['invoices', companyId] })
+    },
   })
 }
 
 export function useSendInvoice() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
     mutationFn: ({ invoice, email }: { invoice: Invoice; email: string }) =>
       sendInvoiceToCustomer(invoice, email),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['invoices', companyId] }),
+    onSuccess: (_data, { invoice }) => {
+      if (user) void logAudit(companyId, user.id, 'invoice.sent', 'invoice', invoice.id)
+      qc.invalidateQueries({ queryKey: ['invoices', companyId] })
+    },
   })
 }
 
