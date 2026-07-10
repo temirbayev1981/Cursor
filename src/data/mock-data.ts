@@ -352,6 +352,25 @@ export const DEMO_ESTIMATES: Estimate[] = [
     ],
     created_at: '2026-07-09T00:00:00Z',
   },
+  {
+    id: 'est-004',
+    company_id: 'comp-001',
+    customer_id: 'cust-002',
+    property_id: 'prop-003',
+    title: 'Bathroom Fixture Replacement',
+    status: 'sent',
+    labor_hours: 4,
+    labor_rate: 75,
+    material_cost: 120,
+    markup_percent: 25,
+    total: 650,
+    valid_until: '2026-07-28T00:00:00Z',
+    line_items: [
+      { id: 'li-10', description: 'Fixture install labor', quantity: 4, unit_price: 75, total: 300, type: 'labor' },
+      { id: 'li-11', description: 'Fixtures & supplies', quantity: 1, unit_price: 120, total: 120, type: 'material' },
+    ],
+    created_at: '2026-07-08T00:00:00Z',
+  },
 ]
 
 export const DEMO_INVOICES: Invoice[] = [

@@ -43,6 +43,35 @@ export const estimateSchema = z.object({
 
 export type EstimateFormValues = z.infer<typeof estimateSchema>
 
+export const propertySchema = z.object({
+  name: z.string().min(2, 'Укажите название'),
+  customer_id: z.string().min(1, 'Выберите клиента'),
+  address: z.string().min(5, 'Укажите адрес'),
+  property_type: z.enum(['apartment', 'townhouse', 'single_family', 'commercial', 'multi_family']),
+  unit_number: z.string().optional(),
+  access_notes: z.string().optional(),
+})
+
+export type PropertyFormValues = z.infer<typeof propertySchema>
+
+export const scheduleSchema = z.object({
+  job_id: z.string().min(1, 'Выберите заказ'),
+  technician_id: z.string().min(1, 'Выберите мастера'),
+  date: z.string().min(1, 'Укажите дату'),
+  start_hour: z.coerce.number().min(6).max(20),
+  duration_hours: z.coerce.number().min(0.5).max(12),
+})
+
+export type ScheduleFormValues = z.infer<typeof scheduleSchema>
+
+export const portalRequestSchema = z.object({
+  title: z.string().min(3, 'Укажите название'),
+  description: z.string().min(5, 'Опишите проблему'),
+  priority: z.enum(['low', 'medium', 'high', 'emergency']),
+})
+
+export type PortalRequestFormValues = z.infer<typeof portalRequestSchema>
+
 export const onboardingCompanySchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),

@@ -200,6 +200,35 @@ export async function createInvoiceFromEstimate(
   return invoice
 }
 
+export async function createScheduleFromJob(
+  job: Job,
+  companyId: string,
+  technicianId: string,
+  startTime: string,
+  endTime: string,
+  location: string
+): Promise<ScheduleEvent> {
+  const event: ScheduleEvent = {
+    id: crypto.randomUUID(),
+    company_id: companyId,
+    job_id: job.id,
+    technician_id: technicianId,
+    title: job.title,
+    start_time: startTime,
+    end_time: endTime,
+    location,
+    status: 'scheduled',
+  }
+  await saveEntity('schedules', event)
+  await saveEntity('jobs', {
+    ...job,
+    status: 'scheduled',
+    scheduled_date: startTime,
+    assigned_technician_id: technicianId,
+  })
+  return event
+}
+
 export async function logAudit(companyId: string, userId: string, action: string, entityType: string, entityId: string) {
   const log = {
     id: crypto.randomUUID(),

@@ -265,6 +265,16 @@ export const ru = {
     title: 'Объекты',
     description: 'Управление объектами, привязанными к клиентам',
     addProperty: 'Добавить объект',
+    propertyName: 'Название объекта',
+    propertyType: 'Тип объекта',
+    accessNotes: 'Примечания по доступу',
+    types: {
+      apartment: 'Квартира',
+      townhouse: 'Таунхаус',
+      single_family: 'Частный дом',
+      commercial: 'Коммерческий',
+      multi_family: 'Многоквартирный',
+    },
   },
   scheduling: {
     title: 'Расписание',
@@ -277,6 +287,14 @@ export const ru = {
     openMaps: 'Открыть в Google Maps',
     availability: 'Доступность мастеров',
     available: 'Свободен',
+    scheduleFromJob: 'Запланировать заказ',
+    selectJob: 'Заказ',
+    selectTechnician: 'Мастер',
+    date: 'Дата',
+    startTime: 'Начало (ч)',
+    duration: 'Длительность (ч)',
+    noUnscheduled: 'Нет незапланированных заказов',
+    scheduled: 'Заказ добавлен в расписание',
   },
   technicians: {
     title: 'Мастера',
@@ -448,13 +466,16 @@ export const ru = {
   },
   propertyPortal: {
     title: 'Портал управляющей компании',
-    submitRequest: 'Подправить заявку',
+    submitRequest: 'Подать заявку',
     openRequests: 'Открытые заявки',
     completed: 'Завершённые',
     monthlySpend: 'Расходы за месяц',
     avgResponse: 'Среднее время ответа',
     activeRequests: 'Активные заявки',
     approveEstimate: 'Утвердить смету',
+    requestTitle: 'Описание работ',
+    requestDescription: 'Подробности',
+    requestSubmitted: 'Заявка отправлена',
   },
   customerPortal: {
     title: 'Клиентский портал',
@@ -464,6 +485,8 @@ export const ru = {
     invoices: 'Счета',
     leaveReview: 'Оставить отзыв',
     reviewPrompt: 'Как вам недавнее обслуживание?',
+    estimateApproved: 'Смета утверждена',
+    estimateDeclined: 'Смета отклонена',
   },
 } as const
 
