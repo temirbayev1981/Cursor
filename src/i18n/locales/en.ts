@@ -203,6 +203,8 @@ export const en: TranslationKeys = {
     bulkAssigned: 'Assigned technician to {count} jobs',
     bulkSchedule: 'Schedule & assign',
     bulkScheduled: 'Scheduled {count} jobs',
+    bulkCancel: 'Cancel',
+    bulkCancelled: 'Cancelled {count} jobs',
   },
   workOrders: {
     title: 'Work Orders',

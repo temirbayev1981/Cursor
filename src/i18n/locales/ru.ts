@@ -201,6 +201,8 @@ export const ru = {
     bulkAssigned: 'Назначено мастеров: {count}',
     bulkSchedule: 'Запланировать и назначить',
     bulkScheduled: 'Запланировано заказов: {count}',
+    bulkCancel: 'Отменить',
+    bulkCancelled: 'Отменено заказов: {count}',
   },
   workOrders: {
     title: 'Наряды',

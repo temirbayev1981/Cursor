@@ -92,7 +92,7 @@ export default function PropertyPortalPage() {
             <p className="text-sm text-muted-foreground sm:text-base">{portal.customerName}</p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => setShowForm(true)} className="flex-1 sm:flex-none">
+            <Button onClick={() => setShowForm(true)} className="flex-1 sm:flex-none" data-testid="property-portal-submit-request">
               <Plus className="h-4 w-4" />{t.propertyPortal.submitRequest}
             </Button>
             <Button variant="ghost" size="icon" onClick={handleLogout} aria-label={t.propertyPortal.signOut}>
@@ -102,7 +102,7 @@ export default function PropertyPortalPage() {
         </div>
 
         {showForm && (
-          <Card className="mb-6">
+          <Card className="mb-6" data-testid="property-portal-request-form">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-base">{t.propertyPortal.submitRequest}</CardTitle>
               <Button variant="ghost" size="icon" onClick={() => setShowForm(false)}><X className="h-4 w-4" /></Button>
@@ -130,7 +130,7 @@ export default function PropertyPortalPage() {
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setShowForm(false)}>{t.common.cancel}</Button>
-                <Button onClick={submitRequest} disabled={submitJob.isPending}>{t.common.save}</Button>
+                <Button onClick={submitRequest} disabled={submitJob.isPending} data-testid="property-portal-request-submit">{t.common.save}</Button>
               </div>
             </CardContent>
           </Card>

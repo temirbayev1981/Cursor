@@ -227,7 +227,7 @@ export default function ReportsPage() {
         <TabsList className="mb-6">
           <TabsTrigger value="financial">{t.reports.financial}</TabsTrigger>
           <TabsTrigger value="profit">{t.reports.profit}</TabsTrigger>
-          <TabsTrigger value="technicians">{t.reports.technicians}</TabsTrigger>
+          <TabsTrigger value="technicians" data-testid="reports-tab-technicians">{t.reports.technicians}</TabsTrigger>
           <TabsTrigger value="customers">{t.reports.customers}</TabsTrigger>
           <TabsTrigger value="services">{t.reports.services}</TabsTrigger>
           <TabsTrigger value="expenses">{t.reports.expenses}</TabsTrigger>

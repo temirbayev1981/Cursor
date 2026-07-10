@@ -72,6 +72,20 @@ export default function JobsPage() {
     })
   }
 
+  const handleBulkCancel = () => {
+    const selected = jobs.filter((job) => selectedIds.has(job.id))
+    if (selected.length === 0) return
+    bulkUpdateStatus.mutate(
+      { jobs: selected, status: 'cancelled' },
+      {
+        onSuccess: () => {
+          toast.success(t.jobs.bulkCancelled.replace('{count}', String(selected.length)))
+          setSelectedIds(new Set())
+        },
+      },
+    )
+  }
+
   const handleBulkSchedule = () => {
     const selected = jobs.filter((job) => selectedIds.has(job.id))
     if (selected.length === 0) return
@@ -222,6 +236,15 @@ export default function JobsPage() {
             data-testid="jobs-bulk-schedule"
           >
             {t.jobs.bulkSchedule}
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={handleBulkCancel}
+            disabled={bulkUpdateStatus.isPending}
+            data-testid="jobs-bulk-cancel"
+          >
+            {t.jobs.bulkCancel}
           </Button>
         </div>
       )}

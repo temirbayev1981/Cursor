@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.5.6] — 2026-07-10
+
+Property portal EN, report technicians PDF tab, jobs bulk cancel.
+
+### Phase 62 — Portal EN, report tech PDF & bulk cancel
+- Jobs bulk cancel action with `jobs-bulk-cancel` button
+- Property portal request form testids for E2E
+- Reports technicians tab `data-testid="reports-tab-technicians"`
+- E2E: property portal English, report PDF technicians tab i18n, bulk cancel (`portal-reports-bulk-cancel.spec.ts`)
+
 ## [1.5.5] — 2026-07-10
 
 Portal estimate decline, jobs bulk schedule & assign, shared PDF table labels.
