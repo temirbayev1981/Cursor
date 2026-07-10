@@ -252,6 +252,18 @@ See [RELEASE.md](./RELEASE.md) for the full checklist.
 
 ## 11. Build & deploy frontend
 
+### GitHub Actions (CI)
+
+Push and PRs run:
+
+1. **build** — `verify:production`, lint, unit tests, production build
+2. **e2e** — Playwright across **4 parallel shards** (`--shard=1/4` … `4/4`)
+3. **supabase-smoke** — on `main` only; skips without secrets, fails when live smoke fails
+
+Nightly live smoke: `.github/workflows/supabase-smoke.yml` (06:00 UTC).
+
+Local shard: `npx playwright test --shard=1/4` (shards 1–4).
+
 ### GitHub Pages (automated)
 
 **Prerequisite:** In the repository, open **Settings → Pages** and set **Source** to **GitHub Actions** (one-time). Without this, `deploy.yml` fails with `Failed to create deployment (status: 404)`.
