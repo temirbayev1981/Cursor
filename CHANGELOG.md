@@ -2,6 +2,30 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.4.0] — 2026-07-10
+
+Release consolidating Phases 43–48 (work orders AI, vendor PO, workflows, billing, CRM, inventory).
+
+### Phase 48 — Release consolidation & materials E2E
+- Version bump to **1.4.0**
+- E2E: materials low-stock alert, receive stock, create material (`materials.spec.ts`)
+- `data-testid` on material form, receive dialog, stock actions
+
+### Phase 47 — Jobs & customers E2E (1.3.6)
+- E2E: create customer/job, search filters, portal link, draft tab
+
+### Phase 46 — Estimates & invoices E2E (1.3.5)
+- E2E: smart engine, create/send/convert estimate, demo invoice payment
+
+### Phase 45 — Workflow E2E (1.3.4)
+- E2E: vendor PO → job, PDF tab analyze, scheduling calendar
+
+### Phase 44 — Vendor PO PDF E2E (1.3.3)
+- PDF upload parse; `normalizeVendorPOText()` for PDF.js flat text
+
+### Phase 43 — Work orders upload E2E (1.3.2)
+- Photo + email AI import E2E; docs parity
+
 ## [1.3.6] — 2026-07-10
 
 Jobs and customers CRUD E2E.

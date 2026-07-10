@@ -1,17 +1,25 @@
-# HandymanOS AI — Release 1.3.6
+# HandymanOS AI — Release 1.4.0
 
-Jobs & customers E2E on **1.3.5**.
+Release consolidating Phases 43–48 on **1.3.6**.
 
-## What's new in 1.3.6
+## What's new in 1.4.0
 
-- E2E: customers create, search, portal link copy
-- E2E: jobs create, search, draft filter (53 tests total)
-- `data-testid` on CRM forms and search inputs
+Consolidated E2E coverage across the full business workflow:
+
+| Area | Coverage |
+|------|----------|
+| Work orders | Photo, email, PDF AI import; vendor PO upload & → job |
+| Scheduling | Week view + schedule draft job |
+| Billing | Estimates smart engine, send, convert; invoice payment |
+| CRM | Customers create/search/portal; jobs create/search/draft |
+| Inventory | Low-stock alert, receive stock, create material |
+
+**56 E2E tests** across 17 spec files · **83 unit tests**
 
 ## Test coverage
 
 - Unit: **83**
-- E2E: **53** (16 spec files)
+- E2E: **56** (17 spec files)
 
 ## Deploy
 
@@ -20,10 +28,10 @@ npm run verify:production
 npm run test:e2e
 
 git checkout main
-git merge cursor/phase-47-jobs-customers-e2e-1b4a
+git merge cursor/phase-48-release-1-4-0-materials-e2e-1b4a
 git push origin main
 ```
 
 ## Merge chain
 
-`#24` → … → `#39` → **#40**
+`#24` → … → `#40` → **#41**

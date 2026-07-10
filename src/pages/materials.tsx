@@ -112,6 +112,7 @@ export default function MaterialsPage() {
                       variant="ghost"
                       size="icon"
                       title={t.materials.receiveStock}
+                      data-testid={`material-receive-${mat.id}`}
                       onClick={() => setReceiveMaterialId(mat.id)}
                     >
                       <PackagePlus className="h-4 w-4" />
@@ -154,7 +155,7 @@ export default function MaterialsPage() {
 
       {receiveMaterialId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setReceiveMaterialId(null)}>
-          <Card className="w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+          <Card className="w-full max-w-sm" onClick={(e) => e.stopPropagation()} data-testid="materials-receive-dialog">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-base">{t.materials.receiveStock}</CardTitle>
               <Button variant="ghost" size="icon" onClick={() => setReceiveMaterialId(null)}><X className="h-4 w-4" /></Button>
@@ -171,7 +172,8 @@ export default function MaterialsPage() {
                   onChange={(e) => setReceiveQty(Number(e.target.value))}
                 />
               </div>
-              <Button className="w-full" onClick={() => handleReceive(receiveMaterialId)} disabled={receiveStock.isPending}>
+              <Button className="w-full" onClick={() => handleReceive(receiveMaterialId)} disabled={receiveStock.isPending}
+                data-testid="materials-receive-submit">
                 {t.materials.receive}
               </Button>
             </CardContent>
