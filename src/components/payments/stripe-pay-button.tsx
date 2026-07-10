@@ -25,19 +25,22 @@ export function StripePayButton({ invoice, customerEmail, portalToken, onSuccess
     if (amount <= 0) return
     setLoading(true)
     try {
-      const result = await startStripeCheckout({
-        invoiceId: invoice.id,
-        invoiceNumber: invoice.invoice_number,
-        amount,
-        customerEmail,
-        portalToken,
-        successUrl: portalToken ? `${window.location.origin}/portal/customer?paid=${invoice.id}` : undefined,
-        cancelUrl: portalToken ? `${window.location.origin}/portal/customer` : undefined,
-      })
+      const stripeConfigured = hasStripe && Boolean(getStripeCheckoutEndpoint())
+      const result = stripeConfigured
+        ? await startStripeCheckout({
+          invoiceId: invoice.id,
+          invoiceNumber: invoice.invoice_number,
+          amount,
+          customerEmail,
+          portalToken,
+          successUrl: portalToken ? `${window.location.origin}/portal/customer?paid=${invoice.id}` : undefined,
+          cancelUrl: portalToken ? `${window.location.origin}/portal/customer` : undefined,
+        })
+        : 'error'
 
       if (result === 'redirected') return
 
-      if (!hasStripe && !getStripeCheckoutEndpoint()) {
+      if (!stripeConfigured) {
         await recordInvoicePayment(invoice, amount, 'cash', `manual_${Date.now()}`)
         toast.success(t.invoices.paid, {
           description: `${formatCurrency(amount)} — ${invoice.invoice_number}`,

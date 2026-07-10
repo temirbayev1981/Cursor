@@ -25,6 +25,7 @@ import {
   DEMO_WORK_ORDERS,
   DEMO_FUEL_LOGS,
 } from '@/data/mock-data'
+import { SEED_VENDOR_POS } from '@/data/seed-vendor-pos'
 import type { UserRole } from '@/types'
 
 type Row = Record<string, unknown>
@@ -37,6 +38,7 @@ function asRows<T>(items: T[]): Row[] {
 const DB_PREFIX = '__e2e_supabase__'
 const SESSION_KEY = '__e2e_auth_session__'
 const SEEDED_KEY = '__e2e_db_seeded__'
+export const E2E_ONBOARDING_FRESH_KEY = 'handymanos_e2e_onboarding_fresh'
 
 const DEFAULT_OWNER = {
   id: 'user-001',
@@ -61,9 +63,11 @@ function saveTable(table: string, rows: Row[]): void {
   localStorage.setItem(`${DB_PREFIX}${table}`, JSON.stringify(rows))
 }
 
-function upsertRow(table: string, row: Row, idKey = 'id'): void {
+function upsertRow(table: string, row: Row, conflictKey = 'id'): void {
   const rows = loadTable(table)
-  const idx = rows.findIndex((r) => r[idKey] === row[idKey])
+  const idx = conflictKey.includes(',')
+    ? rows.findIndex((r) => conflictKey.split(',').every((key) => r[key.trim()] === row[key.trim()]))
+    : rows.findIndex((r) => r[conflictKey] === row[conflictKey])
   if (idx >= 0) rows[idx] = { ...rows[idx], ...row }
   else rows.push(row)
   saveTable(table, rows)
@@ -91,6 +95,7 @@ function ensureSeeded(): void {
   saveTable('work_orders', asRows(DEMO_WORK_ORDERS))
   saveTable('service_catalog', asRows(DEMO_SERVICES))
   saveTable('fuel_logs', asRows(DEMO_FUEL_LOGS))
+  saveTable('vendor_po_records', asRows(SEED_VENDOR_POS))
   saveTable('portal_tokens', [{
     id: 'pt-e2e-customer',
     company_id: DEMO_COMPANY.id,
@@ -501,13 +506,17 @@ export function syncE2eMockToEntityCache(): void {
   for (const [table, key] of Object.entries(map)) {
     localStorage.setItem(key, JSON.stringify(loadTable(table)))
   }
+  localStorage.setItem('handymanos_vendor_pos', JSON.stringify(loadTable('vendor_po_records')))
   if (!localStorage.getItem('handymanos_active_company')) {
     localStorage.setItem('handymanos_active_company', DEMO_COMPANY.id)
   }
   if (!localStorage.getItem('handymanos_company')) {
     localStorage.setItem('handymanos_company', JSON.stringify(DEMO_COMPANY))
   }
-  if (!localStorage.getItem('handymanos_onboarding')) {
+  if (
+    !localStorage.getItem('handymanos_onboarding')
+    && !sessionStorage.getItem(E2E_ONBOARDING_FRESH_KEY)
+  ) {
     localStorage.setItem('handymanos_onboarding', 'complete')
   }
 }

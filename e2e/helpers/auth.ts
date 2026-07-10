@@ -13,14 +13,18 @@ const E2E_INIT_KEY = '__e2e_storage_init__'
 
 function storageInitScript(lang: string, onboarding: 'complete' | 'fresh') {
   return `(() => {
-    if (sessionStorage.getItem('${E2E_INIT_KEY}')) return
-    localStorage.clear()
-    sessionStorage.clear()
-    sessionStorage.setItem('${E2E_INIT_KEY}', '1')
+    const initialized = sessionStorage.getItem('${E2E_INIT_KEY}')
+    if (!initialized) {
+      localStorage.clear()
+      sessionStorage.clear()
+      sessionStorage.setItem('${E2E_INIT_KEY}', '1')
+    }
     localStorage.setItem('handymanos_locale', ${JSON.stringify(lang)})
     if (${JSON.stringify(onboarding)} === 'complete') {
+      sessionStorage.removeItem('handymanos_e2e_onboarding_fresh')
       localStorage.setItem('handymanos_onboarding', 'complete')
     } else {
+      sessionStorage.setItem('handymanos_e2e_onboarding_fresh', '1')
       localStorage.removeItem('handymanos_onboarding')
       localStorage.removeItem('handymanos_onboarding_data')
     }

@@ -50,21 +50,9 @@ test.describe('Portals', () => {
 })
 
 test.describe('Portal magic link', () => {
-  const PORTAL_TOKEN = 'test-portal-token-phase19'
+  const PORTAL_TOKEN = 'e2e-portal-customer-token'
 
   test('portal access page validates token and redirects', async ({ page }) => {
-    await page.addInitScript((token) => {
-      localStorage.setItem('handymanos_portal_tokens', JSON.stringify([{
-        id: 'pt-e2e',
-        company_id: 'comp-001',
-        customer_id: 'cust-001',
-        portal_type: 'customer',
-        token,
-        expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
-        created_at: new Date().toISOString(),
-      }]))
-    }, PORTAL_TOKEN)
-
     await page.goto(`/portal/access?token=${PORTAL_TOKEN}`)
     await expect(page).toHaveURL(/\/portal\/customer/, { timeout: 10000 })
     await expect(page.getByRole('heading', { name: /клиентский портал|customer portal/i })).toBeVisible()

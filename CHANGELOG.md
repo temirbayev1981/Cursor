@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.7.3] — 2026-07-10
+
+E2E stabilization: mock backend fixes, locale switching, portal pay.
+
+### Phase 72 — E2E fixes & production pay fallback
+- E2E mock: composite upsert conflict keys (`company_id,vendor_po_number`) — fixes vendor PO batch seed/upload
+- E2E mock: pre-seed `vendor_po_records`; respect onboarding-fresh flag in sync
+- E2E auth helper: locale updates on re-login within same session
+- Stripe pay button: manual cash payment when Stripe is not fully configured (not only when endpoint is missing)
+- Portal magic link E2E uses seeded RPC token
+
 ## [1.7.2] — 2026-07-10
 
 Audit P3: expanded audit logging, portal RPC-only hooks, quality gates.

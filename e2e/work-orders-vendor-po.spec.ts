@@ -6,6 +6,7 @@ test.describe('Work orders vendor PO', () => {
     await page.addInitScript(() => {
       localStorage.setItem('handymanos_vendor_pos', '[]')
       localStorage.setItem('handymanos_vendor_pos_seeded', 'true')
+      localStorage.setItem('__e2e_supabase__vendor_po_records', '[]')
     })
     await loginAsOwner(page, 'ru')
   })
