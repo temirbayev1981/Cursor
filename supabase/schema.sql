@@ -773,6 +773,55 @@ BEGIN
 END;
 $$;
 
+CREATE TABLE customer_reviews (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+  rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  comment TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_customer_reviews_company ON customer_reviews(company_id);
+CREATE INDEX idx_customer_reviews_customer ON customer_reviews(customer_id);
+
+ALTER TABLE customer_reviews ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Company members can view customer reviews" ON customer_reviews
+  FOR SELECT USING (company_id = get_user_company_id());
+
+CREATE OR REPLACE FUNCTION portal_submit_review(
+  p_token TEXT,
+  p_rating INTEGER,
+  p_comment TEXT DEFAULT NULL
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  pt portal_tokens%ROWTYPE;
+BEGIN
+  SELECT * INTO pt FROM portal_tokens WHERE token = p_token AND expires_at > NOW();
+  IF NOT FOUND THEN RETURN FALSE; END IF;
+  IF pt.portal_type <> 'customer' THEN RETURN FALSE; END IF;
+  IF p_rating < 1 OR p_rating > 5 THEN RETURN FALSE; END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM customer_reviews
+    WHERE company_id = pt.company_id AND customer_id = pt.customer_id
+  ) THEN
+    RETURN FALSE;
+  END IF;
+
+  INSERT INTO customer_reviews (company_id, customer_id, rating, comment)
+  VALUES (pt.company_id, pt.customer_id, p_rating, NULLIF(trim(p_comment), ''));
+
+  RETURN TRUE;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION get_team_invite(p_token TEXT)
 RETURNS TABLE (
   email TEXT,
@@ -798,6 +847,7 @@ GRANT EXECUTE ON FUNCTION get_portal_invoices(TEXT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION get_portal_jobs(TEXT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION portal_update_estimate_status(TEXT, UUID, TEXT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION portal_submit_job_request(TEXT, TEXT, TEXT, TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION portal_submit_review(TEXT, INTEGER, TEXT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION get_team_invite(TEXT) TO anon, authenticated;
 
 -- Accept invite: mark accepted and link profile to company (bypasses team_invites RLS)

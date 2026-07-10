@@ -1,13 +1,21 @@
+import { useEffect, useState } from 'react'
 import { LogOut, Star } from 'lucide-react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useSearchParams } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { EstimateStatusBadge } from '@/components/shared/status-badge'
 import { StripePayButton } from '@/components/payments/stripe-pay-button'
 import { TableSkeleton } from '@/components/shared/skeleton'
+import { PortalReviewForm } from '@/components/portal/portal-review-form'
 import { usePortalContext } from '@/hooks/use-portal-context'
-import { usePortalEstimates, usePortalInvoices, usePortalEstimateAction } from '@/hooks/use-portal-data'
+import {
+  usePortalEstimates,
+  usePortalInvoices,
+  usePortalEstimateAction,
+  usePortalReviewSubmit,
+} from '@/hooks/use-portal-data'
 import { clearPortalSession, getPortalToken } from '@/services/portal-service'
+import { hasPortalReview } from '@/services/portal-data-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { toast } from 'sonner'
@@ -15,11 +23,28 @@ import type { Estimate } from '@/types'
 
 export default function CustomerPortalPage() {
   const { t, locale } = useTranslation()
+  const [searchParams, setSearchParams] = useSearchParams()
   const portal = usePortalContext('customer')
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
   const { data: myEstimates = [], isLoading: estLoading } = usePortalEstimates('customer')
   const { data: myInvoices = [], isLoading: invLoading } = usePortalInvoices('customer')
   const estimateAction = usePortalEstimateAction()
+  const reviewSubmit = usePortalReviewSubmit()
+  const [reviewed, setReviewed] = useState(false)
+  const [showReviewForm, setShowReviewForm] = useState(false)
+
+  useEffect(() => {
+    if (!portal) return
+    setReviewed(hasPortalReview(portal.customerId))
+  }, [portal])
+
+  useEffect(() => {
+    const paid = searchParams.get('paid')
+    if (!paid) return
+    toast.success(t.customerPortal.paymentSuccess)
+    searchParams.delete('paid')
+    setSearchParams(searchParams, { replace: true })
+  }, [searchParams, setSearchParams, t.customerPortal.paymentSuccess])
 
   if (!portal) return <Navigate to="/login?portal=1" replace />
 
@@ -37,6 +62,20 @@ export default function CustomerPortalPage() {
   const handleLogout = () => {
     clearPortalSession()
     window.location.href = '/login?portal=1'
+  }
+
+  const submitReview = (rating: number, comment: string) => {
+    reviewSubmit.mutate(
+      { rating, comment },
+      {
+        onSuccess: (ok) => {
+          if (!ok) return
+          setReviewed(true)
+          setShowReviewForm(false)
+          toast.success(t.customerPortal.reviewSubmitted)
+        },
+      },
+    )
   }
 
   if (estLoading || invLoading) return <div className="safe-x p-4 sm:p-6"><TableSkeleton /></div>
@@ -117,10 +156,26 @@ export default function CustomerPortalPage() {
         </div>
 
         <Card>
-          <CardContent className="p-6 text-center">
-            <Star className="mx-auto mb-3 h-8 w-8 text-accent" />
-            <p className="mb-2 font-medium">{t.customerPortal.reviewPrompt}</p>
-            <Button variant="outline" disabled>{t.customerPortal.leaveReview}</Button>
+          <CardContent className="p-6">
+            <div className="mb-4 text-center">
+              <Star className="mx-auto mb-3 h-8 w-8 text-accent" />
+              <p className="font-medium">{t.customerPortal.reviewPrompt}</p>
+            </div>
+
+            {reviewed ? (
+              <p className="text-center text-sm text-muted-foreground">{t.customerPortal.alreadyReviewed}</p>
+            ) : showReviewForm ? (
+              <PortalReviewForm
+                disabled={reviewSubmit.isPending}
+                onSubmit={submitReview}
+              />
+            ) : (
+              <div className="flex justify-center">
+                <Button variant="outline" onClick={() => setShowReviewForm(true)}>
+                  {t.customerPortal.leaveReview}
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

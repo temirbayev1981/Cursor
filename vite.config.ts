@@ -24,6 +24,9 @@ export default defineConfig({
           if (id.includes('node_modules/xlsx')) {
             return 'xlsx'
           }
+          if (id.includes('node_modules/@sentry')) {
+            return 'sentry'
+          }
           if (id.includes('node_modules/@supabase')) {
             return 'supabase'
           }

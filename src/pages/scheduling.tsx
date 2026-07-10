@@ -81,8 +81,8 @@ export default function SchedulingPage() {
             const feedback = notifyResultMessage(
               result,
               locale,
-              locale === 'ru' ? `Email отправлен: ${customer.email}` : `Email sent: ${customer.email}`,
-              locale === 'ru' ? `Email (демо) → ${customer.email}` : `Email (demo) → ${customer.email}`,
+              t.scheduling.emailSent.replace('{email}', customer.email),
+              t.scheduling.emailDemo.replace('{email}', customer.email),
             )
             if (feedback.type === 'success') toast.success(feedback.message)
             else if (feedback.type === 'info') toast.info(feedback.message)
@@ -91,11 +91,7 @@ export default function SchedulingPage() {
 
           const flushed = await flushNotificationQueue()
           if (flushed > 0) {
-            toast.success(
-              locale === 'ru'
-                ? `Отправлено из очереди: ${flushed}`
-                : `Sent from queue: ${flushed}`,
-            )
+            toast.success(t.scheduling.queueFlushed.replace('{count}', String(flushed)))
           }
         },
       }

@@ -484,6 +484,10 @@ export interface Database {
         Args: { p_token: string; p_title: string; p_description: string; p_priority?: string }
         Returns: string | null
       }
+      portal_submit_review: {
+        Args: { p_token: string; p_rating: number; p_comment?: string | null }
+        Returns: boolean
+      }
       get_team_invite: {
         Args: { p_token: string }
         Returns: Array<{

@@ -80,16 +80,16 @@ export default function DispatchPage() {
         const tech = employees.find((emp) => emp.id === job.assigned_technician_id)
         const phone = tech?.phone
         if (phone) {
-          const when = job.scheduled_date ? formatDateTime(job.scheduled_date) : 'скоро'
+          const when = job.scheduled_date ? formatDateTime(job.scheduled_date) : t.dispatch.soon
           const result = await notifyTechnicianSms(
             phone,
-            `Новый заказ: ${job.title}. Запланирован на ${when}.`
+            t.dispatch.smsBody.replace('{title}', job.title).replace('{when}', when),
           )
           const feedback = notifyResultMessage(
             result,
             locale,
-            `SMS отправлено: ${tech?.name}`,
-            `SMS (демо) → ${tech?.name}: ${job.title}`,
+            t.dispatch.smsSent.replace('{name}', tech?.name ?? ''),
+            t.dispatch.smsDemo.replace('{name}', tech?.name ?? '').replace('{title}', job.title),
           )
           if (feedback.type === 'success') toast.success(feedback.message)
           else if (feedback.type === 'info') toast.info(feedback.message)
@@ -97,13 +97,13 @@ export default function DispatchPage() {
 
         const customer = customers.find((c) => c.id === job.customer_id)
         if (customer?.email) {
-          const when = job.scheduled_date ? formatDateTime(job.scheduled_date) : (locale === 'ru' ? 'скоро' : 'soon')
+          const when = job.scheduled_date ? formatDateTime(job.scheduled_date) : t.dispatch.soon
           const emailResult = await notifyJobScheduled(customer.email, job.title, when)
           const emailFeedback = notifyResultMessage(
             emailResult,
             locale,
-            locale === 'ru' ? `Email клиенту: ${customer.email}` : `Customer email: ${customer.email}`,
-            locale === 'ru' ? `Email (демо) → ${customer.email}` : `Email (demo) → ${customer.email}`,
+            t.dispatch.customerEmailSent.replace('{email}', customer.email),
+            t.dispatch.customerEmailDemo.replace('{email}', customer.email),
           )
           if (emailFeedback.type === 'success') toast.success(emailFeedback.message)
           else if (emailFeedback.type === 'info') toast.info(emailFeedback.message)
@@ -118,7 +118,7 @@ export default function DispatchPage() {
 
   return (
     <div>
-      <PageHeader title="Диспетчерская" description="Kanban-доска заказов с drag-and-drop" />
+      <PageHeader title={t.dispatch.title} description={t.dispatch.description} />
 
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -151,7 +151,7 @@ export default function DispatchPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2"><MapPin className="h-4 w-4" />Карта объектов</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2"><MapPin className="h-4 w-4" />{t.dispatch.jobMapTitle}</CardTitle>
           </CardHeader>
           <CardContent>
             <JobMap

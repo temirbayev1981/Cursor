@@ -4,6 +4,12 @@ All notable changes to HandymanOS AI are documented here.
 
 ## [Unreleased]
 
+### Phase 28 — Portal reviews & i18n polish
+- Customer portal: star rating review form with `portal_submit_review` RPC
+- Payment success toast on `?paid=` return from Stripe
+- Dispatch & scheduling: full i18n for page headers and notification toasts
+- Vite manual chunk for `@sentry/react`
+
 ### Phase 27 — Observability & multi-tenant membership
 - Notification bell panel in header (queue preview, clear, badge count)
 - `@sentry/react` SDK when `VITE_SENTRY_DSN` is set (with store API fallback)

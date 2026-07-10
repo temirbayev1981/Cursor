@@ -86,3 +86,42 @@ export async function portalSubmitJobRequest(
   if (error || !data) return null
   return data
 }
+
+const REVIEW_KEY_PREFIX = 'handymanos_portal_review_'
+
+export function getPortalReviewKey(customerId: string): string {
+  return `${REVIEW_KEY_PREFIX}${customerId}`
+}
+
+export function hasPortalReview(customerId: string): boolean {
+  return Boolean(localStorage.getItem(getPortalReviewKey(customerId)))
+}
+
+export async function portalSubmitReview(
+  portal: PortalContext,
+  rating: number,
+  comment: string,
+): Promise<boolean> {
+  if (rating < 1 || rating > 5) return false
+
+  const token = getPortalToken()
+  if (DEMO_MODE || !token) {
+    localStorage.setItem(
+      getPortalReviewKey(portal.customerId),
+      JSON.stringify({ rating, comment, created_at: new Date().toISOString() }),
+    )
+    return true
+  }
+
+  const { data, error } = await callRpc('portal_submit_review', {
+    p_token: token,
+    p_rating: rating,
+    p_comment: comment || null,
+  })
+  if (!error && data) {
+    localStorage.setItem(getPortalReviewKey(portal.customerId), '1')
+    return true
+  }
+
+  return false
+}

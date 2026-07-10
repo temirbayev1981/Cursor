@@ -6,6 +6,7 @@ import {
   fetchPortalJobs,
   portalApproveEstimate,
   portalSubmitJobRequest,
+  portalSubmitReview,
 } from '@/services/portal-data-service'
 import { getPortalToken } from '@/services/portal-service'
 import { saveEntity } from '@/services/entity-service'
@@ -84,6 +85,17 @@ export function usePortalJobSubmit() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['portal-jobs'] })
+    },
+  })
+}
+
+export function usePortalReviewSubmit() {
+  const portal = usePortalContext('customer')
+
+  return useMutation({
+    mutationFn: async ({ rating, comment }: { rating: number; comment: string }) => {
+      if (!portal) return false
+      return portalSubmitReview(portal, rating, comment)
     },
   })
 }
