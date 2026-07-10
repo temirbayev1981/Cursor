@@ -581,6 +581,9 @@ export const en: TranslationKeys = {
     integrationProbesSummary: '{live}/{total} integrations live',
     integrationProbesSummaryChecking: 'Checking integration endpoints…',
     integrationProbesSummaryNone: 'Configure integrations to run live probes',
+    integrationProbeHistory: 'Integration probe history',
+    integrationProbeHistoryLatest: 'Last check: {time}',
+    integrationProbeHistoryEmpty: 'No probe runs recorded yet',
     roles: ['Owner', 'Admin', 'Dispatcher', 'Technician', 'Accountant', 'Customer'],
     inviteMember: 'Invite team member',
     inviteEmail: 'Employee email',
@@ -664,6 +667,7 @@ export const en: TranslationKeys = {
       observability_probe_audit: 'Observability probe',
       pwa_sw_offline_audit: 'Service worker offline',
       integration_probe_ui_audit: 'Integration probe UI',
+      integration_probe_history_audit: 'Probe history',
       multi_tenant: 'Multi-tenant',
     },
     auditActions: {

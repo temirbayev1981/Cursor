@@ -30,6 +30,10 @@ No schema changes required. Update frontend deploy and optional:
 - `npm run smoke:supabase` (expanded table/RPC checks)
 - Stripe webhook redeploy if using `stripe-webhook` audit logging
 
+## From 1.9.3 → 1.9.4
+
+No schema changes. Integration probe history panel in Settings → System.
+
 ## From 1.9.2 → 1.9.3
 
 No schema changes. Integration probe UI with live badges and refresh in Settings → Integrations.

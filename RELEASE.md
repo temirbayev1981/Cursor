@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.9.3
+# HandymanOS AI — Release 1.9.4
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.9.3`**, current package **1.9.3**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.9.4`**, current package **1.9.4**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -121,9 +121,14 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Probe summary banner and refresh button
 - Platform audit `integration_probe_ui_audit` gate
 
+### 1.9.4 — Probe history dashboard
+- Settings → System stores last 10 integration probe runs
+- Per-run summary and per-integration status badges
+- Platform audit `integration_probe_history_audit` gate
+
 ## Test coverage
 
-- Unit: **128** (`npm test`)
+- Unit: **132** (`npm test`)
 - E2E: **185/185** (`npm run test:e2e`)
 
 ## Deploy

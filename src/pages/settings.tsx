@@ -19,7 +19,13 @@ import { getErrorReports } from '@/lib/observability'
 import { computePlatformHealth } from '@/lib/platform-health'
 import { formatAuditAction, countUniqueAuditActions, AUDIT_ACTION_COUNT } from '@/lib/audit-labels'
 import { computePlatformAudit } from '@/lib/platform-audit'
-import { probeIntegrationsForSettings, probesToRecord, summarizeIntegrationProbes } from '@/lib/integration-probe-ui'
+import {
+  getLatestIntegrationProbeHistory,
+  loadIntegrationProbeHistory,
+  saveIntegrationProbeHistory,
+  type IntegrationProbeHistoryEntry,
+} from '@/lib/integration-probe-history'
+import { INTEGRATION_PROBE_IDS, probeIntegrationsForSettings, probesToRecord, summarizeIntegrationProbes } from '@/lib/integration-probe-ui'
 import { isServiceWorkerRegistered, whenServiceWorkerReady } from '@/lib/pwa'
 import { computeSystemMetrics } from '@/lib/system-metrics'
 import { getStoredCompany } from '@/services/onboarding-service'
@@ -56,6 +62,7 @@ export default function SettingsPage() {
   const [integrationProbes, setIntegrationProbes] = useState<Record<string, boolean | null>>({})
   const [probesLoading, setProbesLoading] = useState(false)
   const [probesRefreshKey, setProbesRefreshKey] = useState(0)
+  const [probeHistory, setProbeHistory] = useState<IntegrationProbeHistoryEntry[]>(() => loadIntegrationProbeHistory())
   const [serviceWorkerReady, setServiceWorkerReady] = useState(isServiceWorkerRegistered)
 
   const [companyForm, setCompanyForm] = useState({
@@ -91,7 +98,10 @@ export default function SettingsPage() {
     void probeIntegrationsForSettings()
       .then((results) => {
         if (cancelled) return
-        setIntegrationProbes(probesToRecord(results))
+        const record = probesToRecord(results)
+        setIntegrationProbes(record)
+        saveIntegrationProbeHistory(record)
+        setProbeHistory(loadIntegrationProbeHistory())
       })
       .finally(() => {
         if (!cancelled) setProbesLoading(false)
@@ -107,6 +117,7 @@ export default function SettingsPage() {
     () => summarizeIntegrationProbes(integrationProbes),
     [integrationProbes],
   )
+  const latestProbeHistory = probeHistory[0] ?? getLatestIntegrationProbeHistory()
 
   useEffect(() => {
     if (serviceWorkerReady) return
@@ -522,6 +533,59 @@ export default function SettingsPage() {
                   <p className="col-span-full text-xs text-muted-foreground">
                     {t.settings.lastError}: {new Date(systemMetrics.lastErrorAt).toLocaleString()}
                   </p>
+                )}
+              </CardContent>
+            </Card>
+            <Card className="md:col-span-2" data-testid="integration-probe-history">
+              <CardHeader>
+                <CardTitle>{t.settings.integrationProbeHistory}</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {latestProbeHistory
+                    ? t.settings.integrationProbeHistoryLatest.replace(
+                        '{time}',
+                        new Date(latestProbeHistory.checkedAt).toLocaleString(),
+                      )
+                    : t.settings.integrationProbeHistoryEmpty}
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                {probeHistory.length === 0 ? (
+                  <p className="text-muted-foreground">{t.settings.integrationProbeHistoryEmpty}</p>
+                ) : (
+                  probeHistory.slice(0, 5).map((entry, index) => (
+                    <div
+                      key={entry.checkedAt}
+                      className="rounded-lg bg-secondary/30 p-3"
+                      data-testid={`integration-probe-history-entry-${index}`}
+                    >
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <p className="font-medium">
+                          {new Date(entry.checkedAt).toLocaleString()}
+                        </p>
+                        <Badge variant={entry.summary.unreachable > 0 ? 'outline' : 'success'}>
+                          {t.settings.integrationProbesSummary
+                            .replace('{live}', String(entry.summary.live))
+                            .replace('{total}', String(entry.summary.total))}
+                        </Badge>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {INTEGRATION_PROBE_IDS.map((id) => {
+                          const reachable = entry.results[id]
+                          if (reachable === null || reachable === undefined) return null
+                          const card = t.settings.integrationCards[id]
+                          return (
+                            <Badge
+                              key={`${entry.checkedAt}-${id}`}
+                              variant={reachable ? 'success' : 'destructive'}
+                              data-testid={`integration-probe-history-${id}-${index}`}
+                            >
+                              {card.name}: {reachable ? t.settings.integrationProbeLive : t.settings.integrationProbeUnreachable}
+                            </Badge>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ))
                 )}
               </CardContent>
             </Card>

@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.9.4] — 2026-07-10
+
+Integration probe history for operators.
+
+### Phase 96 — Probe history dashboard
+- `integration-probe-history` module persists last 10 probe runs in localStorage
+- Settings → System: probe history panel with per-integration Live/Unreachable badges
+- Platform audit: `integration_probe_history_audit` quality gate
+- `verify:production` checks `INTEGRATION_PROBE_HISTORY_AUDIT` and history module
+- **185** E2E tests, **132** unit tests
+
 ## [1.9.3] — 2026-07-10
 
 Live integration probe UI in Settings and E2E.

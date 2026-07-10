@@ -579,6 +579,9 @@ export const ru = {
     integrationProbesSummary: '{live}/{total} интеграций онлайн',
     integrationProbesSummaryChecking: 'Проверка эндпоинтов интеграций…',
     integrationProbesSummaryNone: 'Настройте интеграции для live-проб',
+    integrationProbeHistory: 'История проб интеграций',
+    integrationProbeHistoryLatest: 'Последняя проверка: {time}',
+    integrationProbeHistoryEmpty: 'Пока нет записей о пробах',
     roles: ['Владелец', 'Администратор', 'Диспетчер', 'Мастер', 'Бухгалтер', 'Клиент'],
     inviteMember: 'Пригласить в команду',
     inviteEmail: 'Email сотрудника',
@@ -662,6 +665,7 @@ export const ru = {
       observability_probe_audit: 'Проба observability',
       pwa_sw_offline_audit: 'Service worker офлайн',
       integration_probe_ui_audit: 'UI проб интеграций',
+      integration_probe_history_audit: 'История проб',
       multi_tenant: 'Мульти-тенант',
     },
     auditActions: {

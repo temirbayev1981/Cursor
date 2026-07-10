@@ -124,6 +124,9 @@ export const PWA_SW_OFFLINE_AUDIT = true as const
 /** Settings → Integrations shows live probe badges after probe run. */
 export const INTEGRATION_PROBE_UI_AUDIT = true as const
 
+/** Settings → System stores integration probe run history for operators. */
+export const INTEGRATION_PROBE_HISTORY_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }

@@ -206,6 +206,26 @@ if (integrationProbeUi.includes('probeIntegrationsForSettings')) {
   ok = false
 }
 
+if (auditLabels.includes('INTEGRATION_PROBE_HISTORY_AUDIT = true')) {
+  console.log('✓ INTEGRATION_PROBE_HISTORY_AUDIT gate enabled')
+} else {
+  console.log('✗ INTEGRATION_PROBE_HISTORY_AUDIT must be true')
+  ok = false
+}
+
+if (integrationProbeUi.includes('saveIntegrationProbeHistory')) {
+  console.log('✗ integration-probe-ui should not own probe history persistence')
+  ok = false
+}
+
+const integrationProbeHistory = readFileSync('src/lib/integration-probe-history.ts', 'utf8')
+if (integrationProbeHistory.includes('saveIntegrationProbeHistory')) {
+  console.log('✓ integration-probe-history persists operator probe runs')
+} else {
+  console.log('✗ integration-probe-history must expose saveIntegrationProbeHistory')
+  ok = false
+}
+
 const changelog = readFileSync('CHANGELOG.md', 'utf8')
 if (changelog.includes(`[${pkg.version}]`)) {
   console.log(`✓ CHANGELOG.md has [${pkg.version}] entry`)
