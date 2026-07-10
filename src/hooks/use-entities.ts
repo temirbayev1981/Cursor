@@ -436,9 +436,26 @@ export function useSaveVehicle() {
 export function useSaveExpense() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
-    mutationFn: (expense: Expense) => saveEntity('expenses', expense),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['expenses', companyId] }),
+    mutationFn: async (expense: Expense) => {
+      const existing = await listEntities('expenses', companyId) as Expense[]
+      const isNew = !existing.some((e) => e.id === expense.id)
+      await saveEntity('expenses', expense)
+      return { expense, isNew }
+    },
+    onSuccess: ({ expense, isNew }) => {
+      if (user) {
+        void logAudit(
+          companyId,
+          user.id,
+          isNew ? 'expense.create' : 'expense.update',
+          'expense',
+          expense.id,
+        )
+      }
+      qc.invalidateQueries({ queryKey: ['expenses', companyId] })
+    },
   })
 }
 

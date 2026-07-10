@@ -655,6 +655,8 @@ export const ru = {
       'employee.update': 'Сотрудник обновлён',
       'vehicle.create': 'Транспорт добавлен',
       'vehicle.update': 'Транспорт обновлён',
+      'expense.create': 'Расход добавлен',
+      'expense.update': 'Расход обновлён',
     },
     auditCoverageSummary: '{unique} типов действий в журнале · {total} локализованных меток',
     supabaseCard: 'Supabase',

@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.8.3] — 2026-07-10
+
+Expense audit logging.
+
+### Phase 85 — Expense audit
+- `logAudit`: `expense.create`/`expense.update`
+- Platform audit: `expense_audit` quality gate (`EXPENSE_AUDIT`)
+- E2E: expense create → audit log
+- **43** localized audit actions
+
 ## [1.8.2] — 2026-07-10
 
 Fleet audit logging and audit coverage summary.

@@ -657,6 +657,8 @@ export const en: TranslationKeys = {
       'employee.update': 'Employee updated',
       'vehicle.create': 'Vehicle created',
       'vehicle.update': 'Vehicle updated',
+      'expense.create': 'Expense created',
+      'expense.update': 'Expense updated',
     },
     auditCoverageSummary: '{unique} action types in log · {total} localized labels',
     supabaseCard: 'Supabase',

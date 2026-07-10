@@ -43,6 +43,8 @@ const AUDIT_ACTION_KEYS = new Set<string>([
   'employee.update',
   'vehicle.create',
   'vehicle.update',
+  'expense.create',
+  'expense.update',
 ])
 
 export function isAuditActionKey(action: string): action is AuditActionKey {
@@ -56,6 +58,9 @@ export const AUDIT_I18N_COVERAGE = AUDIT_ACTION_COUNT >= 40
 
 /** Employee and vehicle mutations write audit_logs. */
 export const FLEET_AUDIT = true as const
+
+/** Expense mutations write audit_logs. */
+export const EXPENSE_AUDIT = true as const
 
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size

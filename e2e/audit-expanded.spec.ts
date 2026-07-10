@@ -158,6 +158,21 @@ test.describe('Expanded audit log E2E', () => {
     await expect(page.getByText(/транспорт добавлен|vehicle created/i).first()).toBeVisible()
   })
 
+  test('expense create appears in audit log', async ({ page }) => {
+    await page.goto('/expenses')
+    await page.getByRole('button', { name: /добавить расход|add expense/i }).click()
+    const form = page.getByTestId('expense-form')
+    await form.locator('input').first().fill('Tools')
+    await form.locator('input').nth(2).fill('E2E Audit Expense')
+    await form.locator('input[type="number"]').fill('29.99')
+    await page.getByTestId('expense-form-submit').click()
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="expense.create"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/расход добавлен|expense created/i).first()).toBeVisible()
+  })
+
   test('audit coverage summary shows unique and total counts', async ({ page }) => {
     await openSettingsAuditTab(page)
     const summary = page.getByTestId('audit-coverage-summary')
