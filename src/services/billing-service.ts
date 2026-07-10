@@ -4,6 +4,9 @@ import { getSupabaseAuthHeaders, supabase } from '@/lib/supabase'
 import { updateRows } from '@/lib/supabase-queries'
 import { getStoredCompany } from '@/services/onboarding-service'
 
+/** Stripe webhook writes audit_logs for invoice payments and subscription upgrades. */
+export const STRIPE_WEBHOOK_AUDIT = true as const
+
 type StripeInstance = {
   redirectToCheckout: (opts: { sessionId: string }) => Promise<{ error?: { message: string } }>
 }

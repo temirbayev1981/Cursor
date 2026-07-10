@@ -7,6 +7,10 @@ const url = process.env.VITE_SUPABASE_URL?.replace(/\/$/, '')
 const key = process.env.VITE_SUPABASE_ANON_KEY
 
 if (!url || !key) {
+  if (process.env.SMOKE_OPTIONAL === '1') {
+    console.log('Skipping Supabase smoke — VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY not set')
+    process.exit(0)
+  }
   console.error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY')
   process.exit(1)
 }
@@ -29,6 +33,7 @@ const REQUIRED_TABLES = [
 ]
 
 const REQUIRED_RPCS = [
+  ['check_rate_limit', { p_key: 'smoke', p_max_requests: 1, p_window_seconds: 60 }],
   ['validate_portal_token', { p_token: 'smoke-invalid-token' }],
   ['get_accessible_companies', {}],
   ['get_team_invite', { p_token: 'smoke-invalid-invite' }],

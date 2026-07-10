@@ -49,10 +49,22 @@ serve(async (req) => {
     const session = event.data.object as Stripe.Checkout.Session
 
     if (session.metadata?.type === 'saas_subscription' && session.metadata.company_id) {
+      const companyId = session.metadata.company_id
+      const plan = session.metadata.subscription_plan ?? 'unknown'
+
       await supabase.from('companies').update({
-        subscription_plan: session.metadata.subscription_plan,
+        subscription_plan: plan,
         stripe_customer_id: typeof session.customer === 'string' ? session.customer : session.customer?.id,
-      }).eq('id', session.metadata.company_id)
+      }).eq('id', companyId)
+
+      await supabase.from('audit_logs').insert({
+        id: crypto.randomUUID(),
+        company_id: companyId,
+        user_id: 'stripe',
+        action: 'billing.plan_upgrade',
+        entity_type: 'company',
+        entity_id: plan,
+      })
     }
 
     const invoiceId = session.metadata?.invoice_id

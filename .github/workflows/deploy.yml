@@ -34,10 +34,10 @@ jobs:
       - name: Resolve app version
         run: echo "VITE_APP_VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_ENV"
       - name: Supabase smoke (optional)
-        if: ${{ secrets.VITE_SUPABASE_URL != '' && secrets.VITE_SUPABASE_ANON_KEY != '' }}
         continue-on-error: true
         run: npm run smoke:supabase
         env:
+          SMOKE_OPTIONAL: '1'
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
       - run: npm run build

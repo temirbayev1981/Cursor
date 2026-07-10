@@ -30,6 +30,10 @@ No schema changes required. Update frontend deploy and optional:
 - `npm run smoke:supabase` (expanded table/RPC checks)
 - Stripe webhook redeploy if using `stripe-webhook` audit logging
 
+## From 1.7.5–1.7.6 → 1.7.7+
+
+No schema changes. Redeploy **`stripe-webhook`** Edge Function for subscription audit logging (`billing.plan_upgrade`).
+
 ## Smoke script coverage
 
 `npm run smoke:supabase` validates:
@@ -37,7 +41,9 @@ No schema changes required. Update frontend deploy and optional:
 | Type | Objects |
 |------|---------|
 | Tables | `companies`, `profiles`, `company_members`, `team_invites`, `portal_tokens`, `audit_logs`, `customer_reviews`, `vendor_po_records` |
-| RPCs | `validate_portal_token`, `get_accessible_companies`, `get_team_invite`, `get_portal_estimates`, `portal_submit_review` |
+| RPCs | `check_rate_limit`, `validate_portal_token`, `get_accessible_companies`, `get_team_invite`, `get_portal_estimates`, `portal_submit_review` |
+
+Set `SMOKE_OPTIONAL=1` to skip gracefully when credentials are unset (CI).
 
 A **404** on any object means `schema.sql` was not applied or is incomplete.
 

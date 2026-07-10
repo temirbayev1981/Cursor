@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.7.7] — 2026-07-10
+
+Stripe subscription audit, CI smoke fix, rate-limit RPC check.
+
+### Phase 78 — Stripe & CI smoke
+- Stripe webhook: `billing.plan_upgrade` audit log on SaaS subscription checkout
+- Platform audit: `stripe_webhook_audit` quality gate (`STRIPE_WEBHOOK_AUDIT`)
+- `smoke:supabase`: `check_rate_limit` RPC; `SMOKE_OPTIONAL=1` skips gracefully without creds
+- CI workflows: smoke runs without invalid `secrets` in `if` conditions
+
 ## [1.7.6] — 2026-07-10
 
 Supabase smoke expansion, Stripe webhook audit, release workflow.

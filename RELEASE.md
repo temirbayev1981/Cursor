@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.7.6
+# HandymanOS AI — Release 1.7.7
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.7.6`**, current package **1.7.6**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.7.7`**, current package **1.7.7**).
 
 Consolidated **1.7.x** production release (stacked PRs #63–#68).
 
@@ -35,6 +35,11 @@ Consolidated **1.7.x** production release (stacked PRs #63–#68).
 - Extended `smoke:supabase` (tables + RPCs); `supabase/UPGRADE.md`
 - Stripe webhook writes `invoice.payment` audit log
 - `release.yml` workflow on git tags
+
+### 1.7.7 — Subscription audit & CI smoke
+- Stripe webhook writes `billing.plan_upgrade` audit on SaaS subscription checkout
+- Platform audit: `stripe_webhook_audit` quality gate
+- `SMOKE_OPTIONAL=1` for CI; `check_rate_limit` RPC in smoke script
 
 ## Test coverage
 
