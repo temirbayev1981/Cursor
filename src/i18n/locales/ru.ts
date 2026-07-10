@@ -720,6 +720,9 @@ export const ru = {
       notification_hub_skip_summary_audit: 'Сводка skip в hub (email/SMS)',
       notification_hub_dispatch_email_skip_audit: 'Hub: email skip в диспетчерской',
       notification_hub_scheduling_email_skip_audit: 'Hub: email skip в расписании',
+      notification_hub_eta_email_skip_audit: 'Hub: ETA email skip в диспетчерской',
+      notification_hub_invoice_email_skip_audit: 'Hub: email skip счёта',
+      notification_milestone_audit: 'Майлстоун уведомлений завершён',
       multi_tenant: 'Мульти-тенант',
     },
     auditActions: {
