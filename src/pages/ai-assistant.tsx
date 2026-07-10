@@ -21,7 +21,7 @@ export default function AIAssistantPage() {
   const { data: jobs = [] } = useJobs()
   const { data: invoices = [] } = useInvoices()
   const { data: customers = [] } = useCustomers()
-  const businessContext = buildBusinessContext({ jobs, invoices, customers })
+  const businessContext = buildBusinessContext({ jobs, invoices, customers }, locale)
   const suggestedQuestions = [t.ai.q1, t.ai.q2, t.ai.q3, t.ai.q4]
 
   useEffect(() => {

@@ -20,13 +20,6 @@ interface VendorPOTableProps {
   loading?: boolean
 }
 
-const COMPLIANCE_ITEMS = [
-  'Фото до/после работ',
-  'Check-in с объекта (321-926-3103)',
-  'NTE согласование до начала работ',
-  'Утилизация мусора offsite',
-]
-
 export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps) {
   const { t } = useTranslation()
   const { runVendorPOWorkflow, isRunning } = useWorkflow()
@@ -41,10 +34,10 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
   const handleCreateJob = async (po: VendorPORecord) => {
     try {
       await runVendorPOWorkflow(po, company?.id ?? 'comp-001', user?.id ?? 'user-001')
-      toast.success(`Заказ создан из ${po.vendor_po_number}`)
+      toast.success(t.vendorPO.jobCreatedFrom.replace('{poNumber}', po.vendor_po_number))
       navigate('/jobs')
     } catch {
-      toast.error('Ошибка создания заказа')
+      toast.error(t.vendorPO.jobCreateFailed)
     }
   }
 
@@ -64,7 +57,7 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
         </Button>
         {multiSiteAddresses.length > 0 && (
           <Badge variant="warning" className="py-1.5">
-            {multiSiteAddresses.length} адрес(а) с несколькими нарядами — группируйте визиты
+            {t.vendorPO.multiSiteBadge.replace('{count}', String(multiSiteAddresses.length))}
           </Badge>
         )}
       </div>
@@ -116,7 +109,7 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
                     <Eye className="h-4 w-4" />
                   </Button>
                   <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" disabled={isRunning}
-                    onClick={() => handleCreateJob(row)} title="Создать заказ">
+                    onClick={() => handleCreateJob(row)} title={t.vendorPO.createJob}>
                     <Briefcase className="h-4 w-4" />
                   </Button>
                   {onDelete && (
@@ -153,10 +146,10 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
 
               <div className="rounded-lg bg-secondary/30 p-4">
                 <h4 className="text-sm font-semibold flex items-center gap-2 mb-2">
-                  <CheckSquare className="h-4 w-4" />Compliance чеклист
+                  <CheckSquare className="h-4 w-4" />{t.vendorPO.complianceChecklist}
                 </h4>
                 <ul className="space-y-1 text-sm">
-                  {COMPLIANCE_ITEMS.map((item) => (
+                  {t.vendorPO.complianceItems.map((item) => (
                     <li key={item} className="flex items-center gap-2">
                       <input type="checkbox" className="rounded" />
                       {item}
@@ -166,7 +159,7 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
               </div>
 
               <Button className="w-full" disabled={isRunning} onClick={() => handleCreateJob(selected)}>
-                <Briefcase className="h-4 w-4" />Создать заказ + смету
+                <Briefcase className="h-4 w-4" />{t.vendorPO.createJobAndEstimate}
               </Button>
             </CardContent>
           </Card>

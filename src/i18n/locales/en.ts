@@ -255,6 +255,18 @@ export const en: TranslationKeys = {
     parseError: 'PDF parsing error',
     deleteSuccess: 'Record deleted',
     notVendorPO: 'File not recognized as Vendor PO',
+    complianceChecklist: 'Compliance checklist',
+    complianceItems: [
+      'Before/after photos',
+      'On-site check-in (321-926-3103)',
+      'NTE approval before starting work',
+      'Offsite debris disposal',
+    ],
+    multiSiteBadge: '{count} address(es) with multiple orders — group visits',
+    jobCreatedFrom: 'Job created from {poNumber}',
+    jobCreateFailed: 'Failed to create job',
+    createJob: 'Create job',
+    createJobAndEstimate: 'Create job + estimate',
   },
   estimates: {
     title: 'Estimates',

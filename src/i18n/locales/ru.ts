@@ -253,6 +253,18 @@ export const ru = {
     parseError: 'Ошибка разбора PDF',
     deleteSuccess: 'Запись удалена',
     notVendorPO: 'Файл не распознан как Vendor PO',
+    complianceChecklist: 'Чеклист compliance',
+    complianceItems: [
+      'Фото до/после работ',
+      'Check-in с объекта (321-926-3103)',
+      'NTE согласование до начала работ',
+      'Утилизация мусора offsite',
+    ],
+    multiSiteBadge: '{count} адрес(а) с несколькими нарядами — группируйте визиты',
+    jobCreatedFrom: 'Заказ создан из {poNumber}',
+    jobCreateFailed: 'Ошибка создания заказа',
+    createJob: 'Создать заказ',
+    createJobAndEstimate: 'Создать заказ + смету',
   },
   estimates: {
     title: 'Сметы',

@@ -1,15 +1,15 @@
-# HandymanOS AI — Release 1.2.1
+# HandymanOS AI — Release 1.2.2
 
-Consolidates Phases 25–30 (audit polish through multi-company invites).
+Consolidates Phases 31–33 (i18n polish, AI fallbacks, vendor PO).
 
 ## What's included
 
-- Mobile drawer navigation, safe areas, responsive portal/dashboard
-- Portal security: RPCs, scoped data, invite/checkout/storage hardening
-- Production settings sync, distributed rate limits, `company_members` multi-tenant
-- Notification bell, `@sentry/react`, customer portal reviews
-- Multi-company: invite existing users, company switcher, `get_accessible_companies` RPC
-- Dispatch/scheduling i18n, USD currency labels
+Everything from **1.2.1**, plus:
+
+- Login i18n, invite sign-in race fix, platform audit multi-tenant gate
+- `useDateLocale` hook; settings/route optimizer/toast i18n
+- AI assistant fallback responses externalized (`src/i18n/ai-fallbacks.ts`)
+- Vendor PO table: compliance checklist, job creation toasts (EN/RU)
 - `npm run verify:production` readiness script
 - CI: lint, unit tests, E2E (Playwright), GitHub Pages deploy
 
@@ -52,7 +52,7 @@ supabase functions deploy stripe-webhook --no-verify-jwt
 
 # Merge to main triggers deploy workflow
 git checkout main
-git merge cursor/phase-31-i18n-audit-e2e-1b4a
+git merge cursor/phase-33-ai-vendor-i18n-1b4a
 git push origin main
 ```
 
@@ -63,7 +63,8 @@ git push origin main
 3. With Supabase: register owner → onboarding → Settings → System (audit ≥ 8.5)
 4. Customer portal: approve estimate, pay invoice, submit review
 5. Property portal: submit maintenance request
-6. Mobile: drawer nav, scheduling day view
+6. AI Assistant: suggested questions return localized fallback answers
+7. Work Orders → Vendor PO: compliance checklist in selected locale
 
 ## Version history
 

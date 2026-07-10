@@ -4,6 +4,15 @@ All notable changes to HandymanOS AI are documented here.
 
 ## [Unreleased]
 
+## [1.2.2] — 2026-07-10
+
+Release consolidating Phases 31–33.
+
+### Phase 33 — AI fallbacks & vendor PO i18n
+- `src/i18n/ai-fallbacks.ts` — localized AI system prompts and demo responses
+- `buildBusinessContext` respects active locale
+- Vendor PO: compliance checklist, multi-site badge, job creation toasts (EN/RU)
+
 ### Phase 32 — i18n cleanup
 - `useDateLocale` hook centralizes `ru-RU` / `en-US` formatting
 - Settings: theme labels, billing/invite/company toasts moved to i18n
