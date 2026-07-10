@@ -84,4 +84,22 @@ test.describe('Global search & invoice send', () => {
     await expect(page.getByText(/SMS.*отключён|SMS disabled/i).first()).toBeVisible({ timeout: 5000 })
     await expect(page.getByText(/555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
   })
+
+  test('send draft invoice queues customer SMS when enabled', async ({ page }) => {
+    await clearNotificationQueue(page)
+    await seedDraftInvoice(page)
+    await page.goto('/customers')
+    await page.getByTestId('customer-edit-cust-001').click()
+    const smsToggle = page.getByTestId('customer-form-notify-sms')
+    if ((await smsToggle.getAttribute('data-state')) !== 'checked') {
+      await smsToggle.click()
+    }
+    await page.getByTestId('customer-form-submit').click()
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await page.goto('/invoices')
+    await page.getByTestId('invoice-send-inv-e2e-draft').click()
+    await expect(page.getByText(/SMS.*очереди|SMS queued/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
+  })
 })

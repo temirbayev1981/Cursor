@@ -360,6 +360,13 @@ if (auditLabels.includes('ESTIMATE_INVOICE_SMS_AUDIT = true')) {
   ok = false
 }
 
+if (auditLabels.includes('DISPATCH_ETA_SMS_AUDIT = true')) {
+  console.log('✓ DISPATCH_ETA_SMS_AUDIT gate enabled')
+} else {
+  console.log('✗ DISPATCH_ETA_SMS_AUDIT must be true')
+  ok = false
+}
+
 const notificationsE2e = readFileSync('e2e/notifications.spec.ts', 'utf8')
 if (notificationsE2e.includes('scheduling skips customer SMS when opted out') && notificationsE2e.includes('scheduling queues customer SMS when enabled')) {
   console.log('✓ scheduling customer SMS E2E coverage present')
@@ -373,6 +380,22 @@ if (estimatesE2e.includes('send draft estimate skips customer SMS when opted out
   console.log('✓ estimate SMS opt-out E2E coverage present')
 } else {
   console.log('✗ estimate SMS opt-out E2E test required')
+  ok = false
+}
+
+const dispatchE2e = readFileSync('e2e/dispatch-notifications.spec.ts', 'utf8')
+if (dispatchE2e.includes('skips customer ETA SMS when opted out') && dispatchE2e.includes('queues customer ETA SMS when enabled')) {
+  console.log('✓ dispatch ETA SMS E2E coverage present')
+} else {
+  console.log('✗ dispatch ETA SMS E2E tests required')
+  ok = false
+}
+
+const invoiceE2e = readFileSync('e2e/vendor-search-ai-invoice.spec.ts', 'utf8')
+if (invoiceE2e.includes('send draft invoice queues customer SMS when enabled')) {
+  console.log('✓ invoice SMS queue E2E coverage present')
+} else {
+  console.log('✗ invoice SMS queue E2E test required')
   ok = false
 }
 

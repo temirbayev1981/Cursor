@@ -707,6 +707,7 @@ export const ru = {
       customer_sms_opt_out_audit: 'Opt-out SMS клиента',
       scheduling_customer_sms_audit: 'E2E SMS клиента в расписании',
       estimate_invoice_sms_audit: 'Opt-out SMS сметы и счёта',
+      dispatch_eta_sms_audit: 'E2E ETA SMS в диспетчерской',
       multi_tenant: 'Мульти-тенант',
     },
     auditActions: {

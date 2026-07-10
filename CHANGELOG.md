@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.10.11] — 2026-07-10
+
+Dispatch ETA SMS E2E and invoice SMS queue coverage.
+
+### Phase 109 — Dispatch ETA SMS E2E
+- E2E: dispatch `in_progress` skips customer ETA SMS by default (SMS opt-out)
+- E2E: dispatch `in_progress` queues ETA SMS when SMS enabled via customer form
+- E2E: invoice send queues customer SMS when SMS enabled via customer form
+- Platform audit: `dispatch_eta_sms_audit` gate
+- **212** E2E tests, **160** unit tests
+
 ## [1.10.10] — 2026-07-10
 
 Estimate and invoice customer SMS with opt-out respect.

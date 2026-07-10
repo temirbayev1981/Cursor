@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.10.10
+# HandymanOS AI — Release 1.10.11
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.10`**, current package **1.10.10**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.11`**, current package **1.10.11**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -130,6 +130,11 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Locale-aware notification templates; observability probe gate uses live results
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
+
+### 1.10.11 — Dispatch ETA SMS E2E
+- Dispatch in_progress ETA SMS skip/queue E2E
+- Invoice SMS queue E2E when CRM prefs allow
+- Platform audit `dispatch_eta_sms_audit` gate
 
 ### 1.10.10 — Estimate & invoice SMS opt-out
 - Estimate/invoice send flows include customer SMS with opt-out gate
