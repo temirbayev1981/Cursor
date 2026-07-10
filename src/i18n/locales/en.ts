@@ -92,6 +92,7 @@ export const en: TranslationKeys = {
     inviteRole: 'Role',
     acceptInvite: 'Accept the invite by signing up below',
     acceptInviteSignIn: 'Already have an account? Sign in to accept the invite.',
+    inviteInvalidOrExpired: 'This invite link is invalid or has expired.',
     portalDemoAccess: 'Demo customer portal access',
   },
   techOnboarding: {

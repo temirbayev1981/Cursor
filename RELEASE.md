@@ -1,18 +1,19 @@
-# HandymanOS AI — Release 1.4.5
+# HandymanOS AI — Release 1.4.6
 
-Settings billing/team and dashboard analytics E2E on **1.4.4**.
+Onboarding, invite errors, and vendor PO export E2E on **1.4.5**.
 
-## What's new in 1.4.5
+## What's new in 1.4.6
 
-- E2E: billing upgrade to enterprise (demo mode)
-- E2E: team invite form + pending invites list
-- E2E: dashboard stat cards, charts, recent jobs (80 tests total)
-- `data-testid` on billing plans, team invite, dashboard sections
+- E2E: 6-step owner onboarding wizard + validation
+- E2E: expired/unknown invite link errors on login
+- E2E: vendor PO Excel export (85 tests total)
+- Login shows alert for invalid/expired invites
+- `data-testid` on onboarding wizard and vendor PO export
 
 ## Test coverage
 
 - Unit: **83**
-- E2E: **80** (22 spec files)
+- E2E: **85** (23 spec files)
 
 ## Deploy
 
@@ -21,10 +22,10 @@ npm run verify:production
 npm run test:e2e
 
 git checkout main
-git merge cursor/phase-53-settings-dashboard-e2e-1b4a
+git merge cursor/phase-54-onboarding-invite-vendor-e2e-1b4a
 git push origin main
 ```
 
 ## Merge chain
 
-`#24` → … → `#45` → **#46**
+`#24` → … → `#46` → **#47**

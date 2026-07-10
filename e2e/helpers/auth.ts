@@ -16,6 +16,18 @@ export async function loginAsOwner(page: Page, locale: 'ru' | 'en' = 'ru') {
   await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
 }
 
+/** Signs in as demo owner without completed onboarding — lands on wizard. */
+export async function loginForOnboarding(page: Page, locale: 'ru' | 'en' = 'ru') {
+  await page.addInitScript((lang) => {
+    localStorage.setItem('handymanos_locale', lang)
+    localStorage.removeItem('handymanos_onboarding')
+    localStorage.removeItem('handymanos_onboarding_data')
+  }, locale)
+  await page.goto('/login')
+  await page.getByRole('button', { name: /войти|sign in/i }).click()
+  await expect(page).toHaveURL(/\/onboarding/, { timeout: 10000 })
+}
+
 export async function seedDraftJob(page: Page, withTechnician = false) {
   await page.evaluate((assignTech) => {
     const jobs = JSON.parse(localStorage.getItem('handymanos_jobs') || '[]') as Array<Record<string, unknown>>

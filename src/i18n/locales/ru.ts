@@ -90,6 +90,7 @@ export const ru = {
     inviteRole: 'Роль',
     acceptInvite: 'Примите приглашение, зарегистрировавшись',
     acceptInviteSignIn: 'Уже есть аккаунт? Войдите, чтобы принять приглашение.',
+    inviteInvalidOrExpired: 'Ссылка-приглашение недействительна или истекла.',
     portalDemoAccess: 'Демо-доступ к порталу клиента',
   },
   techOnboarding: {

@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.4.6] — 2026-07-10
+
+Onboarding wizard, invite errors, and vendor PO export E2E.
+
+### Phase 54 — Onboarding, invite & vendor export E2E
+- E2E: owner onboarding wizard through dashboard (`onboarding-invite-vendor.spec.ts`)
+- E2E: onboarding validation (company name + services required)
+- E2E: expired/unknown invite link error alerts on login
+- E2E: vendor PO Excel export download
+- Login invite error UI; `data-testid` on onboarding and vendor export
+
 ## [1.4.5] — 2026-07-10
 
 Settings billing/team and dashboard analytics E2E.

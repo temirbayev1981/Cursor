@@ -156,7 +156,7 @@ export default function OnboardingPage() {
                   <div className="space-y-4">
                     <h2 className="text-lg font-semibold">{t.onboarding.companyInfo}</h2>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="col-span-2"><Label>{t.onboarding.companyName}</Label><Input className="mt-1" placeholder="ProFix Handyman Services" value={data.company.name} onChange={(e) => setData({ ...data, company: { ...data.company, name: e.target.value } })} /></div>
+                      <div className="col-span-2"><Label>{t.onboarding.companyName}</Label><Input className="mt-1" placeholder="ProFix Handyman Services" value={data.company.name} onChange={(e) => setData({ ...data, company: { ...data.company, name: e.target.value } })} data-testid="onboarding-company-name" /></div>
                       <div><Label>{t.auth.email}</Label><Input className="mt-1" type="email" placeholder="info@company.com" value={data.company.email} onChange={(e) => setData({ ...data, company: { ...data.company, email: e.target.value } })} /></div>
                       <div><Label>{t.onboarding.phone}</Label><Input className="mt-1" placeholder="(555) 123-4567" value={data.company.phone} onChange={(e) => setData({ ...data, company: { ...data.company, phone: e.target.value } })} /></div>
                       <div className="col-span-2"><Label>{t.onboarding.address}</Label><Input className="mt-1" placeholder="123 Main St, City, ST" value={data.company.address} onChange={(e) => setData({ ...data, company: { ...data.company, address: e.target.value } })} /></div>
@@ -168,7 +168,7 @@ export default function OnboardingPage() {
                     <h2 className="text-lg font-semibold">{t.onboarding.selectServices}</h2>
                     <div className="grid grid-cols-2 gap-3">
                       {t.onboarding.serviceList.map((svc) => (
-                        <button key={svc} type="button" onClick={() => toggleService(svc)}
+                        <button key={svc} type="button" data-testid="onboarding-service" onClick={() => toggleService(svc)}
                           className={`rounded-lg border p-3 text-sm text-left transition-colors cursor-pointer ${selectedServices.includes(svc) ? 'border-primary bg-primary/10' : 'border-border hover:border-primary hover:bg-primary/5'}`}>
                           <Check className={`h-4 w-4 mb-1 ${selectedServices.includes(svc) ? 'text-primary' : 'text-muted-foreground'}`} />
                           {svc}
@@ -239,11 +239,11 @@ export default function OnboardingPage() {
                 <ArrowLeft className="h-4 w-4" />{t.common.back}
               </Button>
               {step < STEPS.length - 1 ? (
-                <Button onClick={goNext} disabled={!canProceed()}>
+                <Button onClick={goNext} disabled={!canProceed()} data-testid="onboarding-next">
                   {t.common.next}<ArrowRight className="h-4 w-4" />
                 </Button>
               ) : (
-                <Button onClick={handleComplete}>
+                <Button onClick={handleComplete} data-testid="onboarding-complete">
                   {t.auth.completeSetup}<Check className="h-4 w-4" />
                 </Button>
               )}

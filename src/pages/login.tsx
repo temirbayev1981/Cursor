@@ -30,15 +30,24 @@ export default function LoginPage() {
   const isPortal = searchParams.get('portal') === '1'
   const inviteToken = searchParams.get('invite') ?? undefined
   const [invitePreview, setInvitePreview] = useState<{ email: string; role: UserRole } | null>(null)
+  const [inviteChecked, setInviteChecked] = useState(!inviteToken)
 
   useEffect(() => {
-    if (!inviteToken) return
+    if (!inviteToken) {
+      setInvitePreview(null)
+      setInviteChecked(true)
+      return
+    }
+    setInviteChecked(false)
     void getTeamInvitePreview(inviteToken).then((preview) => {
       if (preview) {
         setInvitePreview({ email: preview.email, role: preview.role })
         setEmail(preview.email)
         setMode('signup')
+      } else {
+        setInvitePreview(null)
       }
+      setInviteChecked(true)
     })
   }, [inviteToken])
 
@@ -94,6 +103,11 @@ export default function LoginPage() {
             <CardDescription className="pt-2">{mode === 'signin' ? t.auth.signInDesc : t.auth.signUpDesc}</CardDescription>
           </CardHeader>
           <CardContent>
+            {inviteToken && inviteChecked && !invitePreview && (
+              <div role="alert" data-testid="invite-error" className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                {t.auth.inviteInvalidOrExpired}
+              </div>
+            )}
             {invitePreview && (
               <div className="mb-4 rounded-lg bg-primary/10 p-3 text-sm">
                 <p className="font-medium">{t.auth.inviteBanner}</p>
