@@ -1,20 +1,19 @@
-# HandymanOS AI — Release 1.6.1
+# HandymanOS AI — Release 1.6.2
 
-Report expenses PDF i18n and jobs bulk delete on **1.6.0**.
+Portal invoices EN, dispatch map i18n, and jobs bulk on-hold on **1.6.1**.
 
-## What's new in 1.6.1
+## What's new in 1.6.2
 
-- Report PDF **expenses** tab export with localized category labels
-- `reports-tab-expenses` testid for E2E
-- Jobs **bulk delete** action with `jobs-bulk-delete` button
-- `useBulkDeleteJobs()` hook via `deleteEntity`
-- E2E: expenses PDF i18n (RU/EN), bulk delete draft jobs
-- E2E: **130** tests total across 30 spec files
+- Customer portal **Invoices** heading testid and English pay E2E
+- Dispatch job map fallback hint i18n (`mapsApiKeyHint`)
+- Jobs bulk **on hold** status apply E2E
+- `seedPortalCustomerInvoice()` reused in portal pay spec
+- E2E: **132** tests total across 30 spec files
 
 ## Test coverage
 
 - Unit: **83**
-- E2E: **130** (30 spec files)
+- E2E: **132** (30 spec files)
 
 ## Deploy
 
@@ -23,10 +22,10 @@ npm run verify:production
 npm run test:e2e
 
 git checkout main
-git merge cursor/phase-65-expenses-pdf-bulk-delete-1b4a
+git merge cursor/phase-66-portal-invoices-map-i18n-1b4a
 git push origin main
 ```
 
 ## Merge chain
 
-`#24` → … → `#57` → **#58**
+`#24` → … → `#58` → **#59**

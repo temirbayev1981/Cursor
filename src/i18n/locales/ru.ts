@@ -380,6 +380,7 @@ export const ru = {
     title: 'Диспетчерская',
     description: 'Kanban-доска заказов с drag-and-drop',
     jobMapTitle: 'Карта объектов',
+    mapsApiKeyHint: 'Google Maps — укажите VITE_GOOGLE_MAPS_API_KEY',
     soon: 'скоро',
     smsBody: 'Новый заказ: {title}. Запланирован на {when}.',
     smsSent: 'SMS отправлено: {name}',

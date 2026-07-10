@@ -135,7 +135,7 @@ export default function CustomerPortalPage() {
           )}
         </div>
 
-        <h2 className="mb-3 text-base font-semibold sm:mb-4 sm:text-lg">{t.customerPortal.invoices}</h2>
+        <h2 className="mb-3 text-base font-semibold sm:mb-4 sm:text-lg" data-testid="customer-portal-invoices-heading">{t.customerPortal.invoices}</h2>
         <div className="mb-6 space-y-3 sm:mb-8">
           {myInvoices.length === 0 ? (
             <Card><CardContent className="p-6 text-center text-muted-foreground">{t.customerPortal.noInvoices}</CardContent></Card>

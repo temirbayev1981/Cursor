@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { loginAsOwner, seedBulkDraftJobs } from './helpers/auth'
+import { loginAsOwner, seedBulkDraftJobs, seedPortalCustomerInvoice } from './helpers/auth'
 
 test.describe('Report PDF i18n', () => {
   test('Russian locale uses Russian PDF labels', async ({ page }) => {
@@ -58,32 +58,12 @@ test.describe('Customer portal invoice pay', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
       sessionStorage.setItem('handymanos_portal_token', 'demo')
-      const invoices = JSON.parse(localStorage.getItem('handymanos_invoices') || '[]') as Array<Record<string, unknown>>
-      const invoice = {
-        id: 'inv-portal-e2e',
-        company_id: 'comp-001',
-        customer_id: 'cust-002',
-        invoice_number: 'INV-PORTAL-E2E',
-        status: 'sent',
-        subtotal: 300,
-        tax: 24.75,
-        total: 324.75,
-        amount_paid: 0,
-        due_date: new Date(Date.now() + 14 * 86400000).toISOString(),
-        line_items: [
-          { id: 'li-portal-e2e', description: 'Portal E2E service', quantity: 1, unit_price: 300, total: 300, type: 'service' },
-        ],
-        created_at: new Date().toISOString(),
-      }
-      const idx = invoices.findIndex((i) => i.id === 'inv-portal-e2e')
-      if (idx >= 0) invoices[idx] = invoice
-      else invoices.push(invoice)
-      localStorage.setItem('handymanos_invoices', JSON.stringify(invoices))
     })
   })
 
   test('demo pay button records portal invoice payment', async ({ page }) => {
     await page.goto('/portal/customer')
+    await seedPortalCustomerInvoice(page)
     await expect(page.getByText('INV-PORTAL-E2E').first()).toBeVisible()
 
     await page.getByTestId('invoice-pay-inv-portal-e2e').click()

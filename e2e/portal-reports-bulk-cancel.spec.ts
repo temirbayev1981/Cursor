@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { loginAsOwner, resetEstimateStatus, seedBulkDraftJobs, seedOnHoldJob } from './helpers/auth'
+import { loginAsOwner, resetEstimateStatus, seedBulkDraftJobs, seedOnHoldJob, seedPortalCustomerInvoice } from './helpers/auth'
 
 test.describe('Property portal English', () => {
   test.beforeEach(async ({ page }) => {
@@ -107,6 +107,15 @@ test.describe('Customer portal English', () => {
     await page.getByTestId('portal-estimate-decline-est-004').click()
     await expect(page.getByText('Estimate declined').first()).toBeVisible({ timeout: 10000 })
     await expect(page.getByText(/declined|rejected/i).first()).toBeVisible()
+  })
+
+  test('customer portal shows English invoices section and pays invoice', async ({ page }) => {
+    await page.goto('/portal/customer')
+    await seedPortalCustomerInvoice(page)
+    await expect(page.getByTestId('customer-portal-invoices-heading')).toHaveText('Invoices')
+    await expect(page.getByText('INV-PORTAL-E2E').first()).toBeVisible()
+    await page.getByTestId('invoice-pay-inv-portal-e2e').click()
+    await expect(page.getByTestId('invoice-pay-inv-portal-e2e')).not.toBeVisible({ timeout: 15000 })
   })
 })
 
@@ -290,6 +299,28 @@ test.describe('Jobs bulk delete', () => {
 
     await expect(page.getByText(/удалено заказов:\s*2|deleted 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
     await expect(page.getByText('E2E Bulk Draft A')).toHaveCount(0)
+    await expect(page.getByText('E2E Bulk Draft B')).toHaveCount(0)
+  })
+})
+
+test.describe('Jobs bulk on-hold', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await seedBulkDraftJobs(page)
+  })
+
+  test('bulk apply moves selected draft jobs to on hold', async ({ page }) => {
+    await page.goto('/jobs')
+    await page.getByRole('tab', { name: /черновик|draft/i }).click()
+
+    await page.getByTestId('job-select-job-bulk-001').check()
+    await page.getByTestId('jobs-bulk-status').click()
+    await page.getByRole('option', { name: /приостановлен|on hold/i }).click()
+    await page.getByTestId('jobs-bulk-apply').click()
+
+    await expect(page.getByText(/обновлено заказов:\s*1|updated 1 jobs/i).first()).toBeVisible({ timeout: 10000 })
+    await page.getByTestId('jobs-tab-on-hold').click()
+    await expect(page.getByText('E2E Bulk Draft A').first()).toBeVisible()
     await expect(page.getByText('E2E Bulk Draft B')).toHaveCount(0)
   })
 })

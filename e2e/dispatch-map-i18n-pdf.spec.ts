@@ -24,6 +24,7 @@ test.describe('Dispatch job map', () => {
     await page.goto('/dispatch')
 
     await expect(page.getByTestId('dispatch-job-map').getByText('Job map').first()).toBeVisible()
+    await expect(page.getByTestId('dispatch-job-map-fallback')).toContainText(/set VITE_GOOGLE_MAPS_API_KEY/i)
     await expect(page.getByRole('link', { name: /123 Main Street/i }).first()).toBeVisible()
   })
 })

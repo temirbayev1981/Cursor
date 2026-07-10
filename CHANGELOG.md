@@ -2,6 +2,15 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.6.2] — 2026-07-10
+
+Portal invoices EN, dispatch map i18n, jobs bulk on-hold.
+
+### Phase 66 — Portal invoices EN & map i18n
+- Customer portal invoices heading `customer-portal-invoices-heading`
+- Dispatch map fallback `mapsApiKeyHint` i18n in `JobMap`
+- E2E: portal EN invoices/pay, dispatch map EN fallback, bulk on-hold apply
+
 ## [1.6.1] — 2026-07-10
 
 Report expenses PDF i18n and jobs bulk delete.

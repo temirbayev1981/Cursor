@@ -382,6 +382,7 @@ export const en: TranslationKeys = {
     title: 'Dispatch Board',
     description: 'Kanban job board with drag-and-drop',
     jobMapTitle: 'Job map',
+    mapsApiKeyHint: 'Google Maps — set VITE_GOOGLE_MAPS_API_KEY',
     soon: 'soon',
     smsBody: 'New job: {title}. Scheduled for {when}.',
     smsSent: 'SMS sent: {name}',
