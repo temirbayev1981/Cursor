@@ -2,6 +2,15 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.12.2] — 2026-07-10
+
+Field-ops onboarding and vendor PO audit visibility.
+
+### Phase 121 — Onboarding & vendor PO audit gates
+- Settings audit checklist exposes `onboarding_audit` and `vendor_po_audit` checks
+- verify-production: `ONBOARDING_AUDIT`, `VENDOR_PO_AUDIT` gates and audit-expanded E2E coverage
+- **230** E2E tests, **164** unit tests
+
 ## [1.12.1] — 2026-07-10
 
 Field-ops expense and fuel log audit visibility.
