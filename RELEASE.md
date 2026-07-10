@@ -65,6 +65,7 @@ git push origin main
 5. Property portal: submit maintenance request
 6. AI Assistant: suggested questions return localized fallback answers
 7. Work Orders → Vendor PO: compliance checklist in selected locale
+8. Language switcher: dashboard title updates RU ↔ EN
 
 ## Version history
 

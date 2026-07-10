@@ -4,6 +4,11 @@ All notable changes to HandymanOS AI are documented here.
 
 ## [Unreleased]
 
+### Phase 34 — i18n E2E coverage
+- E2E: AI assistant fallback answers in RU and EN locales
+- E2E: Vendor PO compliance checklist localized (RU/EN)
+- E2E: language switcher toggles dashboard heading
+
 ## [1.2.2] — 2026-07-10
 
 Release consolidating Phases 31–33.
