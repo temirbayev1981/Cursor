@@ -75,6 +75,8 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('platform-audit-check-dispatch_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-tech_offline_sync_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-field_ops_milestone_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-onboarding_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-vendor_po_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-integration_probe_ui_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-integration_probe_history_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-notification_hub_audit')).toBeVisible()
