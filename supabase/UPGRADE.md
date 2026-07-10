@@ -30,6 +30,10 @@ No schema changes required. Update frontend deploy and optional:
 - `npm run smoke:supabase` (expanded table/RPC checks)
 - Stripe webhook redeploy if using `stripe-webhook` audit logging
 
+## From 1.7.8 → 1.7.9+
+
+No schema changes. E2E and audit UI test ids only.
+
 ## From 1.7.7 → 1.7.8+
 
 No schema changes. Frontend-only: integration probes and expanded audit logging.

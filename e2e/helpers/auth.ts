@@ -360,3 +360,9 @@ export async function seedPortalCustomerInvoice(page: Page) {
   })
   await page.reload()
 }
+
+export async function openSettingsAuditTab(page: Page) {
+  await page.goto('/settings')
+  await page.getByRole('tab', { name: /system|система/i }).click()
+  await expect(page.getByTestId('audit-log-list')).toBeVisible()
+}

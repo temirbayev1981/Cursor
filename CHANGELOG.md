@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.7.9] — 2026-07-10
+
+E2E coverage for expanded audit actions.
+
+### Phase 80 — Audit E2E
+- E2E: `customer.create`, `invoice.create`, `job.status_change` audit log entries
+- `data-audit-action` + `audit-log-list` test ids for stable selectors
+- Integration probes skipped in E2E mock backend (no false unreachable badges)
+- `openSettingsAuditTab` Playwright helper
+
 ## [1.7.8] — 2026-07-10
 
 Async integration probes and expanded audit logging.

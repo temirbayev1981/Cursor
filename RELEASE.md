@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.7.8
+# HandymanOS AI — Release 1.7.9
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.7.8`**, current package **1.7.8**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.7.9`**, current package **1.7.9**).
 
 Consolidated **1.7.x** production release (stacked PRs #63–#68).
 
@@ -45,10 +45,14 @@ Consolidated **1.7.x** production release (stacked PRs #63–#68).
 - Settings → Integrations: async live endpoint probes (Live / Unreachable)
 - Expanded audit: customer create/update, invoice from estimate, job status change
 
+### 1.7.9 — Audit E2E
+- E2E coverage for new audit actions (customer, invoice, job status)
+- Audit log `data-audit-action` selectors; probes skipped in E2E mock
+
 ## Test coverage
 
-- Unit: **100** (`npm test`)
-- E2E: **138/138** (`npm run test:e2e`)
+- Unit: **104** (`npm test`)
+- E2E: **141/141** (`npm run test:e2e`)
 
 ## Deploy
 

@@ -11,7 +11,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
 import { useTheme } from '@/contexts/theme-context'
 import { useTranslation } from '@/contexts/locale-context'
-import { hasStripe, hasGoogleMaps, hasOpenAI, hasSupabase, hasNotificationConfigured, hasSmsConfigured } from '@/lib/env'
+import { hasStripe, hasGoogleMaps, hasOpenAI, hasSupabase, hasNotificationConfigured, hasSmsConfigured, isE2eMockBackend } from '@/lib/env'
 import { useImportSampleData, useAuditLogs } from '@/hooks/use-entities'
 import { logAudit } from '@/services/entity-service'
 import { getNotificationQueue } from '@/services/notification-service'
@@ -82,6 +82,7 @@ export default function SettingsPage() {
   }, [base?.subscription_plan])
 
   useEffect(() => {
+    if (isE2eMockBackend) return
     let cancelled = false
     setProbesLoading(true)
     void probeLiveIntegrations()
@@ -493,12 +494,17 @@ export default function SettingsPage() {
             )}
             <Card>
               <CardHeader><CardTitle>{t.settings.auditLog} ({auditLogs.length})</CardTitle></CardHeader>
-              <CardContent className="space-y-2 text-sm max-h-64 overflow-y-auto">
+              <CardContent className="space-y-2 text-sm max-h-64 overflow-y-auto" data-testid="audit-log-list">
                 {auditLogs.length === 0 ? (
                   <p className="text-muted-foreground">{t.common.noData}</p>
                 ) : (
                   auditLogs.slice(0, 20).map((log) => (
-                    <div key={log.id} className="rounded bg-secondary/30 p-2" data-testid={`audit-log-${log.id}`}>
+                    <div
+                      key={log.id}
+                      className="rounded bg-secondary/30 p-2"
+                      data-testid={`audit-log-${log.id}`}
+                      data-audit-action={log.action}
+                    >
                       <p className="font-medium">{formatAuditAction(log.action, t.settings.auditActions)}</p>
                       <p className="text-xs text-muted-foreground">
                         {log.entity_type} · {new Date(log.created_at).toLocaleString()}

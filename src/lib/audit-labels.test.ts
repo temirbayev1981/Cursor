@@ -16,4 +16,10 @@ describe('audit-labels', () => {
     expect(isAuditActionKey('custom.unknown')).toBe(false)
     expect(formatAuditAction('custom.unknown', labels as never)).toBe('custom.unknown')
   })
+
+  it('recognizes Phase 79 audit action keys', () => {
+    expect(isAuditActionKey('customer.create')).toBe(true)
+    expect(isAuditActionKey('invoice.create')).toBe(true)
+    expect(isAuditActionKey('job.status_change')).toBe(true)
+  })
 })
