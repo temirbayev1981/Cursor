@@ -1,6 +1,8 @@
 # HandymanOS AI — Release 1.7.4
 
-Consolidated **1.7.x** production release (stacked PRs #63–#66).
+**Status:** merged to `main` and tagged **`v1.7.4`** (2026-07-10).
+
+Consolidated **1.7.x** production release (stacked PRs #63–#68).
 
 ## What's new since 1.6.4
 
@@ -53,4 +55,4 @@ See [MERGE.md](./MERGE.md) for merging the stacked PR chain into `main`.
 
 ## Merge chain
 
-`#63` (1.7.0) → `#64` (1.7.1) → `#65` (1.7.2) → `#66` (1.7.3) → **#67** (1.7.4)
+`#63` (1.7.0) → `#64` (1.7.1) → `#65` (1.7.2) → `#66` (1.7.3) → `#67` (1.7.4) → `#68` (docs) — **merged to `main`**
