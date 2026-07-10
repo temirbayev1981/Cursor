@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.10.9] — 2026-07-10
+
+Scheduling customer SMS E2E and hub SMS skip visibility.
+
+### Phase 107 — Scheduling SMS E2E
+- E2E: scheduling skips customer SMS by default (SMS opt-out)
+- E2E: scheduling queues customer SMS when enabled via customer form
+- E2E: hub Skipped tab shows SMS opt-out reason after dispatch skip
+- Platform audit: `scheduling_customer_sms_audit` gate
+- **206** E2E tests, **157** unit tests
+
 ## [1.10.8] — 2026-07-10
 
 Customer SMS notifications with opt-out respect in dispatch and scheduling.

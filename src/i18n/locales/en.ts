@@ -701,6 +701,7 @@ export const en: TranslationKeys = {
       notification_hub_skip_log_audit: 'Notification hub skip log',
       notification_hub_skip_ops_audit: 'Skip log export & clear',
       customer_sms_opt_out_audit: 'Customer SMS opt-out',
+      scheduling_customer_sms_audit: 'Scheduling customer SMS E2E',
       multi_tenant: 'Multi-tenant',
     },
     auditActions: {
