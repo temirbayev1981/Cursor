@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.10.16
+# HandymanOS AI — Release 1.10.17
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.16`**, current package **1.10.16**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.17`**, current package **1.10.17**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -130,6 +130,10 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Locale-aware notification templates; observability probe gate uses live results
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
+
+### 1.10.17 — Hub dispatch & scheduling email skip
+- Hub Skipped tab E2E for dispatch scheduled and scheduling email opt-out
+- Platform audit `notification_hub_dispatch_email_skip_audit`, `notification_hub_scheduling_email_skip_audit` gates
 
 ### 1.10.16 — Hub skip summary breakdown
 - Hub summary shows skipped count with email/SMS channel breakdown

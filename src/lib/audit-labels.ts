@@ -190,6 +190,12 @@ export const NOTIFICATION_HUB_SMS_SKIP_CSV_AUDIT = true as const
 /** Notification hub summary shows skipped count with email/SMS breakdown. */
 export const NOTIFICATION_HUB_SKIP_SUMMARY_AUDIT = true as const
 
+/** Notification hub Skipped tab shows dispatch scheduled email opt-out entries. */
+export const NOTIFICATION_HUB_DISPATCH_EMAIL_SKIP_AUDIT = true as const
+
+/** Notification hub Skipped tab shows scheduling email opt-out entries. */
+export const NOTIFICATION_HUB_SCHEDULING_EMAIL_SKIP_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }

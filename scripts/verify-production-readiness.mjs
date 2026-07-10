@@ -444,6 +444,20 @@ if (auditLabels.includes('NOTIFICATION_HUB_SKIP_SUMMARY_AUDIT = true')) {
   ok = false
 }
 
+if (auditLabels.includes('NOTIFICATION_HUB_DISPATCH_EMAIL_SKIP_AUDIT = true')) {
+  console.log('✓ NOTIFICATION_HUB_DISPATCH_EMAIL_SKIP_AUDIT gate enabled')
+} else {
+  console.log('✗ NOTIFICATION_HUB_DISPATCH_EMAIL_SKIP_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('NOTIFICATION_HUB_SCHEDULING_EMAIL_SKIP_AUDIT = true')) {
+  console.log('✓ NOTIFICATION_HUB_SCHEDULING_EMAIL_SKIP_AUDIT gate enabled')
+} else {
+  console.log('✗ NOTIFICATION_HUB_SCHEDULING_EMAIL_SKIP_AUDIT must be true')
+  ok = false
+}
+
 const notificationsE2e = readFileSync('e2e/notifications.spec.ts', 'utf8')
 if (notificationsE2e.includes('scheduling skips customer SMS when opted out') && notificationsE2e.includes('scheduling queues customer SMS when enabled')) {
   console.log('✓ scheduling customer SMS E2E coverage present')
@@ -522,6 +536,20 @@ if (settingsE2e.includes('notification hub skip summary shows email and SMS coun
   console.log('✓ hub skip summary breakdown E2E coverage present')
 } else {
   console.log('✗ hub skip summary breakdown E2E test required')
+  ok = false
+}
+
+if (settingsE2e.includes('notification hub shows dispatch scheduled email opt-out skip')) {
+  console.log('✓ hub dispatch email skip E2E coverage present')
+} else {
+  console.log('✗ hub dispatch email skip E2E test required')
+  ok = false
+}
+
+if (settingsE2e.includes('notification hub shows scheduling email opt-out skip')) {
+  console.log('✓ hub scheduling email skip E2E coverage present')
+} else {
+  console.log('✗ hub scheduling email skip E2E test required')
   ok = false
 }
 
