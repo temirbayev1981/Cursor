@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.2.6] — 2026-07-10
+
+Dispatch notification coverage without fragile drag-and-drop E2E.
+
+### Phase 38 — Dispatch notifications
+- Dispatch board: per-card status select (drag-and-drop unchanged)
+- Shared `handleJobStatusChange` for select and DnD paths
+- E2E: move draft job to scheduled via select → demo SMS + email (`e2e/dispatch-notifications.spec.ts`)
+- Unit tests for `notification-service` (8 tests)
+- `verify:production` checks dispatch E2E spec
+
 ## [1.2.5] — 2026-07-10
 
 Technician offline sync E2E coverage.

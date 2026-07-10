@@ -17,6 +17,7 @@ const requiredFiles = [
   'e2e/notifications.spec.ts',
   'e2e/pwa.spec.ts',
   'e2e/tech-offline.spec.ts',
+  'e2e/dispatch-notifications.spec.ts',
   'public/manifest.json',
   'public/sw.js',
   'supabase/functions/create-checkout-session/index.ts',

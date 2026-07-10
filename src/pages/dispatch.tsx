@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -14,6 +14,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useJobs, useUpdateJobStatus, useEmployees, useCustomers, useProperties } from '@/hooks/use-entities'
 import { useTranslation } from '@/contexts/locale-context'
 import { useOptimizedRoute } from '@/hooks/use-route-optimizer'
@@ -36,18 +37,55 @@ const COLUMNS: { status: JobStatus; color: string }[] = [
   { status: 'completed', color: 'border-success' },
 ]
 
-function JobCard({ job }: { job: Job }) {
+const BOARD_STATUSES = COLUMNS.map((col) => col.status)
+
+function JobCard({
+  job,
+  statusLabels,
+  onStatusChange,
+}: {
+  job: Job
+  statusLabels: Record<JobStatus, string>
+  onStatusChange: (job: Job, status: JobStatus) => void
+}) {
+  const { t } = useTranslation()
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: job.id })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}
-      className="rounded-lg bg-secondary/40 border border-border p-3 cursor-grab active:cursor-grabbing space-y-2">
-      <p className="text-sm font-medium line-clamp-2">{job.title}</p>
-      <div className="flex items-center justify-between">
-        <PriorityBadge priority={job.priority} />
-        <span className="text-xs font-semibold">{formatCurrency(job.revenue)}</span>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="rounded-lg bg-secondary/40 border border-border p-3 space-y-2"
+      data-testid={`dispatch-card-${job.id}`}
+    >
+      <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing space-y-2">
+        <p className="text-sm font-medium line-clamp-2">{job.title}</p>
+        <div className="flex items-center justify-between">
+          <PriorityBadge priority={job.priority} />
+          <span className="text-xs font-semibold">{formatCurrency(job.revenue)}</span>
+        </div>
       </div>
+      <Select
+        value={job.status}
+        onValueChange={(value) => onStatusChange(job, value as JobStatus)}
+      >
+        <SelectTrigger
+          className="h-8 text-xs"
+          data-testid={`dispatch-status-${job.id}`}
+          aria-label={t.dispatch.statusSelect.replace('{title}', job.title)}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <SelectValue>{statusLabels[job.status]}</SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {BOARD_STATUSES.map((status) => (
+            <SelectItem key={status} value={status}>
+              {statusLabels[status]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   )
 }
@@ -64,18 +102,17 @@ export default function DispatchPage() {
   const [activeId, setActiveId] = useState<string | null>(null)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
-  const handleDragStart = (e: DragStartEvent) => setActiveId(String(e.active.id))
-  const handleDragEnd = async (e: DragEndEvent) => {
-    setActiveId(null)
-    const jobId = String(e.active.id)
-    const newStatus = e.over?.id as JobStatus | undefined
-    if (!newStatus) return
-    const job = jobs.find((j) => j.id === jobId)
-    if (job && job.status !== newStatus) {
+  const statusLabels = t.status.job as Record<JobStatus, string>
+
+  const handleJobStatusChange = useCallback(
+    async (job: Job, newStatus: JobStatus) => {
+      if (job.status === newStatus) return
+
       updateStatus.mutate({ job, status: newStatus })
       if (user && company) {
         void logAudit(company.id, user.id, 'dispatch.status_change', 'job', job.id)
       }
+
       if (newStatus === 'scheduled' && job.assigned_technician_id) {
         const tech = employees.find((emp) => emp.id === job.assigned_technician_id)
         const phone = tech?.phone
@@ -109,7 +146,18 @@ export default function DispatchPage() {
           else if (emailFeedback.type === 'info') toast.info(emailFeedback.message)
         }
       }
-    }
+    },
+    [company, customers, employees, t, updateStatus, user],
+  )
+
+  const handleDragStart = (e: DragStartEvent) => setActiveId(String(e.active.id))
+  const handleDragEnd = async (e: DragEndEvent) => {
+    setActiveId(null)
+    const jobId = String(e.active.id)
+    const newStatus = e.over?.id as JobStatus | undefined
+    if (!newStatus) return
+    const job = jobs.find((j) => j.id === jobId)
+    if (job) await handleJobStatusChange(job, newStatus)
   }
 
   const activeJob = jobs.find((j) => j.id === activeId)
@@ -128,14 +176,21 @@ export default function DispatchPage() {
               <Card key={col.status} className={`border-t-2 ${col.color}`}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center justify-between">
-                    <span>{t.status.job[col.status]}</span>
+                    <span>{statusLabels[col.status]}</span>
                     <Badge variant="outline">{colJobs.length}</Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <SortableContext items={colJobs.map((j) => j.id)} strategy={verticalListSortingStrategy} id={col.status}>
                     <div className="space-y-2 min-h-[200px]" id={col.status}>
-                      {colJobs.map((job) => <JobCard key={job.id} job={job} />)}
+                      {colJobs.map((job) => (
+                        <JobCard
+                          key={job.id}
+                          job={job}
+                          statusLabels={statusLabels}
+                          onStatusChange={(j, status) => void handleJobStatusChange(j, status)}
+                        />
+                      ))}
                     </div>
                   </SortableContext>
                 </CardContent>
@@ -144,7 +199,13 @@ export default function DispatchPage() {
           })}
         </div>
         <DragOverlay>
-          {activeJob && <JobCard job={activeJob} />}
+          {activeJob && (
+            <JobCard
+              job={activeJob}
+              statusLabels={statusLabels}
+              onStatusChange={() => {}}
+            />
+          )}
         </DragOverlay>
       </DndContext>
 

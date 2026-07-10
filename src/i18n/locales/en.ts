@@ -363,6 +363,7 @@ export const en: TranslationKeys = {
     smsDemo: 'SMS (demo) → {name}: {title}',
     customerEmailSent: 'Customer email: {email}',
     customerEmailDemo: 'Email (demo) → {email}',
+    statusSelect: 'Change status for {title}',
   },
   technicians: {
     title: 'Technicians',

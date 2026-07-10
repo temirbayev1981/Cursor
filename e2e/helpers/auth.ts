@@ -31,7 +31,12 @@ export async function seedDraftJob(page: Page, withTechnician = false) {
       profit: 0,
       profit_margin: 0,
       created_at: new Date().toISOString(),
-      ...(assignTech ? { assigned_technician_id: 'emp-002' } : {}),
+      ...(assignTech
+        ? {
+            assigned_technician_id: 'emp-002',
+            scheduled_date: new Date().toISOString(),
+          }
+        : {}),
     }
     const idx = jobs.findIndex((j) => j.id === 'job-e2e-draft')
     if (idx >= 0) jobs[idx] = draft
@@ -87,4 +92,8 @@ export async function setPageOffline(page: Page, context: BrowserContext) {
 export async function setPageOnline(page: Page, context: BrowserContext) {
   await context.setOffline(false)
   await page.evaluate(() => window.dispatchEvent(new Event('online')))
+}
+
+export async function clearNotificationQueue(page: Page) {
+  await page.evaluate(() => localStorage.removeItem('handymanos_notification_queue'))
 }

@@ -361,6 +361,7 @@ export const ru = {
     smsDemo: 'SMS (демо) → {name}: {title}',
     customerEmailSent: 'Email клиенту: {email}',
     customerEmailDemo: 'Email (демо) → {email}',
+    statusSelect: 'Изменить статус: {title}',
   },
   technicians: {
     title: 'Мастера',
