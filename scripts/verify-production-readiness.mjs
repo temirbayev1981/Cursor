@@ -1007,6 +1007,36 @@ if (changelog.includes(`[${pkg.version}]`)) {
   ok = false
 }
 
+console.log('\nBundle & registry:')
+const pdfExtract = readFileSync('src/lib/pdf-extract.ts', 'utf8')
+if (pdfExtract.includes("await import('pdfjs-dist')") && !pdfExtract.includes("import * as pdfjsLib from 'pdfjs-dist'")) {
+  console.log('✓ pdf-extract lazy-loads pdfjs on demand')
+} else {
+  console.log('✗ pdf-extract must dynamic-import pdfjs-dist')
+  ok = false
+}
+
+const exportLib = readFileSync('src/lib/export.ts', 'utf8')
+if (exportLib.includes("import('xlsx')") && !exportLib.includes("import * as XLSX from 'xlsx'")) {
+  console.log('✓ export.ts lazy-loads xlsx on demand')
+} else {
+  console.log('✗ export.ts must dynamic-import xlsx')
+  ok = false
+}
+
+if (existsSync('src/lib/audit-action-registry.ts')) {
+  const registry = readFileSync('src/lib/audit-action-registry.ts', 'utf8')
+  if (registry.includes('AUDIT_ACTION_REGISTRY') && auditLabels.includes("from '@/lib/audit-action-registry'")) {
+    console.log('✓ audit-action-registry is single source of truth')
+  } else {
+    console.log('✗ audit-labels must import AUDIT_ACTION_REGISTRY')
+    ok = false
+  }
+} else {
+  console.log('✗ src/lib/audit-action-registry.ts required')
+  ok = false
+}
+
 console.log('\nCI workflows:')
 if (ciWorkflow.includes('matrix') && ciWorkflow.includes('shard') && ciWorkflow.includes('--shard=${{ matrix.shard }}/4')) {
   console.log('✓ CI E2E sharding (4 parallel jobs) configured')

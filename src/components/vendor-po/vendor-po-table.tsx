@@ -52,7 +52,7 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
   return (
     <>
       <div className="flex flex-wrap gap-3 mb-4">
-        <Button variant="outline" size="sm" data-testid="vendor-po-export-excel" onClick={() => exportVendorPOsToExcel(records)}>
+        <Button variant="outline" size="sm" data-testid="vendor-po-export-excel" onClick={() => void exportVendorPOsToExcel(records)}>
           <Download className="h-4 w-4" />{t.common.exportCsv}
         </Button>
         {multiSiteAddresses.length > 0 && (

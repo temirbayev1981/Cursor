@@ -30,6 +30,10 @@ No schema changes required. Update frontend deploy and optional:
 - `npm run smoke:supabase` (expanded table/RPC checks)
 - Stripe webhook redeploy if using `stripe-webhook` audit logging
 
+## From 1.13.1 → 1.13.2
+
+No schema changes. Lazy pdfjs/xlsx loading and audit action registry.
+
 ## From 1.13.0 → 1.13.1
 
 No schema changes. CI E2E sharding and Supabase smoke hardening.

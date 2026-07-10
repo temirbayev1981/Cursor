@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.13.1
+# HandymanOS AI — Release 1.13.2
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.13.1`**, current package **1.13.1**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.13.2`**, current package **1.13.2**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -130,6 +130,10 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Locale-aware notification templates; observability probe gate uses live results
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
+
+### 1.13.2 — Lazy chunks & audit action registry
+- PDF and Excel libraries load on demand (smaller initial bundle)
+- `audit-action-registry.ts` centralizes all audit action keys
 
 ### 1.13.1 — CI E2E sharding & Supabase smoke
 - Playwright E2E sharded across 4 parallel CI jobs

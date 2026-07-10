@@ -1,10 +1,19 @@
-import * as XLSX from 'xlsx'
 import type { VendorPORecord } from '@/types/vendor-po'
 import type { Job, Customer, Employee, Estimate, Invoice } from '@/types'
 import type { ChartDataPoint } from '@/lib/analytics'
 import { computeTechnicianPerformance, computeServiceProfitability, computeReportSummary } from '@/lib/analytics'
 
-export function exportVendorPOsToExcel(records: VendorPORecord[], filename = 'vendor-po-export.xlsx') {
+type XlsxModule = typeof import('xlsx')
+
+let xlsxReady: Promise<XlsxModule> | null = null
+
+async function getXlsx(): Promise<XlsxModule> {
+  xlsxReady ??= import('xlsx')
+  return xlsxReady
+}
+
+export async function exportVendorPOsToExcel(records: VendorPORecord[], filename = 'vendor-po-export.xlsx') {
+  const XLSX = await getXlsx()
   const rows = records.map((r) => ({
     '№ наряда': r.vendor_po_number,
     '№ клиента': r.client_po_number,
@@ -44,7 +53,8 @@ export function groupVendorPOsByAddress(records: VendorPORecord[]): Map<string, 
   return groups
 }
 
-export function exportJobsToCsv(jobs: import('@/types').Job[], filename = 'jobs-report.csv') {
+export async function exportJobsToCsv(jobs: import('@/types').Job[], filename = 'jobs-report.csv') {
+  const XLSX = await getXlsx()
   const rows = jobs.map((j) => ({
     Title: j.title,
     Status: j.status,
@@ -61,12 +71,12 @@ export function exportJobsToCsv(jobs: import('@/types').Job[], filename = 'jobs-
   XLSX.writeFile(wb, filename)
 }
 
-export function exportFinancialReport(
+export async function exportFinancialReport(
   jobs: Job[],
   customers: Customer[],
   filename = 'financial-report.xlsx'
 ) {
-  exportFullReport(jobs, customers, [], filename)
+  await exportFullReport(jobs, customers, [], filename)
 }
 
 export interface ReportPdfLabels {
@@ -112,12 +122,13 @@ export interface ReportPdfData {
   labels: ReportPdfLabels
 }
 
-export function exportFullReport(
+export async function exportFullReport(
   jobs: Job[],
   customers: Customer[],
   employees: Employee[],
   filename = 'handymanos-report.xlsx'
 ) {
+  const XLSX = await getXlsx()
   const jobRows = jobs.map((j) => {
     const customer = customers.find((c) => c.id === j.customer_id)
     return {
