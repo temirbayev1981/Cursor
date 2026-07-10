@@ -449,6 +449,9 @@ export const ru = {
     platformScore: 'Оценка',
     productionReady: 'Готово к продакшену',
     needsConfiguration: 'Требуется настройка',
+    switchCompany: 'Сменить компанию',
+    companySwitched: 'Компания переключена',
+    auditLog: 'Журнал аудита',
   },
   status: {
     job: {

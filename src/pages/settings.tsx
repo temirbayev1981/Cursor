@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { useTheme } from '@/contexts/theme-context'
 import { useTranslation } from '@/contexts/locale-context'
 import { hasStripe, hasGoogleMaps, hasOpenAI, hasSupabase, hasNotificationConfigured, hasSmsConfigured } from '@/lib/env'
-import { useImportDemoSeed } from '@/hooks/use-entities'
+import { useImportDemoSeed, useAuditLogs } from '@/hooks/use-entities'
 import { getNotificationQueue } from '@/services/notification-service'
 import { getErrorReports } from '@/lib/observability'
 import { computePlatformHealth } from '@/lib/platform-health'
@@ -140,6 +140,7 @@ export default function SettingsPage() {
   const notifications = getNotificationQueue().slice(0, 5)
   const errors = getErrorReports().slice(0, 5)
   const platformHealth = computePlatformHealth()
+  const { data: auditLogs = [] } = useAuditLogs()
 
   return (
     <div>
@@ -369,6 +370,23 @@ export default function SettingsPage() {
                 </CardContent>
               </Card>
             )}
+            <Card>
+              <CardHeader><CardTitle>{t.settings.auditLog} ({auditLogs.length})</CardTitle></CardHeader>
+              <CardContent className="space-y-2 text-sm max-h-64 overflow-y-auto">
+                {auditLogs.length === 0 ? (
+                  <p className="text-muted-foreground">{t.common.noData}</p>
+                ) : (
+                  auditLogs.slice(0, 20).map((log) => (
+                    <div key={log.id} className="rounded bg-secondary/30 p-2">
+                      <p className="font-medium">{log.action}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {log.entity_type} · {new Date(log.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
             <Card>
               <CardHeader><CardTitle>Notifications ({notifications.length})</CardTitle></CardHeader>
               <CardContent className="space-y-2 text-sm">

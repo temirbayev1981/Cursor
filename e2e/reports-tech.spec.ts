@@ -34,4 +34,14 @@ test.describe('Reports and technician mobile', () => {
     await expect(page.getByPlaceholder(/заметки с объекта|field notes/i)).toBeVisible()
     await page.getByRole('button', { name: /сохранить|save/i }).click()
   })
+
+  test('company switcher changes tenant jobs', async ({ page }) => {
+    await page.goto('/dashboard')
+    const switcher = page.getByRole('combobox').first()
+    if (await switcher.count() === 0) return
+    await switcher.click()
+    await page.getByRole('option', { name: /Sunrise Property Services/i }).click()
+    await page.goto('/jobs')
+    await expect(page.getByText(/Clubhouse touch-up paint|Storefront door repair/i).first()).toBeVisible({ timeout: 10000 })
+  })
 })

@@ -28,6 +28,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { getInitials } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { LanguageSwitcher } from '@/components/shared/language-switcher'
+import { CompanySwitcher } from '@/components/shared/company-switcher'
 import { canAccess } from '@/lib/permissions'
 import { DEMO_MODE } from '@/lib/supabase'
 
@@ -123,6 +124,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             <LanguageSwitcher />
           </div>
         )}
+        <CompanySwitcher collapsed={collapsed} />
         {DEMO_MODE && !collapsed && (
           <div className="mb-3 rounded-lg bg-accent/10 px-3 py-2 text-xs text-accent">
             {t.common.demoMode}

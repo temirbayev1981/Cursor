@@ -451,6 +451,9 @@ export const en: TranslationKeys = {
     platformScore: 'Score',
     productionReady: 'Production ready',
     needsConfiguration: 'Needs configuration',
+    switchCompany: 'Switch company',
+    companySwitched: 'Company switched',
+    auditLog: 'Audit log',
   },
   status: {
     job: {

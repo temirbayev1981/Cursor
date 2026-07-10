@@ -4,6 +4,8 @@ import { supabase, DEMO_MODE } from '@/lib/supabase'
 import { DEMO_COMPANY } from '@/data/mock-data'
 import { getStoredCompany, persistOnboarding } from '@/services/onboarding-service'
 import { registerUserWithCompany, loadUserSession, isOnboardingComplete } from '@/services/auth-service'
+import { resolveActiveCompany, setActiveCompany, registerCompany, listAccessibleCompanies } from '@/services/company-service'
+import { logAudit } from '@/services/entity-service'
 
 interface AuthContextType {
   user: Profile | null
@@ -15,6 +17,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string, inviteToken?: string) => Promise<void>
   signOut: () => Promise<void>
   completeOnboarding: (data?: OnboardingData) => Promise<void>
+  switchCompany: (companyId: string) => Promise<void>
   hasRole: (...roles: UserRole[]) => boolean
 }
 
@@ -41,8 +44,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const stored = localStorage.getItem('handymanos_auth')
       if (stored === 'true') {
         setUser(DEMO_USER)
-        const comp = getStoredCompany() ?? DEMO_COMPANY
+        const comp = resolveActiveCompany(getStoredCompany() ?? DEMO_COMPANY)
         setCompany(comp)
+        setActiveCompany(comp)
         setOnboardingComplete(localStorage.getItem('handymanos_onboarding') === 'complete')
       }
       setIsLoading(false)
@@ -85,7 +89,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       localStorage.setItem('handymanos_auth', 'true')
       setUser({ ...DEMO_USER, email, full_name: fullName })
-      setCompany(getStoredCompany() ?? DEMO_COMPANY)
+      const comp = resolveActiveCompany(getStoredCompany() ?? DEMO_COMPANY)
+      setCompany(comp)
+      setActiveCompany(comp)
       setOnboardingComplete(localStorage.getItem('handymanos_onboarding') === 'complete')
       return
     }
@@ -101,8 +107,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (DEMO_MODE) {
       localStorage.setItem('handymanos_auth', 'true')
       setUser({ ...DEMO_USER, email })
-      const comp = getStoredCompany() ?? DEMO_COMPANY
+      const comp = resolveActiveCompany(getStoredCompany() ?? DEMO_COMPANY)
       setCompany(comp)
+      setActiveCompany(comp)
       setOnboardingComplete(localStorage.getItem('handymanos_onboarding') === 'complete')
       return
     }
@@ -124,11 +131,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const completeOnboarding = async (data?: OnboardingData) => {
     if (data && user) {
       const updatedCompany = await persistOnboarding(data, user.company_id, user.id)
+      registerCompany(updatedCompany)
+      setActiveCompany(updatedCompany)
       setCompany(updatedCompany)
     } else {
       localStorage.setItem('handymanos_onboarding', 'complete')
     }
     setOnboardingComplete(true)
+  }
+
+  const switchCompany = async (companyId: string) => {
+    if (!user) return
+    const nextCompany = listAccessibleCompanies().find((item) => item.id === companyId)
+    if (!nextCompany) return
+
+    setActiveCompany(nextCompany)
+    setCompany(nextCompany)
+    setUser({ ...user, company_id: companyId })
+    await logAudit(companyId, user.id, 'company.switch', 'company', companyId)
   }
 
   const hasRole = (...roles: UserRole[]) => {
@@ -139,7 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{
       user, company, isLoading, isAuthenticated: !!user, onboardingComplete,
-      signIn, signUp, signOut, completeOnboarding, hasRole,
+      signIn, signUp, signOut, completeOnboarding, switchCompany, hasRole,
     }}>
       {children}
     </AuthContext.Provider>

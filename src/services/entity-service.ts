@@ -4,6 +4,7 @@ import {
   DEMO_JOBS, DEMO_CUSTOMERS, DEMO_ESTIMATES, DEMO_INVOICES,
   DEMO_PROPERTIES, DEMO_EMPLOYEES, DEMO_MATERIALS, DEMO_VEHICLES, DEMO_EXPENSES, DEMO_SCHEDULE,
   DEMO_WORK_ORDERS, DEMO_SERVICES, DEMO_FUEL_LOGS,
+  DEMO_JOBS_B, DEMO_CUSTOMERS_B, DEMO_EMPLOYEES_B, DEMO_MATERIALS_B,
 } from '@/data/mock-data'
 import { matchCustomerFromVendorPO } from '@/lib/vendor-po-customer-match'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
@@ -36,6 +37,13 @@ const SEED: Partial<Record<keyof EntityMap, unknown[]>> = {
   schedules: DEMO_SCHEDULE,
   workOrders: DEMO_WORK_ORDERS,
   services: DEMO_SERVICES,
+}
+
+const SEED_B: Partial<Record<keyof EntityMap, unknown[]>> = {
+  jobs: DEMO_JOBS_B,
+  customers: DEMO_CUSTOMERS_B,
+  employees: DEMO_EMPLOYEES_B,
+  materials: DEMO_MATERIALS_B,
 }
 
 const KEY_MAP: Record<keyof EntityMap, string> = {
@@ -92,13 +100,29 @@ function getDb() {
 
 function ensureSeeded<K extends keyof EntityMap>(entity: K, companyId: string): EntityMap[K][] {
   const key = KEY_MAP[entity]
-  const seeded = localStorage.getItem(`${key}_seeded`)
+  const seededKey = `${key}_seeded_${companyId}`
   let items = loadStore<EntityMap[K]>(key)
-  if (!seeded && items.length === 0 && SEED[entity]) {
-    items = (SEED[entity] as EntityMap[K][]).map((i) => ({ ...i, company_id: companyId }))
-    saveStore(key, items)
-    localStorage.setItem(`${key}_seeded`, 'true')
+  const companyItems = filterByCompany(items, companyId)
+
+  if (!localStorage.getItem(seededKey) && companyItems.length === 0) {
+    const seedSource = companyId === 'comp-002'
+      ? SEED_B[entity]
+      : companyId === 'comp-001'
+        ? SEED[entity]
+        : undefined
+
+    if (seedSource) {
+      const seededItems = (seedSource as EntityMap[K][]).map((item) => ({
+        ...item,
+        company_id: companyId,
+      }))
+      items = [...items, ...seededItems]
+      saveStore(key, items)
+    }
+
+    localStorage.setItem(seededKey, 'true')
   }
+
   return filterByCompany(items, companyId)
 }
 
