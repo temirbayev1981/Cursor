@@ -53,15 +53,15 @@ npm run smoke:supabase       # needs live Supabase in .env.local
 
 ## 7. Tags and rollback
 
-Current release tag: **`v1.7.9`**
+Current release tag: **`v1.7.10`**
 
 ```bash
-git tag -a v1.7.10 -m "HandymanOS AI 1.7.10"
-git push origin v1.7.10
+git tag -a v1.8.0 -m "HandymanOS AI 1.8.0"
+git push origin v1.8.0
 ```
 
-Rollback: `git checkout v1.7.9` or reset `main` to a prior tag (team policy).
+Rollback: `git checkout v1.7.10` or reset `main` to a prior tag (team policy).
 
 ## 8. Close stale PRs
 
-If stacked PRs #63–#68 remain open after merge, close them as superseded by `main`.
+Stacked PRs #63–#71 are merged to `main`. Only unrelated drafts (e.g. #61 INSTRUCTIONS.md) may remain open — close or merge separately.

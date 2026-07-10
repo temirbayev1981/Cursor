@@ -28,11 +28,20 @@ const AUDIT_ACTION_KEYS = new Set<string>([
   'customer.update',
   'invoice.create',
   'job.status_change',
+  'job.create',
+  'job.update',
+  'schedule.create',
+  'estimate.sent',
 ])
 
 export function isAuditActionKey(action: string): action is AuditActionKey {
   return AUDIT_ACTION_KEYS.has(action)
 }
+
+/** Number of localized audit action keys (quality gate for platform audit). */
+export const AUDIT_ACTION_COUNT = AUDIT_ACTION_KEYS.size
+
+export const AUDIT_I18N_COVERAGE = AUDIT_ACTION_COUNT >= 28
 
 export function formatAuditAction(
   action: string,

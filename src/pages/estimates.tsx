@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { useEstimates, useJobs, useCustomers, useServices, useSaveEstimate, useConvertEstimateToInvoice, useInvoices } from '@/hooks/use-entities'
 import { generateInvoiceNumber } from '@/services/payment-service'
 import { notifyEstimateSent } from '@/services/notification-service'
+import { logAudit } from '@/services/entity-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { generateSmartEstimate } from '@/lib/ai'
 import { exportEstimatePdf } from '@/lib/export'
@@ -24,7 +25,7 @@ export default function EstimatesPage() {
   const dateLocale = useDateLocale()
   const [showEngine, setShowEngine] = useState(false)
   const [showForm, setShowForm] = useState(false)
-  const { company } = useAuth()
+  const { company, user } = useAuth()
   const companyId = company?.id ?? 'comp-001'
   const { data: estimates = [], isLoading: estimatesLoading } = useEstimates()
   const { data: jobs = [], isLoading: jobsLoading } = useJobs()
@@ -65,8 +66,15 @@ export default function EstimatesPage() {
     const customer = customers.find((c) => c.id === est.customer_id)
     if (!customer?.email) return
     await notifyEstimateSent(customer.email, est.title, est.total)
-    saveEstimate.mutate({ ...est, status: 'sent' })
-    toast.success(t.estimates.estimateSent.replace('{email}', customer.email))
+    saveEstimate.mutate(
+      { ...est, status: 'sent' },
+      {
+        onSuccess: () => {
+          if (user) void logAudit(companyId, user.id, 'estimate.sent', 'estimate', est.id)
+          toast.success(t.estimates.estimateSent.replace('{email}', customer.email))
+        },
+      },
+    )
   }
 
   const handleConvert = (est: Estimate) => {

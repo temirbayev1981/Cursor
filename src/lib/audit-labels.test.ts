@@ -22,4 +22,10 @@ describe('audit-labels', () => {
     expect(isAuditActionKey('invoice.create')).toBe(true)
     expect(isAuditActionKey('job.status_change')).toBe(true)
   })
+
+  it('recognizes Phase 81 field-ops audit keys', () => {
+    expect(isAuditActionKey('job.create')).toBe(true)
+    expect(isAuditActionKey('schedule.create')).toBe(true)
+    expect(isAuditActionKey('estimate.sent')).toBe(true)
+  })
 })

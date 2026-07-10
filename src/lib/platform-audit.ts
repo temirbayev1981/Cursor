@@ -1,6 +1,7 @@
 import { hasSupabase, isE2eMockBackend } from '@/lib/env'
 import { computePlatformHealth } from '@/lib/platform-health'
 import { TYPED_SUPABASE_QUERIES } from '@/lib/supabase-queries'
+import { AUDIT_I18N_COVERAGE } from '@/lib/audit-labels'
 import { MULTI_TENANT_SUPPORTED, MULTI_TENANT_MEMBERSHIP_RPC } from '@/services/company-service'
 import { PORTAL_RPC_ENFORCED } from '@/services/portal-data-service'
 import { STRIPE_WEBHOOK_AUDIT } from '@/services/billing-service'
@@ -50,6 +51,7 @@ export function computePlatformAudit(): PlatformAuditReport {
     { id: 'typed_data', label: 'Type-safe Supabase queries', ok: liveBackend && TYPED_SUPABASE_QUERIES, weight: 1 },
     { id: 'portal_rpc', label: 'Portal server RPCs', ok: liveBackend && PORTAL_RPC_ENFORCED, weight: 0.5 },
     { id: 'stripe_webhook_audit', label: 'Stripe webhook audit', ok: liveBackend && STRIPE_WEBHOOK_AUDIT, weight: 0.5 },
+    { id: 'audit_i18n', label: 'Localized audit actions', ok: liveBackend && AUDIT_I18N_COVERAGE, weight: 0.5 },
     { id: 'multi_tenant', label: 'Multi-company membership', ok: liveBackend && MULTI_TENANT_SUPPORTED && Boolean(MULTI_TENANT_MEMBERSHIP_RPC), weight: 0.5 },
   ]
 

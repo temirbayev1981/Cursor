@@ -114,9 +114,26 @@ export function useSaveCustomer() {
 export function useSaveJob() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
-    mutationFn: (job: Job) => saveEntity('jobs', job),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs', companyId] }),
+    mutationFn: async (job: Job) => {
+      const existing = await listEntities('jobs', companyId) as Job[]
+      const isNew = !existing.some((j) => j.id === job.id)
+      await saveEntity('jobs', job)
+      return { job, isNew }
+    },
+    onSuccess: ({ job, isNew }) => {
+      if (user) {
+        void logAudit(
+          companyId,
+          user.id,
+          isNew ? 'job.create' : 'job.update',
+          'job',
+          job.id,
+        )
+      }
+      qc.invalidateQueries({ queryKey: ['jobs', companyId] })
+    },
   })
 }
 
@@ -362,6 +379,7 @@ export function useSaveExpense() {
 export function useCreateScheduleFromJob() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
     mutationFn: async ({
       job,
@@ -376,7 +394,8 @@ export function useCreateScheduleFromJob() {
       endTime: string
       location: string
     }) => createScheduleFromJob(job, companyId, technicianId, startTime, endTime, location),
-    onSuccess: () => {
+    onSuccess: (schedule) => {
+      if (user) void logAudit(companyId, user.id, 'schedule.create', 'schedule', schedule.id)
       qc.invalidateQueries({ queryKey: ['schedules', companyId] })
       qc.invalidateQueries({ queryKey: ['jobs', companyId] })
     },

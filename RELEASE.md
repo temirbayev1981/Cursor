@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.7.9
+# HandymanOS AI — Release 1.7.10
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.7.9`**, current package **1.7.9**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.7.10`**, current package **1.7.10**).
 
 Consolidated **1.7.x** production release (stacked PRs #63–#68).
 
@@ -49,10 +49,14 @@ Consolidated **1.7.x** production release (stacked PRs #63–#68).
 - E2E coverage for new audit actions (customer, invoice, job status)
 - Audit log `data-audit-action` selectors; probes skipped in E2E mock
 
+### 1.7.10 — Field ops audit
+- Audit: job create/update, schedule from job, estimate sent
+- Platform audit `audit_i18n` gate (28+ localized actions)
+
 ## Test coverage
 
-- Unit: **104** (`npm test`)
-- E2E: **141/141** (`npm run test:e2e`)
+- Unit: **105** (`npm test`)
+- E2E: **143/143** (`npm run test:e2e`)
 
 ## Deploy
 

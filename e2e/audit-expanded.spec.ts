@@ -46,4 +46,27 @@ test.describe('Expanded audit log E2E', () => {
     await expect(page.locator('[data-audit-action="job.status_change"]').first()).toBeVisible({ timeout: 10000 })
     await expect(page.getByText(/статус заказа изменён|job status changed/i).first()).toBeVisible()
   })
+
+  test('job create appears in audit log', async ({ page }) => {
+    await page.goto('/jobs')
+    await page.getByRole('button', { name: /новый заказ|new job/i }).click()
+    await page.getByTestId('job-form').locator('input').first().fill('E2E Audit Job')
+    await page.getByTestId('job-form').getByRole('combobox').first().click()
+    await page.getByRole('option', { name: /ABC Property Management/i }).click()
+    await page.getByTestId('job-form-submit').click()
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="job.create"]').first()).toBeVisible({ timeout: 10000 })
+  })
+
+  test('estimate send appears in audit log', async ({ page }) => {
+    await page.goto('/estimates')
+    await expect(page.getByText('Deck Repair & Staining').first()).toBeVisible()
+    await page.getByTestId('estimate-send-est-003').click()
+    await expect(page.getByText(/смета отправлена/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="estimate.sent"]').first()).toBeVisible({ timeout: 10000 })
+  })
 })

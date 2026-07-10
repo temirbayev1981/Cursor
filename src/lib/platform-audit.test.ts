@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { computePlatformAudit } from './platform-audit'
 import { PORTAL_RPC_ENFORCED } from '@/services/portal-data-service'
 import { STRIPE_WEBHOOK_AUDIT } from '@/services/billing-service'
+import { AUDIT_I18N_COVERAGE } from '@/lib/audit-labels'
 import { TYPED_SUPABASE_QUERIES } from '@/lib/supabase-queries'
 import { MULTI_TENANT_SUPPORTED, MULTI_TENANT_MEMBERSHIP_RPC } from '@/services/company-service'
 
@@ -40,6 +41,7 @@ describe('platform-audit', () => {
   it('uses compile-time quality gate constants', () => {
     expect(PORTAL_RPC_ENFORCED).toBe(true)
     expect(STRIPE_WEBHOOK_AUDIT).toBe(true)
+    expect(AUDIT_I18N_COVERAGE).toBe(true)
     expect(TYPED_SUPABASE_QUERIES).toBe(true)
     expect(MULTI_TENANT_SUPPORTED).toBe(true)
     expect(MULTI_TENANT_MEMBERSHIP_RPC).toBe('get_accessible_companies')
@@ -48,12 +50,14 @@ describe('platform-audit', () => {
     const typed = report.checks.find((check) => check.id === 'typed_data')
     const portal = report.checks.find((check) => check.id === 'portal_rpc')
     const stripeAudit = report.checks.find((check) => check.id === 'stripe_webhook_audit')
+    const auditI18n = report.checks.find((check) => check.id === 'audit_i18n')
     const multi = report.checks.find((check) => check.id === 'multi_tenant')
     const liveBackend = report.checks.find((check) => check.id === 'live_backend')
 
     expect(typed?.ok).toBe(Boolean(liveBackend?.ok))
     expect(portal?.ok).toBe(Boolean(liveBackend?.ok))
     expect(stripeAudit?.ok).toBe(Boolean(liveBackend?.ok))
+    expect(auditI18n?.ok).toBe(Boolean(liveBackend?.ok))
     expect(multi?.ok).toBe(Boolean(liveBackend?.ok))
   })
 })

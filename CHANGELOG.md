@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.7.10] — 2026-07-10
+
+Field-ops audit coverage and platform audit gate.
+
+### Phase 81 — Field ops audit
+- `logAudit`: `job.create`/`job.update`, `schedule.create`, `estimate.sent`
+- Platform audit: `audit_i18n` quality gate (`AUDIT_I18N_COVERAGE`, 28+ actions)
+- E2E: job create and estimate send audit entries
+- POST_RELEASE: stale PR status (#63–#71 merged)
+
 ## [1.7.9] — 2026-07-10
 
 E2E coverage for expanded audit actions.
