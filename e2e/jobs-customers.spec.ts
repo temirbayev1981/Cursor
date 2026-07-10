@@ -38,6 +38,23 @@ test.describe('Jobs & customers', () => {
     await expect(page.getByTestId('customer-email-optout-cust-004')).toBeVisible()
   })
 
+  test('customers table shows SMS opt-out badge by default', async ({ page }) => {
+    await page.goto('/customers')
+    await expect(page.getByTestId('customer-sms-optout-cust-004')).toBeVisible()
+  })
+
+  test('customer form enabling SMS removes opt-out badge', async ({ page }) => {
+    await page.goto('/customers')
+    await page.getByTestId('customer-edit-cust-004').click()
+    const smsToggle = page.getByTestId('customer-form-notify-sms')
+    if ((await smsToggle.getAttribute('data-state')) !== 'checked') {
+      await smsToggle.click()
+    }
+    await page.getByTestId('customer-form-submit').click()
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByTestId('customer-sms-optout-cust-004')).not.toBeVisible()
+  })
+
   test('customer search filters the table', async ({ page }) => {
     await page.goto('/customers')
     await expect(page.getByText('ABC Property Management').first()).toBeVisible()

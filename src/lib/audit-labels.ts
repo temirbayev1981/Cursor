@@ -169,6 +169,12 @@ export const PORTAL_SMS_NOTIFY_SYNC_AUDIT = true as const
 /** Notification hub Skipped tab shows estimate and invoice SMS opt-out entries. */
 export const NOTIFICATION_HUB_ESTIMATE_INVOICE_SMS_SKIP_AUDIT = true as const
 
+/** Customers table shows SMS opt-out badge when SMS notifications disabled. */
+export const STAFF_CUSTOMER_SMS_BADGE_AUDIT = true as const
+
+/** Notification hub Skipped tab shows dispatch ETA SMS opt-out entries. */
+export const NOTIFICATION_HUB_ETA_SMS_SKIP_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }
