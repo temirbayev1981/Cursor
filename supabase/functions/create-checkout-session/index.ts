@@ -7,6 +7,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.8'
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno'
 import { handleCors, jsonResponse } from '../_shared/cors.ts'
 import { verifyAuth } from '../_shared/auth.ts'
+import { checkRateLimit, clientRateLimitKey, rateLimitResponse } from '../_shared/rate-limit.ts'
 
 type InvoiceRow = {
   id: string
@@ -68,6 +69,12 @@ serve(async (req) => {
     }
 
     const auth = await verifyAuth(req)
+    const rateKey = auth
+      ? `checkout:${clientRateLimitKey(req, auth.userId)}`
+      : `checkout:portal:${req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'}`
+    const rate = await checkRateLimit(rateKey, 10)
+    if (!rate.ok) return rateLimitResponse(rate.retryAfter ?? 60)
+
     let invoice: InvoiceRow | null = null
 
     if (auth?.companyId) {

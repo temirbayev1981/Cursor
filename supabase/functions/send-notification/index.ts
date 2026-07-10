@@ -17,7 +17,7 @@ serve(async (req) => {
       return jsonResponse({ error: 'Unauthorized' }, 401)
     }
 
-    const rate = checkRateLimit(`notify:${clientRateLimitKey(req, auth.userId)}`, 30)
+    const rate = await checkRateLimit(`notify:${clientRateLimitKey(req, auth.userId)}`, 30)
     if (!rate.ok) return rateLimitResponse(rate.retryAfter ?? 60)
 
     const apiKey = Deno.env.get('RESEND_API_KEY')

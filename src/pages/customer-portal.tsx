@@ -51,7 +51,7 @@ export default function CustomerPortalPage() {
           </div>
           <Button variant="ghost" size="sm" onClick={handleLogout} className="shrink-0">
             <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">{locale === 'ru' ? 'Выйти' : 'Sign out'}</span>
+            <span className="hidden sm:inline">{t.customerPortal.signOut}</span>
           </Button>
         </div>
 
@@ -96,7 +96,7 @@ export default function CustomerPortalPage() {
         <h2 className="mb-3 text-base font-semibold sm:mb-4 sm:text-lg">{t.customerPortal.invoices}</h2>
         <div className="mb-6 space-y-3 sm:mb-8">
           {myInvoices.length === 0 ? (
-            <Card><CardContent className="p-6 text-center text-muted-foreground">—</CardContent></Card>
+            <Card><CardContent className="p-6 text-center text-muted-foreground">{t.customerPortal.noInvoices}</CardContent></Card>
           ) : (
             myInvoices.slice(0, 3).map((inv) => (
               <Card key={inv.id}>

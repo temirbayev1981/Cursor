@@ -37,7 +37,7 @@ export default function PropertyPortalPage() {
     { label: t.propertyPortal.openRequests, value: openRequests, icon: Clock },
     { label: t.propertyPortal.completed, value: completed, icon: CheckCircle },
     { label: t.propertyPortal.monthlySpend, value: formatCurrency(monthlySpend), icon: DollarSign },
-    { label: t.propertyPortal.avgResponse, value: '4.2 hrs', icon: Clock },
+    { label: t.propertyPortal.avgResponse, value: t.propertyPortal.noResponseData, icon: Clock },
   ]
 
   const submitRequest = () => {
@@ -95,7 +95,7 @@ export default function PropertyPortalPage() {
             <Button onClick={() => setShowForm(true)} className="flex-1 sm:flex-none">
               <Plus className="h-4 w-4" />{t.propertyPortal.submitRequest}
             </Button>
-            <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Sign out">
+            <Button variant="ghost" size="icon" onClick={handleLogout} aria-label={t.propertyPortal.signOut}>
               <LogOut className="h-4 w-4" />
             </Button>
           </div>

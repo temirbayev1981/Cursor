@@ -29,7 +29,7 @@ const INVITE_ROLES: UserRole[] = ['admin', 'dispatcher', 'technician', 'accounta
 const INTEGRATION_KEYS = ['stripe', 'maps', 'openai', 'supabase', 'email'] as const
 
 export default function SettingsPage() {
-  const { company, user } = useAuth()
+  const { company, user, updateCompanyDetails } = useAuth()
   const { t, locale } = useTranslation()
   const { theme, setTheme } = useTheme()
   const stored = getStoredCompany()
@@ -41,6 +41,7 @@ export default function SettingsPage() {
   const [pendingInvites, setPendingInvites] = useState<TeamInvite[]>([])
   const [inviteLoading, setInviteLoading] = useState(false)
   const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan>(base?.subscription_plan ?? 'professional')
+  const [companySaving, setCompanySaving] = useState(false)
   const [upgradingPlan, setUpgradingPlan] = useState<SubscriptionPlan | null>(null)
 
   const [companyForm, setCompanyForm] = useState({
@@ -133,10 +134,16 @@ export default function SettingsPage() {
     return t.common.moduleBased
   }
 
-  const handleSaveCompany = () => {
-    const updated = { ...base!, ...companyForm }
-    localStorage.setItem('handymanos_company', JSON.stringify(updated))
-    toast.success(t.settings.saveChanges)
+  const handleSaveCompany = async () => {
+    setCompanySaving(true)
+    try {
+      await updateCompanyDetails(companyForm)
+      toast.success(t.settings.saveChanges)
+    } catch {
+      toast.error(locale === 'ru' ? 'Не удалось сохранить компанию' : 'Failed to save company')
+    } finally {
+      setCompanySaving(false)
+    }
   }
 
   const notifications = getNotificationQueue().slice(0, 5)
@@ -184,7 +191,7 @@ export default function SettingsPage() {
                   {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 </Button>
               </div>
-              <Button onClick={handleSaveCompany}>{t.settings.saveChanges}</Button>
+              <Button onClick={() => void handleSaveCompany()} disabled={companySaving}>{t.settings.saveChanges}</Button>
             </CardContent>
           </Card>
         </TabsContent>

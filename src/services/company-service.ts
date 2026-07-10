@@ -64,6 +64,41 @@ export async function syncActiveCompanyToProfile(profileId: string, companyId: s
   if (error) throw error
 }
 
+export type CompanyProfilePatch = Pick<Company, 'name' | 'email' | 'phone' | 'address'>
+
+export async function updateCompanyProfile(
+  companyId: string,
+  patch: CompanyProfilePatch,
+): Promise<Company> {
+  const stored = getStoredCompany()
+  const base =
+    (stored?.id === companyId ? stored : null)
+    ?? listAccessibleCompanies().find((company) => company.id === companyId)
+
+  if (!base) throw new Error('Company not found')
+
+  const updated: Company = { ...base, ...patch }
+  localStorage.setItem('handymanos_company', JSON.stringify(updated))
+  registerCompany(updated)
+
+  if (!DEMO_MODE && supabase) {
+    const { error } = await updateRows(
+      'companies',
+      {
+        name: patch.name,
+        email: patch.email,
+        phone: patch.phone || undefined,
+        address: patch.address || undefined,
+      },
+      'id',
+      companyId,
+    )
+    if (error) throw error
+  }
+
+  return updated
+}
+
 export async function fetchAccessibleCompanies(profile?: Profile | null): Promise<Company[]> {
   if (DEMO_MODE) return listAccessibleCompanies()
 

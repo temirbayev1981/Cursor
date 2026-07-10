@@ -4,6 +4,13 @@ All notable changes to HandymanOS AI are documented here.
 
 ## [Unreleased]
 
+### Phase 26 — Production polish
+- Company settings persist to Supabase via `updateCompanyProfile` + auth context refresh
+- Portal i18n: `portalAccess` strings, empty invoice state, sign-out labels
+- Scheduling: day view on mobile, horizontal week scroll, hook dependency fixes
+- Distributed rate limiting: `rate_limit_buckets` table + `check_rate_limit` RPC
+- Stripe checkout edge function rate limited (auth + portal paths)
+
 ### Phase 25 — P2 polish (audit follow-up)
 - `switchCompany` syncs `profiles.company_id` to Supabase in production
 - Offline sync returns `false` for unknown queue actions

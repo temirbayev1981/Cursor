@@ -17,7 +17,7 @@ serve(async (req) => {
       return jsonResponse({ error: 'Unauthorized' }, 401)
     }
 
-    const rate = checkRateLimit(`sms:${clientRateLimitKey(req, auth.userId)}`, 15)
+    const rate = await checkRateLimit(`sms:${clientRateLimitKey(req, auth.userId)}`, 15)
     if (!rate.ok) return rateLimitResponse(rate.retryAfter ?? 60)
 
     const accountSid = Deno.env.get('TWILIO_ACCOUNT_SID')

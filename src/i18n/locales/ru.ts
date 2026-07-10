@@ -546,11 +546,13 @@ export const ru = {
     completed: 'Завершённые',
     monthlySpend: 'Расходы за месяц',
     avgResponse: 'Среднее время ответа',
+    noResponseData: '—',
     activeRequests: 'Активные заявки',
     approveEstimate: 'Утвердить смету',
     requestTitle: 'Описание работ',
     requestDescription: 'Подробности',
     requestSubmitted: 'Заявка отправлена',
+    signOut: 'Выйти',
   },
   customerPortal: {
     title: 'Клиентский портал',
@@ -558,10 +560,18 @@ export const ru = {
     noEstimates: 'Нет ожидающих смет',
     approveSign: 'Утвердить и подписать',
     invoices: 'Счета',
+    noInvoices: 'Счетов пока нет',
     leaveReview: 'Оставить отзыв',
     reviewPrompt: 'Как вам недавнее обслуживание?',
     estimateApproved: 'Смета утверждена',
     estimateDeclined: 'Смета отклонена',
+    signOut: 'Выйти',
+  },
+  portalAccess: {
+    invalidLink: 'Ссылка недействительна',
+    expiredLink: 'Ссылка истекла или недействительна',
+    backToLogin: 'Вернуться ко входу',
+    opening: 'Открываем портал…',
   },
 } as const
 

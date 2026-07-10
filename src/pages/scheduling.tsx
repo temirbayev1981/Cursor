@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { ChevronLeft, ChevronRight, Clock, Plus, X } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,15 +10,20 @@ import { ScheduleForm } from '@/components/forms/schedule-form'
 import { RouteOptimizerPanel } from '@/components/maps/route-optimizer-panel'
 import { useSchedules, useEmployees, useJobs, useCustomers, useCreateScheduleFromJob } from '@/hooks/use-entities'
 import { useOptimizedRouteFromStops } from '@/hooks/use-route-optimizer'
+import { useIsMobileNav } from '@/hooks/use-media-query'
 import { addDays, format, startOfWeek, isSameDay } from 'date-fns'
 import { useTranslation } from '@/contexts/locale-context'
 import { toast } from 'sonner'
 import { notifyJobScheduled, flushNotificationQueue, notifyResultMessage } from '@/services/notification-service'
+import { cn } from '@/lib/utils'
 import type { ScheduleFormValues } from '@/lib/schemas'
 
 export default function SchedulingPage() {
   const { t, locale } = useTranslation()
-  const [view, setView] = useState<'day' | 'week' | 'month'>('week')
+  const isMobile = useIsMobileNav()
+  const [view, setView] = useState<'day' | 'week' | 'month'>(() =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches ? 'day' : 'week',
+  )
   const [currentDate, setCurrentDate] = useState(new Date())
   const [showForm, setShowForm] = useState(false)
   const { data: schedule = [], isLoading: schedLoading } = useSchedules()
@@ -31,16 +36,21 @@ export default function SchedulingPage() {
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const technicians = employees.filter((e) => e.billing_rate > 0)
 
-  const getEventsForDay = (day: Date) =>
-    schedule.filter((e) => isSameDay(new Date(e.start_time), day))
+  const getEventsForDay = useCallback(
+    (day: Date) => schedule.filter((e) => isSameDay(new Date(e.start_time), day)),
+    [schedule],
+  )
 
   const routeItems = useMemo(
     () =>
       getEventsForDay(currentDate)
         .filter((e) => e.status === 'scheduled' || e.status === 'in_progress')
         .map((e) => ({ id: e.id, label: e.title, address: e.location })),
-    [schedule, currentDate],
+    [currentDate, getEventsForDay],
   )
+
+  const visibleDays = view === 'day' ? [currentDate] : weekDays
+  const dayStep = view === 'day' ? 1 : 7
 
   const route = useOptimizedRouteFromStops(routeItems)
 
@@ -100,17 +110,19 @@ export default function SchedulingPage() {
         title={t.scheduling.title}
         description={t.scheduling.description}
         actions={
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setShowForm(true)}>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowForm(true)} className="flex-1 sm:flex-none">
               <Plus className="h-4 w-4" />{t.scheduling.scheduleFromJob}
             </Button>
-            <Button variant="outline" size="icon" onClick={() => setCurrentDate(addDays(currentDate, -7))}>
+            <Button variant="outline" size="icon" onClick={() => setCurrentDate(addDays(currentDate, -dayStep))}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="text-sm font-medium px-2">
-              {format(weekStart, 'MMM d', { locale: undefined })} – {format(addDays(weekStart, 6), 'MMM d, yyyy', { locale: undefined })}
+            <span className="text-sm font-medium px-2 text-center min-w-[8rem]">
+              {view === 'day'
+                ? format(currentDate, 'MMM d, yyyy', { locale: undefined })
+                : `${format(weekStart, 'MMM d', { locale: undefined })} – ${format(addDays(weekStart, 6), 'MMM d, yyyy', { locale: undefined })}`}
             </span>
-            <Button variant="outline" size="icon" onClick={() => setCurrentDate(addDays(currentDate, 7))}>
+            <Button variant="outline" size="icon" onClick={() => setCurrentDate(addDays(currentDate, dayStep))}>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -146,12 +158,27 @@ export default function SchedulingPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3">
-          <div className="grid grid-cols-7 gap-2">
-            {weekDays.map((day) => {
+          <div
+            className={cn(
+              'gap-2',
+              isMobile && view === 'week'
+                ? 'flex overflow-x-auto pb-2 snap-x snap-mandatory'
+                : view === 'day'
+                  ? 'grid grid-cols-1'
+                  : 'grid grid-cols-7',
+            )}
+          >
+            {visibleDays.map((day) => {
               const events = getEventsForDay(day)
               const isToday = isSameDay(day, new Date())
               return (
-                <Card key={day.toISOString()} className={isToday ? 'border-primary/50' : ''}>
+                <Card
+                  key={day.toISOString()}
+                  className={cn(
+                    isToday ? 'border-primary/50' : '',
+                    isMobile && view === 'week' && 'min-w-[9.5rem] shrink-0 snap-start',
+                  )}
+                >
                   <CardContent className="p-3">
                     <div className="text-center mb-3">
                       <p className="text-xs text-muted-foreground">{format(day, 'EEE', { locale: undefined })}</p>

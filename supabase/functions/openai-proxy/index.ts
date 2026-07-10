@@ -17,7 +17,7 @@ serve(async (req) => {
       return jsonResponse({ error: 'Unauthorized' }, 401)
     }
 
-    const rate = checkRateLimit(`openai:${clientRateLimitKey(req, auth.userId)}`, 20)
+    const rate = await checkRateLimit(`openai:${clientRateLimitKey(req, auth.userId)}`, 20)
     if (!rate.ok) return rateLimitResponse(rate.retryAfter ?? 60)
 
     const openaiKey = Deno.env.get('OPENAI_API_KEY')

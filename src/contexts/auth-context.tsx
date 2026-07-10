@@ -5,7 +5,7 @@ import { DEMO_COMPANY } from '@/data/mock-data'
 import { getStoredCompany, persistOnboarding } from '@/services/onboarding-service'
 import { registerUserWithCompany, loadUserSession, markOnboardingCompleteForInvitedMember, resolveOnboardingState } from '@/services/auth-service'
 import { type PostAuthState } from '@/lib/permissions'
-import { resolveActiveCompany, setActiveCompany, registerCompany, listAccessibleCompanies, syncActiveCompanyToProfile } from '@/services/company-service'
+import { resolveActiveCompany, setActiveCompany, registerCompany, listAccessibleCompanies, syncActiveCompanyToProfile, updateCompanyProfile, type CompanyProfilePatch } from '@/services/company-service'
 import { logAudit } from '@/services/entity-service'
 import { setTechOnboardingPending } from '@/services/tech-onboarding-service'
 
@@ -19,6 +19,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string, inviteToken?: string) => Promise<PostAuthState>
   signOut: () => Promise<void>
   completeOnboarding: (data?: OnboardingData) => Promise<void>
+  updateCompanyDetails: (patch: CompanyProfilePatch) => Promise<void>
   switchCompany: (companyId: string) => Promise<void>
   hasRole: (...roles: UserRole[]) => boolean
 }
@@ -161,6 +162,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setOnboardingComplete(true)
   }
 
+  const updateCompanyDetails = async (patch: CompanyProfilePatch) => {
+    if (!company) return
+    const updated = await updateCompanyProfile(company.id, patch)
+    setActiveCompany(updated)
+    setCompany(updated)
+  }
+
   const switchCompany = async (companyId: string) => {
     if (!user) return
     const nextCompany = listAccessibleCompanies().find((item) => item.id === companyId)
@@ -185,7 +193,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{
       user, company, isLoading, isAuthenticated: !!user, onboardingComplete,
-      signIn, signUp, signOut, completeOnboarding, switchCompany, hasRole,
+      signIn, signUp, signOut, completeOnboarding, updateCompanyDetails, switchCompany, hasRole,
     }}>
       {children}
     </AuthContext.Provider>
