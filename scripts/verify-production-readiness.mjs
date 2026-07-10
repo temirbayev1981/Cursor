@@ -6,6 +6,8 @@ const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
 
 console.log(`HandymanOS AI v${pkg.version} — production readiness check\n`)
 
+const deployWorkflow = readFileSync('.github/workflows/deploy.yml', 'utf8')
+
 const e2eSpecs = readdirSync('e2e')
   .filter((name) => name.endsWith('.spec.ts'))
   .map((name) => `e2e/${name}`)
@@ -106,6 +108,14 @@ for (const token of deploymentChecks) {
     console.log(`✗ missing in DEPLOYMENT.md: ${token}`)
     ok = false
   }
+}
+
+console.log('\nVersion sync:')
+if (deployWorkflow.includes(`VITE_APP_VERSION: ${pkg.version}`)) {
+  console.log(`✓ deploy.yml VITE_APP_VERSION matches package.json (${pkg.version})`)
+} else {
+  console.log(`✗ deploy.yml VITE_APP_VERSION must match package.json (${pkg.version})`)
+  ok = false
 }
 
 console.log('\n→ Running verify:release')

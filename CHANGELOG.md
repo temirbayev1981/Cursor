@@ -2,6 +2,35 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.3.0] — 2026-07-10
+
+Release consolidating Phases 36–41 (field ops hardening, offline sync, dispatch, error paths).
+
+### Phase 41 — Release consolidation & notification bell
+- Version bump to **1.3.0**
+- E2E: notification bell panel shows queued demo email after scheduling
+- Optional `workflow_dispatch` Supabase smoke (`scripts/supabase-smoke.mjs`)
+- `verify:production` checks `deploy.yml` version matches `package.json`
+
+### Phase 40 — Error boundary & portal errors (1.2.8)
+- E2E crash route + error boundary RU/EN; portal access invalid/expired token
+- `observability` unit tests; deploy workflow runs `verify:production`
+- Auto-discover all `e2e/*.spec.ts` in production gate
+
+### Phase 39 — Tech offline completion (1.2.7)
+- E2E: clock-out and complete-job offline sync
+- All five offline action types unit-tested; mobile a11y polish
+
+### Phase 38 — Dispatch notifications (1.2.6)
+- Dispatch status select + E2E SMS/email on scheduled
+- `notification-service` unit tests (8 tests)
+
+### Phase 37 — Tech mobile offline E2E (1.2.5)
+- Offline notes + clock-in E2E; `saveTimeEntry` demo store fix
+
+### Phase 36 — PWA & bundle splitting (1.2.4)
+- Main chunk ~176 KB; service worker `handymanos-v2`; PWA E2E
+
 ## [1.2.8] — 2026-07-10
 
 Error boundary, portal errors, and CI/docs parity.

@@ -1,0 +1,24 @@
+name: Supabase smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.VITE_SUPABASE_URL != '' && secrets.VITE_SUPABASE_ANON_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/supabase-smoke.mjs
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
+  skipped:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.VITE_SUPABASE_URL == '' || secrets.VITE_SUPABASE_ANON_KEY == '' }}
+    steps:
+      - run: echo "Skipping — configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY repository secrets to run live smoke."

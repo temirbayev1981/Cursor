@@ -27,7 +27,7 @@ async function initSentry(dsn: string) {
     Sentry.init({
       dsn,
       environment: import.meta.env.MODE,
-      release: `handymanos-ai@${import.meta.env.VITE_APP_VERSION ?? '1.1.0'}`,
+      release: `handymanos-ai@${import.meta.env.VITE_APP_VERSION ?? '1.3.0'}`,
       integrations: [Sentry.browserTracingIntegration()],
       tracesSampleRate: import.meta.env.PROD ? 0.1 : 0,
     })
