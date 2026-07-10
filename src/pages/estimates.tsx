@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { Plus, Sparkles } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
+import { TableSkeleton } from '@/components/shared/skeleton'
 import { EstimateStatusBadge } from '@/components/shared/status-badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { DEMO_ESTIMATES, DEMO_CUSTOMERS, DEMO_SERVICES, DEMO_JOBS } from '@/data/mock-data'
+import { DEMO_SERVICES } from '@/data/mock-data'
+import { useEstimates, useJobs, useCustomers } from '@/hooks/use-entities'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { generateSmartEstimate } from '@/lib/ai'
 import { useTranslation } from '@/contexts/locale-context'
@@ -14,10 +16,13 @@ export default function EstimatesPage() {
   const { t, locale } = useTranslation()
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
   const [showEngine, setShowEngine] = useState(false)
+  const { data: estimates = [], isLoading: estimatesLoading } = useEstimates()
+  const { data: jobs = [], isLoading: jobsLoading } = useJobs()
+  const { data: customers = [], isLoading: customersLoading } = useCustomers()
 
   const smartEstimate = generateSmartEstimate(
     'Drywall Repair',
-    DEMO_JOBS.filter((j) => j.title.toLowerCase().includes('drywall')).map((j) => ({
+    jobs.filter((j) => j.title.toLowerCase().includes('drywall')).map((j) => ({
       estimated_hours: j.estimated_hours,
       actual_hours: j.actual_hours,
       revenue: j.revenue,
@@ -74,7 +79,7 @@ export default function EstimatesPage() {
               <div className="space-y-3">
                 <h4 className="text-sm font-semibold">{t.estimates.aiRecommendation}</h4>
                 <div className="rounded-lg bg-primary/10 p-4 space-y-2">
-                  <p className="text-sm">Drywall Repair ({t.estimates.basedOnJobs.replace('{count}', String(DEMO_JOBS.length))})</p>
+                  <p className="text-sm">Drywall Repair ({t.estimates.basedOnJobs.replace('{count}', String(jobs.length))})</p>
                   <p className="text-2xl font-bold">{formatCurrency(smartEstimate.price)}</p>
                   <p className="text-sm text-muted-foreground">{smartEstimate.hours} {t.common.hours} {t.jobs.estimated}</p>
                   <p className="text-xs text-accent">{t.estimates.confidence}: {(smartEstimate.confidence * 100).toFixed(0)}%</p>
@@ -94,9 +99,12 @@ export default function EstimatesPage() {
         </Card>
       )}
 
+      {estimatesLoading || jobsLoading || customersLoading ? (
+        <TableSkeleton cols={7} />
+      ) : (
       <DataTable headers={[t.estimates.estimate, t.customers.customer, t.jobs.status, t.estimates.labor, t.estimates.materials, t.estimates.total, t.estimates.validUntil]}>
-        {DEMO_ESTIMATES.map((est) => {
-          const customer = DEMO_CUSTOMERS.find((c) => c.id === est.customer_id)
+        {estimates.map((est) => {
+          const customer = customers.find((c) => c.id === est.customer_id)
           return (
             <DataTableRow key={est.id}>
               <DataTableCell className="font-medium">{est.title}</DataTableCell>
@@ -110,6 +118,7 @@ export default function EstimatesPage() {
           )
         })}
       </DataTable>
+      )}
     </div>
   )
 }

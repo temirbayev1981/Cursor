@@ -1,16 +1,21 @@
 import { Plus } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
+import { TableSkeleton } from '@/components/shared/skeleton'
 import { InvoiceStatusBadge } from '@/components/shared/status-badge'
 import { Button } from '@/components/ui/button'
-import { DEMO_INVOICES, DEMO_CUSTOMERS } from '@/data/mock-data'
+import { useInvoices, useCustomers } from '@/hooks/use-entities'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 
 export default function InvoicesPage() {
   const { t, locale } = useTranslation()
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
-  const outstanding = DEMO_INVOICES.filter((i) => i.status !== 'paid').reduce((s, i) => s + (i.total - i.amount_paid), 0)
+  const { data: invoices = [], isLoading: invoicesLoading } = useInvoices()
+  const { data: customers = [], isLoading: customersLoading } = useCustomers()
+  const outstanding = invoices.filter((i) => i.status !== 'paid').reduce((s, i) => s + (i.total - i.amount_paid), 0)
+
+  if (invoicesLoading || customersLoading) return <TableSkeleton cols={8} />
 
   return (
     <div>
@@ -31,13 +36,13 @@ export default function InvoicesPage() {
         </div>
         <div className="glass-card p-5">
           <p className="text-sm text-muted-foreground">{t.invoices.totalInvoices}</p>
-          <p className="text-2xl font-bold">{DEMO_INVOICES.length}</p>
+          <p className="text-2xl font-bold">{invoices.length}</p>
         </div>
       </div>
 
       <DataTable headers={[t.invoices.invoiceNum, t.invoices.customer, t.invoices.status, t.invoices.subtotal, t.invoices.tax, t.invoices.total, t.invoices.paid, t.invoices.dueDate]}>
-        {DEMO_INVOICES.map((inv) => {
-          const customer = DEMO_CUSTOMERS.find((c) => c.id === inv.customer_id)
+        {invoices.map((inv) => {
+          const customer = customers.find((c) => c.id === inv.customer_id)
           return (
             <DataTableRow key={inv.id}>
               <DataTableCell className="font-medium">{inv.invoice_number}</DataTableCell>

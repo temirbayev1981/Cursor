@@ -16,6 +16,7 @@ import {
   BarChart3,
   Bot,
   Settings,
+  Kanban,
   ChevronLeft,
   Zap,
   LogOut,
@@ -27,7 +28,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { getInitials } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { LanguageSwitcher } from '@/components/shared/language-switcher'
-import { DEMO_MODE } from '@/lib/supabase'
+import { canAccess } from '@/lib/permissions'
 
 const navItems = [
   { key: 'dashboard' as const, href: '/dashboard', icon: LayoutDashboard },
@@ -37,6 +38,7 @@ const navItems = [
   { key: 'customers' as const, href: '/customers', icon: Users },
   { key: 'properties' as const, href: '/properties', icon: Building2 },
   { key: 'scheduling' as const, href: '/scheduling', icon: Calendar },
+  { key: 'dispatch' as const, href: '/dispatch', icon: Kanban, label: 'Диспетчерская' },
   { key: 'technicians' as const, href: '/technicians', icon: Wrench },
   { key: 'materials' as const, href: '/materials', icon: Package },
   { key: 'vehicles' as const, href: '/vehicles', icon: Truck },
@@ -87,7 +89,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         <ul className="space-y-1">
           {navItems.map((item) => {
             const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/')
-            const name = t.nav[item.key]
+            const name = 'label' in item && item.label ? item.label : t.nav[item.key as keyof typeof t.nav]
             return (
               <li key={item.key}>
                 <NavLink

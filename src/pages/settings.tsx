@@ -5,7 +5,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
+import { Sun, Moon } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
+import { useTheme } from '@/contexts/theme-context'
 import { useTranslation } from '@/contexts/locale-context'
 
 const INTEGRATION_KEYS = ['stripe', 'maps', 'email', 'quickbooks'] as const
@@ -18,7 +20,8 @@ const INTEGRATION_STATUS = {
 
 export default function SettingsPage() {
   const { company } = useAuth()
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
+  const { theme, setTheme } = useTheme()
 
   const plans = [
     { key: 'starter' as const, price: 49, current: false },
@@ -59,6 +62,21 @@ export default function SettingsPage() {
               <div><Label>{t.auth.email}</Label><Input defaultValue={company?.email} className="mt-1" /></div>
               <div><Label>{t.onboarding.phone}</Label><Input defaultValue={company?.phone} className="mt-1" /></div>
               <div><Label>{t.onboarding.address}</Label><Input defaultValue={company?.address} className="mt-1" /></div>
+              <div className="flex items-center justify-between rounded-lg bg-secondary/30 p-4">
+                <div>
+                  <p className="font-medium">{theme === 'dark' ? (locale === 'ru' ? 'Тёмная тема' : 'Dark mode') : (locale === 'ru' ? 'Светлая тема' : 'Light mode')}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {theme === 'dark' ? (locale === 'ru' ? 'Переключить на светлую тему' : 'Switch to light theme') : (locale === 'ru' ? 'Переключить на тёмную тему' : 'Switch to dark theme')}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                >
+                  {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                </Button>
+              </div>
               <Button>{t.settings.saveChanges}</Button>
             </CardContent>
           </Card>

@@ -83,6 +83,17 @@ body {
   100% { background-position: 200% 0; }
 }
 
+.light {
+  --color-background: #f8fafc;
+  --color-foreground: #0f172a;
+  --color-card: rgba(255, 255, 255, 0.8);
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #64748b;
+  --color-secondary: #e2e8f0;
+  --color-glass: rgba(255, 255, 255, 0.75);
+  --color-glass-border: rgba(15, 23, 42, 0.08);
+}
+
 .skeleton {
   background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
   background-size: 200% 100%;

@@ -1,0 +1,104 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useAuth } from '@/contexts/auth-context'
+import { listEntities, saveEntity, createJobFromVendorPO, createEstimateFromJob } from '@/services/entity-service'
+import type { Job, Customer, Estimate, Invoice } from '@/types'
+import type { VendorPORecord } from '@/types/vendor-po'
+
+function useCompanyId() {
+  const { company } = useAuth()
+  return company?.id ?? 'comp-001'
+}
+
+export function useJobs() {
+  const companyId = useCompanyId()
+  return useQuery({ queryKey: ['jobs', companyId], queryFn: () => listEntities('jobs', companyId) })
+}
+
+export function useCustomers() {
+  const companyId = useCompanyId()
+  return useQuery({ queryKey: ['customers', companyId], queryFn: () => listEntities('customers', companyId) })
+}
+
+export function useEstimates() {
+  const companyId = useCompanyId()
+  return useQuery({ queryKey: ['estimates', companyId], queryFn: () => listEntities('estimates', companyId) })
+}
+
+export function useInvoices() {
+  const companyId = useCompanyId()
+  return useQuery({ queryKey: ['invoices', companyId], queryFn: () => listEntities('invoices', companyId) })
+}
+
+export function useEmployees() {
+  const companyId = useCompanyId()
+  return useQuery({ queryKey: ['employees', companyId], queryFn: () => listEntities('employees', companyId) })
+}
+
+export function useSchedules() {
+  const companyId = useCompanyId()
+  return useQuery({ queryKey: ['schedules', companyId], queryFn: () => listEntities('schedules', companyId) })
+}
+
+export function useSaveJob() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: (job: Job) => saveEntity('jobs', job),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs', companyId] }),
+  })
+}
+
+export function useCreateJobFromPO() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: (po: VendorPORecord) => createJobFromVendorPO(po, companyId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['jobs', companyId] })
+      qc.invalidateQueries({ queryKey: ['estimates', companyId] })
+    },
+  })
+}
+
+export function useCreateEstimateFromJob() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: (job: Job) => createEstimateFromJob(job, companyId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['estimates', companyId] }),
+  })
+}
+
+export function useUpdateJobStatus() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: async ({ job, status }: { job: Job; status: Job['status'] }) =>
+      saveEntity('jobs', { ...job, status }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs', companyId] }),
+  })
+}
+
+export function useGlobalSearch(query: string) {
+  const companyId = useCompanyId()
+  return useQuery({
+    queryKey: ['search', companyId, query],
+    queryFn: async () => {
+      if (!query || query.length < 2) return { jobs: [], customers: [], estimates: [] as Estimate[], invoices: [] as Invoice[] }
+      const q = query.toLowerCase()
+      const [jobs, customers, estimates, invoices] = await Promise.all([
+        listEntities('jobs', companyId),
+        listEntities('customers', companyId),
+        listEntities('estimates', companyId),
+        listEntities('invoices', companyId),
+      ])
+      return {
+        jobs: (jobs as Job[]).filter((j) => j.title.toLowerCase().includes(q)).slice(0, 5),
+        customers: (customers as Customer[]).filter((c) => c.name.toLowerCase().includes(q)).slice(0, 5),
+        estimates: (estimates as Estimate[]).filter((e) => e.title.toLowerCase().includes(q)).slice(0, 5),
+        invoices: (invoices as Invoice[]).filter((i) => i.invoice_number.toLowerCase().includes(q)).slice(0, 5),
+      }
+    },
+    enabled: query.length >= 2,
+  })
+}

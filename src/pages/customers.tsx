@@ -2,10 +2,11 @@ import { Plus, Search } from 'lucide-react'
 import { useState } from 'react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
+import { TableSkeleton } from '@/components/shared/skeleton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { DEMO_CUSTOMERS } from '@/data/mock-data'
+import { useCustomers } from '@/hooks/use-entities'
 import { formatCurrency } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 
@@ -15,10 +16,13 @@ export default function CustomersPage() {
   const { t, locale } = useTranslation()
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
   const [search, setSearch] = useState('')
+  const { data: customers = [], isLoading } = useCustomers()
 
-  const filtered = DEMO_CUSTOMERS.filter((c) =>
+  const filtered = customers.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase())
   )
+
+  if (isLoading) return <TableSkeleton />
 
   const getCustomerTypeLabel = (type: string) => {
     if (CUSTOMER_TYPE_KEYS.includes(type as typeof CUSTOMER_TYPE_KEYS[number])) {

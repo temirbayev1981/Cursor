@@ -1,7 +1,7 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
-import type { Profile, Company } from '@/types'
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
+import type { Profile, Company, UserRole } from '@/types'
+import { supabase, DEMO_MODE } from '@/lib/supabase'
 import { DEMO_COMPANY } from '@/data/mock-data'
-import { DEMO_MODE } from '@/lib/supabase'
 
 interface AuthContextType {
   user: Profile | null
@@ -12,6 +12,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   completeOnboarding: () => void
+  hasRole: (...roles: UserRole[]) => boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -34,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => localStorage.getItem('handymanos_onboarding') === 'complete'
   )
 
-  useEffect(() => {
+  const restoreSession = useCallback(async () => {
     if (DEMO_MODE) {
       const stored = localStorage.getItem('handymanos_auth')
       if (stored === 'true') {
@@ -42,21 +43,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setCompany(DEMO_COMPANY)
       }
       setIsLoading(false)
-    } else {
-      setIsLoading(false)
+      return
     }
+
+    if (!supabase) {
+      setIsLoading(false)
+      return
+    }
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single()
+
+      if (profile) {
+        setUser(profile as unknown as Profile)
+        const { data: comp } = await supabase
+          .from('companies')
+          .select('*')
+          .eq('id', (profile as { company_id: string }).company_id)
+          .single()
+        if (comp) setCompany(comp as unknown as Company)
+      }
+    }
+    setIsLoading(false)
+
+    supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!session) {
+        setUser(null)
+        setCompany(null)
+      }
+    })
   }, [])
 
-  const signIn = async (email: string, _password: string) => {
+  useEffect(() => { restoreSession() }, [restoreSession])
+
+  const signIn = async (email: string, password: string) => {
     if (DEMO_MODE) {
       localStorage.setItem('handymanos_auth', 'true')
       setUser({ ...DEMO_USER, email })
       setCompany(DEMO_COMPANY)
+      return
     }
+
+    if (!supabase) throw new Error('Supabase not configured')
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) throw error
+    await restoreSession()
   }
 
   const signOut = async () => {
     localStorage.removeItem('handymanos_auth')
+    if (supabase && !DEMO_MODE) await supabase.auth.signOut()
     setUser(null)
     setCompany(null)
   }
@@ -66,19 +107,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setOnboardingComplete(true)
   }
 
+  const hasRole = (...roles: UserRole[]) => {
+    if (!user) return false
+    return roles.includes(user.role)
+  }
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        company,
-        isLoading,
-        isAuthenticated: !!user,
-        onboardingComplete,
-        signIn,
-        signOut,
-        completeOnboarding,
-      }}
-    >
+    <AuthContext.Provider value={{
+      user, company, isLoading, isAuthenticated: !!user, onboardingComplete,
+      signIn, signOut, completeOnboarding, hasRole,
+    }}>
       {children}
     </AuthContext.Provider>
   )
@@ -88,4 +126,11 @@ export function useAuth() {
   const context = useContext(AuthContext)
   if (!context) throw new Error('useAuth must be used within AuthProvider')
   return context
+}
+
+export function RoleGuard({ roles, children, fallback }: { roles: UserRole[]; children: ReactNode; fallback?: ReactNode }) {
+  const { hasRole, isLoading } = useAuth()
+  if (isLoading) return null
+  if (!hasRole(...roles)) return <>{fallback ?? null}</>
+  return <>{children}</>
 }

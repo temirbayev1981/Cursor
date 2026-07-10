@@ -34,9 +34,9 @@ import {
   EXPENSE_BREAKDOWN,
   SERVICE_PROFITABILITY,
   TECHNICIAN_PERFORMANCE,
-  DEMO_JOBS,
-  DEMO_CUSTOMERS,
 } from '@/data/mock-data'
+import { useJobs, useCustomers } from '@/hooks/use-entities'
+import { Skeleton } from '@/components/shared/skeleton'
 import { formatCurrency } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 
@@ -61,7 +61,10 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
 export default function DashboardPage() {
   const { t } = useTranslation()
   const metrics = DEMO_DASHBOARD
-  const recentJobs = DEMO_JOBS.slice(0, 4)
+  const { data: jobs = [], isLoading: jobsLoading } = useJobs()
+  const { data: customers = [], isLoading: customersLoading } = useCustomers()
+  const recentJobs = jobs.slice(0, 4)
+  const recentJobsLoading = jobsLoading || customersLoading
 
   return (
     <div>
@@ -193,8 +196,13 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {recentJobs.map((job) => {
-              const customer = DEMO_CUSTOMERS.find((c) => c.id === job.customer_id)
+            {recentJobsLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))
+            ) : (
+            recentJobs.map((job) => {
+              const customer = customers.find((c) => c.id === job.customer_id)
               return (
                 <div key={job.id} className="flex items-center justify-between rounded-lg bg-secondary/30 p-4">
                   <div className="space-y-1">
@@ -208,7 +216,8 @@ export default function DashboardPage() {
                   </div>
                 </div>
               )
-            })}
+            })
+            )}
           </div>
         </CardContent>
       </Card>

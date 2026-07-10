@@ -1,13 +1,12 @@
+import { hasSupabase } from '@/lib/env'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
+import { env } from '@/lib/env'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
-
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
+export const isSupabaseConfigured = hasSupabase
 
 export const supabase = isSupabaseConfigured
-  ? createClient<Database>(supabaseUrl, supabaseAnonKey)
+  ? createClient<Database>(env.VITE_SUPABASE_URL!, env.VITE_SUPABASE_ANON_KEY!)
   : null
 
 export const DEMO_MODE = !isSupabaseConfigured
