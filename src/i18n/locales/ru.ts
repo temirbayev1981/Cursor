@@ -199,6 +199,8 @@ export const ru = {
     bulkTechnician: 'Мастер',
     bulkAssign: 'Назначить',
     bulkAssigned: 'Назначено мастеров: {count}',
+    bulkSchedule: 'Запланировать и назначить',
+    bulkScheduled: 'Запланировано заказов: {count}',
   },
   workOrders: {
     title: 'Наряды',

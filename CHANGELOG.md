@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.5.5] — 2026-07-10
+
+Portal estimate decline, jobs bulk schedule & assign, shared PDF table labels.
+
+### Phase 61 — Portal decline, bulk schedule & CI smoke
+- Shared `PdfTableLabels` for estimate/invoice PDF exports
+- `useBulkScheduleJobs()` — schedule + assign technician in one action
+- Portal estimate approve/decline `data-testid` anchors
+- E2E: portal decline estimate, jobs bulk schedule (`portals.spec.ts`, `jobs-bulk-estimate-i18n.spec.ts`)
+- Optional Supabase smoke step in deploy workflow when secrets are configured
+
 ## [1.5.4] — 2026-07-10
 
 Localized report PDF, jobs bulk technician assign, portal invoice pay E2E.

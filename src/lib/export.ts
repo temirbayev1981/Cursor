@@ -244,16 +244,19 @@ export function exportReportPdf(data: ReportPdfData) {
   win.print()
 }
 
-export interface EstimatePdfLabels {
-  labor: string
-  materials: string
-  validUntil: string
+export interface PdfTableLabels {
   lineItems: string
   description: string
   qty: string
   unit: string
   total: string
   noLineItems: string
+}
+
+export interface EstimatePdfLabels extends PdfTableLabels {
+  labor: string
+  materials: string
+  validUntil: string
   laborHoursSuffix: string
   perHour: string
 }
@@ -322,19 +325,13 @@ export function exportEstimatePdf(data: EstimatePdfData) {
   win.print()
 }
 
-export interface InvoicePdfLabels {
+export interface InvoicePdfLabels extends PdfTableLabels {
   invoiceTitle: string
   subtotal: string
   tax: string
   dueDate: string
   paid: string
   balance: string
-  lineItems: string
-  description: string
-  qty: string
-  unit: string
-  total: string
-  noLineItems: string
 }
 
 export interface InvoicePdfData {

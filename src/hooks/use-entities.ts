@@ -164,6 +164,25 @@ export function useBulkAssignTechnician() {
   })
 }
 
+export function useBulkScheduleJobs() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: async ({ jobs, technicianId }: { jobs: Job[]; technicianId: string }) => {
+      const scheduledDate = new Date().toISOString()
+      for (const job of jobs) {
+        await saveEntity('jobs', {
+          ...job,
+          status: 'scheduled',
+          assigned_technician_id: technicianId,
+          scheduled_date: job.scheduled_date ?? scheduledDate,
+        })
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs', companyId] }),
+  })
+}
+
 export function useSaveInvoice() {
   const qc = useQueryClient()
   const companyId = useCompanyId()

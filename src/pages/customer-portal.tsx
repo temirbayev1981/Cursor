@@ -115,6 +115,7 @@ export default function CustomerPortalPage() {
                         className="flex-1"
                         onClick={() => updateEstimateStatus(est, 'approved')}
                         disabled={estimateAction.isPending}
+                        data-testid={`portal-estimate-approve-${est.id}`}
                       >
                         {t.customerPortal.approveSign}
                       </Button>
@@ -122,6 +123,7 @@ export default function CustomerPortalPage() {
                         variant="outline"
                         onClick={() => updateEstimateStatus(est, 'rejected')}
                         disabled={estimateAction.isPending}
+                        data-testid={`portal-estimate-decline-${est.id}`}
                       >
                         {t.common.decline}
                       </Button>

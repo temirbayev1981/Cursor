@@ -69,4 +69,20 @@ test.describe('Jobs bulk actions', () => {
     await page.getByTestId('jobs-select-all').uncheck()
     await expect(page.getByTestId('jobs-bulk-bar')).not.toBeVisible()
   })
+
+  test('bulk schedule assigns technician and moves jobs to scheduled', async ({ page }) => {
+    await page.goto('/jobs')
+    await page.getByRole('tab', { name: /черновик|draft/i }).click()
+
+    await page.getByTestId('job-select-job-bulk-001').check()
+    await page.getByTestId('job-select-job-bulk-002').check()
+    await page.getByTestId('jobs-bulk-schedule').click()
+
+    await expect(page.getByText(/запланировано заказов:\s*2|scheduled 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
+    await page.getByRole('tab', { name: /запланирован|scheduled/i }).click()
+    await expect(page.getByText('E2E Bulk Draft A').first()).toBeVisible()
+    await expect(page.getByText('E2E Bulk Draft B').first()).toBeVisible()
+    await expect(page.getByTestId('job-technician-job-bulk-001')).toContainText('Marcus Thompson')
+    await expect(page.getByTestId('job-technician-job-bulk-002')).toContainText('Marcus Thompson')
+  })
 })

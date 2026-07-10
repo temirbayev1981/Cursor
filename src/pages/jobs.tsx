@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/contexts/auth-context'
-import { useJobs, useCustomers, useEmployees, useSaveJob, useBulkUpdateJobStatus, useBulkAssignTechnician } from '@/hooks/use-entities'
+import { useJobs, useCustomers, useEmployees, useSaveJob, useBulkUpdateJobStatus, useBulkAssignTechnician, useBulkScheduleJobs } from '@/hooks/use-entities'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
@@ -39,6 +39,7 @@ export default function JobsPage() {
   const saveJob = useSaveJob()
   const bulkUpdateStatus = useBulkUpdateJobStatus()
   const bulkAssignTechnician = useBulkAssignTechnician()
+  const bulkScheduleJobs = useBulkScheduleJobs()
 
   const activeTechnicians = employees.filter((e) => e.is_active && e.billing_rate > 0)
 
@@ -69,6 +70,20 @@ export default function JobsPage() {
       }
       return next
     })
+  }
+
+  const handleBulkSchedule = () => {
+    const selected = jobs.filter((job) => selectedIds.has(job.id))
+    if (selected.length === 0) return
+    bulkScheduleJobs.mutate(
+      { jobs: selected, technicianId: bulkTechnicianId },
+      {
+        onSuccess: () => {
+          toast.success(t.jobs.bulkScheduled.replace('{count}', String(selected.length)))
+          setSelectedIds(new Set())
+        },
+      },
+    )
   }
 
   const handleBulkAssign = () => {
@@ -199,6 +214,14 @@ export default function JobsPage() {
             data-testid="jobs-bulk-assign"
           >
             {t.jobs.bulkAssign}
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleBulkSchedule}
+            disabled={bulkScheduleJobs.isPending}
+            data-testid="jobs-bulk-schedule"
+          >
+            {t.jobs.bulkSchedule}
           </Button>
         </div>
       )}

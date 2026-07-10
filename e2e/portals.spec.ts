@@ -24,10 +24,18 @@ test.describe('Portals', () => {
     await page.goto('/portal/customer')
     await expect(page.getByRole('heading', { name: /клиентский портал|customer portal/i })).toBeVisible()
     await expect(page.getByText(/Bathroom Fixture|замен/i).first()).toBeVisible()
-    const approveBtn = page.getByRole('button', { name: /утвердить|approve/i }).first()
+    const approveBtn = page.getByTestId('portal-estimate-approve-est-004')
     await expect(approveBtn).toBeVisible()
     await approveBtn.click()
     await expect(page.getByText(/утверждена|approved/i).first()).toBeVisible({ timeout: 5000 })
+  })
+
+  test('customer portal declines sent estimate', async ({ page }) => {
+    await page.goto('/portal/customer')
+    await expect(page.getByTestId('portal-estimate-decline-est-004')).toBeVisible()
+    await page.getByTestId('portal-estimate-decline-est-004').click()
+    await expect(page.getByText(/отклонена|declined|rejected/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/отклонена|rejected/i).first()).toBeVisible()
   })
 
   test('property portal submit request form', async ({ page }) => {
