@@ -1,0 +1,71 @@
+import { CreditCard, Star } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { EstimateStatusBadge } from '@/components/shared/status-badge'
+import { DEMO_ESTIMATES, DEMO_INVOICES } from '@/data/mock-data'
+import { formatCurrency, formatDate } from '@/lib/utils'
+
+export default function CustomerPortalPage() {
+  const myEstimates = DEMO_ESTIMATES.filter((e) => e.customer_id === 'cust-002')
+  const myInvoices = DEMO_INVOICES
+
+  return (
+    <div className="gradient-bg min-h-screen">
+      <div className="max-w-3xl mx-auto p-6">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold">Customer Portal</h1>
+          <p className="text-muted-foreground">Sarah Johnson</p>
+        </div>
+
+        <h2 className="text-lg font-semibold mb-4">Your Estimates</h2>
+        <div className="space-y-3 mb-8">
+          {myEstimates.length === 0 ? (
+            <Card><CardContent className="p-6 text-center text-muted-foreground">No pending estimates</CardContent></Card>
+          ) : (
+            myEstimates.map((est) => (
+              <Card key={est.id}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-medium">{est.title}</p>
+                    <EstimateStatusBadge status={est.status} />
+                  </div>
+                  <p className="text-2xl font-bold mb-2">{formatCurrency(est.total)}</p>
+                  <p className="text-sm text-muted-foreground mb-3">Valid until {formatDate(est.valid_until)}</p>
+                  {est.status === 'sent' && (
+                    <div className="flex gap-2">
+                      <Button className="flex-1">Approve & Sign</Button>
+                      <Button variant="outline">Decline</Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+
+        <h2 className="text-lg font-semibold mb-4">Invoices</h2>
+        <div className="space-y-3 mb-8">
+          {myInvoices.slice(0, 2).map((inv) => (
+            <Card key={inv.id}>
+              <CardContent className="p-4 flex items-center justify-between">
+                <div>
+                  <p className="font-medium">{inv.invoice_number}</p>
+                  <p className="text-lg font-bold">{formatCurrency(inv.total)}</p>
+                </div>
+                <Button><CreditCard className="h-4 w-4" />Pay Now</Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <Card>
+          <CardContent className="p-6 text-center">
+            <Star className="h-8 w-8 text-accent mx-auto mb-3" />
+            <p className="font-medium mb-2">How was your recent service?</p>
+            <Button variant="outline">Leave a Review</Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
