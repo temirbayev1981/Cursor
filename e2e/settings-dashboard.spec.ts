@@ -80,6 +80,7 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('platform-audit-check-customer_sms_opt_out_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-scheduling_customer_sms_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-estimate_invoice_sms_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-dispatch_eta_sms_audit')).toBeVisible()
     await expect(page.getByTestId('notification-hub')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history-entry-0')).toBeVisible()

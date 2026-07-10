@@ -709,6 +709,7 @@ export const en: TranslationKeys = {
       customer_sms_opt_out_audit: 'Customer SMS opt-out',
       scheduling_customer_sms_audit: 'Scheduling customer SMS E2E',
       estimate_invoice_sms_audit: 'Estimate & invoice SMS opt-out',
+      dispatch_eta_sms_audit: 'Dispatch ETA SMS E2E',
       multi_tenant: 'Multi-tenant',
     },
     auditActions: {
