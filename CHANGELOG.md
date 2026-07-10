@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.10.4] — 2026-07-10
+
+Skipped-notification UX E2E and CRM ↔ portal prefs sync.
+
+### Phase 102 — Notify skipped toast & prefs sync
+- E2E: dispatch/scheduling show skipped toast when customer email opted out
+- E2E: staff CRM email opt-out syncs to customer portal via entity prefs
+- Settings audit checklist: `staff_customer_notify_audit`, `notify_skipped_toast_audit`
+- Platform audit: `notify_skipped_toast_audit` gate
+- **198** E2E tests, **148** unit tests
+
 ## [1.10.3] — 2026-07-10
 
 Staff CRM notification preferences and skipped-notification UX.

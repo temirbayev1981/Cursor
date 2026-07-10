@@ -139,6 +139,9 @@ export const NOTIFICATION_OPT_OUT_AUDIT = true as const
 /** Staff customer form edits notification preferences with table badge. */
 export const STAFF_CUSTOMER_NOTIFY_AUDIT = true as const
 
+/** Dispatch and scheduling show skipped toasts when customer email is opted out. */
+export const NOTIFY_SKIPPED_TOAST_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }
