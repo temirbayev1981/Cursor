@@ -1,4 +1,5 @@
 import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { upsertRows } from '@/lib/supabase-queries'
 import { callRpc } from '@/lib/supabase-rpc'
 import { loadStore, saveStore, upsertStore } from '@/lib/data-store'
 
@@ -85,7 +86,7 @@ export async function createPortalLink(
   upsertStore(TOKENS_KEY, record)
 
   if (!DEMO_MODE && supabase) {
-    const { error } = await supabase.from('portal_tokens').upsert(record as never)
+    const { error } = await upsertRows('portal_tokens', record)
     if (error) throw error
   }
 

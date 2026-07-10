@@ -4,6 +4,12 @@ All notable changes to HandymanOS AI are documented here.
 
 ## [Unreleased]
 
+### Phase 23 — Type safety & release prep
+- Typed `supabase-queries` helper (`insertRows`, `upsertRows`, `updateRows`)
+- Centralized Supabase type casts in lib layer (services no longer use `as never`)
+- Platform audit quality gate: type-safe Supabase queries
+- Unit tests for query helper types
+
 ### Phase 22 — Final audit & consolidation
 - Platform audit score (integration + quality) in Settings → System
 - Dashboard profit margin includes monthly overhead expenses

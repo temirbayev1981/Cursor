@@ -1,5 +1,6 @@
 import type { JobPhoto } from '@/types'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { insertRows } from '@/lib/supabase-queries'
 import { loadStore, upsertStore, STORE_KEYS } from '@/lib/data-store'
 
 const BUCKET = 'handymanos'
@@ -41,13 +42,13 @@ export async function uploadJobPhoto(
   upsertStore(STORE_KEYS.photos, photo)
 
   if (!DEMO_MODE && supabase) {
-    await supabase.from('photos').insert({
+    await insertRows('photos', {
       id: photo.id,
       company_id: companyId,
       job_id: jobId,
       url: photo.url,
       caption: caption ?? null,
-    } as never)
+    })
   }
 
   return photo
@@ -90,7 +91,7 @@ export async function uploadDocument(
   }
 
   if (!DEMO_MODE && supabase) {
-    await supabase.from('documents').insert(doc as never)
+    await insertRows('documents', doc)
   }
 
   return { id, url, name: file.name }

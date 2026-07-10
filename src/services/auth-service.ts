@@ -1,5 +1,7 @@
 import type { Company, Profile, UserRole, Employee } from '@/types'
+import type { Json } from '@/types/database'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { insertRows, upsertRows } from '@/lib/supabase-queries'
 import { DEMO_COMPANY } from '@/data/mock-data'
 import { shouldSkipOnboardingForRole } from '@/lib/permissions'
 import { getTeamInvitePreview, acceptTeamInvite } from '@/services/invite-service'
@@ -153,7 +155,10 @@ export async function registerUserWithCompany(
     created_at: new Date().toISOString(),
   }
 
-  const { error: companyError } = await supabase.from('companies').insert(company as never)
+  const { error: companyError } = await insertRows('companies', {
+    ...company,
+    settings: company.settings as Json,
+  })
   if (companyError) throw companyError
 
   const profile: Profile = {
@@ -165,7 +170,7 @@ export async function registerUserWithCompany(
     created_at: new Date().toISOString(),
   }
 
-  const { error: profileError } = await supabase.from('profiles').upsert(profile as never)
+  const { error: profileError } = await upsertRows('profiles', profile)
   if (profileError) throw profileError
 
   return { profile, company }

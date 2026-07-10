@@ -1,5 +1,6 @@
 import type { VendorPORecord, VendorPOInput } from '@/types/vendor-po'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { upsertRows } from '@/lib/supabase-queries'
 
 const STORAGE_KEY = 'handymanos_vendor_pos'
 
@@ -60,9 +61,9 @@ export async function saveVendorPO(input: VendorPOInput): Promise<VendorPORecord
     return record
   }
 
-  const { data, error } = await supabase
-    .from('vendor_po_records')
-    .upsert(record as never, { onConflict: 'company_id,vendor_po_number' })
+  const { data, error } = await upsertRows('vendor_po_records', record, {
+    onConflict: 'company_id,vendor_po_number',
+  })
     .select()
     .single()
 
@@ -101,7 +102,7 @@ export async function seedVendorPOs(records: VendorPORecord[]): Promise<void> {
     return
   }
 
-  const { error } = await supabase.from('vendor_po_records').upsert(records as never, {
+  const { error } = await upsertRows('vendor_po_records', records, {
     onConflict: 'company_id,vendor_po_number',
   })
   if (error) throw error

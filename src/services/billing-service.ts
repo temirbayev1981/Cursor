@@ -1,6 +1,7 @@
 import type { Company, SubscriptionPlan } from '@/types'
 import { hasStripe, getStripeSubscriptionEndpoint } from '@/lib/env'
 import { getSupabaseAuthHeaders, supabase, DEMO_MODE } from '@/lib/supabase'
+import { updateRows } from '@/lib/supabase-queries'
 import { getStoredCompany } from '@/services/onboarding-service'
 
 type StripeInstance = {
@@ -43,10 +44,7 @@ export async function updateCompanySubscription(
   localStorage.setItem('handymanos_company', JSON.stringify(updated))
 
   if (!DEMO_MODE && supabase) {
-    await supabase
-      .from('companies')
-      .update({ subscription_plan: plan } as never)
-      .eq('id', companyId)
+    await updateRows('companies', { subscription_plan: plan }, 'id', companyId)
   }
 
   return updated

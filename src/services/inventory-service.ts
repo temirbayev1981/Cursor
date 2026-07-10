@@ -2,6 +2,7 @@ import type { InventoryTransaction, InventoryTransactionType, Material } from '@
 import { listEntities, saveEntity } from '@/services/entity-service'
 import { loadStore, saveStore, upsertStore, STORE_KEYS } from '@/lib/data-store'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { insertRows } from '@/lib/supabase-queries'
 
 export async function listInventoryTransactions(companyId: string): Promise<InventoryTransaction[]> {
   const materials = await listEntities('materials', companyId)
@@ -60,7 +61,7 @@ export async function recordInventoryTransaction(
   upsertStore(STORE_KEYS.inventory, transaction)
 
   if (!DEMO_MODE && supabase) {
-    await supabase.from('inventory').insert(transaction as never)
+    await insertRows('inventory', transaction)
   }
 
   return { transaction, material: updatedMaterial }

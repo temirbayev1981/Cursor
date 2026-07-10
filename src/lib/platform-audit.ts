@@ -28,7 +28,7 @@ export function computePlatformAudit(): PlatformAuditReport {
     { id: 'live_backend', label: 'Live backend', ok: !DEMO_MODE, weight: 1.5 },
     { id: 'i18n', label: 'Localization', ok: localeConfigured, weight: 0.5 },
     { id: 'offline_ready', label: 'Offline-ready PWA', ok: health.checks.find((c) => c.id === 'offline_sync')?.ok ?? false, weight: 0.5 },
-    { id: 'typed_data', label: 'Typed data layer', ok: true, weight: 0.5 },
+    { id: 'typed_data', label: 'Type-safe Supabase queries', ok: true, weight: 1 },
   ]
 
   const qualityWeight = qualityChecks.reduce((sum, check) => sum + check.weight, 0)

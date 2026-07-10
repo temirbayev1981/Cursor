@@ -8,6 +8,7 @@ import {
 } from '@/data/mock-data'
 import { matchCustomerFromVendorPO } from '@/lib/vendor-po-customer-match'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { insertRows, upsertRows, type TableInsert, type TableRow } from '@/lib/supabase-queries'
 
 type EntityTable =
   | 'jobs'
@@ -101,15 +102,16 @@ async function fetchCompanyEntities<T>(table: EntityTable, companyId: string): P
   return (data ?? []) as T[]
 }
 
-async function upsertCompanyEntity<T>(table: EntityTable, item: T): Promise<T> {
-  const { data, error } = await supabase!
-    .from(table)
-    .upsert(item as never)
+async function upsertCompanyEntity<T extends EntityTable>(
+  table: T,
+  item: TableInsert<T>,
+): Promise<TableRow<T>> {
+  const { data, error } = await upsertRows(table, item)
     .select()
     .single()
 
   if (error) throw error
-  return data as T
+  return data as unknown as TableRow<T>
 }
 
 async function deleteCompanyEntity(table: EntityTable, id: string): Promise<void> {
@@ -175,8 +177,9 @@ export async function saveEntity<K extends keyof EntityMap>(entity: K, item: Ent
     return item
   }
 
-  const data = await upsertCompanyEntity<EntityMap[K]>(TABLE_MAP[entity], item)
-  return data
+  const table = TABLE_MAP[entity]
+  const data = await upsertCompanyEntity(table, item as TableInsert<typeof table>)
+  return data as EntityMap[K]
 }
 
 export async function deleteEntity<K extends keyof EntityMap>(entity: K, id: string): Promise<void> {
@@ -362,7 +365,7 @@ export async function logAudit(companyId: string, userId: string, action: string
   if (DEMO_MODE || !supabase) return
 
   try {
-    await supabase.from('audit_logs').insert(log as never)
+    await insertRows('audit_logs', log)
   } catch {
     // local cache remains authoritative offline
   }
@@ -398,9 +401,7 @@ export async function savePayment(payment: Payment): Promise<Payment> {
 
   if (DEMO_MODE || !supabase) return payment
 
-  const { data, error } = await supabase
-    .from('payments')
-    .upsert(payment as never)
+  const { data, error } = await upsertRows('payments', payment)
     .select()
     .single()
 
@@ -457,9 +458,7 @@ export async function saveFuelLog(log: FuelLog): Promise<FuelLog> {
 
   if (DEMO_MODE || !supabase) return log
 
-  const { data, error } = await supabase
-    .from('fuel_logs')
-    .upsert(log as never)
+  const { data, error } = await upsertRows('fuel_logs', log)
     .select()
     .single()
 
@@ -504,9 +503,7 @@ export async function saveTimeEntry(entry: TimeEntry): Promise<TimeEntry> {
 
   if (DEMO_MODE || !supabase) return entry
 
-  const { data, error } = await supabase
-    .from('time_entries')
-    .upsert(entry as never)
+  const { data, error } = await upsertRows('time_entries', entry)
     .select()
     .single()
 

@@ -1,6 +1,8 @@
 import type { OnboardingData, Company, Employee, Vehicle, Material } from '@/types'
+import type { Json } from '@/types/database'
 import { saveEntity } from '@/services/entity-service'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { upsertRows } from '@/lib/supabase-queries'
 
 const ONBOARDING_KEY = 'handymanos_onboarding_data'
 
@@ -37,7 +39,10 @@ export async function persistOnboarding(data: OnboardingData, companyId: string,
   }
 
   if (!DEMO_MODE && supabase) {
-    await supabase.from('companies').upsert(company as never)
+    await upsertRows('companies', {
+      ...company,
+      settings: company.settings as Json,
+    })
   } else {
     localStorage.setItem('handymanos_company', JSON.stringify(company))
   }

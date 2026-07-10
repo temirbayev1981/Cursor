@@ -1,5 +1,6 @@
 import type { UserRole } from '@/types'
 import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { upsertRows } from '@/lib/supabase-queries'
 import { callRpc } from '@/lib/supabase-rpc'
 import { loadStore, saveStore, upsertStore } from '@/lib/data-store'
 
@@ -55,7 +56,7 @@ export async function createTeamInvite(
   upsertStore(INVITES_KEY, invite)
 
   if (!DEMO_MODE && supabase) {
-    const { error } = await supabase.from('team_invites').upsert(invite as never)
+    const { error } = await upsertRows('team_invites', invite)
     if (error) throw error
   }
 
