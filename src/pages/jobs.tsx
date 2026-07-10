@@ -10,14 +10,17 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/contexts/auth-context'
-import { useJobs, useCustomers, useEmployees, useSaveJob } from '@/hooks/use-entities'
+import { useJobs, useCustomers, useEmployees, useSaveJob, useBulkUpdateJobStatus } from '@/hooks/use-entities'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
 import { JobMaterialUsageDialog } from '@/components/inventory/job-material-usage-dialog'
-import type { Job } from '@/types'
+import type { Job, JobStatus } from '@/types'
+
+const BULK_STATUSES: JobStatus[] = ['draft', 'scheduled', 'in_progress', 'completed', 'on_hold', 'cancelled']
 
 export default function JobsPage() {
   const { t } = useTranslation()
@@ -25,18 +28,58 @@ export default function JobsPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [showForm, setShowForm] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [bulkStatus, setBulkStatus] = useState<JobStatus>('scheduled')
   const { company } = useAuth()
   const companyId = company?.id ?? 'comp-001'
   const { data: jobs = [], isLoading } = useJobs()
   const { data: customers = [] } = useCustomers()
   const { data: employees = [] } = useEmployees()
   const saveJob = useSaveJob()
+  const bulkUpdateStatus = useBulkUpdateJobStatus()
 
   const filtered = jobs.filter((job) => {
     const matchesSearch = job.title.toLowerCase().includes(search.toLowerCase())
     const matchesStatus = statusFilter === 'all' || job.status === statusFilter
     return matchesSearch && matchesStatus
   })
+
+  const allFilteredSelected = filtered.length > 0 && filtered.every((job) => selectedIds.has(job.id))
+
+  const toggleJob = (jobId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(jobId)) next.delete(jobId)
+      else next.add(jobId)
+      return next
+    })
+  }
+
+  const toggleAllFiltered = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (allFilteredSelected) {
+        for (const job of filtered) next.delete(job.id)
+      } else {
+        for (const job of filtered) next.add(job.id)
+      }
+      return next
+    })
+  }
+
+  const handleBulkApply = () => {
+    const selected = jobs.filter((job) => selectedIds.has(job.id))
+    if (selected.length === 0) return
+    bulkUpdateStatus.mutate(
+      { jobs: selected, status: bulkStatus },
+      {
+        onSuccess: () => {
+          toast.success(t.jobs.bulkUpdated.replace('{count}', String(selected.length)))
+          setSelectedIds(new Set())
+        },
+      },
+    )
+  }
 
   const handleCreate = (job: Job) => {
     saveJob.mutate(job, {
@@ -77,18 +120,66 @@ export default function JobsPage() {
             <TabsTrigger value="scheduled">{t.jobs.scheduled}</TabsTrigger>
             <TabsTrigger value="in_progress">{t.jobs.inProgress}</TabsTrigger>
             <TabsTrigger value="completed">{t.jobs.completed}</TabsTrigger>
-            <TabsTrigger value="draft">Черновик</TabsTrigger>
+            <TabsTrigger value="draft">{t.jobs.draft}</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
+      {filtered.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 mb-4">
+          <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+            <input
+              type="checkbox"
+              className="rounded"
+              checked={allFilteredSelected}
+              onChange={toggleAllFiltered}
+              data-testid="jobs-select-all"
+            />
+            {t.jobs.selectAll}
+          </label>
+        </div>
+      )}
+
+      {selectedIds.size > 0 && (
+        <div
+          className="flex flex-wrap items-center gap-3 mb-4 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3"
+          data-testid="jobs-bulk-bar"
+        >
+          <span className="text-sm font-medium">{t.jobs.bulkSelected.replace('{count}', String(selectedIds.size))}</span>
+          <Select value={bulkStatus} onValueChange={(value) => setBulkStatus(value as JobStatus)}>
+            <SelectTrigger className="w-44 h-9" data-testid="jobs-bulk-status">
+              <SelectValue placeholder={t.jobs.bulkStatus} />
+            </SelectTrigger>
+            <SelectContent>
+              {BULK_STATUSES.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {t.status.job[status]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button size="sm" onClick={handleBulkApply} disabled={bulkUpdateStatus.isPending} data-testid="jobs-bulk-apply">
+            {t.jobs.bulkApply}
+          </Button>
+        </div>
+      )}
+
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <DataTable headers={[t.jobs.job, t.jobs.customer, t.jobs.technician, t.jobs.status, t.jobs.priority, t.jobs.revenue, t.jobs.profit, t.jobs.scheduledDate, '']}>
+        <DataTable headers={['', t.jobs.job, t.jobs.customer, t.jobs.technician, t.jobs.status, t.jobs.priority, t.jobs.revenue, t.jobs.profit, t.jobs.scheduledDate, '']}>
           {filtered.map((job) => {
             const customer = customers.find((c) => c.id === job.customer_id)
             const tech = employees.find((e) => e.id === job.assigned_technician_id)
             return (
               <DataTableRow key={job.id}>
+                <DataTableCell>
+                  <input
+                    type="checkbox"
+                    className="rounded"
+                    checked={selectedIds.has(job.id)}
+                    onChange={() => toggleJob(job.id)}
+                    data-testid={`job-select-${job.id}`}
+                  />
+                </DataTableCell>
                 <DataTableCell>
                   <div>
                     <p className="font-medium">{job.title}</p>

@@ -28,7 +28,7 @@ test.describe('Estimate PDF export', () => {
 
     await expect(popup.locator('body')).toContainText(/Drywall repair/i)
     await expect(popup.locator('body')).toContainText(/Wall painting/i)
-    await expect(popup.locator('body')).toContainText(/Line items/i)
+    await expect(popup.locator('body')).toContainText(/Line items|Позиции/i)
     await popup.close()
   })
 })

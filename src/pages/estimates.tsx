@@ -88,6 +88,19 @@ export default function EstimatesPage() {
       validUntil: est.valid_until,
       lineItems: est.line_items,
       companyName: company?.name,
+      labels: {
+        labor: t.estimates.labor,
+        materials: t.estimates.materials,
+        validUntil: t.estimates.validUntil,
+        lineItems: t.estimates.pdf.lineItems,
+        description: t.estimates.pdf.description,
+        qty: t.estimates.pdf.qty,
+        unit: t.estimates.pdf.unit,
+        total: t.estimates.total,
+        noLineItems: t.estimates.pdf.noLineItems,
+        laborHoursSuffix: `${t.common.hours} @ `,
+        perHour: `/${t.common.hr}`,
+      },
     })
   }
 

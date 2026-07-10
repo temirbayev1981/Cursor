@@ -192,6 +192,12 @@ export const en: TranslationKeys = {
     profit: 'Profit',
     scheduledDate: 'Scheduled',
     estimated: 'estimated',
+    draft: 'Draft',
+    selectAll: 'Select all on page',
+    bulkSelected: 'Selected: {count}',
+    bulkStatus: 'New status',
+    bulkApply: 'Apply',
+    bulkUpdated: 'Updated {count} jobs',
   },
   workOrders: {
     title: 'Work Orders',
@@ -293,6 +299,13 @@ export const en: TranslationKeys = {
     materials: 'Materials',
     total: 'Total',
     validUntil: 'Valid Until',
+    pdf: {
+      lineItems: 'Line items',
+      description: 'Description',
+      qty: 'Qty',
+      unit: 'Unit',
+      noLineItems: 'No line items',
+    },
   },
   customers: {
     title: 'Customers',

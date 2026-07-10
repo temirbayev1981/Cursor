@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.5.3] — 2026-07-10
+
+Localized estimate PDF export and jobs bulk status actions.
+
+### Phase 59 — Estimate i18n PDF & jobs bulk actions
+- Localized `exportEstimatePdf()` labels (RU/EN) via `t.estimates.pdf`
+- Jobs page bulk selection with select-all, status dropdown, and apply bar
+- `useBulkUpdateJobStatus()` hook for batch status updates
+- E2E: estimate PDF i18n, jobs bulk schedule + select-all (`jobs-bulk-estimate-i18n.spec.ts`)
+- Fixed hardcoded draft tab label on jobs page
+
 ## [1.5.2] — 2026-07-10
 
 Dispatch map E2E, localized invoice PDF export, multi-PDF vendor PO batch.

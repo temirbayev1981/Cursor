@@ -177,3 +177,37 @@ export async function seedDraftInvoice(page: Page) {
   })
   await page.reload()
 }
+
+/** Seeds two draft jobs for bulk status E2E. */
+export async function seedBulkDraftJobs(page: Page) {
+  await page.evaluate(() => {
+    const jobs = JSON.parse(localStorage.getItem('handymanos_jobs') || '[]') as Array<Record<string, unknown>>
+    const base = {
+      company_id: 'comp-001',
+      description: 'Bulk actions E2E test job',
+      priority: 'medium',
+      estimated_hours: 2,
+      actual_hours: 0,
+      revenue: 200,
+      labor_cost: 0,
+      material_cost: 0,
+      fuel_cost: 0,
+      overhead_cost: 0,
+      profit: 0,
+      profit_margin: 0,
+      created_at: new Date().toISOString(),
+      status: 'draft',
+    }
+    const drafts = [
+      { ...base, id: 'job-bulk-001', customer_id: 'cust-001', title: 'E2E Bulk Draft A' },
+      { ...base, id: 'job-bulk-002', customer_id: 'cust-002', title: 'E2E Bulk Draft B' },
+    ]
+    for (const draft of drafts) {
+      const idx = jobs.findIndex((j) => j.id === draft.id)
+      if (idx >= 0) jobs[idx] = draft
+      else jobs.push(draft)
+    }
+    localStorage.setItem('handymanos_jobs', JSON.stringify(jobs))
+  })
+  await page.reload()
+}

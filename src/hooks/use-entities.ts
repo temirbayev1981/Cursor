@@ -138,6 +138,19 @@ export function useUpdateJobStatus() {
   })
 }
 
+export function useBulkUpdateJobStatus() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: async ({ jobs, status }: { jobs: Job[]; status: Job['status'] }) => {
+      for (const job of jobs) {
+        await saveEntity('jobs', { ...job, status })
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs', companyId] }),
+  })
+}
+
 export function useSaveInvoice() {
   const qc = useQueryClient()
   const companyId = useCompanyId()

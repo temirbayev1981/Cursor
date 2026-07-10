@@ -1,18 +1,18 @@
-# HandymanOS AI — Release 1.5.2
+# HandymanOS AI — Release 1.5.3
 
-Dispatch map, localized invoice PDF, and vendor PO batch on **1.5.1**.
+Estimate PDF i18n and jobs bulk actions on **1.5.2**.
 
-## What's new in 1.5.2
+## What's new in 1.5.3
 
-- Localized invoice PDF export (Russian and English labels)
-- Dispatch job map `data-testid` anchors for E2E
-- E2E: dispatch map stop addresses, invoice PDF i18n, multi-PDF vendor PO batch (101 tests total)
-- Second vendor PO fixture for batch upload tests
+- Localized estimate PDF export (Russian and English labels)
+- Jobs bulk status updates with checkbox selection and apply bar
+- `useBulkUpdateJobStatus()` for batch job status changes
+- E2E: estimate PDF i18n, jobs bulk schedule + select-all (105 tests total)
 
 ## Test coverage
 
 - Unit: **83**
-- E2E: **101** (27 spec files)
+- E2E: **105** (28 spec files)
 
 ## Deploy
 
@@ -21,10 +21,10 @@ npm run verify:production
 npm run test:e2e
 
 git checkout main
-git merge cursor/phase-58-dispatch-map-i18n-pdf-1b4a
+git merge cursor/phase-59-estimate-i18n-jobs-bulk-1b4a
 git push origin main
 ```
 
 ## Merge chain
 
-`#24` → … → `#50` → **#51**
+`#24` → … → `#51` → **#52**

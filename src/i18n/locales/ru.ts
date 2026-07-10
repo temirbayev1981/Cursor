@@ -190,6 +190,12 @@ export const ru = {
     profit: 'Прибыль',
     scheduledDate: 'Дата',
     estimated: 'оценка',
+    draft: 'Черновик',
+    selectAll: 'Выбрать все на странице',
+    bulkSelected: 'Выбрано: {count}',
+    bulkStatus: 'Новый статус',
+    bulkApply: 'Применить',
+    bulkUpdated: 'Обновлено заказов: {count}',
   },
   workOrders: {
     title: 'Наряды',
@@ -291,6 +297,13 @@ export const ru = {
     materials: 'Материалы',
     total: 'Итого',
     validUntil: 'Действует до',
+    pdf: {
+      lineItems: 'Позиции',
+      description: 'Описание',
+      qty: 'Кол-во',
+      unit: 'Цена',
+      noLineItems: 'Нет позиций',
+    },
   },
   customers: {
     title: 'Клиенты',

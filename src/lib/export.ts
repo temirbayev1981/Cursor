@@ -223,6 +223,20 @@ export function exportReportPdf(data: ReportPdfData) {
   win.print()
 }
 
+export interface EstimatePdfLabels {
+  labor: string
+  materials: string
+  validUntil: string
+  lineItems: string
+  description: string
+  qty: string
+  unit: string
+  total: string
+  noLineItems: string
+  laborHoursSuffix: string
+  perHour: string
+}
+
 export interface EstimatePdfData {
   title: string
   customerName: string
@@ -234,14 +248,16 @@ export interface EstimatePdfData {
   validUntil: string
   lineItems: Estimate['line_items']
   companyName?: string
+  labels: EstimatePdfLabels
 }
 
 export function exportEstimatePdf(data: EstimatePdfData) {
+  const { labels } = data
   const lineRows = data.lineItems.length
     ? data.lineItems.map((item) =>
         `<tr><td>${escapeHtml(item.description)}</td><td>${item.quantity}</td><td>$${item.unit_price.toFixed(2)}</td><td>$${item.total.toFixed(2)}</td></tr>`,
       ).join('\n')
-    : '<tr><td colspan="4">No line items</td></tr>'
+    : `<tr><td colspan="4">${escapeHtml(labels.noLineItems)}</td></tr>`
 
   const html = `<!DOCTYPE html>
 <html>
@@ -264,16 +280,16 @@ export function exportEstimatePdf(data: EstimatePdfData) {
   <h1>${escapeHtml(data.title)}</h1>
   <p class="meta">${escapeHtml(data.companyName ?? 'HandymanOS AI')} · ${escapeHtml(data.customerName)} · ${escapeHtml(data.status)}</p>
   <div class="summary">
-    <div><strong>Labor</strong><br>${data.laborHours}h @ $${data.laborRate.toFixed(2)}/hr</div>
-    <div><strong>Materials</strong><br>$${data.materialCost.toFixed(2)}</div>
-    <div><strong>Valid until</strong><br>${escapeHtml(data.validUntil)}</div>
+    <div><strong>${escapeHtml(labels.labor)}</strong><br>${data.laborHours}${escapeHtml(labels.laborHoursSuffix)}$${data.laborRate.toFixed(2)}${escapeHtml(labels.perHour)}</div>
+    <div><strong>${escapeHtml(labels.materials)}</strong><br>$${data.materialCost.toFixed(2)}</div>
+    <div><strong>${escapeHtml(labels.validUntil)}</strong><br>${escapeHtml(data.validUntil)}</div>
   </div>
-  <h2>Line items</h2>
+  <h2>${escapeHtml(labels.lineItems)}</h2>
   <table>
-    <tr><th>Description</th><th>Qty</th><th>Unit</th><th>Total</th></tr>
+    <tr><th>${escapeHtml(labels.description)}</th><th>${escapeHtml(labels.qty)}</th><th>${escapeHtml(labels.unit)}</th><th>${escapeHtml(labels.total)}</th></tr>
     ${lineRows}
   </table>
-  <p class="total">Total: $${data.total.toFixed(2)}</p>
+  <p class="total">${escapeHtml(labels.total)}: $${data.total.toFixed(2)}</p>
 </body>
 </html>`
 
