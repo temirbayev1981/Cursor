@@ -688,6 +688,7 @@ export const ru = {
       notify_skipped_toast_audit: 'Toast при пропуске уведомлений',
       portal_staff_notify_sync_audit: 'Синхронизация портал → CRM',
       notification_hub_skip_log_audit: 'Журнал пропущенных уведомлений',
+      notification_hub_skip_ops_audit: 'Экспорт и очистка журнала',
       multi_tenant: 'Мульти-тенант',
     },
     auditActions: {
@@ -753,6 +754,10 @@ export const ru = {
     notificationHubSms: 'SMS',
     notificationHubSkipped: 'Пропущено',
     notificationHubSkipReason: 'Клиент отключил email-уведомления',
+    notificationHubExportSkipLog: 'Экспорт журнала',
+    notificationHubClearSkipLog: 'Очистить журнал',
+    notificationHubSkipLogExported: 'Журнал пропусков экспортирован',
+    notificationHubSkipLogCleared: 'Журнал пропусков очищен',
     notificationHubRetryFailed: 'Повторить ошибочные',
     notificationHubRetried: 'Повторно отправлено: {count}',
     notificationHubNoRetry: 'Не удалось доставить — проверьте webhooks',

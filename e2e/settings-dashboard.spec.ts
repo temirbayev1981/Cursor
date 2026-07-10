@@ -76,6 +76,7 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('platform-audit-check-notify_skipped_toast_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-portal_staff_notify_sync_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-notification_hub_skip_log_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-notification_hub_skip_ops_audit')).toBeVisible()
     await expect(page.getByTestId('notification-hub')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history-entry-0')).toBeVisible()
@@ -158,6 +159,30 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByText(/chen\.family@email\.com/i).first()).toBeVisible()
     await expect(page.getByText(/пропущено|skipped/i).first()).toBeVisible()
     await expect(page.getByText(/отключил email|opted out/i).first()).toBeVisible()
+  })
+
+  test('notification hub exports and clears skip log', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await page.evaluate(() => {
+      localStorage.setItem('handymanos_customer_notify_prefs_cust-004', JSON.stringify({ email: false, sms: false }))
+    })
+    await page.goto('/estimates')
+    await page.getByTestId('estimate-send-est-003').click()
+    await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /system|система/i }).click()
+    await expect(page.getByTestId('notification-hub-export-skip-log')).toBeVisible()
+
+    const downloadPromise = page.waitForEvent('download')
+    await page.getByTestId('notification-hub-export-skip-log').click()
+    const download = await downloadPromise
+    expect(download.suggestedFilename()).toMatch(/handymanos-skip-log.*\.csv$/i)
+
+    await page.getByTestId('notification-hub-clear-skip-log').click()
+    await expect(page.getByText(/журнал пропусков очищен|skip log cleared/i).first()).toBeVisible({ timeout: 5000 })
+    await page.getByTestId('notification-hub-filter-skipped').click()
+    await expect(page.getByText(/chen\.family@email\.com/i)).not.toBeVisible()
   })
 })
 

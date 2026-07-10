@@ -55,3 +55,16 @@ export function getNotificationSkipLogFiltered(channel: 'all' | 'email' | 'sms' 
 export function clearNotificationSkipLog(): void {
   saveSkipLog([])
 }
+
+export function exportNotificationSkipLogCsv(): string {
+  const header = 'created_at,to,channel,subject,body,reason'
+  const rows = getNotificationSkipLog().map((item) => [
+    item.created_at,
+    item.to,
+    item.channel,
+    item.subject ?? '',
+    item.body.replace(/"/g, '""'),
+    item.reason,
+  ].map((value) => `"${value}"`).join(','))
+  return [header, ...rows].join('\n')
+}

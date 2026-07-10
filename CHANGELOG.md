@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.10.7] — 2026-07-10
+
+Notification hub skip log operator export and clear.
+
+### Phase 105 — Skip log operator ops
+- `exportNotificationSkipLogCsv()` — CSV download from Settings hub
+- Hub buttons: export skip log, clear skip log
+- E2E: export CSV and clear skip log after estimate opt-out
+- Platform audit: `notification_hub_skip_ops_audit` gate
+- **201** E2E tests, **153** unit tests
+
 ## [1.10.6] — 2026-07-10
 
 Notification hub skip log for customer email opt-out.

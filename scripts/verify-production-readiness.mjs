@@ -325,6 +325,20 @@ if (hubPanel.includes('notification-hub-filter-skipped') && hubPanel.includes('g
   ok = false
 }
 
+if (hubPanel.includes('notification-hub-export-skip-log') && hubPanel.includes('exportNotificationSkipLogCsv')) {
+  console.log('✓ notification hub exports skip log CSV')
+} else {
+  console.log('✗ notification hub must export skip log CSV')
+  ok = false
+}
+
+if (auditLabels.includes('NOTIFICATION_HUB_SKIP_OPS_AUDIT = true')) {
+  console.log('✓ NOTIFICATION_HUB_SKIP_OPS_AUDIT gate enabled')
+} else {
+  console.log('✗ NOTIFICATION_HUB_SKIP_OPS_AUDIT must be true')
+  ok = false
+}
+
 const customerForm = readFileSync('src/components/forms/customer-form.tsx', 'utf8')
 if (customerForm.includes('customer-form-notify-email') && customerForm.includes('notification_preferences')) {
   console.log('✓ customer form exposes notification preference toggles')

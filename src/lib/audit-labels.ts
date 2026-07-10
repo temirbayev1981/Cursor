@@ -148,6 +148,9 @@ export const PORTAL_STAFF_NOTIFY_SYNC_AUDIT = true as const
 /** Notification hub records and filters customer opt-out skips. */
 export const NOTIFICATION_HUB_SKIP_LOG_AUDIT = true as const
 
+/** Notification hub exports and clears skip log for operators. */
+export const NOTIFICATION_HUB_SKIP_OPS_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }

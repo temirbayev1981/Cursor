@@ -11,7 +11,7 @@ export type NotificationChannel = 'email' | 'sms' | 'push'
 export type NotificationDeliveryStatus = 'queued' | 'sent' | 'failed'
 export type NotificationHubFilter = 'all' | NotificationChannel | 'skipped'
 
-export { getNotificationSkipLog, clearNotificationSkipLog } from '@/lib/notification-skip-log'
+export { getNotificationSkipLog, clearNotificationSkipLog, exportNotificationSkipLogCsv } from '@/lib/notification-skip-log'
 
 type NotificationLocale = 'en' | 'ru'
 
