@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, X } from 'lucide-react'
+import { Plus, X, Pencil } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -19,15 +19,17 @@ export default function TechniciansPage() {
   const { company } = useAuth()
   const companyId = company?.id ?? 'comp-001'
   const [showForm, setShowForm] = useState(false)
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
   const { data: employees = [], isLoading } = useEmployees()
   const saveEmployee = useSaveEmployee()
   const techs = employees.filter((e) => e.billing_rate > 0 && e.is_active)
 
-  const handleCreate = (employee: Employee) => {
+  const handleSave = (employee: Employee) => {
     saveEmployee.mutate(employee, {
       onSuccess: () => {
         toast.success(t.common.save)
         setShowForm(false)
+        setEditingEmployee(null)
       },
     })
   }
@@ -39,17 +41,22 @@ export default function TechniciansPage() {
       <PageHeader
         title={t.technicians.title}
         description={t.technicians.description}
-        actions={<Button onClick={() => setShowForm(true)}><Plus className="h-4 w-4" />{t.technicians.addTechnician}</Button>}
+        actions={<Button onClick={() => { setEditingEmployee(null); setShowForm(true) }}><Plus className="h-4 w-4" />{t.technicians.addTechnician}</Button>}
       />
 
       {showForm && (
         <Card className="mb-6">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">{t.technicians.addTechnician}</CardTitle>
-            <Button variant="ghost" size="icon" onClick={() => setShowForm(false)}><X className="h-4 w-4" /></Button>
+            <CardTitle className="text-base">{editingEmployee ? t.common.edit : t.technicians.addTechnician}</CardTitle>
+            <Button variant="ghost" size="icon" onClick={() => { setShowForm(false); setEditingEmployee(null) }}><X className="h-4 w-4" /></Button>
           </CardHeader>
           <CardContent>
-            <EmployeeForm companyId={companyId} onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
+            <EmployeeForm
+              companyId={companyId}
+              initial={editingEmployee ?? undefined}
+              onSubmit={handleSave}
+              onCancel={() => { setShowForm(false); setEditingEmployee(null) }}
+            />
           </CardContent>
         </Card>
       )}
@@ -66,9 +73,22 @@ export default function TechniciansPage() {
                   <Avatar className="h-12 w-12">
                     <AvatarFallback>{getInitials(tech.name)}</AvatarFallback>
                   </Avatar>
-                  <div>
-                    <p className="font-semibold">{tech.name}</p>
-                    <p className="text-sm text-muted-foreground">{tech.role}</p>
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="font-semibold">{tech.name}</p>
+                        <p className="text-sm text-muted-foreground">{tech.role}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={t.common.edit}
+                        data-testid={`employee-edit-${tech.id}`}
+                        onClick={() => { setEditingEmployee(tech); setShowForm(true) }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <div className="flex gap-1 mt-2 flex-wrap">
                       {tech.skills.map((skill) => (
                         <Badge key={skill} variant="outline" className="text-[10px]">{skill}</Badge>

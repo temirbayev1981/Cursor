@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Fuel, X } from 'lucide-react'
+import { Plus, Fuel, X, Pencil } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -23,6 +23,8 @@ export default function VehiclesPage() {
   const companyId = company?.id ?? 'comp-001'
   const [showForm, setShowForm] = useState(false)
   const [showFuelForm, setShowFuelForm] = useState(false)
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null)
+  const [editingFuelLog, setEditingFuelLog] = useState<FuelLog | null>(null)
   const { data: vehicles = [], isLoading: vehLoading } = useVehicles()
   const { data: fuelLogs = [], isLoading: fuelLoading } = useFuelLogs()
   const saveVehicle = useSaveVehicle()
@@ -30,20 +32,22 @@ export default function VehiclesPage() {
   const totalFuelCost = fuelLogs.reduce((s, l) => s + l.total_cost, 0)
   const totalMiles = fuelLogs.reduce((s, l) => s + l.miles, 0)
 
-  const handleCreate = (vehicle: Vehicle) => {
+  const handleSaveVehicle = (vehicle: Vehicle) => {
     saveVehicle.mutate(vehicle, {
       onSuccess: () => {
         toast.success(t.common.save)
         setShowForm(false)
+        setEditingVehicle(null)
       },
     })
   }
 
-  const handleCreateFuelLog = (log: FuelLog) => {
+  const handleSaveFuelLog = (log: FuelLog) => {
     saveFuelLog.mutate(log, {
       onSuccess: () => {
         toast.success(t.common.save)
         setShowFuelForm(false)
+        setEditingFuelLog(null)
       },
     })
   }
@@ -55,17 +59,22 @@ export default function VehiclesPage() {
       <PageHeader
         title={t.vehicles.title}
         description={t.vehicles.description}
-        actions={<Button onClick={() => setShowForm(true)}><Plus className="h-4 w-4" />{t.vehicles.addVehicle}</Button>}
+        actions={<Button onClick={() => { setEditingVehicle(null); setShowForm(true) }}><Plus className="h-4 w-4" />{t.vehicles.addVehicle}</Button>}
       />
 
       {showForm && (
         <Card className="mb-6">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">{t.vehicles.addVehicle}</CardTitle>
-            <Button variant="ghost" size="icon" onClick={() => setShowForm(false)}><X className="h-4 w-4" /></Button>
+            <CardTitle className="text-base">{editingVehicle ? t.common.edit : t.vehicles.addVehicle}</CardTitle>
+            <Button variant="ghost" size="icon" onClick={() => { setShowForm(false); setEditingVehicle(null) }}><X className="h-4 w-4" /></Button>
           </CardHeader>
           <CardContent>
-            <VehicleForm companyId={companyId} onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
+            <VehicleForm
+              companyId={companyId}
+              initial={editingVehicle ?? undefined}
+              onSubmit={handleSaveVehicle}
+              onCancel={() => { setShowForm(false); setEditingVehicle(null) }}
+            />
           </CardContent>
         </Card>
       )}
@@ -100,7 +109,18 @@ export default function VehiclesPage() {
             <CardContent className="p-5">
               <div className="flex items-center justify-between mb-3">
                 <p className="font-semibold">{vehicle.name}</p>
-                <Badge variant="outline">{vehicle.type}</Badge>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    title={t.common.edit}
+                    data-testid={`vehicle-edit-${vehicle.id}`}
+                    onClick={() => { setEditingVehicle(vehicle); setShowForm(true) }}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Badge variant="outline">{vehicle.type}</Badge>
+                </div>
               </div>
               <p className="text-sm text-muted-foreground">{vehicle.year} {vehicle.make} {vehicle.model}</p>
               <p className="text-sm text-muted-foreground">{vehicle.license_plate}</p>
@@ -113,7 +133,7 @@ export default function VehiclesPage() {
       <Card data-testid="vehicles-fuel-logs">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>{t.vehicles.fuelLogs}</CardTitle>
-          <Button size="sm" onClick={() => setShowFuelForm(true)} disabled={vehicles.length === 0}>
+          <Button size="sm" onClick={() => { setEditingFuelLog(null); setShowFuelForm(true) }} disabled={vehicles.length === 0}>
             <Plus className="h-4 w-4" />{t.vehicles.addFuelLog}
           </Button>
         </CardHeader>
@@ -121,8 +141,9 @@ export default function VehiclesPage() {
           <CardContent className="border-b">
             <FuelLogForm
               vehicles={vehicles}
-              onSubmit={handleCreateFuelLog}
-              onCancel={() => setShowFuelForm(false)}
+              initial={editingFuelLog ?? undefined}
+              onSubmit={handleSaveFuelLog}
+              onCancel={() => { setShowFuelForm(false); setEditingFuelLog(null) }}
             />
           </CardContent>
         )}
@@ -137,7 +158,20 @@ export default function VehiclesPage() {
                   <DataTableCell>{log.miles}</DataTableCell>
                   <DataTableCell>{log.gallons}</DataTableCell>
                   <DataTableCell>{formatCurrencyPrecise(log.fuel_price)}</DataTableCell>
-                  <DataTableCell className="font-medium">{formatCurrencyPrecise(log.total_cost)}</DataTableCell>
+                  <DataTableCell className="font-medium">
+                    <div className="flex items-center justify-between gap-2">
+                      <span>{formatCurrencyPrecise(log.total_cost)}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={t.common.edit}
+                        data-testid={`fuel-log-edit-${log.id}`}
+                        onClick={() => { setEditingFuelLog(log); setShowFuelForm(true) }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </DataTableCell>
                 </DataTableRow>
               )
             })}

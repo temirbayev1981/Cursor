@@ -18,7 +18,8 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
     setIsRunning(true)
     try {
       const job = await createJobFromVendorPO(po, companyId)
-      await createEstimateFromJob(job, companyId)
+      const estimate = await createEstimateFromJob(job, companyId)
+      await logAudit(companyId, userId, 'estimate.create', 'estimate', estimate.id)
       const { id: _id, created_at: _ca, ...input } = po
       await saveVendorPO({ ...input, status: 'approved' })
       await logAudit(companyId, userId, 'vendor_po_to_job', 'job', job.id)

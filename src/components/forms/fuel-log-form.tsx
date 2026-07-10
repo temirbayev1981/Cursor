@@ -10,21 +10,30 @@ import type { FuelLog, Vehicle } from '@/types'
 
 interface FuelLogFormProps {
   vehicles: Vehicle[]
+  initial?: FuelLog
   onSubmit: (log: FuelLog) => void
   onCancel?: () => void
 }
 
-export function FuelLogForm({ vehicles, onSubmit, onCancel }: FuelLogFormProps) {
+export function FuelLogForm({ vehicles, initial, onSubmit, onCancel }: FuelLogFormProps) {
   const { t } = useTranslation()
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<FuelLogFormValues>({
     resolver: zodResolver(fuelLogSchema),
-    defaultValues: {
-      vehicle_id: vehicles[0]?.id ?? '',
-      date: new Date().toISOString().slice(0, 10),
-      miles: 0,
-      gallons: 10,
-      fuel_price: 3.5,
-    },
+    defaultValues: initial
+      ? {
+          vehicle_id: initial.vehicle_id,
+          date: initial.date.slice(0, 10),
+          miles: initial.miles,
+          gallons: initial.gallons,
+          fuel_price: initial.fuel_price,
+        }
+      : {
+          vehicle_id: vehicles[0]?.id ?? '',
+          date: new Date().toISOString().slice(0, 10),
+          miles: 0,
+          gallons: 10,
+          fuel_price: 3.5,
+        },
   })
 
   const vehicleId = watch('vehicle_id')
@@ -32,13 +41,14 @@ export function FuelLogForm({ vehicles, onSubmit, onCancel }: FuelLogFormProps) 
   const submit = (values: FuelLogFormValues) => {
     const totalCost = Math.round(values.gallons * values.fuel_price * 100) / 100
     onSubmit({
-      id: crypto.randomUUID(),
+      id: initial?.id ?? crypto.randomUUID(),
       vehicle_id: values.vehicle_id,
       date: new Date(values.date).toISOString(),
       miles: values.miles,
       gallons: values.gallons,
       fuel_price: values.fuel_price,
       total_cost: totalCost,
+      job_id: initial?.job_id,
     })
   }
 

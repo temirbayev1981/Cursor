@@ -9,33 +9,44 @@ import type { Employee } from '@/types'
 
 interface EmployeeFormProps {
   companyId: string
+  initial?: Employee
   onSubmit: (employee: Employee) => void
   onCancel?: () => void
 }
 
-export function EmployeeForm({ companyId, onSubmit, onCancel }: EmployeeFormProps) {
+export function EmployeeForm({ companyId, initial, onSubmit, onCancel }: EmployeeFormProps) {
   const { t } = useTranslation()
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeSchema),
-    defaultValues: { hourly_wage: 25, billing_rate: 75 },
+    defaultValues: initial
+      ? {
+          name: initial.name,
+          role: initial.role,
+          phone: initial.phone,
+          hourly_wage: initial.hourly_wage,
+          billing_rate: initial.billing_rate,
+          skills: initial.skills.join(', '),
+        }
+      : { hourly_wage: 25, billing_rate: 75 },
   })
 
   const submit = (values: EmployeeFormValues) => {
     onSubmit({
-      id: crypto.randomUUID(),
+      id: initial?.id ?? crypto.randomUUID(),
       company_id: companyId,
       name: values.name,
       role: values.role,
       phone: values.phone,
       hourly_wage: values.hourly_wage,
       billing_rate: values.billing_rate,
-      payroll_tax_rate: 0.12,
-      insurance_cost_monthly: 400,
-      benefits_monthly: 300,
-      overhead_allocation: 6,
-      is_active: true,
+      payroll_tax_rate: initial?.payroll_tax_rate ?? 0.12,
+      insurance_cost_monthly: initial?.insurance_cost_monthly ?? 400,
+      benefits_monthly: initial?.benefits_monthly ?? 300,
+      overhead_allocation: initial?.overhead_allocation ?? 6,
+      is_active: initial?.is_active ?? true,
       skills: values.skills ? values.skills.split(',').map((s) => s.trim()).filter(Boolean) : [],
-      created_at: new Date().toISOString(),
+      created_at: initial?.created_at ?? new Date().toISOString(),
+      profile_id: initial?.profile_id,
     })
   }
 

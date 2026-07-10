@@ -1,4 +1,4 @@
-import { Plus, Search, X, Link2 } from 'lucide-react'
+import { Plus, Search, X, Link2, Pencil } from 'lucide-react'
 import { useState } from 'react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
@@ -24,6 +24,7 @@ export default function CustomersPage() {
   const dateLocale = useDateLocale()
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
   const { company } = useAuth()
   const companyId = company?.id ?? 'comp-001'
   const { data: customers = [], isLoading } = useCustomers()
@@ -42,13 +43,24 @@ export default function CustomersPage() {
     return type
   }
 
-  const handleCreate = (customer: Customer) => {
+  const handleSave = (customer: Customer) => {
     saveCustomer.mutate(customer, {
       onSuccess: () => {
         toast.success(t.common.save)
         setShowForm(false)
+        setEditingCustomer(null)
       },
     })
+  }
+
+  const openCreateForm = () => {
+    setEditingCustomer(null)
+    setShowForm(true)
+  }
+
+  const openEditForm = (customer: Customer) => {
+    setEditingCustomer(customer)
+    setShowForm(true)
   }
 
   const handlePortalLink = async (customer: Customer, portalType: 'customer' | 'property') => {
@@ -66,17 +78,22 @@ export default function CustomersPage() {
       <PageHeader
         title={t.customers.title}
         description={t.customers.description}
-        actions={<Button onClick={() => setShowForm(true)}><Plus className="h-4 w-4" />{t.customers.addCustomer}</Button>}
+        actions={<Button onClick={openCreateForm}><Plus className="h-4 w-4" />{t.customers.addCustomer}</Button>}
       />
 
       {showForm && (
         <Card className="mb-6">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">{t.customers.addCustomer}</CardTitle>
-            <Button variant="ghost" size="icon" onClick={() => setShowForm(false)}><X className="h-4 w-4" /></Button>
+            <CardTitle className="text-base">{editingCustomer ? t.common.edit : t.customers.addCustomer}</CardTitle>
+            <Button variant="ghost" size="icon" onClick={() => { setShowForm(false); setEditingCustomer(null) }}><X className="h-4 w-4" /></Button>
           </CardHeader>
           <CardContent>
-            <CustomerForm companyId={companyId} onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
+            <CustomerForm
+              companyId={companyId}
+              initial={editingCustomer ?? undefined}
+              onSubmit={handleSave}
+              onCancel={() => { setShowForm(false); setEditingCustomer(null) }}
+            />
           </CardContent>
         </Card>
       )}
@@ -110,15 +127,26 @@ export default function CustomersPage() {
               {new Date(customer.created_at).toLocaleDateString(dateLocale)}
             </DataTableCell>
             <DataTableCell>
-              <Button
-                variant="ghost"
-                size="icon"
-                title={t.customers.copyPortalLink}
-                data-testid={`customer-portal-link-${customer.id}`}
-                onClick={() => void handlePortalLink(customer, customer.type === 'property_management' ? 'property' : 'customer')}
-              >
-                <Link2 className="h-4 w-4" />
-              </Button>
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  title={t.common.edit}
+                  data-testid={`customer-edit-${customer.id}`}
+                  onClick={() => openEditForm(customer)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  title={t.customers.copyPortalLink}
+                  data-testid={`customer-portal-link-${customer.id}`}
+                  onClick={() => void handlePortalLink(customer, customer.type === 'property_management' ? 'property' : 'customer')}
+                >
+                  <Link2 className="h-4 w-4" />
+                </Button>
+              </div>
             </DataTableCell>
           </DataTableRow>
         ))}

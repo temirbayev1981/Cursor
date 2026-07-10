@@ -4,7 +4,7 @@ import { PORTAL_RPC_ENFORCED } from '@/services/portal-data-service'
 import { STRIPE_WEBHOOK_AUDIT } from '@/services/billing-service'
 import { INVENTORY_AUDIT } from '@/services/inventory-service'
 import { ONBOARDING_AUDIT } from '@/services/onboarding-service'
-import { AUDIT_I18N_COVERAGE, BILLING_PLAN_AUDIT, BULK_OPS_AUDIT, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INVOICE_AUDIT, INVITE_AUDIT, PORTAL_AUDIT, PORTAL_REQUESTS_AUDIT, SAMPLE_IMPORT_AUDIT, TEAM_INVITE_AUDIT, VENDOR_PO_AUDIT } from '@/lib/audit-labels'
+import { AUDIT_E2E_FULL_COVERAGE, AUDIT_I18N_COVERAGE, BILLING_PLAN_AUDIT, BULK_OPS_AUDIT, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, ENTITY_UPDATE_AUDIT, ESTIMATE_CREATE_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INVOICE_AUDIT, INVITE_AUDIT, PORTAL_AUDIT, PORTAL_REQUESTS_AUDIT, SAMPLE_IMPORT_AUDIT, TEAM_INVITE_AUDIT, VENDOR_PO_AUDIT } from '@/lib/audit-labels'
 import { TYPED_SUPABASE_QUERIES } from '@/lib/supabase-queries'
 import { MULTI_TENANT_SUPPORTED, MULTI_TENANT_MEMBERSHIP_RPC } from '@/services/company-service'
 
@@ -61,6 +61,9 @@ describe('platform-audit', () => {
     expect(INVOICE_AUDIT).toBe(true)
     expect(SAMPLE_IMPORT_AUDIT).toBe(true)
     expect(PORTAL_REQUESTS_AUDIT).toBe(true)
+    expect(ESTIMATE_CREATE_AUDIT).toBe(true)
+    expect(ENTITY_UPDATE_AUDIT).toBe(true)
+    expect(AUDIT_E2E_FULL_COVERAGE).toBe(true)
     expect(TYPED_SUPABASE_QUERIES).toBe(true)
     expect(MULTI_TENANT_SUPPORTED).toBe(true)
     expect(MULTI_TENANT_MEMBERSHIP_RPC).toBe('get_accessible_companies')
@@ -87,6 +90,9 @@ describe('platform-audit', () => {
     const invoiceAudit = report.checks.find((check) => check.id === 'invoice_audit')
     const sampleImportAudit = report.checks.find((check) => check.id === 'sample_import_audit')
     const portalRequestsAudit = report.checks.find((check) => check.id === 'portal_requests_audit')
+    const estimateCreateAudit = report.checks.find((check) => check.id === 'estimate_create_audit')
+    const entityUpdateAudit = report.checks.find((check) => check.id === 'entity_update_audit')
+    const auditE2eFull = report.checks.find((check) => check.id === 'audit_e2e_full')
     const multi = report.checks.find((check) => check.id === 'multi_tenant')
     const liveBackend = report.checks.find((check) => check.id === 'live_backend')
 
@@ -111,6 +117,9 @@ describe('platform-audit', () => {
     expect(invoiceAudit?.ok).toBe(Boolean(liveBackend?.ok))
     expect(sampleImportAudit?.ok).toBe(Boolean(liveBackend?.ok))
     expect(portalRequestsAudit?.ok).toBe(Boolean(liveBackend?.ok))
+    expect(estimateCreateAudit?.ok).toBe(Boolean(liveBackend?.ok))
+    expect(entityUpdateAudit?.ok).toBe(Boolean(liveBackend?.ok))
+    expect(auditE2eFull?.ok).toBe(Boolean(liveBackend?.ok))
     expect(multi?.ok).toBe(Boolean(liveBackend?.ok))
   })
 })

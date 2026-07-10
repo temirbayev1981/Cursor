@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.8.9] — 2026-07-10
+
+Full audit E2E coverage for all 45 localized actions.
+
+### Phase 91 — Full audit E2E milestone
+- Platform audit: `estimate_create_audit`, `entity_update_audit`, `audit_e2e_full` gates
+- Vendor PO workflow now logs `estimate.create`
+- Entity edit buttons and form `initial` props for update audit paths
+- E2E (+12): bulk delete/schedule, portal decline, property create, entity updates → audit log
+- **183** E2E tests, **116** unit tests
+
 ## [1.8.8] — 2026-07-10
 
 Invoice, sample import, and portal request audit E2E.

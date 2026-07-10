@@ -9,21 +9,33 @@ import type { Material } from '@/types'
 
 interface MaterialFormProps {
   companyId: string
+  initial?: Material
   onSubmit: (material: Material) => void
   onCancel?: () => void
 }
 
-export function MaterialForm({ companyId, onSubmit, onCancel }: MaterialFormProps) {
+export function MaterialForm({ companyId, initial, onSubmit, onCancel }: MaterialFormProps) {
   const { t } = useTranslation()
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<MaterialFormValues>({
     resolver: zodResolver(materialSchema),
-    defaultValues: { markup_percent: 35, quantity: 0, reorder_level: 5, unit: 'each' },
+    defaultValues: initial
+      ? {
+          name: initial.name,
+          category: initial.category,
+          supplier: initial.supplier,
+          cost: initial.cost,
+          markup_percent: initial.markup_percent,
+          quantity: initial.quantity,
+          reorder_level: initial.reorder_level,
+          unit: initial.unit,
+        }
+      : { markup_percent: 35, quantity: 0, reorder_level: 5, unit: 'each' },
   })
 
   const submit = (values: MaterialFormValues) => {
     const customer_price = Math.round(values.cost * (1 + values.markup_percent / 100) * 100) / 100
     onSubmit({
-      id: crypto.randomUUID(),
+      id: initial?.id ?? crypto.randomUUID(),
       company_id: companyId,
       name: values.name,
       category: values.category,
@@ -34,7 +46,7 @@ export function MaterialForm({ companyId, onSubmit, onCancel }: MaterialFormProp
       quantity: values.quantity,
       reorder_level: values.reorder_level,
       unit: values.unit,
-      created_at: new Date().toISOString(),
+      created_at: initial?.created_at ?? new Date().toISOString(),
     })
   }
 

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, X } from 'lucide-react'
+import { Plus, X, Pencil } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
@@ -21,15 +21,17 @@ export default function ExpensesPage() {
   const { company } = useAuth()
   const companyId = company?.id ?? 'comp-001'
   const [showForm, setShowForm] = useState(false)
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
   const { data: expenses = [], isLoading } = useExpenses()
   const saveExpense = useSaveExpense()
   const total = expenses.reduce((s, e) => s + e.amount, 0)
 
-  const handleCreate = (expense: Expense) => {
+  const handleSave = (expense: Expense) => {
     saveExpense.mutate(expense, {
       onSuccess: () => {
         toast.success(t.common.save)
         setShowForm(false)
+        setEditingExpense(null)
       },
     })
   }
@@ -41,17 +43,22 @@ export default function ExpensesPage() {
       <PageHeader
         title={t.expenses.title}
         description={t.expenses.description}
-        actions={<Button onClick={() => setShowForm(true)}><Plus className="h-4 w-4" />{t.expenses.addExpense}</Button>}
+        actions={<Button onClick={() => { setEditingExpense(null); setShowForm(true) }}><Plus className="h-4 w-4" />{t.expenses.addExpense}</Button>}
       />
 
       {showForm && (
         <Card className="mb-6">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">{t.expenses.addExpense}</CardTitle>
-            <Button variant="ghost" size="icon" onClick={() => setShowForm(false)}><X className="h-4 w-4" /></Button>
+            <CardTitle className="text-base">{editingExpense ? t.common.edit : t.expenses.addExpense}</CardTitle>
+            <Button variant="ghost" size="icon" onClick={() => { setShowForm(false); setEditingExpense(null) }}><X className="h-4 w-4" /></Button>
           </CardHeader>
           <CardContent>
-            <ExpenseForm companyId={companyId} onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
+            <ExpenseForm
+              companyId={companyId}
+              initial={editingExpense ?? undefined}
+              onSubmit={handleSave}
+              onCancel={() => { setShowForm(false); setEditingExpense(null) }}
+            />
           </CardContent>
         </Card>
       )}
@@ -61,7 +68,7 @@ export default function ExpensesPage() {
         <p className="text-3xl font-bold">{formatCurrency(total)}</p>
       </div>
 
-      <DataTable headers={[t.vehicles.date, t.expenses.category, t.expenses.descriptionCol, t.expenses.amount, t.expenses.linked]}>
+      <DataTable headers={[t.vehicles.date, t.expenses.category, t.expenses.descriptionCol, t.expenses.amount, t.expenses.linked, '']}>
         {expenses.map((exp) => (
           <DataTableRow key={exp.id}>
             <DataTableCell>{formatDate(exp.date, dateLocale)}</DataTableCell>
@@ -70,6 +77,17 @@ export default function ExpensesPage() {
             <DataTableCell className="font-medium">{formatCurrency(exp.amount)}</DataTableCell>
             <DataTableCell className="text-muted-foreground">
               {exp.job_id ? t.expenses.job : exp.vehicle_id ? t.expenses.vehicle : '—'}
+            </DataTableCell>
+            <DataTableCell>
+              <Button
+                variant="ghost"
+                size="icon"
+                title={t.common.edit}
+                data-testid={`expense-edit-${exp.id}`}
+                onClick={() => { setEditingExpense(exp); setShowForm(true) }}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
             </DataTableCell>
           </DataTableRow>
         ))}

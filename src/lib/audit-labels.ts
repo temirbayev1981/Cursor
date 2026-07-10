@@ -103,6 +103,15 @@ export const SAMPLE_IMPORT_AUDIT = true as const
 /** Portal job/review requests write audit_logs. */
 export const PORTAL_REQUESTS_AUDIT = true as const
 
+/** Estimate creation from job workflow writes audit_logs. */
+export const ESTIMATE_CREATE_AUDIT = true as const
+
+/** Entity update mutations write audit_logs. */
+export const ENTITY_UPDATE_AUDIT = true as const
+
+/** All localized audit actions have E2E coverage in audit-expanded.spec.ts. */
+export const AUDIT_E2E_FULL_COVERAGE = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }

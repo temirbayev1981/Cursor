@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, AlertTriangle, X, PackagePlus } from 'lucide-react'
+import { Plus, AlertTriangle, X, PackagePlus, Pencil } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
@@ -23,6 +23,7 @@ export default function MaterialsPage() {
   const { company } = useAuth()
   const companyId = company?.id ?? 'comp-001'
   const [showForm, setShowForm] = useState(false)
+  const [editingMaterial, setEditingMaterial] = useState<Material | null>(null)
   const [receiveMaterialId, setReceiveMaterialId] = useState<string | null>(null)
   const [receiveQty, setReceiveQty] = useState(10)
   const { data: materials = [], isLoading } = useMaterials()
@@ -31,11 +32,12 @@ export default function MaterialsPage() {
   const receiveStock = useReceiveStock()
   const lowStock = materials.filter((m) => m.quantity <= m.reorder_level)
 
-  const handleCreate = (material: Material) => {
+  const handleSave = (material: Material) => {
     saveMaterial.mutate(material, {
       onSuccess: () => {
         toast.success(t.common.save)
         setShowForm(false)
+        setEditingMaterial(null)
       },
     })
   }
@@ -64,17 +66,22 @@ export default function MaterialsPage() {
       <PageHeader
         title={t.materials.title}
         description={t.materials.description}
-        actions={<Button onClick={() => setShowForm(true)}><Plus className="h-4 w-4" />{t.materials.addMaterial}</Button>}
+        actions={<Button onClick={() => { setEditingMaterial(null); setShowForm(true) }}><Plus className="h-4 w-4" />{t.materials.addMaterial}</Button>}
       />
 
       {showForm && (
         <Card className="mb-6">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">{t.materials.addMaterial}</CardTitle>
-            <Button variant="ghost" size="icon" onClick={() => setShowForm(false)}><X className="h-4 w-4" /></Button>
+            <CardTitle className="text-base">{editingMaterial ? t.common.edit : t.materials.addMaterial}</CardTitle>
+            <Button variant="ghost" size="icon" onClick={() => { setShowForm(false); setEditingMaterial(null) }}><X className="h-4 w-4" /></Button>
           </CardHeader>
           <CardContent>
-            <MaterialForm companyId={companyId} onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
+            <MaterialForm
+              companyId={companyId}
+              initial={editingMaterial ?? undefined}
+              onSubmit={handleSave}
+              onCancel={() => { setShowForm(false); setEditingMaterial(null) }}
+            />
           </CardContent>
         </Card>
       )}
@@ -108,15 +115,26 @@ export default function MaterialsPage() {
                     </Badge>
                   </DataTableCell>
                   <DataTableCell>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      title={t.materials.receiveStock}
-                      data-testid={`material-receive-${mat.id}`}
-                      onClick={() => setReceiveMaterialId(mat.id)}
-                    >
-                      <PackagePlus className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={t.common.edit}
+                        data-testid={`material-edit-${mat.id}`}
+                        onClick={() => { setEditingMaterial(mat); setShowForm(true) }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={t.materials.receiveStock}
+                        data-testid={`material-receive-${mat.id}`}
+                        onClick={() => setReceiveMaterialId(mat.id)}
+                      >
+                        <PackagePlus className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </DataTableCell>
                 </DataTableRow>
               )

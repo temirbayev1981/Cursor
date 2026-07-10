@@ -12,15 +12,25 @@ import type { Customer, Property } from '@/types'
 interface PropertyFormProps {
   companyId: string
   customers: Customer[]
+  initial?: Property
   onSubmit: (property: Property) => void
   onCancel?: () => void
 }
 
-export function PropertyForm({ companyId, customers, onSubmit, onCancel }: PropertyFormProps) {
+export function PropertyForm({ companyId, customers, initial, onSubmit, onCancel }: PropertyFormProps) {
   const { t } = useTranslation()
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<PropertyFormValues>({
     resolver: zodResolver(propertySchema),
-    defaultValues: { property_type: 'apartment' },
+    defaultValues: initial
+      ? {
+          customer_id: initial.customer_id,
+          name: initial.name,
+          address: initial.address,
+          property_type: initial.property_type as PropertyFormValues['property_type'],
+          unit_number: initial.unit_number,
+          access_notes: initial.access_notes,
+        }
+      : { property_type: 'apartment' },
   })
 
   const customerId = watch('customer_id')
@@ -28,7 +38,7 @@ export function PropertyForm({ companyId, customers, onSubmit, onCancel }: Prope
 
   const submit = (values: PropertyFormValues) => {
     onSubmit({
-      id: crypto.randomUUID(),
+      id: initial?.id ?? crypto.randomUUID(),
       company_id: companyId,
       customer_id: values.customer_id,
       name: values.name,
@@ -36,7 +46,7 @@ export function PropertyForm({ companyId, customers, onSubmit, onCancel }: Prope
       property_type: values.property_type,
       unit_number: values.unit_number,
       access_notes: values.access_notes,
-      created_at: new Date().toISOString(),
+      created_at: initial?.created_at ?? new Date().toISOString(),
     })
   }
 

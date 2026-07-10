@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, X } from 'lucide-react'
+import { Plus, X, Pencil } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -15,17 +15,19 @@ import type { Property } from '@/types'
 export default function PropertiesPage() {
   const { t } = useTranslation()
   const [showForm, setShowForm] = useState(false)
+  const [editingProperty, setEditingProperty] = useState<Property | null>(null)
   const { company } = useAuth()
   const companyId = company?.id ?? 'comp-001'
   const { data: properties = [], isLoading: propsLoading } = useProperties()
   const { data: customers = [], isLoading: custLoading } = useCustomers()
   const saveProperty = useSaveProperty()
 
-  const handleCreate = (property: Property) => {
+  const handleSave = (property: Property) => {
     saveProperty.mutate(property, {
       onSuccess: () => {
         toast.success(t.common.save)
         setShowForm(false)
+        setEditingProperty(null)
       },
     })
   }
@@ -38,7 +40,7 @@ export default function PropertiesPage() {
         title={t.properties.title}
         description={t.properties.description}
         actions={
-          <Button onClick={() => setShowForm(true)}>
+          <Button onClick={() => { setEditingProperty(null); setShowForm(true) }}>
             <Plus className="h-4 w-4" />{t.properties.addProperty}
           </Button>
         }
@@ -47,15 +49,16 @@ export default function PropertiesPage() {
       {showForm && (
         <Card className="mb-6">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">{t.properties.addProperty}</CardTitle>
-            <Button variant="ghost" size="icon" onClick={() => setShowForm(false)}><X className="h-4 w-4" /></Button>
+            <CardTitle className="text-base">{editingProperty ? t.common.edit : t.properties.addProperty}</CardTitle>
+            <Button variant="ghost" size="icon" onClick={() => { setShowForm(false); setEditingProperty(null) }}><X className="h-4 w-4" /></Button>
           </CardHeader>
           <CardContent>
             <PropertyForm
               companyId={companyId}
               customers={customers}
-              onSubmit={handleCreate}
-              onCancel={() => setShowForm(false)}
+              initial={editingProperty ?? undefined}
+              onSubmit={handleSave}
+              onCancel={() => { setShowForm(false); setEditingProperty(null) }}
             />
           </CardContent>
         </Card>
@@ -72,7 +75,18 @@ export default function PropertiesPage() {
                     <p className="font-semibold">{prop.name}</p>
                     <p className="text-sm text-muted-foreground">{prop.address}</p>
                   </div>
-                  <Badge variant="outline">{prop.property_type}</Badge>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title={t.common.edit}
+                      data-testid={`property-edit-${prop.id}`}
+                      onClick={() => { setEditingProperty(prop); setShowForm(true) }}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Badge variant="outline">{prop.property_type}</Badge>
+                  </div>
                 </div>
                 {prop.unit_number && (
                   <p className="text-sm">{t.common.unit}: <span className="font-medium">{prop.unit_number}</span></p>

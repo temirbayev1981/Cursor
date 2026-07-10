@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatAuditAction, isAuditActionKey, countUniqueAuditActions, BILLING_PLAN_AUDIT, BULK_OPS_AUDIT, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INVOICE_AUDIT, INVITE_AUDIT, PORTAL_AUDIT, PORTAL_REQUESTS_AUDIT, SAMPLE_IMPORT_AUDIT, TEAM_INVITE_AUDIT, VENDOR_PO_AUDIT } from './audit-labels'
+import { formatAuditAction, isAuditActionKey, countUniqueAuditActions, AUDIT_E2E_FULL_COVERAGE, BILLING_PLAN_AUDIT, BULK_OPS_AUDIT, COMPANY_PROFILE_AUDIT, COMPANY_SWITCH_AUDIT, DISPATCH_AUDIT, ENTITY_UPDATE_AUDIT, ESTIMATE_CREATE_AUDIT, EXPENSE_AUDIT, FLEET_AUDIT, FUEL_LOG_AUDIT, INVOICE_AUDIT, INVITE_AUDIT, PORTAL_AUDIT, PORTAL_REQUESTS_AUDIT, SAMPLE_IMPORT_AUDIT, TEAM_INVITE_AUDIT, VENDOR_PO_AUDIT } from './audit-labels'
 
 describe('audit-labels', () => {
   const labels = {
@@ -96,6 +96,18 @@ describe('audit-labels', () => {
     expect(INVOICE_AUDIT).toBe(true)
     expect(SAMPLE_IMPORT_AUDIT).toBe(true)
     expect(PORTAL_REQUESTS_AUDIT).toBe(true)
+  })
+
+  it('recognizes v1.8.9 full audit E2E coverage gates', () => {
+    expect(isAuditActionKey('jobs.bulk_delete')).toBe(true)
+    expect(isAuditActionKey('jobs.bulk_schedule')).toBe(true)
+    expect(isAuditActionKey('estimate.create')).toBe(true)
+    expect(isAuditActionKey('portal.estimate_decline')).toBe(true)
+    expect(isAuditActionKey('customer.update')).toBe(true)
+    expect(isAuditActionKey('job.update')).toBe(true)
+    expect(ESTIMATE_CREATE_AUDIT).toBe(true)
+    expect(ENTITY_UPDATE_AUDIT).toBe(true)
+    expect(AUDIT_E2E_FULL_COVERAGE).toBe(true)
   })
 
   it('counts unique audit actions in log', () => {

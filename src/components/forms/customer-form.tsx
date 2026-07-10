@@ -10,22 +10,32 @@ import type { Customer } from '@/types'
 
 interface CustomerFormProps {
   companyId: string
+  initial?: Customer
   onSubmit: (customer: Customer) => void
   onCancel?: () => void
 }
 
-export function CustomerForm({ companyId, onSubmit, onCancel }: CustomerFormProps) {
+export function CustomerForm({ companyId, initial, onSubmit, onCancel }: CustomerFormProps) {
   const { t } = useTranslation()
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
-    defaultValues: { type: 'residential' },
+    defaultValues: initial
+      ? {
+          name: initial.name,
+          email: initial.email,
+          phone: initial.phone,
+          address: initial.address,
+          type: initial.type,
+          notes: initial.notes,
+        }
+      : { type: 'residential' },
   })
 
   const type = watch('type')
 
   const submit = (values: CustomerFormValues) => {
     onSubmit({
-      id: crypto.randomUUID(),
+      id: initial?.id ?? crypto.randomUUID(),
       company_id: companyId,
       name: values.name,
       email: values.email,
@@ -33,9 +43,9 @@ export function CustomerForm({ companyId, onSubmit, onCancel }: CustomerFormProp
       address: values.address,
       type: values.type,
       notes: values.notes,
-      total_revenue: 0,
-      job_count: 0,
-      created_at: new Date().toISOString(),
+      total_revenue: initial?.total_revenue ?? 0,
+      job_count: initial?.job_count ?? 0,
+      created_at: initial?.created_at ?? new Date().toISOString(),
     })
   }
 

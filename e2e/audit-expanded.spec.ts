@@ -257,6 +257,8 @@ test.describe('Vendor PO audit E2E', () => {
     await openSettingsAuditTab(page)
     await expect(page.locator('[data-audit-action="vendor_po_to_job"]').first()).toBeVisible({ timeout: 10000 })
     await expect(page.getByText(/заказ создан из vendor po|job created from vendor po/i).first()).toBeVisible()
+    await expect(page.locator('[data-audit-action="estimate.create"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/смета создана из заказа|estimate created from job/i).first()).toBeVisible()
   })
 
   test('emergency vendor PO alert appears in audit log', async ({ page }) => {
@@ -294,6 +296,28 @@ test.describe('Portal audit E2E', () => {
     await openSettingsAuditTab(page)
     await expect(page.locator('[data-audit-action="portal.estimate_approve"]').first()).toBeVisible({ timeout: 10000 })
     await expect(page.getByText(/смета утверждена в портале|portal estimate approved/i).first()).toBeVisible()
+  })
+
+  test('portal estimate decline appears in audit log', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await resetEstimateStatus(page, 'est-004', 'sent')
+    await page.evaluate(() => {
+      sessionStorage.setItem('handymanos_portal_session', JSON.stringify({
+        customerId: 'cust-002',
+        companyId: 'comp-001',
+        portalType: 'customer',
+        customerName: 'Sarah Johnson',
+        expiresAt: Date.now() + 30 * 86400000,
+        token: 'e2e-portal-customer-token',
+      }))
+    })
+    await page.goto('/portal/customer')
+    await page.getByTestId('portal-estimate-decline-est-004').click()
+    await expect(page.getByText(/отклонена|declined/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="portal.estimate_decline"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/смета отклонена в портале|portal estimate declined/i).first()).toBeVisible()
   })
 
   test('portal invoice payment appears in audit log', async ({ page }) => {
@@ -381,6 +405,34 @@ test.describe('Bulk & billing audit E2E', () => {
     await openSettingsAuditTab(page)
     await expect(page.locator('[data-audit-action="jobs.bulk_cancel"]').first()).toBeVisible({ timeout: 10000 })
     await expect(page.getByText(/массовая отмена заказов|bulk cancelled jobs/i).first()).toBeVisible()
+  })
+
+  test('bulk delete appears in audit log', async ({ page }) => {
+    await page.goto('/jobs')
+    await page.getByRole('tab', { name: /черновик|draft/i }).click()
+    await page.getByTestId('job-select-job-bulk-001').check()
+    await page.getByTestId('job-select-job-bulk-002').check()
+    await page.getByTestId('jobs-bulk-delete').click()
+    await expect(page.getByTestId('jobs-bulk-delete')).toContainText(/подтвердить удаление|confirm delete/i)
+    await page.getByTestId('jobs-bulk-delete').click()
+    await expect(page.getByText(/удалено заказов:\s*2|deleted 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="jobs.bulk_delete"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/массовое удаление заказов|bulk deleted jobs/i).first()).toBeVisible()
+  })
+
+  test('bulk schedule appears in audit log', async ({ page }) => {
+    await page.goto('/jobs')
+    await page.getByRole('tab', { name: /черновик|draft/i }).click()
+    await page.getByTestId('job-select-job-bulk-001').check()
+    await page.getByTestId('job-select-job-bulk-002').check()
+    await page.getByTestId('jobs-bulk-schedule').click()
+    await expect(page.getByText(/запланировано заказов:\s*2|scheduled 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="jobs.bulk_schedule"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/массовое планирование заказов|bulk scheduled jobs/i).first()).toBeVisible()
   })
 
   test('bulk assign appears in audit log', async ({ page }) => {
@@ -529,5 +581,138 @@ test.describe('Onboarding audit E2E', () => {
     await openSettingsAuditTab(page)
     await expect(page.locator('[data-audit-action="onboarding.complete"]').first()).toBeVisible({ timeout: 10000 })
     await expect(page.getByText(/онбординг завершён|onboarding completed/i).first()).toBeVisible()
+  })
+})
+
+test.describe('Catalog create audit E2E', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+  })
+
+  test('property create appears in audit log', async ({ page }) => {
+    await page.goto('/properties')
+    await page.getByRole('button', { name: /добавить объект|add property/i }).click()
+    const form = page.getByTestId('property-form')
+    await form.locator('input').first().fill('E2E Audit Property')
+    await form.getByRole('combobox').first().click()
+    await page.getByRole('option', { name: /ABC Property Management/i }).click()
+    await form.locator('input').nth(1).fill('300 Audit Blvd, Austin, TX')
+    await page.getByTestId('property-form-submit').click()
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="property.create"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/объект создан|property created/i).first()).toBeVisible()
+  })
+})
+
+test.describe('Entity update audit E2E', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+  })
+
+  test('customer update appears in audit log', async ({ page }) => {
+    await page.goto('/customers')
+    await page.getByTestId('customer-edit-cust-001').click()
+    const form = page.getByTestId('customer-form')
+    await form.locator('input').first().fill('ABC Property Management E2E')
+    await page.getByTestId('customer-form-submit').click()
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="customer.update"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/клиент обновлён|customer updated/i).first()).toBeVisible()
+  })
+
+  test('job update appears in audit log', async ({ page }) => {
+    await seedInProgressTechJob(page)
+    await page.goto('/tech')
+    await expect(page.getByText(/E2E Offline Tech Job/i)).toBeVisible()
+    await page.getByTestId('job-notes-open-job-e2e-tech-offline').click()
+    await page.getByTestId('job-notes-textarea-job-e2e-tech-offline').fill('E2E audit job notes update')
+    await page.getByTestId('job-notes-save-job-e2e-tech-offline').click()
+    await expect(page.getByText(/заметки сохранены|notes saved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="job.update"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/заказ обновлён|job updated/i).first()).toBeVisible()
+  })
+
+  test('material update appears in audit log', async ({ page }) => {
+    await page.goto('/materials')
+    await page.getByTestId('material-edit-mat-001').click()
+    const form = page.getByTestId('material-form')
+    await form.locator('input').first().fill('Joint Compound E2E Audit')
+    await page.getByTestId('material-form-submit').click()
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="material.update"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/материал обновлён|material updated/i).first()).toBeVisible()
+  })
+
+  test('property update appears in audit log', async ({ page }) => {
+    await page.goto('/properties')
+    await page.getByTestId('property-edit-prop-001').click()
+    const form = page.getByTestId('property-form')
+    await form.locator('input').first().fill('Riverside Apartments E2E Audit')
+    await page.getByTestId('property-form-submit').click()
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="property.update"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/объект обновлён|property updated/i).first()).toBeVisible()
+  })
+
+  test('employee update appears in audit log', async ({ page }) => {
+    await page.goto('/technicians')
+    await page.getByTestId('employee-edit-emp-002').click()
+    const form = page.getByTestId('employee-form')
+    await form.locator('input').first().fill('Marcus Thompson E2E')
+    await page.getByTestId('employee-form-submit').click()
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="employee.update"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/сотрудник обновлён|employee updated/i).first()).toBeVisible()
+  })
+
+  test('vehicle update appears in audit log', async ({ page }) => {
+    await page.goto('/vehicles')
+    await page.getByTestId('vehicle-edit-veh-001').click()
+    const form = page.getByTestId('vehicle-form')
+    await form.locator('input').first().fill('Service Van E2E Audit')
+    await page.getByTestId('vehicle-form-submit').click()
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="vehicle.update"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/транспорт обновлён|vehicle updated/i).first()).toBeVisible()
+  })
+
+  test('expense update appears in audit log', async ({ page }) => {
+    await page.goto('/expenses')
+    await page.getByTestId('expense-edit-exp-003').click()
+    const form = page.getByTestId('expense-form')
+    await form.locator('input').nth(2).fill('Drywall saw E2E audit')
+    await page.getByTestId('expense-form-submit').click()
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="expense.update"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/расход обновлён|expense updated/i).first()).toBeVisible()
+  })
+
+  test('fuel log update appears in audit log', async ({ page }) => {
+    await page.goto('/vehicles')
+    await page.getByTestId('fuel-log-edit-fuel-001').click()
+    const form = page.getByTestId('fuel-log-form')
+    await form.locator('input[type="number"]').first().fill('150')
+    await page.getByTestId('fuel-log-form-submit').click()
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="fuel_log.update"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/заправка обновлена|fuel log updated/i).first()).toBeVisible()
   })
 })

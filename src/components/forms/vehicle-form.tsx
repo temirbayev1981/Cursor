@@ -10,22 +10,33 @@ import type { Vehicle } from '@/types'
 
 interface VehicleFormProps {
   companyId: string
+  initial?: Vehicle
   onSubmit: (vehicle: Vehicle) => void
   onCancel?: () => void
 }
 
-export function VehicleForm({ companyId, onSubmit, onCancel }: VehicleFormProps) {
+export function VehicleForm({ companyId, initial, onSubmit, onCancel }: VehicleFormProps) {
   const { t } = useTranslation()
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<VehicleFormValues>({
     resolver: zodResolver(vehicleSchema),
-    defaultValues: { type: 'van', year: new Date().getFullYear(), mileage: 0 },
+    defaultValues: initial
+      ? {
+          name: initial.name,
+          type: initial.type,
+          make: initial.make,
+          model: initial.model,
+          year: initial.year,
+          license_plate: initial.license_plate,
+          mileage: initial.mileage,
+        }
+      : { type: 'van', year: new Date().getFullYear(), mileage: 0 },
   })
 
   const type = watch('type')
 
   const submit = (values: VehicleFormValues) => {
     onSubmit({
-      id: crypto.randomUUID(),
+      id: initial?.id ?? crypto.randomUUID(),
       company_id: companyId,
       name: values.name,
       type: values.type,
@@ -34,8 +45,8 @@ export function VehicleForm({ companyId, onSubmit, onCancel }: VehicleFormProps)
       year: values.year,
       license_plate: values.license_plate,
       mileage: values.mileage,
-      is_active: true,
-      created_at: new Date().toISOString(),
+      is_active: initial?.is_active ?? true,
+      created_at: initial?.created_at ?? new Date().toISOString(),
     })
   }
 

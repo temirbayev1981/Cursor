@@ -30,7 +30,7 @@ export function JobNotesDialog({ job, onSave, isSaving }: JobNotesDialogProps) {
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={handleOpen}>
+      <Button variant="outline" size="sm" onClick={handleOpen} data-testid={`job-notes-open-${job.id}`}>
         <PenLine className="h-4 w-4" />{t.common.notes}
       </Button>
       {open && (
@@ -40,6 +40,7 @@ export function JobNotesDialog({ job, onSave, isSaving }: JobNotesDialogProps) {
           aria-labelledby={`notes-title-${job.id}`}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
           onClick={() => setOpen(false)}
+          data-testid={`job-notes-dialog-${job.id}`}
         >
           <Card className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -59,9 +60,10 @@ export function JobNotesDialog({ job, onSave, isSaving }: JobNotesDialogProps) {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder={t.techMobile.jobNotesPlaceholder}
+                  data-testid={`job-notes-textarea-${job.id}`}
                 />
               </div>
-              <Button className="w-full" onClick={handleSave} disabled={isSaving}>
+              <Button className="w-full" onClick={handleSave} disabled={isSaving} data-testid={`job-notes-save-${job.id}`}>
                 {t.common.save}
               </Button>
             </CardContent>

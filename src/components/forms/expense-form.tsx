@@ -10,11 +10,12 @@ import type { Expense } from '@/types'
 
 interface ExpenseFormProps {
   companyId: string
+  initial?: Expense
   onSubmit: (expense: Expense) => void
   onCancel?: () => void
 }
 
-export function ExpenseForm({ companyId, onSubmit, onCancel }: ExpenseFormProps) {
+export function ExpenseForm({ companyId, initial, onSubmit, onCancel }: ExpenseFormProps) {
   const { t } = useTranslation()
   const categoryLabels: Record<(typeof EXPENSE_CATEGORY_KEYS)[number], string> = {
     Fuel: t.expenses.categories.fuel,
@@ -30,18 +31,27 @@ export function ExpenseForm({ companyId, onSubmit, onCancel }: ExpenseFormProps)
   }))
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseSchema),
-    defaultValues: { date: new Date().toISOString().slice(0, 10), category: 'Materials' },
+    defaultValues: initial
+      ? {
+          date: initial.date.slice(0, 10),
+          category: initial.category,
+          description: initial.description,
+          amount: initial.amount,
+        }
+      : { date: new Date().toISOString().slice(0, 10), category: 'Materials' },
   })
 
   const submit = (values: ExpenseFormValues) => {
     onSubmit({
-      id: crypto.randomUUID(),
+      id: initial?.id ?? crypto.randomUUID(),
       company_id: companyId,
       category: values.category,
       description: values.description,
       amount: values.amount,
       date: values.date,
-      created_at: new Date().toISOString(),
+      job_id: initial?.job_id,
+      vehicle_id: initial?.vehicle_id,
+      created_at: initial?.created_at ?? new Date().toISOString(),
     })
   }
 
