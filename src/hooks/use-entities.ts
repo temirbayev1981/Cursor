@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
 import { listEntities, saveEntity, createJobFromVendorPO, createEstimateFromJob, createInvoiceFromEstimate, createScheduleFromJob, importDemoSeedToSupabase, listFuelLogs } from '@/services/entity-service'
 import { recordInvoicePayment, sendInvoiceToCustomer } from '@/services/payment-service'
+import { listInventoryTransactions, useMaterialsOnJob, receiveStock } from '@/services/inventory-service'
 import type { Job, Customer, Estimate, Invoice, Employee, Material, Vehicle, Expense } from '@/types'
 import type { VendorPORecord } from '@/types/vendor-po'
 
@@ -288,5 +289,42 @@ export function useGlobalSearch(query: string) {
       }
     },
     enabled: query.length >= 2,
+  })
+}
+
+export function useInventoryTransactionsList() {
+  const companyId = useCompanyId()
+  return useQuery({
+    queryKey: ['inventory', companyId],
+    queryFn: () => listInventoryTransactions(companyId),
+  })
+}
+
+export function useInventoryTransactions() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: (params: {
+      companyId: string
+      jobId: string
+      items: { materialId: string; quantity: number }[]
+    }) => useMaterialsOnJob(params.companyId, params.jobId, params.items),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['inventory', companyId] })
+      qc.invalidateQueries({ queryKey: ['materials', companyId] })
+    },
+  })
+}
+
+export function useReceiveStock() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: (params: { materialId: string; quantity: number; notes?: string }) =>
+      receiveStock(companyId, params.materialId, params.quantity, params.notes),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['inventory', companyId] })
+      qc.invalidateQueries({ queryKey: ['materials', companyId] })
+    },
   })
 }

@@ -15,6 +15,7 @@ import { useJobs, useCustomers, useEmployees, useSaveJob } from '@/hooks/use-ent
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { toast } from 'sonner'
+import { JobMaterialUsageDialog } from '@/components/inventory/job-material-usage-dialog'
 import type { Job } from '@/types'
 
 export default function JobsPage() {
@@ -81,7 +82,7 @@ export default function JobsPage() {
       </div>
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <DataTable headers={[t.jobs.job, t.jobs.customer, t.jobs.technician, t.jobs.status, t.jobs.priority, t.jobs.revenue, t.jobs.profit, t.jobs.scheduledDate]}>
+        <DataTable headers={[t.jobs.job, t.jobs.customer, t.jobs.technician, t.jobs.status, t.jobs.priority, t.jobs.revenue, t.jobs.profit, t.jobs.scheduledDate, '']}>
           {filtered.map((job) => {
             const customer = customers.find((c) => c.id === job.customer_id)
             const tech = employees.find((e) => e.id === job.assigned_technician_id)
@@ -101,6 +102,9 @@ export default function JobsPage() {
                 <DataTableCell>{job.profit_margin > 0 ? <ProfitIndicator margin={job.profit_margin} /> : '—'}</DataTableCell>
                 <DataTableCell className="text-muted-foreground">
                   {job.scheduled_date ? formatDate(job.scheduled_date, dateLocale) : '—'}
+                </DataTableCell>
+                <DataTableCell>
+                  <JobMaterialUsageDialog job={job} companyId={companyId} />
                 </DataTableCell>
               </DataTableRow>
             )

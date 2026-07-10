@@ -307,6 +307,18 @@ export interface JobPhoto {
   created_at: string
 }
 
+export type InventoryTransactionType = 'receive' | 'job_usage' | 'adjustment' | 'return'
+
+export interface InventoryTransaction {
+  id: string
+  material_id: string
+  job_id?: string
+  quantity_change: number
+  transaction_type: InventoryTransactionType
+  notes?: string
+  created_at: string
+}
+
 export interface Expense {
   id: string
   company_id: string

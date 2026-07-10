@@ -326,6 +326,10 @@ export const ru = {
     stockStatus: 'Статус',
     lowStock: 'Мало на складе',
     inStock: 'В наличии',
+    useOnJob: 'Списать на заказ',
+    receiveStock: 'Приход на склад',
+    recentTransactions: 'Последние операции',
+    receive: 'Принять',
   },
   vehicles: {
     title: 'Транспорт и топливо',

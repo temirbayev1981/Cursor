@@ -14,8 +14,9 @@ import { CSS } from '@dnd-kit/utilities'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { useJobs, useUpdateJobStatus, useEmployees } from '@/hooks/use-entities'
+import { useJobs, useUpdateJobStatus, useEmployees, useCustomers, useProperties } from '@/hooks/use-entities'
 import { useTranslation } from '@/contexts/locale-context'
+import { useOptimizedRoute } from '@/hooks/use-route-optimizer'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { PriorityBadge } from '@/components/shared/status-badge'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
@@ -24,6 +25,7 @@ import { toast } from 'sonner'
 import type { Job, JobStatus } from '@/types'
 import { MapPin } from 'lucide-react'
 import { JobMap } from '@/components/maps/job-map'
+import { RouteOptimizerPanel } from '@/components/maps/route-optimizer-panel'
 
 const COLUMNS: { status: JobStatus; color: string }[] = [
   { status: 'draft', color: 'border-muted-foreground' },
@@ -52,6 +54,9 @@ export default function DispatchPage() {
   const { t } = useTranslation()
   const { data: jobs = [], isLoading } = useJobs()
   const { data: employees = [] } = useEmployees()
+  const { data: customers = [] } = useCustomers()
+  const { data: properties = [] } = useProperties()
+  const route = useOptimizedRoute(jobs, customers, properties)
   const updateStatus = useUpdateJobStatus()
   const [activeId, setActiveId] = useState<string | null>(null)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
@@ -120,17 +125,27 @@ export default function DispatchPage() {
         </DragOverlay>
       </DndContext>
 
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><MapPin className="h-4 w-4" />Карта объектов</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <JobMap
-            addresses={jobs.filter((j) => j.status === 'scheduled' || j.status === 'in_progress').map((j) => j.title)}
-            className="h-48"
-          />
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2"><MapPin className="h-4 w-4" />Карта объектов</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <JobMap
+              addresses={route.stops.map((s) => s.address)}
+              className="h-48"
+            />
+          </CardContent>
+        </Card>
+        <RouteOptimizerPanel
+          stops={route.stops}
+          savedMiles={route.savedMiles}
+          savedMinutes={route.savedMinutes}
+          totalMiles={route.totalMiles}
+          mapsUrl={route.mapsUrl}
+          jobCount={route.jobCount}
+        />
+      </div>
     </div>
   )
 }

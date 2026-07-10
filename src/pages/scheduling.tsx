@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { ChevronLeft, ChevronRight, MapPin, Clock, Plus, X } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { ChevronLeft, ChevronRight, Clock, Plus, X } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -7,7 +7,9 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { ScheduleForm } from '@/components/forms/schedule-form'
+import { RouteOptimizerPanel } from '@/components/maps/route-optimizer-panel'
 import { useSchedules, useEmployees, useJobs, useCustomers, useCreateScheduleFromJob } from '@/hooks/use-entities'
+import { useOptimizedRouteFromStops } from '@/hooks/use-route-optimizer'
 import { addDays, format, startOfWeek, isSameDay } from 'date-fns'
 import { useTranslation } from '@/contexts/locale-context'
 import { toast } from 'sonner'
@@ -30,6 +32,16 @@ export default function SchedulingPage() {
 
   const getEventsForDay = (day: Date) =>
     schedule.filter((e) => isSameDay(new Date(e.start_time), day))
+
+  const routeItems = useMemo(
+    () =>
+      getEventsForDay(currentDate)
+        .filter((e) => e.status === 'scheduled' || e.status === 'in_progress')
+        .map((e) => ({ id: e.id, label: e.title, address: e.location })),
+    [schedule, currentDate],
+  )
+
+  const route = useOptimizedRouteFromStops(routeItems)
 
   const handleSchedule = (values: ScheduleFormValues) => {
     const job = jobs.find((j) => j.id === values.job_id)
@@ -144,26 +156,14 @@ export default function SchedulingPage() {
         </div>
 
         <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">{t.scheduling.routeOptimization}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">{t.scheduling.routeSaved}</p>
-              {schedule.slice(0, 3).map((event, i) => (
-                <div key={event.id} className="flex items-start gap-3 text-sm">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">{i + 1}</span>
-                  <div>
-                    <p className="font-medium">{event.title}</p>
-                    <p className="text-muted-foreground flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />{event.location}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              <Button variant="outline" className="w-full" size="sm">{t.scheduling.openMaps}</Button>
-            </CardContent>
-          </Card>
+          <RouteOptimizerPanel
+            stops={route.stops}
+            savedMiles={route.savedMiles}
+            savedMinutes={route.savedMinutes}
+            totalMiles={route.totalMiles}
+            mapsUrl={route.mapsUrl}
+            jobCount={route.jobCount}
+          />
 
           <Card>
             <CardHeader>

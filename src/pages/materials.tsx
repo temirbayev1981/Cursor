@@ -1,26 +1,33 @@
 import { useState } from 'react'
-import { Plus, AlertTriangle, X } from 'lucide-react'
+import { Plus, AlertTriangle, X, PackagePlus } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { MaterialForm } from '@/components/forms/material-form'
 import { useAuth } from '@/contexts/auth-context'
-import { useMaterials, useSaveMaterial } from '@/hooks/use-entities'
-import { formatCurrencyPrecise } from '@/lib/utils'
+import { useMaterials, useSaveMaterial, useInventoryTransactionsList, useReceiveStock } from '@/hooks/use-entities'
+import { formatCurrencyPrecise, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { toast } from 'sonner'
 import type { Material } from '@/types'
 
 export default function MaterialsPage() {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
+  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-US'
   const { company } = useAuth()
   const companyId = company?.id ?? 'comp-001'
   const [showForm, setShowForm] = useState(false)
+  const [receiveMaterialId, setReceiveMaterialId] = useState<string | null>(null)
+  const [receiveQty, setReceiveQty] = useState(10)
   const { data: materials = [], isLoading } = useMaterials()
+  const { data: transactions = [] } = useInventoryTransactionsList()
   const saveMaterial = useSaveMaterial()
+  const receiveStock = useReceiveStock()
   const lowStock = materials.filter((m) => m.quantity <= m.reorder_level)
 
   const handleCreate = (material: Material) => {
@@ -31,6 +38,23 @@ export default function MaterialsPage() {
       },
     })
   }
+
+  const handleReceive = (materialId: string) => {
+    if (receiveQty <= 0) return
+    receiveStock.mutate(
+      { materialId, quantity: receiveQty },
+      {
+        onSuccess: () => {
+          toast.success(t.materials.receiveStock)
+          setReceiveMaterialId(null)
+          setReceiveQty(10)
+        },
+      }
+    )
+  }
+
+  const getMaterialName = (materialId: string) =>
+    materials.find((m) => m.id === materialId)?.name ?? materialId
 
   if (isLoading) return <TableSkeleton />
 
@@ -66,27 +90,93 @@ export default function MaterialsPage() {
         </div>
       )}
 
-      <DataTable headers={[t.materials.material, t.materials.category, t.materials.supplier, t.materials.cost, t.materials.markup, t.materials.customerPrice, t.materials.qty, t.materials.stockStatus]}>
-        {materials.map((mat) => {
-          const isLow = mat.quantity <= mat.reorder_level
-          return (
-            <DataTableRow key={mat.id}>
-              <DataTableCell className="font-medium">{mat.name}</DataTableCell>
-              <DataTableCell>{mat.category}</DataTableCell>
-              <DataTableCell>{mat.supplier}</DataTableCell>
-              <DataTableCell>{formatCurrencyPrecise(mat.cost)}</DataTableCell>
-              <DataTableCell>{mat.markup_percent}%</DataTableCell>
-              <DataTableCell className="font-medium">{formatCurrencyPrecise(mat.customer_price)}</DataTableCell>
-              <DataTableCell>{mat.quantity}</DataTableCell>
-              <DataTableCell>
-                <Badge variant={isLow ? 'warning' : 'success'}>
-                  {isLow ? t.materials.lowStock : t.materials.inStock}
-                </Badge>
-              </DataTableCell>
-            </DataTableRow>
-          )
-        })}
-      </DataTable>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="lg:col-span-2">
+          <DataTable headers={[t.materials.material, t.materials.category, t.materials.cost, t.materials.qty, t.materials.stockStatus, '']}>
+            {materials.map((mat) => {
+              const isLow = mat.quantity <= mat.reorder_level
+              return (
+                <DataTableRow key={mat.id}>
+                  <DataTableCell className="font-medium">{mat.name}</DataTableCell>
+                  <DataTableCell>{mat.category}</DataTableCell>
+                  <DataTableCell>{formatCurrencyPrecise(mat.cost)}</DataTableCell>
+                  <DataTableCell>{mat.quantity} {mat.unit}</DataTableCell>
+                  <DataTableCell>
+                    <Badge variant={isLow ? 'warning' : 'success'}>
+                      {isLow ? t.materials.lowStock : t.materials.inStock}
+                    </Badge>
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title={t.materials.receiveStock}
+                      onClick={() => setReceiveMaterialId(mat.id)}
+                    >
+                      <PackagePlus className="h-4 w-4" />
+                    </Button>
+                  </DataTableCell>
+                </DataTableRow>
+              )
+            })}
+          </DataTable>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t.materials.recentTransactions}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm max-h-80 overflow-y-auto">
+            {transactions.length === 0 ? (
+              <p className="text-muted-foreground">—</p>
+            ) : (
+              transactions.slice(0, 15).map((tx) => (
+                <div key={tx.id} className="flex justify-between gap-2 border-b border-border/50 pb-2">
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{getMaterialName(tx.material_id)}</p>
+                    <p className="text-xs text-muted-foreground">{tx.transaction_type}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className={tx.quantity_change < 0 ? 'text-destructive' : 'text-success'}>
+                      {tx.quantity_change > 0 ? '+' : ''}{tx.quantity_change}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDate(tx.created_at, dateLocale)}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {receiveMaterialId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setReceiveMaterialId(null)}>
+          <Card className="w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-base">{t.materials.receiveStock}</CardTitle>
+              <Button variant="ghost" size="icon" onClick={() => setReceiveMaterialId(null)}><X className="h-4 w-4" /></Button>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm font-medium">{getMaterialName(receiveMaterialId)}</p>
+              <div>
+                <Label>{t.materials.qty}</Label>
+                <Input
+                  className="mt-1"
+                  type="number"
+                  min={1}
+                  value={receiveQty}
+                  onChange={(e) => setReceiveQty(Number(e.target.value))}
+                />
+              </div>
+              <Button className="w-full" onClick={() => handleReceive(receiveMaterialId)} disabled={receiveStock.isPending}>
+                {t.materials.receive}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

@@ -466,7 +466,9 @@ CREATE POLICY "Company members can manage payments" ON payments
   );
 
 CREATE POLICY "Company members can manage inventory" ON inventory
-  FOR ALL USING (company_id = get_user_company_id());
+  FOR ALL USING (
+    material_id IN (SELECT id FROM materials WHERE company_id = get_user_company_id())
+  );
 
 CREATE POLICY "Company members can manage fuel logs" ON fuel_logs
   FOR ALL USING (vehicle_id IN (SELECT id FROM vehicles WHERE company_id = get_user_company_id()));

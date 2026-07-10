@@ -328,6 +328,10 @@ export const en: TranslationKeys = {
     stockStatus: 'Status',
     lowStock: 'Low Stock',
     inStock: 'In Stock',
+    useOnJob: 'Use on job',
+    receiveStock: 'Receive stock',
+    recentTransactions: 'Recent transactions',
+    receive: 'Receive',
   },
   vehicles: {
     title: 'Vehicles & Fuel',
