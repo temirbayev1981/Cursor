@@ -2,6 +2,15 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.12.6] — 2026-07-10
+
+Sample import, portal requests, estimate create, and entity update audit visibility.
+
+### Phase 125 — Remaining platform audit gates
+- Settings exposes `sample_import_audit`, `portal_requests_audit`, `estimate_create_audit`, `entity_update_audit`
+- verify-production gates and audit-expanded E2E coverage
+- **230** E2E tests, **164** unit tests
+
 ## [1.12.5] — 2026-07-10
 
 Billing, team invite, and invoice audit visibility.

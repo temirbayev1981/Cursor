@@ -30,6 +30,10 @@ No schema changes required. Update frontend deploy and optional:
 - `npm run smoke:supabase` (expanded table/RPC checks)
 - Stripe webhook redeploy if using `stripe-webhook` audit logging
 
+## From 1.12.5 → 1.12.6
+
+No schema changes. Sample import, portal requests, estimate create, and entity update audit visibility.
+
 ## From 1.12.4 → 1.12.5
 
 No schema changes. Billing, team invite, and invoice audit visibility in Settings.
