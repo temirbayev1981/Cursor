@@ -346,6 +346,21 @@ if (auditLabels.includes('CUSTOMER_SMS_OPT_OUT_AUDIT = true')) {
   ok = false
 }
 
+if (auditLabels.includes('SCHEDULING_CUSTOMER_SMS_AUDIT = true')) {
+  console.log('✓ SCHEDULING_CUSTOMER_SMS_AUDIT gate enabled')
+} else {
+  console.log('✗ SCHEDULING_CUSTOMER_SMS_AUDIT must be true')
+  ok = false
+}
+
+const notificationsE2e = readFileSync('e2e/notifications.spec.ts', 'utf8')
+if (notificationsE2e.includes('scheduling skips customer SMS when opted out') && notificationsE2e.includes('scheduling queues customer SMS when enabled')) {
+  console.log('✓ scheduling customer SMS E2E coverage present')
+} else {
+  console.log('✗ scheduling customer SMS E2E tests required')
+  ok = false
+}
+
 const customerForm = readFileSync('src/components/forms/customer-form.tsx', 'utf8')
 if (customerForm.includes('customer-form-notify-email') && customerForm.includes('notification_preferences')) {
   console.log('✓ customer form exposes notification preference toggles')

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { loginAsOwner } from './helpers/auth'
+import { loginAsOwner, clearNotificationQueue, seedDraftJob } from './helpers/auth'
 
 test.describe('Settings billing & team', () => {
   test.beforeEach(async ({ page, context }) => {
@@ -78,6 +78,7 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('platform-audit-check-notification_hub_skip_log_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-notification_hub_skip_ops_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-customer_sms_opt_out_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-scheduling_customer_sms_audit')).toBeVisible()
     await expect(page.getByTestId('notification-hub')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history-entry-0')).toBeVisible()
@@ -160,6 +161,22 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByText(/chen\.family@email\.com/i).first()).toBeVisible()
     await expect(page.getByText(/пропущено|skipped/i).first()).toBeVisible()
     await expect(page.getByText(/отключил email|opted out/i).first()).toBeVisible()
+  })
+
+  test('notification hub shows SMS opt-out skip from dispatch', async ({ page }) => {
+    await loginAsOwner(page, 'ru')
+    await clearNotificationQueue(page)
+    await seedDraftJob(page, true)
+    await page.goto('/dispatch')
+    await page.getByTestId('dispatch-status-job-e2e-draft').click()
+    await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
+    await expect(page.getByText(/SMS.*пропущено|SMS skipped|opt-out/i).first()).toBeVisible({ timeout: 5000 })
+
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /system|система/i }).click()
+    await page.getByTestId('notification-hub-filter-skipped').click()
+    await expect(page.getByText(/555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
+    await expect(page.getByText(/отключил SMS|opted out of SMS/i).first()).toBeVisible()
   })
 
   test('notification hub exports and clears skip log', async ({ page }) => {

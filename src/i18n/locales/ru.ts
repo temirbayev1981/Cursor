@@ -699,6 +699,7 @@ export const ru = {
       notification_hub_skip_log_audit: 'Журнал пропущенных уведомлений',
       notification_hub_skip_ops_audit: 'Экспорт и очистка журнала',
       customer_sms_opt_out_audit: 'Opt-out SMS клиента',
+      scheduling_customer_sms_audit: 'E2E SMS клиента в расписании',
       multi_tenant: 'Мульти-тенант',
     },
     auditActions: {
