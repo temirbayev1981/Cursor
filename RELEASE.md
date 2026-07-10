@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.11.1
+# HandymanOS AI — Release 1.11.2
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.11.1`**, current package **1.11.1**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.11.2`**, current package **1.11.2**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -130,6 +130,11 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Locale-aware notification templates; observability probe gate uses live results
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
+
+### 1.11.2 — Hub skip CSV email channel
+- Skip log CSV includes email/SMS summary header line
+- E2E: email and SMS skip CSV channel column coverage
+- Platform audit `notification_hub_email_skip_csv_audit` gate
 
 ### 1.11.1 — Hub skip channel filter
 - Email/SMS hub tabs filter skip log by channel

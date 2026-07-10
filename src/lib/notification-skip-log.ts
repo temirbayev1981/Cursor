@@ -66,6 +66,8 @@ export function clearNotificationSkipLog(): void {
 }
 
 export function exportNotificationSkipLogCsv(): string {
+  const stats = getNotificationSkipLogStats()
+  const summary = `# summary: ${stats.total} skipped (${stats.email} email · ${stats.sms} SMS)`
   const header = 'created_at,to,channel,subject,body,reason'
   const rows = getNotificationSkipLog().map((item) => [
     item.created_at,
@@ -75,5 +77,5 @@ export function exportNotificationSkipLogCsv(): string {
     item.body.replace(/"/g, '""'),
     item.reason,
   ].map((value) => `"${value}"`).join(','))
-  return [header, ...rows].join('\n')
+  return [summary, header, ...rows].join('\n')
 }

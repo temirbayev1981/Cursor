@@ -724,6 +724,7 @@ export const ru = {
       notification_hub_invoice_email_skip_audit: 'Hub: email skip счёта',
       notification_milestone_audit: 'Майлстоун уведомлений завершён',
       notification_hub_skip_channel_filter_audit: 'Hub: фильтр skip по каналу',
+      notification_hub_email_skip_csv_audit: 'Экспорт CSV email skip в hub',
       multi_tenant: 'Мульти-тенант',
     },
     auditActions: {

@@ -54,8 +54,16 @@ describe('notification-skip-log', () => {
       body: 'Estimate body',
     })
     const csv = exportNotificationSkipLogCsv()
+    expect(csv).toContain('# summary: 1 skipped (1 email · 0 SMS)')
     expect(csv).toContain('created_at,to,channel,subject,body,reason')
     expect(csv).toContain('skip@example.com')
     expect(csv).toContain('customer_opt_out')
+  })
+
+  it('exportNotificationSkipLogCsv summary reflects email and sms counts', () => {
+    recordNotificationSkip({ to: 'a@b.com', channel: 'email', body: 'email body' })
+    recordNotificationSkip({ to: '+1555', channel: 'sms', body: 'sms body' })
+    const csv = exportNotificationSkipLogCsv()
+    expect(csv).toContain('# summary: 2 skipped (1 email · 1 SMS)')
   })
 })
