@@ -4,6 +4,17 @@ All notable changes to HandymanOS AI are documented here.
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-07-10
+
+Release consolidating Phases 25–29.
+
+### Phase 29 — Release consolidation
+- Version bump to 1.2.0
+- E2E test: customer portal review submission
+- `VITE_APP_VERSION` injected at build time for Sentry releases
+- Deploy workflow: `VITE_ERROR_WEBHOOK_URL` secret support
+- `RELEASE.md` updated with full deploy checklist
+
 ### Phase 28 — Portal reviews & i18n polish
 - Customer portal: star rating review form with `portal_submit_review` RPC
 - Payment success toast on `?paid=` return from Stripe

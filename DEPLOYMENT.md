@@ -23,6 +23,18 @@ VITE_SUPABASE_ANON_KEY=eyJ...
 
 When Supabase is configured, reads are mirrored to `localStorage` for PWA/offline resilience. Writes update both Supabase and the local cache. If the network fails, the app falls back to cached data.
 
+### Upgrading from 1.1.x → 1.2.0
+
+Re-run the full `supabase/schema.sql` in the SQL Editor. New objects include:
+
+- Portal RPCs (`get_portal_*`, `portal_submit_review`, …)
+- `rate_limit_buckets` + `check_rate_limit` for Edge Functions
+- `company_members` + `get_accessible_companies` for multi-company switcher
+- `customer_reviews` for portal feedback
+- Private storage bucket policies for `handymanos`
+
+Then redeploy all Edge Functions (see section 2).
+
 ---
 
 ## 2. Stripe Checkout (Edge Function)

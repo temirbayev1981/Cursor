@@ -18,3 +18,4 @@ for (const [label, command] of steps) {
 }
 
 console.log('\n✓ Release verification passed')
+console.log('→ Optional: npm run test:e2e (runs in CI deploy workflow)')

@@ -7,6 +7,19 @@ test.describe('Portals', () => {
     })
   })
 
+  test('customer portal review submission', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.removeItem('handymanos_portal_review_cust-002')
+    })
+    await page.goto('/portal/customer')
+    await page.getByRole('button', { name: /оставить отзыв|leave a review/i }).click()
+    await page.getByRole('button', { name: '5' }).click()
+    await page.locator('#portal-review-comment').fill('Excellent service, very professional.')
+    await page.getByRole('button', { name: /отправить отзыв|submit review/i }).click()
+    await expect(page.getByText(/спасибо за отзыв|thank you for your review/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/уже оставили отзыв|already left a review/i)).toBeVisible()
+  })
+
   test('customer portal shows estimates and approve action', async ({ page }) => {
     await page.goto('/portal/customer')
     await expect(page.getByRole('heading', { name: /клиентский портал|customer portal/i })).toBeVisible()
