@@ -144,8 +144,8 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
 ## Test coverage
 
-- Unit: **140** (`npm test`)
-- E2E: **186/186** (`npm run test:e2e`)
+- Unit: **142** (`npm test`)
+- E2E: **190/190** (`npm run test:e2e`)
 
 ## Deploy
 
