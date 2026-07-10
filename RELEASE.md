@@ -1,4 +1,4 @@
-# HandymanOS AI — Release 1.7.4
+# HandymanOS AI — Release 1.7.6
 
 **Status:** merged to `main` (tags **`v1.7.4`**–**`v1.7.6`**, current package **1.7.6**).
 
