@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.11.1] — 2026-07-10
+
+Hub skip log channel filtering.
+
+### Phase 117 — Hub skip channel filter
+- Email/SMS tabs filter skip log entries by channel via `getNotificationSkipLogFiltered()`
+- Channel tabs show matching skips alongside queued notifications
+- E2E: email tab shows only email skips; SMS tab shows only SMS skips
+- Platform audit: `notification_hub_skip_channel_filter_audit` gate
+- **229** E2E tests, **162** unit tests
+
 ## [1.11.0] — 2026-07-10
 
 Notification milestone complete.

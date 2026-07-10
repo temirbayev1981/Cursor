@@ -725,6 +725,7 @@ export const en: TranslationKeys = {
       notification_hub_eta_email_skip_audit: 'Hub dispatch ETA email skip',
       notification_hub_invoice_email_skip_audit: 'Hub invoice email skip',
       notification_milestone_audit: 'Notification milestone complete',
+      notification_hub_skip_channel_filter_audit: 'Hub skip channel filter',
       multi_tenant: 'Multi-tenant',
     },
     auditActions: {

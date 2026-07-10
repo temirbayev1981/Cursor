@@ -205,6 +205,9 @@ export const NOTIFICATION_HUB_INVOICE_EMAIL_SKIP_AUDIT = true as const
 /** Notification milestone: hub, portal, CRM, and SMS opt-out gates complete. */
 export const NOTIFICATION_MILESTONE_AUDIT = true as const
 
+/** Notification hub email/SMS tabs filter skip log by channel. */
+export const NOTIFICATION_HUB_SKIP_CHANNEL_FILTER_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }

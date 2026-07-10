@@ -346,6 +346,13 @@ if (hubPanel.includes('notification-hub-summary') && hubPanel.includes('getNotif
   ok = false
 }
 
+if (hubPanel.includes('getNotificationSkipLogFiltered')) {
+  console.log('✓ notification hub filters skip log by channel')
+} else {
+  console.log('✗ notification hub must filter skip log by channel')
+  ok = false
+}
+
 if (auditLabels.includes('NOTIFICATION_HUB_SKIP_OPS_AUDIT = true')) {
   console.log('✓ NOTIFICATION_HUB_SKIP_OPS_AUDIT gate enabled')
 } else {
@@ -479,11 +486,18 @@ if (auditLabels.includes('NOTIFICATION_MILESTONE_AUDIT = true')) {
   ok = false
 }
 
+if (auditLabels.includes('NOTIFICATION_HUB_SKIP_CHANNEL_FILTER_AUDIT = true')) {
+  console.log('✓ NOTIFICATION_HUB_SKIP_CHANNEL_FILTER_AUDIT gate enabled')
+} else {
+  console.log('✗ NOTIFICATION_HUB_SKIP_CHANNEL_FILTER_AUDIT must be true')
+  ok = false
+}
+
 const notificationGateCount = (auditLabels.match(/export const NOTIFICATION_\w+_AUDIT = true/g) ?? []).length
-if (notificationGateCount >= 14) {
+if (notificationGateCount >= 15) {
   console.log(`✓ ${notificationGateCount} notification audit gates enabled`)
 } else {
-  console.log(`✗ expected at least 14 notification audit gates, found ${notificationGateCount}`)
+  console.log(`✗ expected at least 15 notification audit gates, found ${notificationGateCount}`)
   ok = false
 }
 
@@ -600,6 +614,13 @@ if (settingsE2e.includes('platform-audit-check-notification_milestone_audit')) {
   console.log('✓ notification milestone audit E2E coverage present')
 } else {
   console.log('✗ notification milestone audit E2E visibility required')
+  ok = false
+}
+
+if (settingsE2e.includes('notification hub filters skipped email and sms by channel tab')) {
+  console.log('✓ hub skip channel filter E2E coverage present')
+} else {
+  console.log('✗ hub skip channel filter E2E test required')
   ok = false
 }
 
