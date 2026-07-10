@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseVendorPOText, isVendorPOText } from '@/lib/vendor-po-parser'
+import { parseVendorPOText, isVendorPOText, normalizeVendorPOText } from '@/lib/vendor-po-parser'
 
 const SAMPLE_PO = `VENDOR PO # Service Date
 Client PO # 350531955
@@ -47,5 +47,15 @@ describe('vendor-po-parser', () => {
     expect(result.service_address).toContain('317 Main St')
     expect(result.service_city).toBe('Graham')
     expect(result.service_state).toBe('NC')
+  })
+
+  it('parses PDF-flattened text without line breaks', () => {
+    const flattened = SAMPLE_PO.replace(/\n/g, ' ')
+    const result = parseVendorPOText(flattened, 'vendor-po-sample.pdf')
+    expect(result.vendor_po_number).toBe('207872-02')
+    expect(result.client_po_number).toBe('350531955')
+    expect(result.priority).toBe('P30')
+    expect(result.service_address).toContain('317 Main St')
+    expect(normalizeVendorPOText(flattened).split('\n').length).toBeGreaterThan(8)
   })
 })

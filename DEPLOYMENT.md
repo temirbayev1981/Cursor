@@ -41,7 +41,7 @@ No schema changes required. Frontend-only release (i18n, AI fallbacks, invite si
 
 ```bash
 npm run verify:production
-npm run test:e2e   # 38 tests (see e2e/*.spec.ts)
+npm run test:e2e   # 39 tests (see e2e/*.spec.ts)
 ```
 
 Merge to `main` to redeploy GitHub Pages with `VITE_APP_VERSION` from the release branch.
@@ -262,7 +262,7 @@ Set all `VITE_*` env vars in your hosting provider.
 npm run test:e2e
 ```
 
-Playwright builds the app, runs **38 tests** across 12 spec files against `http://127.0.0.1:4173`.
+Playwright builds the app, runs **39 tests** across 13 spec files against `http://127.0.0.1:4173`.
 
 ### Optional: live Supabase smoke
 

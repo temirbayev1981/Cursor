@@ -2,6 +2,15 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.3.3] — 2026-07-10
+
+Vendor PO PDF upload E2E.
+
+### Phase 44 — Vendor PO PDF E2E
+- E2E: vendor PO tab PDF upload → parse success → table row (`e2e/work-orders-vendor-po.spec.ts`)
+- Fixture: `e2e/fixtures/vendor-po-sample.pdf` (CD Maintenance sample PO)
+- `data-testid="work-orders-vendor-po-dropzone"` for stable file upload
+
 ## [1.3.2] — 2026-07-10
 
 Work orders AI import E2E and documentation parity.

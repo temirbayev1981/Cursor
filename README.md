@@ -54,7 +54,7 @@ npm run test:e2e
 
 Open [http://localhost:5173](http://localhost:5173) and sign in with any credentials in demo mode.
 
-**Current version:** 1.3.2 — see [RELEASE.md](./RELEASE.md) and [CHANGELOG.md](./CHANGELOG.md).
+**Current version:** 1.3.3 — see [RELEASE.md](./RELEASE.md) and [CHANGELOG.md](./CHANGELOG.md).
 
 Copy `.env.example` to `.env.local` to connect Supabase, Stripe, and other integrations.
 
@@ -118,7 +118,7 @@ See [CHANGELOG.md](./CHANGELOG.md) for release history.
 | Deploy guide | [DEPLOYMENT.md](./DEPLOYMENT.md) |
 | Release checklist | [RELEASE.md](./RELEASE.md) |
 
-Current version: **1.3.2**
+Current version: **1.3.3**
 
 ## Security
 

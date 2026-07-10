@@ -168,6 +168,7 @@ export default function WorkOrdersPage() {
               <CardContent className="space-y-4">
                 <div
                   {...vendorDropzone.getRootProps()}
+                  data-testid="work-orders-vendor-po-dropzone"
                   className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors ${
                     vendorDropzone.isDragActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
                   }`}
