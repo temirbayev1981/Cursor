@@ -26,6 +26,7 @@ import { useJobs, useCustomers, useEmployees } from '@/hooks/use-entities'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { formatCurrency } from '@/lib/utils'
 import { ProfitIndicator } from '@/components/shared/status-badge'
+import { exportFinancialReport, exportReportPdfPlaceholder } from '@/lib/export'
 import { useTranslation } from '@/contexts/locale-context'
 
 export default function ReportsPage() {
@@ -47,8 +48,12 @@ export default function ReportsPage() {
         description={t.reports.description}
         actions={
           <>
-            <Button variant="outline"><Download className="h-4 w-4" />{t.common.exportPdf}</Button>
-            <Button variant="outline"><FileSpreadsheet className="h-4 w-4" />{t.common.exportCsv}</Button>
+            <Button variant="outline" onClick={() => exportReportPdfPlaceholder(t.reports.title)}>
+              <Download className="h-4 w-4" />{t.common.exportPdf}
+            </Button>
+            <Button variant="outline" onClick={() => exportFinancialReport(jobs, customers)}>
+              <FileSpreadsheet className="h-4 w-4" />{t.common.exportCsv}
+            </Button>
           </>
         }
       />

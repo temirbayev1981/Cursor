@@ -192,10 +192,26 @@ export async function analyzePhoto(_file: File): Promise<AIExtractedData> {
   }
 }
 
-export async function askBusinessAssistant(question: string, locale: 'ru' | 'en' = 'ru'): Promise<string> {
+export function buildBusinessContext(data: {
+  jobs: import('@/types').Job[]
+  invoices: import('@/types').Invoice[]
+  customers: import('@/types').Customer[]
+}): string {
+  const revenue = data.jobs.reduce((s, j) => s + j.revenue, 0)
+  const profit = data.jobs.reduce((s, j) => s + j.profit, 0)
+  const openJobs = data.jobs.filter((j) => !['completed', 'cancelled'].includes(j.status)).length
+  const outstanding = data.invoices.filter((i) => i.status !== 'paid').reduce((s, i) => s + (i.total - i.amount_paid), 0)
+  return `Business snapshot: ${data.customers.length} customers, ${data.jobs.length} jobs (${openJobs} open), revenue $${revenue.toFixed(0)}, profit $${profit.toFixed(0)}, outstanding invoices $${outstanding.toFixed(0)}.`
+}
+
+export async function askBusinessAssistant(
+  question: string,
+  locale: 'ru' | 'en' = 'ru',
+  businessContext?: string
+): Promise<string> {
   const systemPrompt = locale === 'ru'
-    ? 'Ты AI-ассистент для handyman SaaS HandymanOS. Отвечай на русском, кратко и по делу, с цифрами и рекомендациями.'
-    : 'You are an AI assistant for HandymanOS handyman SaaS. Be concise with numbers and recommendations.'
+    ? `Ты AI-ассистент для handyman SaaS HandymanOS. Отвечай на русском, кратко и по делу, с цифрами и рекомендациями.${businessContext ? `\n\nДанные бизнеса: ${businessContext}` : ''}`
+    : `You are an AI assistant for HandymanOS handyman SaaS. Be concise with numbers and recommendations.${businessContext ? `\n\nBusiness data: ${businessContext}` : ''}`
 
   const aiAnswer = await callOpenAI(systemPrompt, question)
   if (aiAnswer) return aiAnswer

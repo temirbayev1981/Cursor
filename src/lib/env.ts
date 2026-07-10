@@ -6,6 +6,7 @@ const envSchema = z.object({
   VITE_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   VITE_GOOGLE_MAPS_API_KEY: z.string().optional(),
   VITE_OPENAI_API_KEY: z.string().optional(),
+  VITE_STRIPE_CHECKOUT_ENDPOINT: z.string().optional(),
 })
 
 export const env = envSchema.parse(import.meta.env)

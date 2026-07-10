@@ -11,6 +11,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   onboardingComplete: boolean
   signIn: (email: string, password: string) => Promise<void>
+  signUp: (email: string, password: string, fullName: string) => Promise<void>
   signOut: () => Promise<void>
   completeOnboarding: (data?: OnboardingData) => Promise<void>
   hasRole: (...roles: UserRole[]) => boolean
@@ -82,6 +83,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { restoreSession() }, [restoreSession])
 
+  const signUp = async (email: string, password: string, fullName: string) => {
+    if (DEMO_MODE) {
+      localStorage.setItem('handymanos_auth', 'true')
+      setUser({ ...DEMO_USER, email, full_name: fullName })
+      setCompany(getStoredCompany() ?? DEMO_COMPANY)
+      return
+    }
+
+    if (!supabase) throw new Error('Supabase not configured')
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName } },
+    })
+    if (error) throw error
+    if (data.user) {
+      setUser({
+        id: data.user.id,
+        company_id: 'comp-001',
+        email,
+        full_name: fullName,
+        role: 'owner',
+        created_at: new Date().toISOString(),
+      })
+      localStorage.setItem('handymanos_auth', 'true')
+    }
+  }
+
   const signIn = async (email: string, password: string) => {
     if (DEMO_MODE) {
       localStorage.setItem('handymanos_auth', 'true')
@@ -121,7 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{
       user, company, isLoading, isAuthenticated: !!user, onboardingComplete,
-      signIn, signOut, completeOnboarding, hasRole,
+      signIn, signUp, signOut, completeOnboarding, hasRole,
     }}>
       {children}
     </AuthContext.Provider>

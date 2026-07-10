@@ -61,7 +61,7 @@ export default function CustomerPortalPage() {
                   <p className="font-medium">{inv.invoice_number}</p>
                   <p className="text-lg font-bold">{formatCurrency(inv.total)}</p>
                 </div>
-                <StripePayButton amount={inv.total - inv.amount_paid} invoiceNumber={inv.invoice_number} />
+                <StripePayButton invoice={inv} onSuccess={() => window.location.reload()} />
               </CardContent>
             </Card>
           ))}

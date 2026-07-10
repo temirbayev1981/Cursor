@@ -5,41 +5,56 @@ import { hasStripe } from '@/lib/env'
 import { formatCurrency } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useTranslation } from '@/contexts/locale-context'
+import { recordInvoicePayment } from '@/services/payment-service'
+import { startStripeCheckout } from '@/services/stripe-service'
+import type { Invoice } from '@/types'
 
 interface StripePayButtonProps {
-  amount: number
-  invoiceNumber: string
+  invoice: Invoice
+  customerEmail?: string
   onSuccess?: () => void
 }
 
-export function StripePayButton({ amount, invoiceNumber, onSuccess }: StripePayButtonProps) {
+export function StripePayButton({ invoice, customerEmail, onSuccess }: StripePayButtonProps) {
   const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
+  const amount = invoice.total - invoice.amount_paid
 
   const handlePay = async () => {
+    if (amount <= 0) return
     setLoading(true)
     try {
-      if (hasStripe) {
-        // Production: redirect to Stripe Checkout session created by backend
-        toast.info('Stripe Checkout', {
-          description: `Сессия оплаты для ${invoiceNumber} (${formatCurrency(amount)}) — подключите backend webhook.`,
-        })
-      } else {
-        await new Promise((r) => setTimeout(r, 1500))
-        toast.success(t.invoices.paid ?? 'Оплачено', {
-          description: `Демо-оплата ${formatCurrency(amount)} по счёту ${invoiceNumber}`,
-        })
-        onSuccess?.()
+      const result = await startStripeCheckout({
+        invoiceId: invoice.id,
+        invoiceNumber: invoice.invoice_number,
+        amount,
+        customerEmail,
+      })
+
+      if (result === 'redirected') return
+
+      if (result === 'error' && hasStripe) {
+        toast.error('Stripe Checkout недоступен — проверьте VITE_STRIPE_CHECKOUT_ENDPOINT')
+        return
       }
+
+      await new Promise((r) => setTimeout(r, 1200))
+      await recordInvoicePayment(invoice, amount, hasStripe ? 'stripe' : 'card', `demo_${Date.now()}`)
+      toast.success(t.invoices.paid, {
+        description: `${formatCurrency(amount)} — ${invoice.invoice_number}`,
+      })
+      onSuccess?.()
     } finally {
       setLoading(false)
     }
   }
 
+  if (amount <= 0 || invoice.status === 'paid') return null
+
   return (
     <Button size="sm" variant="outline" onClick={handlePay} disabled={loading}>
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-      {hasStripe ? 'Stripe Pay' : t.common.pay}
+      {hasStripe ? 'Stripe' : t.common.pay}
     </Button>
   )
 }

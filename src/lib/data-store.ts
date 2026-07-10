@@ -45,6 +45,7 @@ export const STORE_KEYS = {
   workOrders: 'handymanos_work_orders',
   fuelLogs: 'handymanos_fuel_logs',
   services: 'handymanos_services',
+  payments: 'handymanos_payments',
   workflows: 'handymanos_workflows',
   auditLogs: 'handymanos_audit_logs',
   timeEntries: 'handymanos_time_entries',

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
 import { listEntities, saveEntity, createJobFromVendorPO, createEstimateFromJob, listFuelLogs } from '@/services/entity-service'
+import { recordInvoicePayment, sendInvoiceToCustomer } from '@/services/payment-service'
 import type { Job, Customer, Estimate, Invoice } from '@/types'
 import type { VendorPORecord } from '@/types/vendor-po'
 
@@ -129,6 +130,35 @@ export function useUpdateJobStatus() {
     mutationFn: async ({ job, status }: { job: Job; status: Job['status'] }) =>
       saveEntity('jobs', { ...job, status }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs', companyId] }),
+  })
+}
+
+export function useSaveInvoice() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: (invoice: Invoice) => saveEntity('invoices', invoice),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['invoices', companyId] }),
+  })
+}
+
+export function usePayInvoice() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: ({ invoice, amount }: { invoice: Invoice; amount: number }) =>
+      recordInvoicePayment(invoice, amount),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['invoices', companyId] }),
+  })
+}
+
+export function useSendInvoice() {
+  const qc = useQueryClient()
+  const companyId = useCompanyId()
+  return useMutation({
+    mutationFn: ({ invoice, email }: { invoice: Invoice; email: string }) =>
+      sendInvoiceToCustomer(invoice, email),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['invoices', companyId] }),
   })
 }
 

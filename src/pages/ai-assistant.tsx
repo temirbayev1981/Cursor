@@ -6,7 +6,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { askBusinessAssistant } from '@/lib/ai'
+import { askBusinessAssistant, buildBusinessContext } from '@/lib/ai'
+import { useJobs, useInvoices, useCustomers } from '@/hooks/use-entities'
 import type { AIChatMessage } from '@/types'
 import { useTranslation } from '@/contexts/locale-context'
 
@@ -17,6 +18,10 @@ export default function AIAssistantPage() {
   const [loading, setLoading] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
+  const { data: jobs = [] } = useJobs()
+  const { data: invoices = [] } = useInvoices()
+  const { data: customers = [] } = useCustomers()
+  const businessContext = buildBusinessContext({ jobs, invoices, customers })
   const suggestedQuestions = [t.ai.q1, t.ai.q2, t.ai.q3, t.ai.q4]
 
   useEffect(() => {
@@ -48,7 +53,7 @@ export default function AIAssistantPage() {
     setLoading(true)
 
     try {
-      const response = await askBusinessAssistant(text, locale)
+      const response = await askBusinessAssistant(text, locale, businessContext)
       setMessages((prev) => [
         ...prev,
         {

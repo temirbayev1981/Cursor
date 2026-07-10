@@ -22,6 +22,15 @@ export const jobSchema = z.object({
 
 export type JobFormValues = z.infer<typeof jobSchema>
 
+export const invoiceSchema = z.object({
+  customer_id: z.string().min(1, 'Выберите клиента'),
+  subtotal: z.coerce.number().min(0),
+  tax: z.coerce.number().min(0),
+  due_days: z.coerce.number().min(1).max(90),
+})
+
+export type InvoiceFormValues = z.infer<typeof invoiceSchema>
+
 export const onboardingCompanySchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
