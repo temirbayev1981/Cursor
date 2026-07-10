@@ -18,6 +18,7 @@ import {
   Settings,
   Kanban,
   ChevronLeft,
+  X,
   Zap,
   LogOut,
 } from 'lucide-react'
@@ -53,10 +54,19 @@ const navItems = [
 
 interface SidebarProps {
   collapsed: boolean
+  isMobile?: boolean
+  mobileOpen?: boolean
+  onMobileClose?: () => void
   onToggle: () => void
 }
 
-export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+export function Sidebar({
+  collapsed,
+  isMobile = false,
+  mobileOpen = false,
+  onMobileClose,
+  onToggle,
+}: SidebarProps) {
   const location = useLocation()
   const { user, company, signOut } = useAuth()
   const { t } = useTranslation()
@@ -66,33 +76,50 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     return !user || canAccess(user.role, module)
   })
 
+  const showLabels = isMobile || !collapsed
+  const sidebarWidth = isMobile ? 288 : collapsed ? 72 : 260
+
   return (
     <motion.aside
       initial={false}
-      animate={{ width: collapsed ? 72 : 260 }}
-      className="fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-border bg-background/80 backdrop-blur-xl"
+      animate={
+        isMobile
+          ? { x: mobileOpen ? 0 : -sidebarWidth }
+          : { width: sidebarWidth }
+      }
+      transition={{ type: 'spring', stiffness: 380, damping: 36 }}
+      className={cn(
+        'fixed left-0 top-0 z-40 flex h-[100dvh] flex-col border-r border-border bg-background/95 backdrop-blur-xl',
+        isMobile ? 'w-[min(288px,88vw)] shadow-2xl' : 'translate-x-0',
+      )}
+      aria-hidden={isMobile ? !mobileOpen : undefined}
     >
-      <div className="flex h-16 items-center gap-3 border-b border-border px-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+      <div className="safe-top flex h-14 shrink-0 items-center gap-3 border-b border-border px-3 lg:h-16 lg:px-4">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary">
           <Zap className="h-5 w-5 text-primary-foreground" />
         </div>
-        {!collapsed && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col">
-            <span className="text-sm font-bold tracking-tight">HandymanOS</span>
-            <span className="text-[10px] text-primary font-medium">AI</span>
+        {showLabels && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-w-0 flex flex-col">
+            <span className="truncate text-sm font-bold tracking-tight">HandymanOS</span>
+            <span className="text-[10px] font-medium text-primary">AI</span>
           </motion.div>
         )}
         <Button
           variant="ghost"
           size="icon"
-          className={cn('ml-auto h-8 w-8', collapsed && 'ml-0')}
-          onClick={onToggle}
+          className={cn('ml-auto h-8 w-8 shrink-0', !showLabels && !isMobile && 'ml-0')}
+          onClick={isMobile ? onMobileClose ?? onToggle : onToggle}
+          aria-label={isMobile ? 'Close navigation' : 'Toggle sidebar'}
         >
-          <ChevronLeft className={cn('h-4 w-4 transition-transform', collapsed && 'rotate-180')} />
+          {isMobile ? (
+            <X className="h-4 w-4" />
+          ) : (
+            <ChevronLeft className={cn('h-4 w-4 transition-transform', collapsed && 'rotate-180')} />
+          )}
         </Button>
       </div>
 
-      <nav className="flex-1 overflow-y-auto scrollbar-thin py-4 px-2">
+      <nav className="scrollbar-thin flex-1 overflow-y-auto overscroll-contain px-2 py-3">
         <ul className="space-y-1">
           {visibleNav.map((item) => {
             const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/')
@@ -101,16 +128,17 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               <li key={item.key}>
                 <NavLink
                   to={item.href}
+                  onClick={isMobile ? onMobileClose : undefined}
                   className={cn(
                     'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
                     isActive
                       ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                      : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground',
                   )}
-                  title={collapsed ? name : undefined}
+                  title={!showLabels ? name : undefined}
                 >
                   <item.icon className="h-5 w-5 shrink-0" />
-                  {!collapsed && <span>{name}</span>}
+                  {showLabels && <span className="truncate">{name}</span>}
                 </NavLink>
               </li>
             )
@@ -118,29 +146,29 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         </ul>
       </nav>
 
-      <div className="border-t border-border p-3">
-        {!collapsed && (
+      <div className="safe-bottom shrink-0 border-t border-border p-3">
+        {showLabels && (
           <div className="mb-3">
             <LanguageSwitcher />
           </div>
         )}
-        <CompanySwitcher collapsed={collapsed} />
-        {DEMO_MODE && !collapsed && (
+        <CompanySwitcher collapsed={!showLabels} />
+        {DEMO_MODE && showLabels && (
           <div className="mb-3 rounded-lg bg-accent/10 px-3 py-2 text-xs text-accent">
             {t.common.demoMode}
           </div>
         )}
         <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9">
+          <Avatar className="h-9 w-9 shrink-0">
             <AvatarFallback>{getInitials(user?.full_name || 'U')}</AvatarFallback>
           </Avatar>
-          {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user?.full_name}</p>
-              <p className="text-xs text-muted-foreground truncate">{company?.name}</p>
+          {showLabels && (
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{user?.full_name}</p>
+              <p className="truncate text-xs text-muted-foreground">{company?.name}</p>
             </div>
           )}
-          {!collapsed && (
+          {showLabels && (
             <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={signOut}>
               <LogOut className="h-4 w-4" />
             </Button>

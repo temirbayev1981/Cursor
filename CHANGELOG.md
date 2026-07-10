@@ -4,6 +4,11 @@ All notable changes to HandymanOS AI are documented here.
 
 ## [Unreleased]
 
+### Mobile layout
+- Responsive drawer navigation on phones (hamburger menu, full-width content)
+- Safe-area insets for iOS notch/home indicator
+- Compact header, padding, charts, and dashboard job cards on small screens
+
 ## [1.1.0] — 2026-07-10
 
 Platform consolidation release (Phases 8–24).

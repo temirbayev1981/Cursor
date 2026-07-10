@@ -66,9 +66,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="gradient-bg min-h-screen flex items-center justify-center p-4">
+    <div className="gradient-bg safe-x flex min-h-[100dvh] items-center justify-center p-4 py-8">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-        <div className="absolute top-4 right-4"><LanguageSwitcher /></div>
+        <div className="safe-top absolute right-4 top-4"><LanguageSwitcher /></div>
 
         <div className="text-center mb-8">
           <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary mb-4">

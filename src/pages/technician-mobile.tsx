@@ -268,7 +268,7 @@ export default function TechnicianMobilePage() {
   }
 
   return (
-    <div className="gradient-bg min-h-screen max-w-md mx-auto">
+    <div className="gradient-bg safe-x mx-auto min-h-[100dvh] max-w-md">
       <input
         ref={photoInputRef}
         type="file"
@@ -278,7 +278,7 @@ export default function TechnicianMobilePage() {
         onChange={(e) => void handlePhotoSelected(e)}
       />
 
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border p-4">
+      <header className="safe-top sticky top-0 z-10 border-b border-border bg-background/80 p-4 backdrop-blur-xl">
         <div className="flex items-center justify-between gap-2">
           <div>
             <h1 className="text-lg font-bold">{t.techMobile.myJobs}</h1>
@@ -300,7 +300,7 @@ export default function TechnicianMobilePage() {
         </div>
       </header>
 
-      <div className="p-4 space-y-4">
+      <div className="safe-bottom space-y-4 p-4">
         {myJobs.length === 0 && (
           <Card>
             <CardContent className="p-6 text-center text-muted-foreground text-sm">

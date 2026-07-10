@@ -1,30 +1,88 @@
-import { useState } from 'react'
-import { Bell } from 'lucide-react'
-import { Outlet } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Bell, Menu } from 'lucide-react'
+import { Outlet, useLocation } from 'react-router-dom'
 import { Sidebar } from './sidebar'
 import { GlobalSearch } from '@/components/shared/global-search'
 import { Button } from '@/components/ui/button'
 import { LanguageSwitcher } from '@/components/shared/language-switcher'
+import { useIsMobileNav } from '@/hooks/use-media-query'
+import { cn } from '@/lib/utils'
 
 export function AppLayout() {
+  const isMobileNav = useIsMobileNav()
+  const location = useLocation()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+
+  useEffect(() => {
+    setMobileNavOpen(false)
+  }, [location.pathname])
+
+  useEffect(() => {
+    if (!isMobileNav) setMobileNavOpen(false)
+  }, [isMobileNav])
+
+  useEffect(() => {
+    document.body.style.overflow = mobileNavOpen ? 'hidden' : ''
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [mobileNavOpen])
+
+  const mainOffset = isMobileNav ? 0 : sidebarCollapsed ? 72 : 260
 
   return (
-    <div className="gradient-bg min-h-screen">
-      <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+    <div className="gradient-bg min-h-[100dvh] overflow-x-hidden">
+      {mobileNavOpen && (
+        <button
+          type="button"
+          aria-label="Close navigation"
+          className="fixed inset-0 z-30 bg-black/60 backdrop-blur-[2px] lg:hidden"
+          onClick={() => setMobileNavOpen(false)}
+        />
+      )}
+
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        isMobile={isMobileNav}
+        mobileOpen={mobileNavOpen}
+        onMobileClose={() => setMobileNavOpen(false)}
+        onToggle={() => {
+          if (isMobileNav) {
+            setMobileNavOpen((open) => !open)
+            return
+          }
+          setSidebarCollapsed((collapsed) => !collapsed)
+        }}
+      />
+
       <main
-        className="transition-all duration-300"
-        style={{ marginLeft: sidebarCollapsed ? 72 : 260 }}
+        className="min-w-0 transition-[margin] duration-300"
+        style={{ marginLeft: mainOffset }}
       >
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-background/60 backdrop-blur-xl px-6">
+        <header className="safe-top sticky top-0 z-20 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background/70 px-3 backdrop-blur-xl sm:gap-3 sm:px-4 lg:h-16 lg:gap-4 lg:px-6">
+          {isMobileNav && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 shrink-0"
+              aria-label="Open navigation"
+              onClick={() => setMobileNavOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          )}
           <GlobalSearch />
-          <LanguageSwitcher compact />
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
-          </Button>
+          <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+            <LanguageSwitcher compact />
+            <Button variant="ghost" size="icon" className="relative h-9 w-9">
+              <Bell className="h-5 w-5" />
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
+            </Button>
+          </div>
         </header>
-        <div className="p-6">
+
+        <div className={cn('safe-bottom px-3 py-4 sm:px-4 sm:py-5 lg:p-6')}>
           <Outlet />
         </div>
       </main>
