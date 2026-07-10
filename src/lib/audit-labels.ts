@@ -127,6 +127,9 @@ export const INTEGRATION_PROBE_UI_AUDIT = true as const
 /** Settings → System stores integration probe run history for operators. */
 export const INTEGRATION_PROBE_HISTORY_AUDIT = true as const
 
+/** Settings notification hub exposes queue filter, status, and retry. */
+export const NOTIFICATION_HUB_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }

@@ -2,13 +2,18 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import {
   sendNotification,
   notifyJobScheduled,
+  notifyCustomerEta,
   notifyTechnicianSms,
   notifyResultMessage,
   getNotificationQueue,
+  getNotificationQueueFiltered,
+  getNotificationQueueStats,
   getNotificationQueueSize,
   clearNotificationQueue,
   flushNotificationQueue,
+  retryFailedNotifications,
 } from './notification-service'
+import { saveCustomerNotificationPreferences } from '@/lib/customer-notification-prefs'
 
 describe('notification-service', () => {
   beforeEach(() => {
@@ -54,7 +59,10 @@ describe('notification-service', () => {
     })
     expect(result).toEqual({ ok: true, queued: true })
     expect(getNotificationQueueSize()).toBe(1)
-    expect(getNotificationQueue()[0].to).toBe('test@example.com')
+    const [item] = getNotificationQueue()
+    expect(item.to).toBe('test@example.com')
+    expect(item.status).toBe('queued')
+    expect(item.id).toBeTruthy()
   })
 
   it('notifyJobScheduled uses Russian templates when locale is ru', async () => {
@@ -98,5 +106,38 @@ describe('notification-service', () => {
     await sendNotification({ to: 'a@b.com', body: 'x', channel: 'email' })
     clearNotificationQueue()
     expect(getNotificationQueueSize()).toBe(0)
+  })
+
+  it('getNotificationQueueFiltered filters by channel', async () => {
+    await sendNotification({ to: 'a@b.com', body: 'email', channel: 'email' })
+    await notifyTechnicianSms('555', 'sms')
+    expect(getNotificationQueueFiltered('email')).toHaveLength(1)
+    expect(getNotificationQueueFiltered('sms')).toHaveLength(1)
+    expect(getNotificationQueueStats().total).toBe(2)
+  })
+
+  it('retryFailedNotifications re-queues failed items', async () => {
+    await sendNotification({ to: 'a@b.com', body: 'x', channel: 'email' })
+    const queue = getNotificationQueue()
+    queue[0].status = 'failed'
+    localStorage.setItem('handymanos_notification_queue', JSON.stringify(queue))
+    const retried = await retryFailedNotifications()
+    expect(retried).toBe(0)
+    expect(getNotificationQueue()[0].status).toBe('queued')
+  })
+
+  it('notifyJobScheduled skips email when customer disabled email prefs', async () => {
+    saveCustomerNotificationPreferences('cust-no-email', { email: false, sms: false })
+    const result = await notifyJobScheduled('cust@example.com', 'Fix', 'Jul 10', 'cust-no-email')
+    expect(result).toEqual({ ok: true, queued: false })
+    expect(getNotificationQueueSize()).toBe(0)
+    localStorage.removeItem('handymanos_customer_notify_prefs_cust-no-email')
+  })
+
+  it('notifyCustomerEta uses English templates by default', async () => {
+    const result = await notifyCustomerEta('cust@example.com', 'Fix faucet', '30 min')
+    expect(result.ok).toBe(true)
+    const [item] = getNotificationQueue()
+    expect(item.subject).toContain('en route')
   })
 })

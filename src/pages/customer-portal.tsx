@@ -3,6 +3,8 @@ import { LogOut, Star } from 'lucide-react'
 import { Navigate, useSearchParams } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { EstimateStatusBadge } from '@/components/shared/status-badge'
 import { StripePayButton } from '@/components/payments/stripe-pay-button'
 import { TableSkeleton } from '@/components/shared/skeleton'
@@ -19,6 +21,11 @@ import { hasPortalReview } from '@/services/portal-data-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
+import {
+  getCustomerNotificationPreferences,
+  saveCustomerNotificationPreferences,
+  type CustomerNotificationPreferences,
+} from '@/lib/customer-notification-prefs'
 import { toast } from 'sonner'
 import type { Estimate } from '@/types'
 
@@ -33,10 +40,12 @@ export default function CustomerPortalPage() {
   const reviewSubmit = usePortalReviewSubmit()
   const [reviewed, setReviewed] = useState(false)
   const [showReviewForm, setShowReviewForm] = useState(false)
+  const [notifyPrefs, setNotifyPrefs] = useState<CustomerNotificationPreferences>({ email: true, sms: false })
 
   useEffect(() => {
     if (!portal) return
     setReviewed(hasPortalReview(portal.customerId))
+    setNotifyPrefs(getCustomerNotificationPreferences(portal.customerId))
   }, [portal])
 
   useEffect(() => {
@@ -63,6 +72,13 @@ export default function CustomerPortalPage() {
   const handleLogout = () => {
     clearPortalSession()
     window.location.href = '/login?portal=1'
+  }
+
+  const updateNotifyPref = (key: keyof CustomerNotificationPreferences, value: boolean) => {
+    const next = { ...notifyPrefs, [key]: value }
+    setNotifyPrefs(next)
+    saveCustomerNotificationPreferences(portal.customerId, next)
+    toast.success(t.customerPortal.preferencesSaved)
   }
 
   const submitReview = (rating: number, comment: string) => {
@@ -94,6 +110,30 @@ export default function CustomerPortalPage() {
             <span className="hidden sm:inline">{t.customerPortal.signOut}</span>
           </Button>
         </div>
+
+        <Card className="mb-6" data-testid="customer-portal-notification-prefs">
+          <CardContent className="space-y-4 p-4">
+            <p className="font-medium">{t.customerPortal.notificationPreferences}</p>
+            <div className="flex items-center justify-between gap-4">
+              <Label htmlFor="notify-email">{t.customerPortal.notifyEmail}</Label>
+              <Switch
+                id="notify-email"
+                checked={notifyPrefs.email}
+                data-testid="customer-portal-notify-email"
+                onCheckedChange={(checked) => updateNotifyPref('email', checked)}
+              />
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <Label htmlFor="notify-sms">{t.customerPortal.notifySms}</Label>
+              <Switch
+                id="notify-sms"
+                checked={notifyPrefs.sms}
+                data-testid="customer-portal-notify-sms"
+                onCheckedChange={(checked) => updateNotifyPref('sms', checked)}
+              />
+            </div>
+          </CardContent>
+        </Card>
 
         <h2 className="mb-3 text-base font-semibold sm:mb-4 sm:text-lg" data-testid="customer-portal-estimates-heading">{t.customerPortal.yourEstimates}</h2>
         <div className="mb-6 space-y-3 sm:mb-8">

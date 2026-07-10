@@ -1,7 +1,7 @@
 {
   "name": "handymanos-ai",
   "private": true,
-  "version": "1.9.5",
+  "version": "1.10.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,6 +11,7 @@
     "test:e2e": "playwright test",
     "verify:release": "node scripts/verify-release.mjs",
     "verify:production": "node scripts/verify-production-readiness.mjs",
+    "verify:operator": "node scripts/verify-operator-readiness.mjs",
     "smoke:supabase": "node scripts/supabase-smoke.mjs",
     "preview": "vite preview"
   },

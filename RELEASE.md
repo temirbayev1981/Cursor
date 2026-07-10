@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.9.5
+# HandymanOS AI — Release 1.10.0
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.9.5`**, current package **1.9.5**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.10.0`**, current package **1.10.0**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -131,10 +131,16 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
 
+### 1.10.0 — Recommendations roadmap
+- `verify:operator` + edge function smoke in Deploy CI
+- Notification hub (filter, status, retry); dispatch bulk SMS + ETA alerts
+- Customer portal notification preferences; probe history Supabase sync
+- Platform audit `notification_hub_audit` gate
+
 ## Test coverage
 
-- Unit: **133** (`npm test`)
-- E2E: **185/185** (`npm run test:e2e`)
+- Unit: **140** (`npm test`)
+- E2E: **186/186** (`npm run test:e2e`)
 
 ## Deploy
 
@@ -144,6 +150,7 @@ VITE_SUPABASE_URL=https://xxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJ...
 
 npm run verify:production
+npm run verify:operator
 npm run test
 npm run test:e2e
 npm run smoke:supabase   # optional, live Supabase

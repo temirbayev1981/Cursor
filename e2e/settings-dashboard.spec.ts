@@ -69,11 +69,35 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('platform-audit-check-pwa_sw_offline_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-integration_probe_ui_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-integration_probe_history_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-notification_hub_audit')).toBeVisible()
+    await expect(page.getByTestId('notification-hub')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history-entry-0')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history-supabase-0')).toHaveText(/supabase|онлайн|live/i)
     await expect(page.getByTestId('audit-coverage-summary')).toBeVisible()
     await expect(page.getByTestId('audit-coverage-summary')).toHaveText(/\d+.*(?:типов действий в журнале|action types in log).*\d+.*(?:локализованных меток|localized labels)/i)
+  })
+
+  test('probe history shows unreachable integration badges', async ({ page }) => {
+    await page.addInitScript(() => {
+      const entry = {
+        checkedAt: '2020-01-01T00:00:00.000Z',
+        results: {
+          supabase: false,
+          stripe: true,
+          openai: null,
+          email: null,
+          sms: null,
+          maps: null,
+          observability: null,
+        },
+        summary: { live: 1, total: 2, unreachable: 1 },
+      }
+      localStorage.setItem('handymanos_integration_probe_history', JSON.stringify([entry]))
+    })
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /system|система/i }).click()
+    await expect(page.getByTestId('integration-probe-history-supabase-1')).toHaveText(/недоступн|unreachable/i)
   })
 })
 

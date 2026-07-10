@@ -27,6 +27,7 @@ const REQUIRED_TABLES = [
   'company_members',
   'team_invites',
   'portal_tokens',
+  'integration_probe_runs',
   'audit_logs',
   'customer_reviews',
   'vendor_po_records',

@@ -30,6 +30,7 @@ Without Supabase secrets, the **Deploy** workflow still passes (E2E uses mock ba
 npm ci
 cp .env.example .env.local   # fill VITE_SUPABASE_* 
 npm run verify:production
+npm run verify:operator
 npm run test:e2e
 npm run smoke:supabase       # needs live Supabase in .env.local
 ```
@@ -49,18 +50,18 @@ npm run smoke:supabase       # needs live Supabase in .env.local
 
 ## 6. Platform audit
 
-**Settings → System** — aim for score ≥ 8.5 with live integrations connected.
+**Settings → System** — aim for score ≥ 8.5 with live integrations connected. Run `npm run verify:operator` after deploy for the full operator checklist (includes edge function smoke when `SMOKE_EDGE_FUNCTIONS=1` in CI).
 
 ## 7. Tags and rollback
 
-Current release tag: **`v1.9.5`**
+Current release tag: **`v1.10.0`**
 
 ```bash
-git tag -a v1.9.5 -m "HandymanOS AI 1.9.5"
-git push origin v1.9.5
+git tag -a v1.10.0 -m "HandymanOS AI 1.10.0"
+git push origin v1.10.0
 ```
 
-Rollback: `git checkout v1.9.5` or reset `main` to a prior tag (team policy).
+Rollback: `git checkout v1.10.0` or reset `main` to a prior tag (team policy).
 
 ## 8. Close stale PRs
 

@@ -7,18 +7,27 @@ import { useTranslation } from '@/contexts/locale-context'
 import {
   clearNotificationQueue,
   getNotificationQueue,
-  type NotificationPayload,
+  type QueuedNotification,
 } from '@/services/notification-service'
 
-function channelIcon(channel: NotificationPayload['channel']) {
+function channelIcon(channel: QueuedNotification['channel']) {
   if (channel === 'sms') return MessageSquare
   return Mail
+}
+
+function statusLabel(
+  status: QueuedNotification['status'],
+  labels: { queued: string; sent: string; failed: string },
+) {
+  if (status === 'sent') return labels.sent
+  if (status === 'failed') return labels.failed
+  return labels.queued
 }
 
 export function NotificationBell() {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
-  const [queue, setQueue] = useState<NotificationPayload[]>(() => getNotificationQueue())
+  const [queue, setQueue] = useState<QueuedNotification[]>(() => getNotificationQueue())
   const panelRef = useRef<HTMLDivElement>(null)
 
   const refresh = useCallback(() => {
@@ -45,6 +54,8 @@ export function NotificationBell() {
     return () => document.removeEventListener('mousedown', onPointerDown)
   }, [open])
 
+  const pendingCount = queue.filter((item) => item.status !== 'sent').length
+
   const handleClear = () => {
     clearNotificationQueue()
     refresh()
@@ -61,9 +72,9 @@ export function NotificationBell() {
         onClick={() => setOpen((value) => !value)}
       >
         <Bell className="h-5 w-5" />
-        {queue.length > 0 && (
+        {pendingCount > 0 && (
           <span className="absolute top-1.5 right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
-            {queue.length > 9 ? '9+' : queue.length}
+            {pendingCount > 9 ? '9+' : pendingCount}
           </span>
         )}
       </Button>
@@ -95,21 +106,26 @@ export function NotificationBell() {
                 {t.header.noNotifications}
               </p>
             ) : (
-              queue.slice(0, 8).map((item, index) => {
+              queue.slice(0, 8).map((item) => {
                 const Icon = channelIcon(item.channel)
                 return (
                   <div
-                    key={`${item.to}-${item.metadata?.sent_at ?? index}`}
+                    key={item.id}
                     className="rounded-lg px-3 py-2.5 hover:bg-secondary/40"
                   >
                     <div className="mb-1 flex items-center gap-2">
                       <Icon className="h-3.5 w-3.5 shrink-0 text-primary" />
                       <span className="truncate text-xs font-medium">{item.to}</span>
-                      {item.metadata?.sent_at && (
-                        <Badge variant="outline" className="ml-auto shrink-0 text-[10px]">
-                          {t.header.queuedLocally}
-                        </Badge>
-                      )}
+                      <Badge
+                        variant={item.status === 'failed' ? 'destructive' : item.status === 'sent' ? 'success' : 'outline'}
+                        className="ml-auto shrink-0 text-[10px]"
+                      >
+                        {statusLabel(item.status, {
+                          queued: t.settings.notificationStatusQueued,
+                          sent: t.settings.notificationStatusSent,
+                          failed: t.settings.notificationStatusFailed,
+                        })}
+                      </Badge>
                     </div>
                     {item.subject && (
                       <p className="truncate text-sm font-medium">{item.subject}</p>

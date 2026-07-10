@@ -15,6 +15,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useJobs, useUpdateJobStatus, useEmployees, useCustomers, useProperties } from '@/hooks/use-entities'
 import { useTranslation } from '@/contexts/locale-context'
@@ -22,7 +23,7 @@ import { useOptimizedRoute } from '@/hooks/use-route-optimizer'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { PriorityBadge } from '@/components/shared/status-badge'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
-import { notifyTechnicianSms, notifyJobScheduled, notifyResultMessage } from '@/services/notification-service'
+import { notifyTechnicianSms, notifyJobScheduled, notifyCustomerEta, notifyBulkTechnicianSms, notifyResultMessage } from '@/services/notification-service'
 import { logAudit } from '@/services/entity-service'
 import { useAuth } from '@/contexts/auth-context'
 import { toast } from 'sonner'
@@ -145,6 +146,7 @@ export default function DispatchPage() {
   const route = useOptimizedRoute(jobs, customers, properties)
   const updateStatus = useUpdateJobStatus()
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [bulkSmsLoading, setBulkSmsLoading] = useState(false)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
   const statusLabels = t.status.job as Record<JobStatus, string>
@@ -180,7 +182,7 @@ export default function DispatchPage() {
         const customer = customers.find((c) => c.id === job.customer_id)
         if (customer?.email) {
           const when = job.scheduled_date ? formatDateTime(job.scheduled_date) : t.dispatch.soon
-          const emailResult = await notifyJobScheduled(customer.email, job.title, when)
+          const emailResult = await notifyJobScheduled(customer.email, job.title, when, customer.id)
           const emailFeedback = notifyResultMessage(
             emailResult,
             t.dispatch.customerEmailSent.replace('{email}', customer.email),
@@ -189,6 +191,22 @@ export default function DispatchPage() {
           )
           if (emailFeedback.type === 'success') toast.success(emailFeedback.message)
           else if (emailFeedback.type === 'info') toast.info(emailFeedback.message)
+        }
+      }
+
+      if (newStatus === 'in_progress') {
+        const customer = customers.find((c) => c.id === job.customer_id)
+        if (customer?.email) {
+          const eta = t.dispatch.etaDefault
+          const etaResult = await notifyCustomerEta(customer.email, job.title, eta, customer.id)
+          const etaFeedback = notifyResultMessage(
+            etaResult,
+            t.dispatch.customerEtaSent.replace('{email}', customer.email),
+            t.dispatch.customerEtaQueued.replace('{email}', customer.email),
+            t.common.notificationFailed,
+          )
+          if (etaFeedback.type === 'success') toast.success(etaFeedback.message)
+          else if (etaFeedback.type === 'info') toast.info(etaFeedback.message)
         }
       }
     },
@@ -216,11 +234,53 @@ export default function DispatchPage() {
 
   const activeJob = jobs.find((j) => j.id === activeId)
 
+  const handleBulkTechnicianSms = async () => {
+    const scheduledJobs = jobs.filter((j) => j.status === 'scheduled' && j.assigned_technician_id)
+    const counts = new Map<string, number>()
+    for (const job of scheduledJobs) {
+      const techId = job.assigned_technician_id!
+      counts.set(techId, (counts.get(techId) ?? 0) + 1)
+    }
+
+    const technicians = employees
+      .filter((emp) => counts.has(emp.id))
+      .map((emp) => ({ phone: emp.phone, jobCount: counts.get(emp.id) ?? 0 }))
+
+    if (technicians.length === 0) {
+      toast.info(t.dispatch.bulkSmsNone)
+      return
+    }
+
+    setBulkSmsLoading(true)
+    try {
+      const result = await notifyBulkTechnicianSms(technicians)
+      toast.success(
+        t.dispatch.bulkSmsDone
+          .replace('{sent}', String(result.sent))
+          .replace('{queued}', String(result.queued)),
+      )
+    } finally {
+      setBulkSmsLoading(false)
+    }
+  }
+
   if (isLoading) return <TableSkeleton rows={4} cols={4} />
 
   return (
     <div>
       <PageHeader title={t.dispatch.title} description={t.dispatch.description} />
+
+      <div className="mb-4 flex justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          data-testid="dispatch-bulk-sms"
+          disabled={bulkSmsLoading}
+          onClick={() => void handleBulkTechnicianSms()}
+        >
+          {t.dispatch.bulkSms}
+        </Button>
+      </div>
 
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
