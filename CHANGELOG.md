@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.8.2] — 2026-07-10
+
+Fleet audit logging and audit coverage summary.
+
+### Phase 84 — Fleet audit & coverage summary
+- `logAudit`: `employee.create`/`employee.update`, `vehicle.create`/`vehicle.update`
+- Platform audit: `fleet_audit` quality gate (`FLEET_AUDIT`)
+- Settings → System: audit coverage summary (`audit-coverage-summary`)
+- E2E: employee create, vehicle create, coverage summary
+- **41** localized audit actions (`AUDIT_I18N_COVERAGE` ≥ 40)
+
 ## [1.8.1] — 2026-07-10
 
 Catalog CRUD and onboarding audit.

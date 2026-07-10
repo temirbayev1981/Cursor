@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.8.1
+# HandymanOS AI — Release 1.8.2
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.8.1`**, current package **1.8.1**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.8.2`**, current package **1.8.2**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -63,10 +63,16 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Platform audit `onboarding_audit` gate; **37** localized audit actions
 - E2E: material create, onboarding wizard → audit log
 
+### 1.8.2 — Fleet audit & coverage summary
+- Audit: employee/vehicle CRUD
+- Platform audit `fleet_audit` gate; **41** localized audit actions
+- Settings audit log header: unique action types vs localized label count
+- E2E: employee create, vehicle create, coverage summary
+
 ## Test coverage
 
-- Unit: **107** (`npm test`)
-- E2E: **148/148** (`npm run test:e2e`)
+- Unit: **109** (`npm test`)
+- E2E: **152/152** (`npm run test:e2e`)
 
 ## Deploy
 

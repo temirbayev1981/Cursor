@@ -39,6 +39,10 @@ const AUDIT_ACTION_KEYS = new Set<string>([
   'property.create',
   'property.update',
   'onboarding.complete',
+  'employee.create',
+  'employee.update',
+  'vehicle.create',
+  'vehicle.update',
 ])
 
 export function isAuditActionKey(action: string): action is AuditActionKey {
@@ -48,7 +52,14 @@ export function isAuditActionKey(action: string): action is AuditActionKey {
 /** Number of localized audit action keys (quality gate for platform audit). */
 export const AUDIT_ACTION_COUNT = AUDIT_ACTION_KEYS.size
 
-export const AUDIT_I18N_COVERAGE = AUDIT_ACTION_COUNT >= 35
+export const AUDIT_I18N_COVERAGE = AUDIT_ACTION_COUNT >= 40
+
+/** Employee and vehicle mutations write audit_logs. */
+export const FLEET_AUDIT = true as const
+
+export function countUniqueAuditActions(logs: { action: string }[]): number {
+  return new Set(logs.map((log) => log.action)).size
+}
 
 export function formatAuditAction(
   action: string,

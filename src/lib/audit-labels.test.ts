@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatAuditAction, isAuditActionKey } from './audit-labels'
+import { formatAuditAction, isAuditActionKey, countUniqueAuditActions, FLEET_AUDIT } from './audit-labels'
 
 describe('audit-labels', () => {
   const labels = {
@@ -38,5 +38,20 @@ describe('audit-labels', () => {
     expect(isAuditActionKey('material.create')).toBe(true)
     expect(isAuditActionKey('property.create')).toBe(true)
     expect(isAuditActionKey('onboarding.complete')).toBe(true)
+  })
+
+  it('recognizes v1.8.2 fleet audit keys', () => {
+    expect(isAuditActionKey('employee.create')).toBe(true)
+    expect(isAuditActionKey('vehicle.create')).toBe(true)
+    expect(FLEET_AUDIT).toBe(true)
+  })
+
+  it('counts unique audit actions in log', () => {
+    const count = countUniqueAuditActions([
+      { action: 'team.invite_sent' },
+      { action: 'team.invite_sent' },
+      { action: 'invoice.payment' },
+    ])
+    expect(count).toBe(2)
   })
 })

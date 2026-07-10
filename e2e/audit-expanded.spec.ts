@@ -122,6 +122,48 @@ test.describe('Expanded audit log E2E', () => {
     await openSettingsAuditTab(page)
     await expect(page.locator('[data-audit-action="material.create"]').first()).toBeVisible({ timeout: 10000 })
   })
+
+  test('employee create appears in audit log', async ({ page }) => {
+    await page.goto('/technicians')
+    await page.getByRole('button', { name: /добавить мастера|add technician/i }).click()
+    const form = page.getByTestId('employee-form')
+    await form.locator('input').first().fill('E2E Audit Technician')
+    await form.locator('input').nth(1).fill('Technician')
+    await form.locator('input').nth(2).fill('(555) 000-9876')
+    await form.locator('input[type="number"]').first().fill('30')
+    await form.locator('input[type="number"]').nth(1).fill('80')
+    await form.locator('input').last().fill('Audit, E2E')
+    await page.getByTestId('employee-form-submit').click()
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="employee.create"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/сотрудник создан|employee created/i).first()).toBeVisible()
+  })
+
+  test('vehicle create appears in audit log', async ({ page }) => {
+    await page.goto('/vehicles')
+    await page.getByRole('button', { name: /добавить транспорт|add vehicle/i }).click()
+    const form = page.getByTestId('vehicle-form')
+    await form.locator('input').first().fill('E2E Audit Van')
+    await form.locator('input').nth(1).fill('Ford')
+    await form.locator('input').nth(2).fill('Transit')
+    await form.locator('input[type="number"]').first().fill('2024')
+    await form.locator('input').nth(4).fill('AUDIT-42')
+    await page.getByTestId('vehicle-form-submit').click()
+    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+
+    await openSettingsAuditTab(page)
+    await expect(page.locator('[data-audit-action="vehicle.create"]').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/транспорт добавлен|vehicle created/i).first()).toBeVisible()
+  })
+
+  test('audit coverage summary shows unique and total counts', async ({ page }) => {
+    await openSettingsAuditTab(page)
+    const summary = page.getByTestId('audit-coverage-summary')
+    await expect(summary).toBeVisible({ timeout: 10000 })
+    await expect(summary).toHaveText(/\d+.*(?:типов действий в журнале|action types in log).*\d+.*(?:локализованных меток|localized labels)/i)
+  })
 })
 
 test.describe('Onboarding audit E2E', () => {

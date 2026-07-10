@@ -357,9 +357,26 @@ export function useSaveProperty() {
 export function useSaveEmployee() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
-    mutationFn: (employee: Employee) => saveEntity('employees', employee),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['employees', companyId] }),
+    mutationFn: async (employee: Employee) => {
+      const existing = await listEntities('employees', companyId) as Employee[]
+      const isNew = !existing.some((e) => e.id === employee.id)
+      await saveEntity('employees', employee)
+      return { employee, isNew }
+    },
+    onSuccess: ({ employee, isNew }) => {
+      if (user) {
+        void logAudit(
+          companyId,
+          user.id,
+          isNew ? 'employee.create' : 'employee.update',
+          'employee',
+          employee.id,
+        )
+      }
+      qc.invalidateQueries({ queryKey: ['employees', companyId] })
+    },
   })
 }
 
@@ -392,9 +409,24 @@ export function useSaveMaterial() {
 export function useSaveVehicle() {
   const qc = useQueryClient()
   const companyId = useCompanyId()
+  const { user } = useAuth()
   return useMutation({
-    mutationFn: (vehicle: Vehicle) => saveEntity('vehicles', vehicle),
-    onSuccess: () => {
+    mutationFn: async (vehicle: Vehicle) => {
+      const existing = await listEntities('vehicles', companyId) as Vehicle[]
+      const isNew = !existing.some((v) => v.id === vehicle.id)
+      await saveEntity('vehicles', vehicle)
+      return { vehicle, isNew }
+    },
+    onSuccess: ({ vehicle, isNew }) => {
+      if (user) {
+        void logAudit(
+          companyId,
+          user.id,
+          isNew ? 'vehicle.create' : 'vehicle.update',
+          'vehicle',
+          vehicle.id,
+        )
+      }
       qc.invalidateQueries({ queryKey: ['vehicles', companyId] })
       qc.invalidateQueries({ queryKey: ['fuelLogs', companyId] })
     },

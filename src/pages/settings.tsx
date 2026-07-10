@@ -17,7 +17,7 @@ import { logAudit } from '@/services/entity-service'
 import { getNotificationQueue } from '@/services/notification-service'
 import { getErrorReports } from '@/lib/observability'
 import { computePlatformHealth } from '@/lib/platform-health'
-import { formatAuditAction } from '@/lib/audit-labels'
+import { formatAuditAction, countUniqueAuditActions, AUDIT_ACTION_COUNT } from '@/lib/audit-labels'
 import { computePlatformAudit } from '@/lib/platform-audit'
 import { probeLiveIntegrations, type IntegrationProbe } from '@/lib/platform-probes'
 import { computeSystemMetrics } from '@/lib/system-metrics'
@@ -493,7 +493,14 @@ export default function SettingsPage() {
               </Card>
             )}
             <Card>
-              <CardHeader><CardTitle>{t.settings.auditLog} ({auditLogs.length})</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle>{t.settings.auditLog} ({auditLogs.length})</CardTitle>
+                <p className="text-sm text-muted-foreground" data-testid="audit-coverage-summary">
+                  {t.settings.auditCoverageSummary
+                    .replace('{unique}', String(countUniqueAuditActions(auditLogs)))
+                    .replace('{total}', String(AUDIT_ACTION_COUNT))}
+                </p>
+              </CardHeader>
               <CardContent className="space-y-2 text-sm max-h-64 overflow-y-auto" data-testid="audit-log-list">
                 {auditLogs.length === 0 ? (
                   <p className="text-muted-foreground">{t.common.noData}</p>
