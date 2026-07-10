@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Sun, Moon, Copy } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
 import { useTheme } from '@/contexts/theme-context'
@@ -197,8 +197,12 @@ export default function SettingsPage() {
 
   const notifications = getNotificationQueue().slice(0, 5)
   const errors = getErrorReports().slice(0, 5)
-  const platformHealth = computePlatformHealth()
-  const platformAudit = computePlatformAudit()
+  const healthOptions = useMemo(
+    () => ({ probeResults: integrationProbes }),
+    [integrationProbes],
+  )
+  const platformHealth = useMemo(() => computePlatformHealth(healthOptions), [healthOptions])
+  const platformAudit = useMemo(() => computePlatformAudit(healthOptions), [healthOptions])
   const systemMetrics = computeSystemMetrics()
   const { data: auditLogs = [] } = useAuditLogs()
 
@@ -414,6 +418,17 @@ export default function SettingsPage() {
                     <li key={id}>• {t.settings.auditRecommendations[id]}</li>
                   ))}
                 </ul>
+                <div className="flex flex-wrap gap-2 pt-2" data-testid="platform-audit-checklist">
+                  {platformAudit.checks.map((check) => (
+                    <Badge
+                      key={check.id}
+                      variant={check.ok ? 'success' : 'outline'}
+                      data-testid={`platform-audit-check-${check.id}`}
+                    >
+                      {t.settings.auditCheckLabels[check.id as keyof typeof t.settings.auditCheckLabels] ?? check.label}
+                    </Badge>
+                  ))}
+                </div>
               </CardContent>
             </Card>
             <Card className="md:col-span-2">

@@ -112,6 +112,9 @@ export const ENTITY_UPDATE_AUDIT = true as const
 /** All localized audit actions have E2E coverage in audit-expanded.spec.ts. */
 export const AUDIT_E2E_FULL_COVERAGE = true as const
 
+/** Live integration endpoint probes affect platform health scores. */
+export const INTEGRATION_PROBES_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }

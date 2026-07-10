@@ -5,6 +5,7 @@ import {
   getSmsEndpoint,
   getStripeCheckoutEndpoint,
   getStripeSubscriptionEndpoint,
+  hasGoogleMaps,
   hasSupabase,
 } from '@/lib/env'
 
@@ -55,6 +56,19 @@ async function probeConfiguredEndpoint(id: string, url?: string): Promise<Integr
   return { id, reachable: ok }
 }
 
+async function probeMaps(): Promise<IntegrationProbe> {
+  if (!hasGoogleMaps || !env.VITE_GOOGLE_MAPS_API_KEY) {
+    return { id: 'maps', reachable: null }
+  }
+  const url = `https://maps.googleapis.com/maps/api/staticmap?center=0,0&zoom=1&size=1x1&key=${encodeURIComponent(env.VITE_GOOGLE_MAPS_API_KEY)}`
+  try {
+    const res = await fetch(url, { method: 'GET', mode: 'cors' })
+    return { id: 'maps', reachable: res.ok || res.status === 403 }
+  } catch {
+    return { id: 'maps', reachable: false }
+  }
+}
+
 /** Async reachability checks for configured integration endpoints (Settings → Integrations). */
 export async function probeLiveIntegrations(): Promise<IntegrationProbe[]> {
   return Promise.all([
@@ -63,6 +77,6 @@ export async function probeLiveIntegrations(): Promise<IntegrationProbe[]> {
     probeConfiguredEndpoint('openai', getOpenAIEndpoint()),
     probeConfiguredEndpoint('email', getNotificationEndpoint()),
     probeConfiguredEndpoint('sms', getSmsEndpoint()),
-    Promise.resolve({ id: 'maps', reachable: null } satisfies IntegrationProbe),
+    probeMaps(),
   ])
 }

@@ -135,6 +135,41 @@ if (readme.includes(`**${pkg.version}**`) || readme.includes(`version:** ${pkg.v
   ok = false
 }
 
+const auditLabels = readFileSync('src/lib/audit-labels.ts', 'utf8')
+const auditExpanded = readFileSync('e2e/audit-expanded.spec.ts', 'utf8')
+const actionCountMatch = auditLabels.match(/AUDIT_ACTION_COUNT\s*=\s*AUDIT_ACTION_KEYS\.size/)
+const e2eFullMatch = auditLabels.includes('AUDIT_E2E_FULL_COVERAGE = true')
+const auditActionRefs = [...auditExpanded.matchAll(/data-audit-action="([^"]+)"/g)].map((m) => m[1])
+const uniqueAuditE2eActions = new Set(auditActionRefs)
+
+console.log('\nAudit invariants:')
+if (actionCountMatch) {
+  console.log('✓ AUDIT_ACTION_COUNT derived from AUDIT_ACTION_KEYS')
+} else {
+  console.log('✗ AUDIT_ACTION_COUNT must use AUDIT_ACTION_KEYS.size')
+  ok = false
+}
+if (e2eFullMatch) {
+  console.log('✓ AUDIT_E2E_FULL_COVERAGE gate enabled')
+} else {
+  console.log('✗ AUDIT_E2E_FULL_COVERAGE must be true')
+  ok = false
+}
+if (uniqueAuditE2eActions.size >= 40) {
+  console.log(`✓ audit-expanded.spec.ts references ${uniqueAuditE2eActions.size} unique audit actions`)
+} else {
+  console.log(`✗ audit-expanded.spec.ts should reference many audit actions (got ${uniqueAuditE2eActions.size})`)
+  ok = false
+}
+
+const changelog = readFileSync('CHANGELOG.md', 'utf8')
+if (changelog.includes(`[${pkg.version}]`)) {
+  console.log(`✓ CHANGELOG.md has [${pkg.version}] entry`)
+} else {
+  console.log(`✗ CHANGELOG.md must include [${pkg.version}] entry`)
+  ok = false
+}
+
 console.log('\n→ Running verify:release')
 execSync('npm run verify:release', { stdio: 'inherit' })
 

@@ -8,6 +8,28 @@ export function registerServiceWorker() {
   })
 }
 
+/** Browser supports service workers (not the same as an active registration). */
+export function isPwaApiSupported(): boolean {
+  return typeof navigator !== 'undefined' && 'serviceWorker' in navigator
+}
+
+/** PWA manifest is linked from the document (production deploy). */
+export function hasPwaManifestLink(): boolean {
+  if (typeof document === 'undefined') return false
+  return Boolean(document.querySelector('link[rel="manifest"]'))
+}
+
+/** Offline queue + PWA shell available for technician sync. */
+export function isOfflineSyncReady(): boolean {
+  if (!isPwaApiSupported() || !hasPwaManifestLink()) return false
+  if (typeof localStorage === 'undefined') return false
+  try {
+    return typeof getOfflineQueue === 'function'
+  } catch {
+    return false
+  }
+}
+
 const OFFLINE_QUEUE_KEY = 'handymanos_offline_queue'
 
 export interface OfflineAction {

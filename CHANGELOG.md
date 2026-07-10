@@ -2,9 +2,21 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.9.0] — 2026-07-10
+
+Production readiness visibility milestone.
+
+### Phase 92 — Operator readiness
+- Platform audit checklist UI on Settings → System (`platform-audit-checklist`)
+- Probe-aware platform health scores (configured-but-unreachable integrations downgrade)
+- Maps Static API live probe; `integration_probes` platform audit gate
+- Honest PWA/offline sync checks (manifest link + offline queue capability)
+- `verify:production` audit invariants (action count, E2E coverage gate, CHANGELOG sync)
+- **184** E2E tests, **120** unit tests
+
 ## [1.8.9] — 2026-07-10
 
-Full audit E2E coverage for all 45 localized actions.
+Full audit E2E coverage for all 44 localized actions.
 
 ### Phase 91 — Full audit E2E milestone
 - Platform audit: `estimate_create_audit`, `entity_update_audit`, `audit_e2e_full` gates

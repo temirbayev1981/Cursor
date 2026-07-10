@@ -9,6 +9,7 @@ import {
   isE2eMockBackend,
 } from '@/lib/env'
 import { isBackendConfigured } from '@/lib/supabase'
+import { hasPwaManifestLink, isOfflineSyncReady, isPwaApiSupported } from '@/lib/pwa'
 
 export interface PlatformHealthCheck {
   id: string
@@ -24,20 +25,38 @@ export interface PlatformHealthReport {
   readyForProduction: boolean
 }
 
-export function computePlatformHealth(): PlatformHealthReport {
-  const pwaSupported = typeof navigator !== 'undefined' && 'serviceWorker' in navigator
+export interface PlatformHealthOptions {
+  /** Live reachability from Settings → Integrations probes. */
+  probeResults?: Record<string, boolean | null>
+}
+
+function integrationOk(
+  configured: boolean,
+  probeId: string,
+  probeResults?: Record<string, boolean | null>,
+): boolean {
+  if (!configured) return false
+  const probe = probeResults?.[probeId]
+  if (probe === false) return false
+  return true
+}
+
+export function computePlatformHealth(options: PlatformHealthOptions = {}): PlatformHealthReport {
+  const { probeResults } = options
+  const pwaReady = isPwaApiSupported() && hasPwaManifestLink()
+  const offlineReady = isOfflineSyncReady()
 
   const checks: PlatformHealthCheck[] = [
-    { id: 'supabase', label: 'Supabase', ok: hasSupabase, weight: 2 },
+    { id: 'supabase', label: 'Supabase', ok: integrationOk(hasSupabase, 'supabase', probeResults), weight: 2 },
     { id: 'data_mode', label: 'Live data mode', ok: isBackendConfigured, weight: 1 },
-    { id: 'stripe', label: 'Stripe', ok: hasStripe, weight: 1.5 },
-    { id: 'email', label: 'Email', ok: hasNotificationConfigured, weight: 1 },
-    { id: 'sms', label: 'SMS', ok: hasSmsConfigured, weight: 1 },
-    { id: 'openai', label: 'OpenAI', ok: hasOpenAI, weight: 1 },
-    { id: 'maps', label: 'Google Maps', ok: hasGoogleMaps, weight: 0.5 },
+    { id: 'stripe', label: 'Stripe', ok: integrationOk(hasStripe, 'stripe', probeResults), weight: 1.5 },
+    { id: 'email', label: 'Email', ok: integrationOk(hasNotificationConfigured, 'email', probeResults), weight: 1 },
+    { id: 'sms', label: 'SMS', ok: integrationOk(hasSmsConfigured, 'sms', probeResults), weight: 1 },
+    { id: 'openai', label: 'OpenAI', ok: integrationOk(hasOpenAI, 'openai', probeResults), weight: 1 },
+    { id: 'maps', label: 'Google Maps', ok: integrationOk(hasGoogleMaps, 'maps', probeResults), weight: 0.5 },
     { id: 'observability', label: 'Observability', ok: hasObservability, weight: 0.5 },
-    { id: 'pwa', label: 'PWA', ok: pwaSupported, weight: 0.5 },
-    { id: 'offline_sync', label: 'Offline sync', ok: pwaSupported, weight: 0.5 },
+    { id: 'pwa', label: 'PWA', ok: pwaReady, weight: 0.5 },
+    { id: 'offline_sync', label: 'Offline sync', ok: offlineReady, weight: 0.5 },
   ]
 
   const totalWeight = checks.reduce((sum, check) => sum + check.weight, 0)
@@ -58,4 +77,12 @@ export function computePlatformHealth(): PlatformHealthReport {
     checks,
     readyForProduction: score >= 8 && hasSupabase && !isE2eMockBackend,
   }
+}
+
+/** True when every probed integration that is configured reports reachable. */
+export function integrationProbesPass(probeResults?: Record<string, boolean | null>): boolean {
+  if (!probeResults) return true
+  const probed = Object.entries(probeResults).filter(([, reachable]) => reachable !== null)
+  if (probed.length === 0) return true
+  return probed.every(([, reachable]) => reachable === true)
 }

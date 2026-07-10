@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.8.9
+# HandymanOS AI — Release 1.9.0
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.8.9`**, current package **1.8.9**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.9.0`**, current package **1.9.0**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -98,12 +98,17 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 ### 1.8.9 — Full audit E2E milestone
 - Platform audit `estimate_create_audit`, `entity_update_audit`, `audit_e2e_full` gates
 - Vendor PO workflow logs `estimate.create`; entity edit UI for update audit paths
-- E2E: all **45** localized audit actions covered in `audit-expanded.spec.ts`
+- E2E: all **44** localized audit actions covered in `audit-expanded.spec.ts`
+
+### 1.9.0 — Production readiness visibility
+- Platform audit checklist on Settings → System; probe-aware health scores
+- Maps live probe; `integration_probes` gate; honest PWA/offline checks
+- `verify:production` enforces audit E2E invariants
 
 ## Test coverage
 
-- Unit: **116** (`npm test`)
-- E2E: **183/183** (`npm run test:e2e`)
+- Unit: **120** (`npm test`)
+- E2E: **184/184** (`npm run test:e2e`)
 
 ## Deploy
 
