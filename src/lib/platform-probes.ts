@@ -9,6 +9,7 @@ import {
   hasObservability,
   hasSupabase,
 } from '@/lib/env'
+import { getSentryProbeUrl } from '@/lib/observability'
 
 export interface IntegrationProbe {
   id: string
@@ -70,12 +71,26 @@ async function probeMaps(): Promise<IntegrationProbe> {
   }
 }
 
+async function probeSentryDsn(dsn: string): Promise<boolean> {
+  const url = getSentryProbeUrl(dsn)
+  if (!url) return false
+  return probeIntegrationEndpoint(url)
+}
+
 async function probeObservability(): Promise<IntegrationProbe> {
-  if (!hasObservability || !env.VITE_ERROR_WEBHOOK_URL) {
-    return { id: 'observability', reachable: null }
+  if (!hasObservability) return { id: 'observability', reachable: null }
+
+  const tasks: Promise<boolean>[] = []
+  if (env.VITE_ERROR_WEBHOOK_URL) {
+    tasks.push(probeIntegrationEndpoint(env.VITE_ERROR_WEBHOOK_URL))
   }
-  const ok = await probeIntegrationEndpoint(env.VITE_ERROR_WEBHOOK_URL)
-  return { id: 'observability', reachable: ok }
+  if (env.VITE_SENTRY_DSN) {
+    tasks.push(probeSentryDsn(env.VITE_SENTRY_DSN))
+  }
+  if (tasks.length === 0) return { id: 'observability', reachable: null }
+
+  const results = await Promise.all(tasks)
+  return { id: 'observability', reachable: results.every(Boolean) }
 }
 
 /** Async reachability checks for configured integration endpoints (Settings → Integrations). */

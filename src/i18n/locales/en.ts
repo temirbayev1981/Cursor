@@ -658,6 +658,7 @@ export const en: TranslationKeys = {
       audit_e2e_full: 'Audit E2E full',
       integration_probes: 'Integration probes',
       observability_probe_audit: 'Observability probe',
+      pwa_sw_offline_audit: 'Service worker offline',
       multi_tenant: 'Multi-tenant',
     },
     auditActions: {

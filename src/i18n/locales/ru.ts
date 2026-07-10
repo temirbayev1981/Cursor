@@ -656,6 +656,7 @@ export const ru = {
       audit_e2e_full: 'Audit E2E полный',
       integration_probes: 'Пробы интеграций',
       observability_probe_audit: 'Проба observability',
+      pwa_sw_offline_audit: 'Service worker офлайн',
       multi_tenant: 'Мульти-тенант',
     },
     auditActions: {

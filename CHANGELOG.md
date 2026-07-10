@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.9.2] — 2026-07-10
+
+Sentry DSN probe and honest service worker offline gate.
+
+### Phase 94 — Sentry probe & PWA offline gate
+- Observability probe checks `VITE_SENTRY_DSN` ingest host and `VITE_ERROR_WEBHOOK_URL`
+- Async service worker registration (no `window.load` delay); `whenServiceWorkerReady()`
+- Honest `offline_sync` gate requires active service worker registration
+- Platform audit: `pwa_sw_offline_audit` quality gate
+- Settings → System refreshes health score when service worker activates
+- **185** E2E tests, **124** unit tests
+
 ## [1.9.1] — 2026-07-10
 
 Observability probe and edge function smoke milestone.

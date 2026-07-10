@@ -1,11 +1,32 @@
+let serviceWorkerRegistered = false
+let serviceWorkerReadyPromise: Promise<boolean> | null = null
+
 export function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return
 
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {
-      // SW registration optional in dev
-    })
-  })
+  serviceWorkerReadyPromise = (async () => {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js')
+      await navigator.serviceWorker.ready
+      serviceWorkerRegistered = Boolean(registration.active)
+      return serviceWorkerRegistered
+    } catch {
+      serviceWorkerRegistered = false
+      return false
+    }
+  })()
+}
+
+/** Resolves when the service worker registration attempt finishes. */
+export function whenServiceWorkerReady(): Promise<boolean> {
+  if (!('serviceWorker' in navigator)) return Promise.resolve(false)
+  if (serviceWorkerReadyPromise) return serviceWorkerReadyPromise
+  return navigator.serviceWorker.getRegistration().then((reg) => Boolean(reg?.active))
+}
+
+/** True after registerServiceWorker() activates the worker. */
+export function isServiceWorkerRegistered(): boolean {
+  return serviceWorkerRegistered
 }
 
 /** Browser supports service workers (not the same as an active registration). */
@@ -19,9 +40,10 @@ export function hasPwaManifestLink(): boolean {
   return Boolean(document.querySelector('link[rel="manifest"]'))
 }
 
-/** Offline queue + PWA shell available for technician sync. */
+/** Offline queue + active service worker + PWA shell for technician sync. */
 export function isOfflineSyncReady(): boolean {
   if (!isPwaApiSupported() || !hasPwaManifestLink()) return false
+  if (!isServiceWorkerRegistered()) return false
   if (typeof localStorage === 'undefined') return false
   try {
     return typeof getOfflineQueue === 'function'

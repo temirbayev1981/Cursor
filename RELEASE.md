@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.9.1
+# HandymanOS AI — Release 1.9.2
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.9.1`**, current package **1.9.1**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.9.2`**, current package **1.9.2**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -111,9 +111,14 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - `SMOKE_EDGE_FUNCTIONS=1` edge function smoke in `supabase-smoke.mjs`
 - E2E: integrations cards including observability; platform audit checklist
 
+### 1.9.2 — Sentry probe & PWA offline gate
+- Observability probe also checks `VITE_SENTRY_DSN` ingest host
+- Async service worker registration; honest offline_sync requires active SW
+- Platform audit `pwa_sw_offline_audit` gate; Settings refreshes on SW ready
+
 ## Test coverage
 
-- Unit: **122** (`npm test`)
+- Unit: **124** (`npm test`)
 - E2E: **185/185** (`npm run test:e2e`)
 
 ## Deploy

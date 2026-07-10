@@ -30,6 +30,10 @@ No schema changes required. Update frontend deploy and optional:
 - `npm run smoke:supabase` (expanded table/RPC checks)
 - Stripe webhook redeploy if using `stripe-webhook` audit logging
 
+## From 1.9.1 → 1.9.2
+
+No schema changes. Sentry DSN observability probe; async service worker registration for offline gate.
+
 ## From 1.9.0 → 1.9.1
 
 No schema changes. Observability integration probe; optional `SMOKE_EDGE_FUNCTIONS=1` edge function smoke.

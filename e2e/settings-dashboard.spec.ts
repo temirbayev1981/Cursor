@@ -63,6 +63,7 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('platform-audit-check-audit_e2e_full')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-integration_probes')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-observability_probe_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-pwa_sw_offline_audit')).toBeVisible()
     await expect(page.getByTestId('audit-coverage-summary')).toBeVisible()
     await expect(page.getByTestId('audit-coverage-summary')).toHaveText(/\d+.*(?:типов действий в журнале|action types in log).*\d+.*(?:локализованных меток|localized labels)/i)
   })

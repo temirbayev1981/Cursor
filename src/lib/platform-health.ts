@@ -9,7 +9,7 @@ import {
   isE2eMockBackend,
 } from '@/lib/env'
 import { isBackendConfigured } from '@/lib/supabase'
-import { hasPwaManifestLink, isOfflineSyncReady, isPwaApiSupported } from '@/lib/pwa'
+import { hasPwaManifestLink, isOfflineSyncReady, isPwaApiSupported, isServiceWorkerRegistered } from '@/lib/pwa'
 
 export interface PlatformHealthCheck {
   id: string
@@ -28,6 +28,8 @@ export interface PlatformHealthReport {
 export interface PlatformHealthOptions {
   /** Live reachability from Settings → Integrations probes. */
   probeResults?: Record<string, boolean | null>
+  /** Service worker active — refreshes offline_sync after async registration. */
+  serviceWorkerReady?: boolean
 }
 
 function integrationOk(
@@ -42,9 +44,10 @@ function integrationOk(
 }
 
 export function computePlatformHealth(options: PlatformHealthOptions = {}): PlatformHealthReport {
-  const { probeResults } = options
+  const { probeResults, serviceWorkerReady } = options
   const pwaReady = isPwaApiSupported() && hasPwaManifestLink()
-  const offlineReady = isOfflineSyncReady()
+  const swActive = isServiceWorkerRegistered() || serviceWorkerReady === true
+  const offlineReady = isOfflineSyncReady() || (swActive && pwaReady && typeof localStorage !== 'undefined')
 
   const checks: PlatformHealthCheck[] = [
     { id: 'supabase', label: 'Supabase', ok: integrationOk(hasSupabase, 'supabase', probeResults), weight: 2 },

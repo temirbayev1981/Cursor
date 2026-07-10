@@ -20,6 +20,7 @@ import { computePlatformHealth } from '@/lib/platform-health'
 import { formatAuditAction, countUniqueAuditActions, AUDIT_ACTION_COUNT } from '@/lib/audit-labels'
 import { computePlatformAudit } from '@/lib/platform-audit'
 import { probeLiveIntegrations, type IntegrationProbe } from '@/lib/platform-probes'
+import { isServiceWorkerRegistered, whenServiceWorkerReady } from '@/lib/pwa'
 import { computeSystemMetrics } from '@/lib/system-metrics'
 import { getStoredCompany } from '@/services/onboarding-service'
 import { createTeamInvite, listTeamInvites, type TeamInvite } from '@/services/invite-service'
@@ -54,6 +55,7 @@ export default function SettingsPage() {
   const [upgradingPlan, setUpgradingPlan] = useState<SubscriptionPlan | null>(null)
   const [integrationProbes, setIntegrationProbes] = useState<Record<string, IntegrationProbe['reachable']>>({})
   const [probesLoading, setProbesLoading] = useState(false)
+  const [serviceWorkerReady, setServiceWorkerReady] = useState(isServiceWorkerRegistered)
 
   const [companyForm, setCompanyForm] = useState({
     name: base?.name ?? '',
@@ -100,6 +102,13 @@ export default function SettingsPage() {
       })
     return () => { cancelled = true }
   }, [])
+
+  useEffect(() => {
+    if (serviceWorkerReady) return
+    void whenServiceWorkerReady().then((ready) => {
+      if (ready) setServiceWorkerReady(true)
+    })
+  }, [serviceWorkerReady])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -199,8 +208,8 @@ export default function SettingsPage() {
   const notifications = getNotificationQueue().slice(0, 5)
   const errors = getErrorReports().slice(0, 5)
   const healthOptions = useMemo(
-    () => ({ probeResults: integrationProbes }),
-    [integrationProbes],
+    () => ({ probeResults: integrationProbes, serviceWorkerReady }),
+    [integrationProbes, serviceWorkerReady],
   )
   const platformHealth = useMemo(() => computePlatformHealth(healthOptions), [healthOptions])
   const platformAudit = useMemo(() => computePlatformAudit(healthOptions), [healthOptions])

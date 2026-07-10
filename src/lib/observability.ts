@@ -49,6 +49,24 @@ async function sendToSentrySdk(error: Error, componentStack?: string) {
   }
 }
 
+export function getSentryProbeUrl(dsn: string): string | null {
+  const parsed = parseSentryDsn(dsn)
+  if (!parsed) {
+    try {
+      const url = new URL(dsn)
+      return `${url.protocol}//${url.host}/`
+    } catch {
+      return null
+    }
+  }
+  try {
+    const store = new URL(parsed.storeUrl)
+    return `${store.protocol}//${store.host}/`
+  } catch {
+    return null
+  }
+}
+
 function parseSentryDsn(dsn: string): { storeUrl: string; publicKey: string } | null {
   try {
     const url = new URL(dsn)

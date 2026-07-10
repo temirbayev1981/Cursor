@@ -169,10 +169,25 @@ if (auditLabels.includes('OBSERVABILITY_PROBE_AUDIT = true')) {
 }
 
 const smokeScript = readFileSync('scripts/supabase-smoke.mjs', 'utf8')
+const platformProbes = readFileSync('src/lib/platform-probes.ts', 'utf8')
 if (smokeScript.includes('SMOKE_EDGE_FUNCTIONS')) {
   console.log('✓ supabase-smoke.mjs supports SMOKE_EDGE_FUNCTIONS')
 } else {
   console.log('✗ supabase-smoke.mjs must support SMOKE_EDGE_FUNCTIONS')
+  ok = false
+}
+
+if (auditLabels.includes('PWA_SW_OFFLINE_AUDIT = true')) {
+  console.log('✓ PWA_SW_OFFLINE_AUDIT gate enabled')
+} else {
+  console.log('✗ PWA_SW_OFFLINE_AUDIT must be true')
+  ok = false
+}
+
+if (platformProbes.includes('getSentryProbeUrl')) {
+  console.log('✓ platform-probes uses Sentry DSN probe helper')
+} else {
+  console.log('✗ platform-probes must probe VITE_SENTRY_DSN via getSentryProbeUrl')
   ok = false
 }
 

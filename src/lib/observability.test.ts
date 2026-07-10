@@ -1,9 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { captureError, getErrorReports } from './observability'
+import { captureError, getErrorReports, getSentryProbeUrl } from './observability'
 
 describe('observability', () => {
   beforeEach(() => {
     localStorage.clear()
+  })
+
+  it('getSentryProbeUrl extracts ingest host from DSN', () => {
+    const url = getSentryProbeUrl('https://abc@o123.ingest.sentry.io/456')
+    expect(url).toBe('https://o123.ingest.sentry.io/')
   })
 
   it('captureError saves report to localStorage', () => {
