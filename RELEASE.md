@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.12.4
+# HandymanOS AI — Release 1.12.5
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.12.4`**, current package **1.12.4**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.12.5`**, current package **1.12.5**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -130,6 +130,10 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Locale-aware notification templates; observability probe gate uses live results
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
+
+### 1.12.5 — Billing, team invite & invoice audit visibility
+- Settings exposes `billing_plan_audit`, `team_invite_audit`, `invoice_audit` platform checks
+- verify-production gates for billing plan upgrade, team invite sent, and invoice payment E2E
 
 ### 1.12.4 — Company switch, invite & bulk ops audit visibility
 - Settings exposes `company_switch_audit`, `invite_audit`, `bulk_ops_audit` platform checks

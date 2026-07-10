@@ -337,6 +337,27 @@ if (auditLabels.includes('BULK_OPS_AUDIT = true')) {
   ok = false
 }
 
+if (auditLabels.includes('BILLING_PLAN_AUDIT = true')) {
+  console.log('✓ BILLING_PLAN_AUDIT gate enabled')
+} else {
+  console.log('✗ BILLING_PLAN_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('TEAM_INVITE_AUDIT = true')) {
+  console.log('✓ TEAM_INVITE_AUDIT gate enabled')
+} else {
+  console.log('✗ TEAM_INVITE_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('INVOICE_AUDIT = true')) {
+  console.log('✓ INVOICE_AUDIT gate enabled')
+} else {
+  console.log('✗ INVOICE_AUDIT must be true')
+  ok = false
+}
+
 const techOfflineE2e = readFileSync('e2e/tech-offline.spec.ts', 'utf8')
 if (techOfflineE2e.includes('saving job notes offline queues action and syncs when online')) {
   console.log('✓ technician offline sync E2E coverage present')
@@ -377,6 +398,13 @@ if (auditExpanded.includes('company switch appears in audit log') && auditExpand
   console.log('✓ company switch, invite, and bulk ops audit E2E coverage present')
 } else {
   console.log('✗ company switch, invite, and bulk ops audit E2E tests required')
+  ok = false
+}
+
+if (auditExpanded.includes('billing plan upgrade appears in audit log') && auditExpanded.includes('team invite sent appears in audit log') && auditExpanded.includes('invoice payment appears in audit log')) {
+  console.log('✓ billing, team invite, and invoice audit E2E coverage present')
+} else {
+  console.log('✗ billing, team invite, and invoice audit E2E tests required')
   ok = false
 }
 
@@ -796,6 +824,9 @@ if (
   && settingsE2e.includes('platform-audit-check-company_switch_audit')
   && settingsE2e.includes('platform-audit-check-invite_audit')
   && settingsE2e.includes('platform-audit-check-bulk_ops_audit')
+  && settingsE2e.includes('platform-audit-check-billing_plan_audit')
+  && settingsE2e.includes('platform-audit-check-team_invite_audit')
+  && settingsE2e.includes('platform-audit-check-invoice_audit')
 ) {
   console.log('✓ field-ops milestone audit E2E coverage present')
 } else {

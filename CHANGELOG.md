@@ -2,6 +2,15 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.12.5] — 2026-07-10
+
+Billing, team invite, and invoice audit visibility.
+
+### Phase 124 — Billing, team invite & invoice audit gates
+- Settings audit checklist exposes `billing_plan_audit`, `team_invite_audit`, `invoice_audit` checks
+- verify-production gates and audit-expanded E2E coverage
+- **230** E2E tests, **164** unit tests
+
 ## [1.12.4] — 2026-07-10
 
 Company switch, invite, and bulk ops audit visibility.
