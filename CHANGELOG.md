@@ -2,6 +2,15 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.12.3] — 2026-07-10
+
+Field-ops company profile and portal audit visibility.
+
+### Phase 122 — Company profile & portal audit gates
+- Settings audit checklist exposes `company_profile_audit` and `portal_audit` checks
+- verify-production: `COMPANY_PROFILE_AUDIT`, `PORTAL_AUDIT` gates and audit-expanded E2E coverage
+- **230** E2E tests, **164** unit tests
+
 ## [1.12.2] — 2026-07-10
 
 Field-ops onboarding and vendor PO audit visibility.

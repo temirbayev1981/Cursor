@@ -302,6 +302,20 @@ if (auditLabels.includes('VENDOR_PO_AUDIT = true')) {
   ok = false
 }
 
+if (auditLabels.includes('COMPANY_PROFILE_AUDIT = true')) {
+  console.log('✓ COMPANY_PROFILE_AUDIT gate enabled')
+} else {
+  console.log('✗ COMPANY_PROFILE_AUDIT must be true')
+  ok = false
+}
+
+if (auditLabels.includes('PORTAL_AUDIT = true')) {
+  console.log('✓ PORTAL_AUDIT gate enabled')
+} else {
+  console.log('✗ PORTAL_AUDIT must be true')
+  ok = false
+}
+
 const techOfflineE2e = readFileSync('e2e/tech-offline.spec.ts', 'utf8')
 if (techOfflineE2e.includes('saving job notes offline queues action and syncs when online')) {
   console.log('✓ technician offline sync E2E coverage present')
@@ -328,6 +342,13 @@ if (auditExpanded.includes('onboarding complete appears in audit log') && auditE
   console.log('✓ onboarding and vendor PO audit E2E coverage present')
 } else {
   console.log('✗ onboarding and vendor PO audit E2E tests required')
+  ok = false
+}
+
+if (auditExpanded.includes('company profile update appears in audit log') && auditExpanded.includes('portal estimate approve appears in audit log')) {
+  console.log('✓ company profile and portal audit E2E coverage present')
+} else {
+  console.log('✗ company profile and portal audit E2E tests required')
   ok = false
 }
 
@@ -742,6 +763,8 @@ if (
   && settingsE2e.includes('platform-audit-check-field_ops_milestone_audit')
   && settingsE2e.includes('platform-audit-check-onboarding_audit')
   && settingsE2e.includes('platform-audit-check-vendor_po_audit')
+  && settingsE2e.includes('platform-audit-check-company_profile_audit')
+  && settingsE2e.includes('platform-audit-check-portal_audit')
 ) {
   console.log('✓ field-ops milestone audit E2E coverage present')
 } else {

@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.12.2
+# HandymanOS AI — Release 1.12.3
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.12.2`**, current package **1.12.2**).
+**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.12.3`**, current package **1.12.3**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 
@@ -130,6 +130,10 @@ Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 - Locale-aware notification templates; observability probe gate uses live results
 - Notification queue flush in Settings; RU audit checklist translations
 - Docs: **44** audit actions (historical correction)
+
+### 1.12.3 — Company profile & portal audit visibility
+- Settings exposes `company_profile_audit` and `portal_audit` platform checks
+- verify-production gates for company profile update and portal estimate approve E2E in audit-expanded
 
 ### 1.12.2 — Onboarding & vendor PO audit visibility
 - Settings exposes `onboarding_audit` and `vendor_po_audit` platform checks
