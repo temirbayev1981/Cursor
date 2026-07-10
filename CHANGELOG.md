@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.12.4] — 2026-07-10
+
+Company switch, invite, and bulk ops audit visibility.
+
+### Phase 123 — Company switch, invite & bulk ops audit gates
+- Settings audit checklist exposes `company_switch_audit`, `invite_audit`, `bulk_ops_audit` checks
+- verify-production: `COMPANY_SWITCH_AUDIT`, `INVITE_AUDIT`, `BULK_OPS_AUDIT` gates and audit-expanded E2E coverage
+- Fix react-hooks exhaustive-deps warnings in notification hub and settings metrics
+- **230** E2E tests, **164** unit tests
+
 ## [1.12.3] — 2026-07-10
 
 Field-ops company profile and portal audit visibility.

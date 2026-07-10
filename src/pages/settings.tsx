@@ -240,7 +240,10 @@ export default function SettingsPage() {
   )
   const platformHealth = useMemo(() => computePlatformHealth(healthOptions), [healthOptions])
   const platformAudit = useMemo(() => computePlatformAudit(healthOptions), [healthOptions])
-  const systemMetrics = useMemo(() => computeSystemMetrics(), [metricsRevision])
+  const systemMetrics = useMemo(() => {
+    void metricsRevision
+    return computeSystemMetrics()
+  }, [metricsRevision])
   const { data: auditLogs = [] } = useAuditLogs()
 
   const refreshSystemMetrics = () => setMetricsRevision((n) => n + 1)

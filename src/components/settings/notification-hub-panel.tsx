@@ -28,18 +28,25 @@ export function NotificationHubPanel({ onQueueChange }: NotificationHubPanelProp
   const [filter, setFilter] = useState<NotificationHubFilter>('all')
   const [revision, setRevision] = useState(0)
 
-  const stats = useMemo(() => getNotificationQueueStats(), [revision])
-  const skipStats = useMemo(() => getNotificationSkipLogStats(), [revision])
+  const stats = useMemo(() => {
+    void revision
+    return getNotificationQueueStats()
+  }, [revision])
+  const skipStats = useMemo(() => {
+    void revision
+    return getNotificationSkipLogStats()
+  }, [revision])
   const skipItems = useMemo(() => {
+    void revision
     if (filter === 'email') return getNotificationSkipLogFiltered('email').slice(0, 12)
     if (filter === 'sms') return getNotificationSkipLogFiltered('sms').slice(0, 12)
     if (filter === 'skipped') return getNotificationSkipLog().slice(0, 12)
     return []
   }, [filter, revision])
-  const queueItems = useMemo(
-    () => getNotificationQueueFiltered(filter === 'skipped' || filter === 'all' ? 'all' : filter).slice(0, 12),
-    [filter, revision],
-  )
+  const queueItems = useMemo(() => {
+    void revision
+    return getNotificationQueueFiltered(filter === 'skipped' || filter === 'all' ? 'all' : filter).slice(0, 12)
+  }, [filter, revision])
   const showingSkippedOnly = filter === 'skipped'
   const showingChannelSkips = filter === 'email' || filter === 'sms'
   const hasItems = skipItems.length > 0 || queueItems.length > 0
