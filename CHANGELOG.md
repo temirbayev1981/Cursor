@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.16] — 2026-07-11
+
+Fix intermittent Vendor PO PDF parse failures (especially on mobile).
+
+### Hotfix — PDF extract reliability
+- Race server extract vs CDN pdf.js on mobile (`Promise.any`) instead of waiting up to 90s for server
+- Shorter server timeout (35s) with `supabase.functions.invoke` + session refresh
+- Reset CDN pdf.js loader after failure so retries work
+- Remove blocking translation from upload path (translation stays lazy in table)
+- Pre-warm auth session and server probe on mobile work-orders page
+
 ## [1.14.15] — 2026-07-11
 
 Fix Vendor PO problem description translation not running in production.

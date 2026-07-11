@@ -1,6 +1,6 @@
 import { hasOpenAI, getOpenAIEndpoint, isE2eMockBackend, env } from '@/lib/env'
-import { supabase } from '@/lib/supabase'
-import { getSupabaseAuthHeaders } from '@/lib/supabase'
+import { getSupabaseAuthHeaders, supabase } from '@/lib/supabase'
+import { ensureSupabaseSession, hasSupabaseInvokeSupport } from '@/lib/supabase-session'
 import { getErrorMessage } from '@/lib/error-message'
 import { fetchWithTimeout, withTimeout } from '@/lib/with-timeout'
 
@@ -13,27 +13,6 @@ export type OpenAIProxyRequest = {
 }
 
 const DEFAULT_TIMEOUT_MS = 20_000
-
-function hasInvokeSupport(): boolean {
-  return Boolean(
-    supabase
-    && typeof supabase.functions?.invoke === 'function',
-  )
-}
-
-export async function ensureSupabaseSession(): Promise<boolean> {
-  if (!supabase) return false
-
-  const { data: { session } } = await supabase.auth.getSession()
-  if (session?.access_token) return true
-
-  const { data: { session: refreshed }, error } = await supabase.auth.refreshSession()
-  if (error) {
-    console.warn('Supabase session refresh failed:', getErrorMessage(error))
-    return false
-  }
-  return Boolean(refreshed?.access_token)
-}
 
 function parseProxyPayload(data: unknown): string | null {
   if (!data || typeof data !== 'object') return null
@@ -50,7 +29,7 @@ async function invokeOpenAIProxy(
   request: OpenAIProxyRequest,
   timeoutMs: number,
 ): Promise<string | null> {
-  if (!hasInvokeSupport()) return null
+  if (!hasSupabaseInvokeSupport()) return null
   if (!await ensureSupabaseSession()) return null
 
   try {

@@ -24,7 +24,8 @@ vi.mock('@/lib/supabase', () => ({
   }),
 }))
 
-import { callOpenAIProxy, ensureSupabaseSession } from './openai-proxy-client'
+import { callOpenAIProxy } from './openai-proxy-client'
+import { ensureSupabaseSession } from './supabase-session'
 
 describe('openai-proxy-client', () => {
   const fetchMock = vi.fn()

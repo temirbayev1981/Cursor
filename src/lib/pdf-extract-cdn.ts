@@ -81,7 +81,10 @@ export async function getCdnPdfJs(): Promise<CdnPdfJs> {
         }
       }
       throw lastError instanceof Error ? lastError : new Error('All CDN pdf.js sources failed')
-    })()
+    })().catch((err) => {
+      cdnLoadPromise = null
+      throw err
+    })
   }
   return cdnLoadPromise
 }

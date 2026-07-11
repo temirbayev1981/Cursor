@@ -16,6 +16,10 @@ vi.mock('@/lib/supabase', () => ({
   supabase: {
     auth: {
       refreshSession: vi.fn(async () => ({ data: { session: { access_token: 'refreshed' } }, error: null })),
+      getSession: vi.fn(async () => ({ data: { session: { access_token: 'test' } }, error: null })),
+    },
+    functions: {
+      invoke: vi.fn(async () => ({ data: null, error: new Error('invoke unavailable in test') })),
     },
   },
 }))
