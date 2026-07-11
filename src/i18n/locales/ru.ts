@@ -581,6 +581,13 @@ export const ru = {
     clearNotifications: 'Очистить',
     queuedLocally: 'В очереди',
   },
+  instructions: {
+    title: 'Руководство пользователя',
+    description: 'Описание системы, модулей и возможностей HandymanOS AI',
+    backToApp: 'К панели',
+    loadError: 'Не удалось загрузить руководство',
+    hint: 'Полный текст также доступен в файле INSTRUCTIONS.md в репозитории проекта.',
+  },
   settings: {
     title: 'Настройки',
     description: 'Конфигурация компании и подписка',
@@ -647,6 +654,9 @@ export const ru = {
     notificationQueue: 'Очередь уведомлений',
     lastError: 'Последняя ошибка',
     systemTab: 'Система',
+    userGuide: 'Руководство пользователя',
+    userGuideDesc: 'Полное описание системы: модули, роли, онбординг, Vendor PO, порталы, интеграции и быстрый старт.',
+    openUserGuide: 'Открыть руководство',
     platformAudit: 'Аудит платформы',
     auditSummary: {
       ready: 'Платформа готова к продакшену: интеграции и контроль качества пройдены.',

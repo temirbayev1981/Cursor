@@ -583,6 +583,13 @@ export const en: TranslationKeys = {
     clearNotifications: 'Clear',
     queuedLocally: 'Queued',
   },
+  instructions: {
+    title: 'User guide',
+    description: 'HandymanOS AI system overview, modules, and features',
+    backToApp: 'Back to dashboard',
+    loadError: 'Failed to load the user guide',
+    hint: 'Full text is also available as INSTRUCTIONS.md in the project repository.',
+  },
   settings: {
     title: 'Settings',
     description: 'Company configuration and subscription',
@@ -649,6 +656,9 @@ export const en: TranslationKeys = {
     notificationQueue: 'Notification queue',
     lastError: 'Last error',
     systemTab: 'System',
+    userGuide: 'User guide',
+    userGuideDesc: 'Full system documentation: modules, roles, onboarding, Vendor PO, portals, integrations, and quick start.',
+    openUserGuide: 'Open user guide',
     platformAudit: 'Platform audit',
     auditSummary: {
       ready: 'Production-ready SaaS platform with integrations and quality gates passed.',

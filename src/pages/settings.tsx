@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Sun, Moon, Copy } from 'lucide-react'
+import { Sun, Moon, Copy, BookOpen } from 'lucide-react'
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
 import { useTheme } from '@/contexts/theme-context'
@@ -469,6 +470,18 @@ export default function SettingsPage() {
 
         <TabsContent value="system">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="md:col-span-2" data-testid="settings-user-guide">
+              <CardHeader><CardTitle>{t.settings.userGuide}</CardTitle></CardHeader>
+              <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-muted-foreground">{t.settings.userGuideDesc}</p>
+                <Button variant="outline" asChild>
+                  <Link to="/instructions">
+                    <BookOpen className="h-4 w-4" />
+                    {t.settings.openUserGuide}
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
             <Card className="md:col-span-2">
               <CardHeader><CardTitle>{t.settings.platformAudit}</CardTitle></CardHeader>
               <CardContent className="space-y-3">

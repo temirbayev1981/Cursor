@@ -15,6 +15,7 @@ import { resolvePostAuthRoute } from '@/lib/permissions'
 import { getTeamInvitePreview } from '@/services/invite-service'
 import { formatAuthError } from '@/services/auth-service'
 import { toast } from 'sonner'
+import { Link } from 'react-router-dom'
 import type { UserRole } from '@/types'
 
 export default function LoginPage() {
@@ -143,6 +144,11 @@ export default function LoginPage() {
             </form>
           </CardContent>
         </Card>
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+          <Link to="/instructions" className="text-primary hover:underline">
+            {t.instructions.title}
+          </Link>
+        </p>
       </motion.div>
     </div>
   )
