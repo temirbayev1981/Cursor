@@ -2,6 +2,15 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.11] — 2026-07-11
+
+Deploy workflow: FTP upload before Edge Functions; optional Supabase migration step.
+
+### Hotfix — Deploy FTP
+- Upload `dist/` to FTP **before** Edge Function deploy (Docker rate limits no longer block frontend)
+- Edge Function deploy is non-blocking (`continue-on-error`)
+- Auto-apply vendor PO DB migration via Supabase Management API when token is set
+
 ## [1.14.10] — 2026-07-11
 
 Fix Vendor PO upload page crash (null DB fields + missing Supabase columns).
