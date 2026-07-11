@@ -1,6 +1,6 @@
 import type { VendorPORecord, VendorPOInput } from '@/types/vendor-po'
 import { supabase } from '@/lib/supabase'
-import { insertRows, upsertRows } from '@/lib/supabase-queries'
+import { insertRows, updateRows, upsertRows } from '@/lib/supabase-queries'
 import { getErrorMessage } from '@/lib/error-message'
 import { normalizeVendorPoFileName } from '@/lib/vendor-po-upload'
 import {
@@ -308,6 +308,28 @@ export async function saveVendorPOBatch(inputs: VendorPOInput[]): Promise<Vendor
     saved.push(await saveVendorPO(input))
   }
   return saved
+}
+
+export async function updateVendorPOProblemRu(id: string, problemDescriptionRu: string): Promise<void> {
+  const trimmed = problemDescriptionRu.trim().slice(0, 500)
+  if (!trimmed) return
+
+  const local = loadLocal()
+  const index = local.findIndex((row) => row.id === id)
+  if (index >= 0) {
+    local[index] = { ...local[index], problem_description_ru: trimmed }
+    saveLocal(local)
+  }
+
+  if (!supabase) return
+
+  const { error } = await supabaseOp(
+    updateRows('vendor_po_records', { problem_description_ru: trimmed }, 'id', id),
+    'vendor PO problem ru update',
+  )
+  if (error) {
+    console.error('Vendor PO problem description ru update failed:', getErrorMessage(error))
+  }
 }
 
 export async function deleteVendorPO(id: string): Promise<void> {

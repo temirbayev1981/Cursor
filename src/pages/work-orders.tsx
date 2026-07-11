@@ -19,6 +19,7 @@ import { analyzeWorkOrderPDF, analyzeEmailWorkOrder, analyzePhoto } from '@/lib/
 import { tryExtractTextFromPdf, isPdfFile, warmUpPdfJs, prefersNoPdfWorker } from '@/lib/pdf-extract'
 import { getCdnPdfJs } from '@/lib/pdf-extract-cdn'
 import { isVendorPOText, parseVendorPOText } from '@/lib/vendor-po-parser'
+import { enrichVendorPOInputWithRussianProblem } from '@/lib/vendor-po-translate'
 import { getErrorMessage, isPdfExtractError, isVendorPOSaveError, isVendorPOStorageError, vendorPoPdfExtractUserMessage } from '@/lib/error-message'
 import { hashPdfFile, isVendorPoDuplicateFileError, normalizeVendorPoFileName } from '@/lib/vendor-po-upload'
 import { isVendorPoDuplicateError } from '@/lib/vendor-po-errors'
@@ -179,7 +180,11 @@ export default function WorkOrdersPage() {
         toast.error(fileErrors.length === 1 ? fileErrors[0] : t.vendorPO.noValidFiles)
         return
       }
-      await saveVendorPOs.mutateAsync(parsed)
+      const translated = []
+      for (const row of parsed) {
+        translated.push(await enrichVendorPOInputWithRussianProblem(row))
+      }
+      await saveVendorPOs.mutateAsync(translated)
       toast.success(`${t.vendorPO.parseSuccess}: ${parsed.length}`)
       if (fileErrors.length > 0) {
         const duplicateCount = fileErrors.filter((msg) =>

@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.13] — 2026-07-11
+
+Russian translation for Vendor PO problem description.
+
+### Feature — Problem description translation
+- Translate problem description to Russian on PDF upload (with timeout per row)
+- Lazy translation in table for existing records without `problem_description_ru`
+- Persist translations to Supabase/local cache via `updateVendorPOProblemRu`
+- Show «Перевод…» while translation is in progress; Russian only in table cells
+
 ## [1.14.12] — 2026-07-11
 
 Fix infinite spinner when uploading Vendor PO PDF.
