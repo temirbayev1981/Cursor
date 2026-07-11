@@ -18,8 +18,9 @@ import { useAuth } from '@/contexts/auth-context'
 import { analyzeWorkOrderPDF, analyzeEmailWorkOrder, analyzePhoto } from '@/lib/ai'
 import { tryExtractTextFromPdf, isPdfFile, warmUpPdfJs, prefersNoPdfWorker } from '@/lib/pdf-extract'
 import { getCdnPdfJs } from '@/lib/pdf-extract-cdn'
+import { canExtractPdfOnServer, isServerPdfExtractAvailable } from '@/lib/pdf-extract-server'
+import { ensureSupabaseSession } from '@/lib/supabase-session'
 import { isVendorPOText, parseVendorPOText } from '@/lib/vendor-po-parser'
-import { enrichVendorPOInputWithRussianProblem } from '@/lib/vendor-po-translate'
 import { getErrorMessage, isPdfExtractError, isVendorPOSaveError, isVendorPOStorageError, vendorPoPdfExtractUserMessage } from '@/lib/error-message'
 import { hashPdfFile, isVendorPoDuplicateFileError, normalizeVendorPoFileName } from '@/lib/vendor-po-upload'
 import { isVendorPoDuplicateError } from '@/lib/vendor-po-errors'
@@ -57,6 +58,11 @@ export default function WorkOrdersPage() {
     warmUpPdfJs()
     if (prefersNoPdfWorker()) {
       void getCdnPdfJs().catch(() => undefined)
+      void ensureSupabaseSession().then(() => {
+        if (canExtractPdfOnServer()) {
+          void isServerPdfExtractAvailable().catch(() => undefined)
+        }
+      })
     }
   }, [])
 
@@ -116,6 +122,7 @@ export default function WorkOrdersPage() {
       vendorPOs.map((po) => po.source_file_hash).filter((hash): hash is string => Boolean(hash)),
     )
     try {
+      await ensureSupabaseSession()
       const parsed = []
       for (const file of pdfFiles) {
         const normalizedFileName = normalizeVendorPoFileName(file.name)
@@ -180,11 +187,7 @@ export default function WorkOrdersPage() {
         toast.error(fileErrors.length === 1 ? fileErrors[0] : t.vendorPO.noValidFiles)
         return
       }
-      const translated = []
-      for (const row of parsed) {
-        translated.push(await enrichVendorPOInputWithRussianProblem(row))
-      }
-      await saveVendorPOs.mutateAsync(translated)
+      await saveVendorPOs.mutateAsync(parsed)
       toast.success(`${t.vendorPO.parseSuccess}: ${parsed.length}`)
       if (fileErrors.length > 0) {
         const duplicateCount = fileErrors.filter((msg) =>

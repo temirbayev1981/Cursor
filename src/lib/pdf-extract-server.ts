@@ -1,11 +1,14 @@
 import { getExtractPdfEndpoint, hasSupabase, isE2eMockBackend } from '@/lib/env'
 import { getSupabaseAuthHeaders, supabase } from '@/lib/supabase'
+import { ensureSupabaseSession, hasSupabaseInvokeSupport } from '@/lib/supabase-session'
 import { getErrorMessage } from '@/lib/error-message'
-import { fetchWithTimeout } from '@/lib/with-timeout'
+import { fetchWithTimeout, withTimeout } from '@/lib/with-timeout'
 
 const MAX_PDF_BYTES = 8 * 1024 * 1024
 const PROBE_KEY = 'handymanos_pdf_server_probe'
 const PROBE_TTL_MS = 5 * 60 * 1000
+export const SERVER_PDF_FIRST_TIMEOUT_MS = 35_000
+const SERVER_PDF_FETCH_TIMEOUT_MS = 90_000
 
 async function readFileBuffer(file: File): Promise<ArrayBuffer> {
   if (typeof file.arrayBuffer === 'function') {
@@ -110,6 +113,7 @@ export async function isServerPdfExtractAvailable(): Promise<boolean> {
   }
 
   try {
+    await ensureSupabaseSession()
     const headers = await getSupabaseAuthHeaders()
     const res = await fetchWithTimeout(endpoint, {
       method: 'POST',
@@ -126,17 +130,58 @@ export async function isServerPdfExtractAvailable(): Promise<boolean> {
   }
 }
 
+function parsePdfExtractPayload(data: unknown): string | null {
+  if (!data || typeof data !== 'object') return null
+  const payload = data as { text?: unknown; error?: unknown; message?: unknown }
+  if (typeof payload.error === 'string' && payload.error) {
+    throw new Error(payload.error)
+  }
+  if (typeof payload.message === 'string' && payload.message) {
+    throw new Error(payload.message)
+  }
+  if (typeof payload.text === 'string') {
+    const text = payload.text.trim()
+    return text || null
+  }
+  return null
+}
+
+async function invokePdfExtract(
+  pdfBase64: string,
+  timeoutMs: number,
+): Promise<string | null> {
+  if (!hasSupabaseInvokeSupport()) return null
+  if (!await ensureSupabaseSession()) return null
+
+  try {
+    const { data, error } = await withTimeout(
+      supabase!.functions.invoke('extract-pdf-text', { body: { pdfBase64 } }),
+      timeoutMs,
+      'extract-pdf-text invoke',
+    )
+    if (error) {
+      console.warn('extract-pdf-text invoke failed:', getErrorMessage(error))
+      return null
+    }
+    return parsePdfExtractPayload(data)
+  } catch (err) {
+    console.warn('extract-pdf-text invoke exception:', getErrorMessage(err))
+    return null
+  }
+}
+
 async function postPdfExtract(
   endpoint: string,
   pdfBase64: string,
-  options: { refreshAuth?: boolean } = {},
+  options: { refreshAuth?: boolean; timeoutMs?: number } = {},
 ): Promise<string> {
+  await ensureSupabaseSession()
   const headers = await getSupabaseAuthHeaders()
   const res = await fetchWithTimeout(endpoint, {
     method: 'POST',
     headers,
     body: JSON.stringify({ pdfBase64 }),
-    timeoutMs: 90_000,
+    timeoutMs: options.timeoutMs ?? SERVER_PDF_FETCH_TIMEOUT_MS,
   })
 
   const json = await res.json().catch(() => ({})) as {
@@ -155,7 +200,7 @@ async function postPdfExtract(
     if (res.status === 401) {
       if (options.refreshAuth !== false && supabase) {
         await supabase.auth.refreshSession()
-        return postPdfExtract(endpoint, pdfBase64, { refreshAuth: false })
+        return postPdfExtract(endpoint, pdfBase64, { refreshAuth: false, timeoutMs: options.timeoutMs })
       }
       throw new Error(`Unauthorized — sign in again (${detail})`)
     }
@@ -167,7 +212,10 @@ async function postPdfExtract(
   return text
 }
 
-export async function extractTextFromPdfServer(file: File): Promise<string> {
+export async function extractTextFromPdfServer(
+  file: File,
+  options?: { timeoutMs?: number },
+): Promise<string> {
   if (file.size > MAX_PDF_BYTES) {
     throw new Error(`PDF exceeds ${MAX_PDF_BYTES} byte limit`)
   }
@@ -177,8 +225,13 @@ export async function extractTextFromPdfServer(file: File): Promise<string> {
     throw new Error('Server PDF extract endpoint not configured')
   }
 
+  const timeoutMs = options?.timeoutMs ?? SERVER_PDF_FIRST_TIMEOUT_MS
   const pdfBase64 = await fileToBase64(file)
-  return postPdfExtract(endpoint, pdfBase64)
+
+  const viaInvoke = await invokePdfExtract(pdfBase64, timeoutMs)
+  if (viaInvoke) return viaInvoke
+
+  return postPdfExtract(endpoint, pdfBase64, { timeoutMs })
 }
 
 export function serverExtractErrorMessage(err: unknown): string {

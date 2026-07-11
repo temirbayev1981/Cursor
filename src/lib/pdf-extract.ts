@@ -7,13 +7,16 @@ import {
   canExtractPdfOnServer,
   clearServerPdfExtractProbeCache,
   extractTextFromPdfServer,
+  SERVER_PDF_FIRST_TIMEOUT_MS,
 } from '@/lib/pdf-extract-server'
+import { ensureSupabaseSession } from '@/lib/supabase-session'
 import { withTimeout } from '@/lib/with-timeout'
 
 type PdfDocument = Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>
 
 const OCR_MAX_PAGES = 2
 const OCR_RENDER_SCALE = 1.5
+const CDN_PDF_TIMEOUT_MS = 45_000
 
 let pdfjsConfigured = false
 
@@ -178,35 +181,53 @@ async function extractTextFromPdfClient(file: File): Promise<string> {
   }
 }
 
-async function extractTextFromPdfMobile(file: File): Promise<string> {
+async function tryServerPdfExtract(file: File): Promise<string> {
+  return extractTextFromPdfServer(file, { timeoutMs: SERVER_PDF_FIRST_TIMEOUT_MS })
+}
+
+async function tryCdnPdfExtract(file: File): Promise<string> {
+  return withTimeout(extractTextFromPdfCdn(file), CDN_PDF_TIMEOUT_MS, 'CDN PDF extract')
+}
+
+async function raceMobilePdfExtract(file: File): Promise<string> {
   const attempts: string[] = []
+  const contenders: Promise<string>[] = []
 
   if (canExtractPdfOnServer()) {
+    contenders.push(
+      tryServerPdfExtract(file).catch((serverErr) => {
+        const detail = getErrorMessage(serverErr)
+        attempts.push(`server: ${detail}`)
+        clearServerPdfExtractProbeCache()
+        throw serverErr
+      }),
+    )
+  }
+
+  contenders.push(
+    tryCdnPdfExtract(file).catch((cdnErr) => {
+      const detail = getErrorMessage(cdnErr)
+      attempts.push(`cdn: ${detail}`)
+      throw cdnErr
+    }),
+  )
+
+  try {
+    return await Promise.any(contenders)
+  } catch {
     try {
-      return await extractTextFromPdfServer(file)
-    } catch (serverErr) {
-      const detail = getErrorMessage(serverErr)
-      attempts.push(`server: ${detail}`)
-      clearServerPdfExtractProbeCache()
-      console.warn('Server PDF extract failed, trying CDN pdf.js:', detail)
+      return await extractTextFromPdfClient(file)
+    } catch (clientErr) {
+      const detail = getErrorMessage(clientErr)
+      attempts.push(`client: ${detail}`)
+      throw new Error(`PDF extract failed: ${attempts.join('; ')}`)
     }
   }
+}
 
-  try {
-    return await extractTextFromPdfCdn(file)
-  } catch (cdnErr) {
-    const detail = getErrorMessage(cdnErr)
-    attempts.push(`cdn: ${detail}`)
-    console.warn('CDN PDF extract failed, trying bundled pdf.js:', detail)
-  }
-
-  try {
-    return await extractTextFromPdfClient(file)
-  } catch (clientErr) {
-    const detail = getErrorMessage(clientErr)
-    attempts.push(`client: ${detail}`)
-    throw new Error(`PDF extract failed: ${attempts.join('; ')}`)
-  }
+async function extractTextFromPdfMobile(file: File): Promise<string> {
+  await ensureSupabaseSession()
+  return raceMobilePdfExtract(file)
 }
 
 export async function extractTextFromPdf(file: File): Promise<string> {
@@ -222,7 +243,8 @@ async function extractTextFromPdfInner(file: File): Promise<string> {
     return await extractTextFromPdfClient(file)
   } catch (clientErr) {
     if (canExtractPdfOnServer()) {
-      return await extractTextFromPdfServer(file)
+      await ensureSupabaseSession()
+      return await extractTextFromPdfServer(file, { timeoutMs: SERVER_PDF_FIRST_TIMEOUT_MS })
     }
     throw clientErr
   }
