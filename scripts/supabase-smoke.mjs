@@ -58,6 +58,7 @@ const EDGE_FUNCTIONS = [
   'create-checkout-session',
   'create-subscription-checkout',
   'openai-proxy',
+  'extract-pdf-text',
   'send-notification',
   'send-sms',
   'stripe-webhook',

@@ -7,7 +7,7 @@ import tailwindcss from '@tailwindcss/vite'
 const pkg = JSON.parse(readFileSync('./package.json', 'utf8'))
 
 function copyPdfWorker(): Plugin {
-  const src = path.join(__dirname, 'node_modules/pdfjs-dist/build/pdf.worker.min.mjs')
+  const src = path.join(__dirname, 'node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs')
   const dest = path.join(__dirname, 'public/pdf.worker.min.mjs')
   return {
     name: 'copy-pdf-worker',

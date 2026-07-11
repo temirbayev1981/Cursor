@@ -1,7 +1,8 @@
-import * as pdfjsLib from 'pdfjs-dist'
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { ocrImagesToText } from '@/lib/pdf-ocr'
 import { hasOpenAI } from '@/lib/env'
 import { getErrorMessage } from '@/lib/error-message'
+import { canExtractPdfOnServer, extractTextFromPdfServer } from '@/lib/pdf-extract-server'
 
 type PdfDocument = Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>
 
@@ -83,6 +84,7 @@ function pdfDocumentOptions(data: ArrayBuffer | Uint8Array, disableWorker = fals
     useSystemFonts: true,
     useWorkerFetch: false,
     disableFontFace: true,
+    isEvalSupported: false,
     disableWorker: disableWorker || prefersNoPdfWorker(),
   }
 }
@@ -139,7 +141,7 @@ async function ocrPdfPages(pdf: PdfDocument): Promise<string> {
   return text
 }
 
-export async function extractTextFromPdf(file: File): Promise<string> {
+async function extractTextFromPdfClient(file: File): Promise<string> {
   const buffer = await readFileBuffer(file)
   const pdf = await loadPdfDocument(buffer)
 
@@ -164,6 +166,25 @@ export async function extractTextFromPdf(file: File): Promise<string> {
     return ocrText.trim() || text
   } catch {
     return text
+  }
+}
+
+export async function extractTextFromPdf(file: File): Promise<string> {
+  if (prefersNoPdfWorker() && canExtractPdfOnServer()) {
+    try {
+      return await extractTextFromPdfServer(file)
+    } catch (serverErr) {
+      console.warn('Server PDF extract failed, falling back to client:', getErrorMessage(serverErr))
+    }
+  }
+
+  try {
+    return await extractTextFromPdfClient(file)
+  } catch (clientErr) {
+    if (canExtractPdfOnServer()) {
+      return await extractTextFromPdfServer(file)
+    }
+    throw clientErr
   }
 }
 
