@@ -7,6 +7,7 @@ import {
   VendorPoDuplicateError,
   isVendorPoDuplicateError,
 } from './vendor-po-service'
+import { VendorPoDuplicateFileError } from '@/lib/vendor-po-upload'
 import type { VendorPOInput } from '@/types/vendor-po'
 
 vi.mock('@/lib/supabase', () => ({
@@ -67,10 +68,24 @@ describe('vendor-po-service', () => {
     expect(isVendorPoDuplicateError(new VendorPoDuplicateError('207872-02'))).toBe(true)
   })
 
+  it('rejects duplicate PDF file name for the same company', async () => {
+    await saveVendorPO({ ...sampleInput, source_file_hash: 'abc123' })
+    await expect(saveVendorPO({
+      ...sampleInput,
+      vendor_po_number: '207872-03',
+      source_file_hash: 'abc123',
+    })).rejects.toBeInstanceOf(VendorPoDuplicateFileError)
+    await expect(saveVendorPO({
+      ...sampleInput,
+      vendor_po_number: '207872-04',
+      source_file_name: 'TEST.PDF',
+    })).rejects.toBeInstanceOf(VendorPoDuplicateFileError)
+  })
+
   it('saveVendorPOBatch saves multiple records', async () => {
     const batch = await saveVendorPOBatch([
       sampleInput,
-      { ...sampleInput, vendor_po_number: '207872-03' },
+      { ...sampleInput, vendor_po_number: '207872-03', source_file_name: 'other.pdf', source_file_hash: 'hash-2' },
     ])
     expect(batch).toHaveLength(2)
     const list = await getVendorPOs(COMPANY_ID)

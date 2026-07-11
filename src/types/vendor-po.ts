@@ -29,6 +29,7 @@ export interface VendorPORecord {
   work_summary: string
   special_instructions?: string
   source_file_name: string
+  source_file_hash?: string
   status: 'parsed' | 'review' | 'approved' | 'scheduled'
   created_at: string
 }

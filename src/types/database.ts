@@ -244,6 +244,8 @@ export interface Database {
           work_summary: string | null
           service_description: string | null
           service_address: string | null
+          source_file_name: string | null
+          source_file_hash: string | null
           status: string
           created_at: string
         }

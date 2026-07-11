@@ -74,7 +74,7 @@ test.describe('Work orders vendor PO', () => {
     await expect(page.getByTestId('vendor-po-record-count')).toHaveText('1', { timeout: 10000 })
 
     await input.setInputFiles('e2e/fixtures/vendor-po-sample.pdf')
-    await expect(page.getByText(/207872-02.*уже загружен|207872-02.*already uploaded/i).first()).toBeVisible({ timeout: 15000 })
+    await expect(page.getByText(/207872-02.*уже загружен|207872-02.*already uploaded|vendorpo-sample\.pdf.*уже загружен|vendorpo-sample\.pdf.*already uploaded/i).first()).toBeVisible({ timeout: 15000 })
     await expect(page.getByTestId('vendor-po-record-count')).toHaveText('1', { timeout: 10000 })
   })
 })
