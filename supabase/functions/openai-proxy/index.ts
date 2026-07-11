@@ -1,4 +1,5 @@
 // OpenAI API proxy — keeps API key server-side
+// Also handles server-side Vendor PO PDF text extraction (extractPdf) for iOS Safari.
 // Deploy: supabase functions deploy openai-proxy
 // Secrets: OPENAI_API_KEY, SUPABASE_URL, SUPABASE_ANON_KEY
 
@@ -6,6 +7,7 @@ import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { handleCors, jsonResponse } from '../_shared/cors.ts'
 import { verifyAuth } from '../_shared/auth.ts'
 import { checkRateLimit, clientRateLimitKey, rateLimitResponse } from '../_shared/rate-limit.ts'
+import { extractVendorPoPdfText } from '../_shared/pdf-extract.ts'
 
 serve(async (req) => {
   const cors = handleCors(req)
@@ -17,6 +19,25 @@ serve(async (req) => {
       return jsonResponse({ error: 'Unauthorized' }, 401)
     }
 
+    const body = await req.json() as {
+      extractPdf?: boolean
+      pdfBase64?: string
+      system?: string
+      user?: string
+      model?: string
+      temperature?: number
+      images?: string[]
+    }
+
+    if (body.extractPdf && body.pdfBase64) {
+      const rate = await checkRateLimit(`pdf-extract:${clientRateLimitKey(req, auth.userId)}`, 30)
+      if (!rate.ok) return rateLimitResponse(rate.retryAfter ?? 60)
+
+      const openaiKey = Deno.env.get('OPENAI_API_KEY')
+      const text = await extractVendorPoPdfText(body.pdfBase64, openaiKey)
+      return jsonResponse({ text })
+    }
+
     const rate = await checkRateLimit(`openai:${clientRateLimitKey(req, auth.userId)}`, 20)
     if (!rate.ok) return rateLimitResponse(rate.retryAfter ?? 60)
 
@@ -25,13 +46,7 @@ serve(async (req) => {
       return jsonResponse({ error: 'OPENAI_API_KEY not configured' }, 500)
     }
 
-    const { system, user, model = 'gpt-4o-mini', temperature = 0.3, images } = await req.json() as {
-      system?: string
-      user?: string
-      model?: string
-      temperature?: number
-      images?: string[]
-    }
+    const { system, user, model = 'gpt-4o-mini', temperature = 0.3, images } = body
 
     if (!system || !user) {
       return jsonResponse({ error: 'system and user required' }, 400)

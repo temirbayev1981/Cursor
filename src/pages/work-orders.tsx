@@ -18,7 +18,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { analyzeWorkOrderPDF, analyzeEmailWorkOrder, analyzePhoto } from '@/lib/ai'
 import { tryExtractTextFromPdf, isPdfFile, warmUpPdfJs } from '@/lib/pdf-extract'
 import { isVendorPOText, parseVendorPOText } from '@/lib/vendor-po-parser'
-import { getErrorMessage, isPdfExtractError, isVendorPOSaveError, isVendorPOStorageError } from '@/lib/error-message'
+import { getErrorMessage, isPdfExtractError, isVendorPOSaveError, isVendorPOStorageError, vendorPoPdfExtractUserMessage } from '@/lib/error-message'
 import { useQueryClient } from '@tanstack/react-query'
 import { useVendorPOs, useSaveVendorPOs, useDeleteVendorPO, useSeedVendorPOs } from '@/hooks/use-vendor-pos'
 import type { AIExtractedData } from '@/types'
@@ -106,7 +106,8 @@ export default function WorkOrdersPage() {
         const { fileName, text, error } = await tryExtractTextFromPdf(file)
         if (error) {
           console.error('Vendor PO PDF extract failed:', fileName, error)
-          fileErrors.push(`${fileName}: ${t.vendorPO.pdfExtractFailed}`)
+          const hint = vendorPoPdfExtractUserMessage(error, t.vendorPO.pdfExtractFailed, t.vendorPO.pdfServerNotDeployed)
+          fileErrors.push(`${fileName}: ${hint}`)
           continue
         }
         if (!text.trim()) {

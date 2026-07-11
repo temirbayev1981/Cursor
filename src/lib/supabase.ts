@@ -15,11 +15,20 @@ export const supabase = isE2eMockBackend
 
 export async function getSupabaseAuthHeaders(): Promise<Record<string, string>> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  if (!supabase) return headers
+  const anonKey = env.VITE_SUPABASE_ANON_KEY
+  if (anonKey) {
+    headers.apikey = anonKey
+  }
+  if (!supabase) {
+    if (anonKey) headers.Authorization = `Bearer ${anonKey}`
+    return headers
+  }
 
   const { data: { session } } = await supabase.auth.getSession()
   if (session?.access_token) {
     headers.Authorization = `Bearer ${session.access_token}`
+  } else if (anonKey) {
+    headers.Authorization = `Bearer ${anonKey}`
   }
   return headers
 }

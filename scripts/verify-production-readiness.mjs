@@ -1045,6 +1045,23 @@ if (existsSync('supabase/functions/extract-pdf-text/index.ts')) {
   ok = false
 }
 
+const openaiProxy = existsSync('supabase/functions/openai-proxy/index.ts')
+  ? readFileSync('supabase/functions/openai-proxy/index.ts', 'utf8')
+  : ''
+if (openaiProxy.includes('extractPdf') && openaiProxy.includes('pdfBase64')) {
+  console.log('✓ openai-proxy supports extractPdf for iOS Vendor PO PDF')
+} else {
+  console.log('✗ openai-proxy must support extractPdf + pdfBase64')
+  ok = false
+}
+
+if (openaiProxy.includes('images')) {
+  console.log('✓ openai-proxy supports vision images for PDF OCR')
+} else {
+  console.log('✗ openai-proxy must accept images[] for OCR')
+  ok = false
+}
+
 if (pdfExtract.includes('extractTextFromPdfServer') && pdfExtract.includes('canExtractPdfOnServer')) {
   console.log('✓ pdf-extract server fallback wired for touch devices')
 } else {
@@ -1262,16 +1279,6 @@ if (entityService.includes('listEntitiesPage')) {
   console.log('✓ entity-service listEntitiesPage for server pagination')
 } else {
   console.log('✗ entity-service must export listEntitiesPage')
-  ok = false
-}
-
-const openaiProxy = existsSync('supabase/functions/openai-proxy/index.ts')
-  ? readFileSync('supabase/functions/openai-proxy/index.ts', 'utf8')
-  : ''
-if (openaiProxy.includes('images')) {
-  console.log('✓ openai-proxy supports vision images for PDF OCR')
-} else {
-  console.log('✗ openai-proxy must accept images[] for OCR')
   ok = false
 }
 
