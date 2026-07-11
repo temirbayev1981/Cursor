@@ -67,6 +67,21 @@ function extractSection(text: string, start: string, endMarkers: string[]): stri
   return clean(text.slice(from, end))
 }
 
+/** Text after the last "/" in SERVICE DESCRIPTION — the actual problem statement. */
+export function extractProblemDescription(serviceDescription: string): string {
+  const cleaned = clean(serviceDescription)
+  if (!cleaned) return ''
+
+  const parts = cleaned.split('/').map((part) => clean(part)).filter(Boolean)
+  if (parts.length === 0) return ''
+
+  const last = parts[parts.length - 1]
+  if (/^(REPAIR|REPLACE|EMERGENCY|INSTALL)$/i.test(last)) return ''
+  if (last.length < 12 && !/[a-z]/.test(last)) return ''
+
+  return last
+}
+
 function extractClientPoNumber(normalized: string): string {
   const matches = [...normalized.matchAll(/Client PO #\s*(\d+)/gi)]
   const longMatch = matches.map((m) => m[1]).find((value) => value.length >= 9)
@@ -480,6 +495,7 @@ export function parseVendorPOText(text: string, fileName: string, companyId: str
     categoryParts.slice(0, 4).join(' / ') ||
       serviceDescription.slice(0, 200)
   )
+  const problemDescription = extractProblemDescription(serviceDescription)
 
   const vendorPhone = clean(
     normalized.match(/Hickory, NC[\s\S]*?Phone #\s*([\d-]+)/i)?.[1]
@@ -513,6 +529,7 @@ export function parseVendorPOText(text: string, fileName: string, companyId: str
     service_category: serviceCategory,
     service_description: serviceDescription,
     work_summary: workSummary,
+    problem_description: problemDescription || undefined,
     special_instructions: specialInstructions.slice(0, 500) || undefined,
     source_file_name: fileName,
   }

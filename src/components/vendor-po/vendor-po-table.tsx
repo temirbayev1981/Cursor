@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Trash2, Eye, X, Briefcase, Download, AlertTriangle, CheckSquare } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
@@ -13,6 +13,8 @@ import { useWorkflow } from '@/contexts/workflow-context'
 import { useAuth } from '@/contexts/auth-context'
 import { requireCompanyId } from '@/hooks/use-company-scope'
 import { exportVendorPOsToExcel, groupVendorPOsByAddress } from '@/lib/export'
+import { getProblemDescriptionEn, getProblemDescriptionRu } from '@/lib/vendor-po-problem'
+import { translateProblemDescriptionToRussian } from '@/lib/vendor-po-translate'
 import { toast } from 'sonner'
 
 interface VendorPOTableProps {
@@ -27,8 +29,28 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
   const { company, user } = useAuth()
   const navigate = useNavigate()
   const [selected, setSelected] = useState<VendorPORecord | null>(null)
-  const [workScopeHint, setWorkScopeHint] = useState<string | null>(null)
+  const [cellHint, setCellHint] = useState<{ title: string; text: string } | null>(null)
+  const [problemTranslations, setProblemTranslations] = useState<Record<string, string>>({})
+  const attemptedProblemIds = useRef(new Set<string>())
   const dateLocale = useDateLocale()
+
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      for (const row of records) {
+        if (cancelled || row.problem_description_ru || attemptedProblemIds.current.has(row.id)) continue
+        const en = getProblemDescriptionEn(row)
+        if (!en || !/[a-z]/i.test(en)) continue
+        attemptedProblemIds.current.add(row.id)
+        const ru = await translateProblemDescriptionToRussian(en)
+        if (cancelled || !ru) continue
+        setProblemTranslations((prev) => ({ ...prev, [row.id]: ru }))
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [records])
 
   const addressGroups = groupVendorPOsByAddress(records)
   const multiSiteAddresses = [...addressGroups.entries()].filter(([, v]) => v.length > 1)
@@ -70,24 +92,26 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
         headers={[
           t.vendorPO.vendorPoNumber, t.vendorPO.clientPoNumber, t.vendorPO.priority,
           t.vendorPO.orderType, t.vendorPO.nte, t.vendorPO.location, t.vendorPO.address,
-          t.vendorPO.workScope, '', '',
+          t.vendorPO.problemDescription, t.vendorPO.workScope, '', '',
         ]}
         columnClassNames={[
-          'w-[6.5rem]',
-          'w-[6.5rem]',
+          'w-[5.5rem]',
           'w-[5.5rem]',
           'w-[5rem]',
-          'w-[5.5rem]',
-          'w-[10.5rem]',
-          'w-[11.5rem]',
-          'w-[12rem]',
-          'w-[5.5rem]',
-          'w-[6.5rem]',
+          'w-[4.5rem]',
+          'w-[5rem]',
+          'w-[9.5rem]',
+          'w-[10rem]',
+          'w-[11rem]',
+          'w-[10rem]',
+          'w-[4.5rem]',
+          'w-[6rem]',
         ]}
         className="text-sm"
       >
         {records.map((row) => {
           const isEmergency = row.priority.includes('EMERGENCY') || row.priority.startsWith('P1')
+          const problemRu = getProblemDescriptionRu(row, problemTranslations[row.id])
           return (
             <DataTableRow key={row.id} className={isEmergency ? 'bg-destructive/5' : ''}>
               <DataTableCell className="font-mono font-medium whitespace-nowrap">
@@ -105,7 +129,7 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
                 {formatCurrency(row.nte_amount)}
                 {row.nte_amount === 0 && <span className="text-xs text-warning ml-1">NTE↑</span>}
               </DataTableCell>
-              <DataTableCell className="align-top w-[10.5rem]">
+              <DataTableCell className="align-top">
                 <p className="font-medium line-clamp-2 leading-snug break-words">
                   {row.service_location_name}
                   {row.location_number ? (
@@ -113,16 +137,31 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
                   ) : null}
                 </p>
               </DataTableCell>
-              <DataTableCell className="align-top w-[11.5rem]">
+              <DataTableCell className="align-top">
                 <p className="line-clamp-2 leading-snug break-words">
                   {[row.service_address, row.service_city, row.service_state].filter(Boolean).join(', ') || '—'}
                 </p>
               </DataTableCell>
+              <DataTableCell className="align-top">
+                {problemRu ? (
+                  <button
+                    type="button"
+                    className="line-clamp-2 leading-snug break-words text-left w-full cursor-pointer hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-sm"
+                    onClick={() => setCellHint({ title: t.vendorPO.problemDescription, text: problemRu })}
+                    data-testid={`vendor-po-problem-${row.id}`}
+                    aria-label={t.vendorPO.problemDescription}
+                  >
+                    {problemRu}
+                  </button>
+                ) : (
+                  <span className="text-muted-foreground">—</span>
+                )}
+              </DataTableCell>
               <DataTableCell>
                 <button
                   type="button"
-                  className="max-w-[200px] truncate text-left w-full cursor-pointer hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-sm"
-                  onClick={() => setWorkScopeHint(row.work_summary || row.service_description)}
+                  className="line-clamp-2 leading-snug break-words text-left w-full cursor-pointer hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-sm"
+                  onClick={() => setCellHint({ title: t.vendorPO.workScope, text: row.work_summary || row.service_description })}
                   data-testid={`vendor-po-work-scope-${row.id}`}
                   aria-label={t.vendorPO.workScope}
                 >
@@ -154,24 +193,24 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
         })}
       </DataTable>
 
-      {workScopeHint && (
+      {cellHint && (
         <div
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-4"
-          onClick={() => setWorkScopeHint(null)}
-          data-testid="vendor-po-work-scope-hint"
+          onClick={() => setCellHint(null)}
+          data-testid="vendor-po-cell-hint"
         >
           <Card
             className="w-full max-w-lg max-h-[70vh] overflow-y-auto shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <CardHeader className="flex flex-row items-start justify-between gap-3 pb-2">
-              <CardTitle className="text-base">{t.vendorPO.workScope}</CardTitle>
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setWorkScopeHint(null)}>
+              <CardTitle className="text-base">{cellHint.title}</CardTitle>
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setCellHint(null)}>
                 <X className="h-4 w-4" />
               </Button>
             </CardHeader>
             <CardContent>
-              <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{workScopeHint}</p>
+              <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{cellHint.text}</p>
             </CardContent>
           </Card>
         </div>
@@ -193,6 +232,11 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
                 <Detail label={t.vendorPO.nte} value={formatCurrency(selected.nte_amount)} />
                 <Detail label={t.vendorPO.location} value={`${selected.service_location_name} #${selected.location_number}`} className="col-span-2" />
                 <Detail label={t.vendorPO.address} value={`${selected.service_address}, ${selected.service_city}, ${selected.service_state}`} className="col-span-2" />
+                <Detail
+                  label={t.vendorPO.problemDescription}
+                  value={getProblemDescriptionRu(selected, problemTranslations[selected.id])}
+                  className="col-span-2"
+                />
                 <Detail label={t.vendorPO.workScope} value={selected.work_summary} className="col-span-2" />
                 <Detail label={t.vendorPO.fullDescription} value={selected.service_description} className="col-span-2" />
               </div>

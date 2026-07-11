@@ -22,6 +22,7 @@ import { isVendorPOText, parseVendorPOText } from '@/lib/vendor-po-parser'
 import { getErrorMessage, isPdfExtractError, isVendorPOSaveError, isVendorPOStorageError, vendorPoPdfExtractUserMessage } from '@/lib/error-message'
 import { hashPdfFile, isVendorPoDuplicateFileError, normalizeVendorPoFileName } from '@/lib/vendor-po-upload'
 import { isVendorPoDuplicateError } from '@/services/vendor-po-service'
+import { translateProblemDescriptionToRussian } from '@/lib/vendor-po-translate'
 import { useQueryClient } from '@tanstack/react-query'
 import { useVendorPOs, useSaveVendorPOs, useDeleteVendorPO, useSeedVendorPOs } from '@/hooks/use-vendor-pos'
 import type { AIExtractedData } from '@/types'
@@ -179,7 +180,16 @@ export default function WorkOrdersPage() {
         toast.error(fileErrors.length === 1 ? fileErrors[0] : t.vendorPO.noValidFiles)
         return
       }
-      await saveVendorPOs.mutateAsync(parsed)
+      const withTranslations = []
+      for (const row of parsed) {
+        let problem_description_ru: string | undefined
+        if (row.problem_description) {
+          const ru = await translateProblemDescriptionToRussian(row.problem_description)
+          problem_description_ru = ru ?? undefined
+        }
+        withTranslations.push({ ...row, problem_description_ru })
+      }
+      await saveVendorPOs.mutateAsync(withTranslations)
       toast.success(`${t.vendorPO.parseSuccess}: ${parsed.length}`)
       if (fileErrors.length > 0) {
         const duplicateCount = fileErrors.filter((msg) =>

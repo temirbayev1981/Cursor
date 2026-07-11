@@ -269,6 +269,7 @@ export const en: TranslationKeys = {
     nte: 'NTE Limit',
     location: 'Location',
     address: 'Address',
+    problemDescription: 'Problem description',
     workScope: 'Work Scope',
     uploaded: 'Uploaded',
     details: 'Order Details',

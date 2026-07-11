@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseVendorPOText, isVendorPOText, normalizeVendorPOText } from '@/lib/vendor-po-parser'
+import { parseVendorPOText, isVendorPOText, normalizeVendorPOText, extractProblemDescription } from '@/lib/vendor-po-parser'
 import FACILIT_FLATTENED from './__fixtures__/vendor-po-210072-extracted.txt?raw'
 import VENDOR_PO_210071 from './__fixtures__/vendor-po-210071-extracted.txt?raw'
 
@@ -94,6 +94,18 @@ Call from site`
     expect(result.service_state).toBe('NC')
     expect(result.service_zip).toBe('27215-9111')
     expect(result.service_phone).toBe('336-584-3374')
+    expect(result.problem_description).toContain('pole in the back of the store is leaning')
+    expect(result.problem_description).toContain('yellow pole')
+  })
+
+  it('extractProblemDescription takes text after the last slash', () => {
+    const serviceDescription =
+      'BUILDING EXTERIOR / PROPERTY/PERIMETER FENCE / REPAIR / Was issue caused by vandalism?: No / The pole in the back of the store is leaning, needs to be fixed.'
+    expect(extractProblemDescription(serviceDescription)).toBe(
+      'The pole in the back of the store is leaning, needs to be fixed.',
+    )
+    expect(extractProblemDescription('BUILDING INTERIOR / CEILING TILE / REPLACE')).toBe('')
+    expect(extractProblemDescription('')).toBe('')
   })
 
   it('parses P1 emergency priority', () => {

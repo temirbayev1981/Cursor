@@ -243,6 +243,8 @@ export interface Database {
           service_date: string | null
           work_summary: string | null
           service_description: string | null
+          problem_description: string | null
+          problem_description_ru: string | null
           service_address: string | null
           source_file_name: string | null
           source_file_hash: string | null

@@ -27,6 +27,8 @@ export interface VendorPORecord {
   service_category: string
   service_description: string
   work_summary: string
+  problem_description?: string
+  problem_description_ru?: string
   special_instructions?: string
   source_file_name: string
   source_file_hash?: string

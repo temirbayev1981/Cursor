@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.8] — 2026-07-11
+
+Vendor PO problem description column with Russian translation.
+
+### Phase 151 — Описание проблемы
+- Extract problem text after the last `/` in SERVICE DESCRIPTION
+- New table column **Описание проблемы** with Russian translation (OpenAI)
+- Click cell to open popup with full translated text
+- `problem_description` and `problem_description_ru` columns in `vendor_po_records`
+- Excel export includes translated problem description
+
 ## [1.14.7] — 2026-07-11
 
 Vendor PO table layout + block duplicate PDF files.

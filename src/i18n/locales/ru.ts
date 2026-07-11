@@ -267,6 +267,7 @@ export const ru = {
     nte: 'Лимит NTE',
     location: 'Объект',
     address: 'Адрес',
+    problemDescription: 'Описание проблемы',
     workScope: 'Объём работ',
     uploaded: 'Загружен',
     details: 'Детали наряда',
