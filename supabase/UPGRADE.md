@@ -6,7 +6,7 @@ For existing projects, **re-run the full file** in the Supabase SQL Editor — i
 ## Fresh install
 
 1. Create a Supabase project
-2. Paste and run **`schema.sql`** entirely (check header contains `SCHEMA_VERSION: 2026-07-11b`)
+2. Paste and run **`schema.sql`** entirely (check header contains `SCHEMA_VERSION: 2026-07-11c`)
 3. Deploy Edge Functions (see [DEPLOYMENT.md](../DEPLOYMENT.md))
 4. Verify:
 
@@ -23,7 +23,7 @@ This happens when `profiles` was created before multi-tenant columns were added.
 1. **Recommended:** Run [`schema-patch.sql`](./schema-patch.sql) in SQL Editor, then re-run the full [`schema.sql`](./schema.sql).
 2. **Or** copy the latest `schema.sql` from [raw GitHub](https://raw.githubusercontent.com/temirbayev1981/Cursor/main/supabase/schema.sql) and run the **entire** file (not only the last ~50 lines).
 
-Verify the file header shows `SCHEMA_VERSION: 2026-07-11b` and the file ends with `EXECUTE $sql$` backfill block.
+Verify the file header shows `SCHEMA_VERSION: 2026-07-11c` and the file ends with a self-healing `DO $$` backfill block that runs `ALTER TABLE ... ADD COLUMN` before `EXECUTE $sql$`.
 
 ## From 1.6.x → 1.7.x
 
