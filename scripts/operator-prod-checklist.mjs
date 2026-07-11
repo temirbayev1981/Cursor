@@ -13,8 +13,15 @@ console.log(`\nHandymanOS AI v${pkg.version} — Operator production checklist (
 const steps = [
   {
     id: 'supabase_secrets',
-    label: 'GitHub Secrets: VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY',
+    label: 'GitHub Secrets: VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY + SUPABASE_SERVICE_ROLE_KEY',
     ok: Boolean(process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_ANON_KEY),
+    hint: 'Service role key required for strict supabase-smoke (check_rate_limit RPC)',
+  },
+  {
+    id: 'rate_limit_migration',
+    label: 'SQL: supabase/migrations/20260711000002_check_rate_limit.sql applied',
+    ok: existsSync('supabase/migrations/20260711000002_check_rate_limit.sql'),
+    hint: 'Run in Supabase SQL Editor if supabase-smoke reports missing check_rate_limit',
   },
   {
     id: 'auth_migration',
