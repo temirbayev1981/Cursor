@@ -87,12 +87,22 @@ async function checkRpc(name, body = {}) {
     body: JSON.stringify(body),
   })
   if (res.status === 404) {
-    console.error(`✗ RPC missing: ${name} — re-apply supabase/schema.sql`)
+    const msg = `RPC missing: ${name} — re-apply supabase/schema.sql`
+    if (process.env.SMOKE_RPC_OPTIONAL === '1') {
+      console.warn(`⚠ ${msg}`)
+      return
+    }
+    console.error(`✗ ${msg}`)
     process.exit(1)
   }
   if (!res.ok) {
     const text = await res.text()
-    console.error(`✗ RPC ${name} failed: HTTP ${res.status} ${text.slice(0, 120)}`)
+    const msg = `RPC ${name} failed: HTTP ${res.status} ${text.slice(0, 120)}`
+    if (process.env.SMOKE_RPC_OPTIONAL === '1') {
+      console.warn(`⚠ ${msg}`)
+      return
+    }
+    console.error(`✗ ${msg}`)
     process.exit(1)
   }
   console.log(`✓ RPC ${name} reachable`)
@@ -116,7 +126,12 @@ async function checkEdgeFunction(name) {
     }
   }
   if (!reachable) {
-    console.error(`✗ Edge Function unreachable: ${name} — deploy supabase/functions/${name}`)
+    const msg = `Edge Function unreachable: ${name} — deploy supabase/functions/${name}`
+    if (process.env.SMOKE_EDGE_FUNCTIONS_OPTIONAL === '1') {
+      console.warn(`⚠ ${msg}`)
+      return
+    }
+    console.error(`✗ ${msg}`)
     process.exit(1)
   }
   console.log(`✓ Edge Function ${name} reachable`)

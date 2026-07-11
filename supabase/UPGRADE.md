@@ -22,6 +22,7 @@ This happens when `profiles` was created before multi-tenant columns were added.
 
 1. **Recommended:** Run [`schema-patch.sql`](./schema-patch.sql) in SQL Editor, then re-run the full [`schema.sql`](./schema.sql).
 2. **Or** copy the latest `schema.sql` from [raw GitHub](https://raw.githubusercontent.com/temirbayev1981/Cursor/main/supabase/schema.sql) and run the **entire** file (not only the last ~50 lines).
+3. **Deploy failed on `check_rate_limit`?** You applied only the patch — run the full `schema.sql`, or quick fix: [`schema-smoke-minimal.sql`](./schema-smoke-minimal.sql).
 
 Verify the file header shows `SCHEMA_VERSION: 2026-07-11c` and the file ends with a self-healing `DO $$` backfill block that runs `ALTER TABLE ... ADD COLUMN` before `EXECUTE $sql$`.
 

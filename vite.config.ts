@@ -18,7 +18,7 @@ function baseAwareManifest(): Plugin {
         icons: { src: string }[]
         shortcuts?: { url: string }[]
       }
-      manifest.start_url = `${prefix}/` || '/'
+      manifest.start_url = prefix ? `${prefix}/` : '/'
       manifest.icons = manifest.icons.map((icon) => ({
         ...icon,
         src: `${prefix}${icon.src}`,
