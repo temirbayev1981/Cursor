@@ -14,10 +14,24 @@ export interface OfflineSyncContext {
 interface LocalTimeEntry {
   id: string
   job_id: string
-  start: string
+  start?: string
   end?: string
+  start_time?: string
+  end_time?: string
   lat?: number
   lng?: number
+}
+
+function entryStart(local: LocalTimeEntry): string {
+  return local.start ?? local.start_time ?? new Date().toISOString()
+}
+
+function entryEnd(local: LocalTimeEntry): string | undefined {
+  return local.end ?? local.end_time
+}
+
+function entryIsOpen(local: LocalTimeEntry): boolean {
+  return !entryEnd(local)
 }
 
 function toTimeEntry(
@@ -25,17 +39,18 @@ function toTimeEntry(
   context: OfflineSyncContext,
   endOverride?: string
 ): TimeEntry {
+  const start = entryStart(local)
   return {
     id: local.id,
     company_id: context.companyId,
     job_id: local.job_id,
     employee_id: context.employeeId,
     profile_id: context.profileId,
-    start_time: local.start,
-    end_time: endOverride ?? local.end,
+    start_time: start,
+    end_time: endOverride ?? entryEnd(local),
     lat: local.lat,
     lng: local.lng,
-    created_at: local.start,
+    created_at: start,
   }
 }
 
@@ -57,12 +72,12 @@ export async function applyOfflineAction(
     const { job_id, end } = action.payload as { job_id: string; end: string }
     const existing = loadStore<LocalTimeEntry>(STORE_KEYS.timeEntries)
     const next = existing.map((e) =>
-      e.job_id === job_id && !e.end ? { ...e, end } : e
+      e.job_id === job_id && entryIsOpen(e) ? { ...e, end, end_time: end } : e
     )
     saveStore(STORE_KEYS.timeEntries, next)
 
-    const closed = next.find((e) => e.job_id === job_id && e.end === end)
-      ?? next.find((e) => e.job_id === job_id && e.end)
+    const closed = next.find((e) => e.job_id === job_id && entryEnd(e) === end)
+      ?? next.find((e) => e.job_id === job_id && entryEnd(e))
     if (closed) {
       await saveTimeEntry(toTimeEntry(closed, context, end))
       saveStore(STORE_KEYS.timeEntries, next)

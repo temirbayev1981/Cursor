@@ -155,7 +155,7 @@ export default function DispatchPage() {
     async (job: Job, newStatus: JobStatus) => {
       if (job.status === newStatus) return
 
-      updateStatus.mutate({ job, status: newStatus })
+      await updateStatus.mutateAsync({ job, status: newStatus })
       if (user && company) {
         void logAudit(company.id, user.id, 'dispatch.status_change', 'job', job.id)
       }

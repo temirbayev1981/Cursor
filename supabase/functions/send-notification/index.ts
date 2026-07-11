@@ -6,6 +6,7 @@ import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { handleCors, jsonResponse } from '../_shared/cors.ts'
 import { verifyAuth } from '../_shared/auth.ts'
 import { checkRateLimit, clientRateLimitKey, rateLimitResponse } from '../_shared/rate-limit.ts'
+import { escapeHtml } from '../_shared/html.ts'
 
 serve(async (req) => {
   const cors = handleCors(req)
@@ -42,6 +43,9 @@ serve(async (req) => {
       return jsonResponse({ error: 'Only email channel supported here' }, 400)
     }
 
+    const safeSubject = escapeHtml(subject ?? 'HandymanOS Notification')
+    const safeBody = escapeHtml(body)
+
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -51,8 +55,8 @@ serve(async (req) => {
       body: JSON.stringify({
         from: fromEmail,
         to: [to],
-        subject: subject ?? 'HandymanOS Notification',
-        html: `<p>${body.replace(/\n/g, '<br>')}</p>`,
+        subject: safeSubject,
+        html: `<p>${safeBody.replace(/\n/g, '<br>')}</p>`,
       }),
     })
 

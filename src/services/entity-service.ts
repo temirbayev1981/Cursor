@@ -1,5 +1,5 @@
 import type { Job, Customer, Estimate, Invoice, Property, Employee, Material, Vehicle, Expense, ScheduleEvent, WorkOrder, ServiceCatalogItem, FuelLog, Payment, TimeEntry } from '@/types'
-import { loadStore, saveStore, upsertStore, removeFromStore, filterByCompany, STORE_KEYS } from '@/lib/data-store'
+import { loadStore, saveStore, upsertStore, removeFromStore, filterByCompany, mergeStoreById, STORE_KEYS } from '@/lib/data-store'
 import {
   DEMO_JOBS, DEMO_CUSTOMERS, DEMO_ESTIMATES, DEMO_INVOICES,
   DEMO_PROPERTIES, DEMO_EMPLOYEES, DEMO_MATERIALS, DEMO_VEHICLES, DEMO_EXPENSES, DEMO_SCHEDULE,
@@ -121,7 +121,7 @@ export async function listEntities<K extends keyof EntityMap>(entity: K, company
   try {
     const items = await fetchCompanyEntities<EntityMap[K]>(TABLE_MAP[entity], companyId)
     if (items.length > 0) {
-      saveStore(KEY_MAP[entity], items)
+      mergeStoreById(KEY_MAP[entity], items)
       return items
     }
     return loadLocalEntities(entity, companyId)
@@ -131,12 +131,25 @@ export async function listEntities<K extends keyof EntityMap>(entity: K, company
 }
 
 export async function saveEntity<K extends keyof EntityMap>(entity: K, item: EntityMap[K]): Promise<EntityMap[K]> {
-  upsertStore(KEY_MAP[entity], item)
+  const key = KEY_MAP[entity]
+  const existing = loadStore<EntityMap[K]>(key)
+  const previous = existing.find((row) => row.id === item.id)
+
+  upsertStore(key, item)
   if (!supabase) throw new Error('Supabase not configured')
 
-  const table = TABLE_MAP[entity]
-  const data = await upsertCompanyEntity(table, item as TableInsert<typeof table>)
-  return data as EntityMap[K]
+  try {
+    const table = TABLE_MAP[entity]
+    const data = await upsertCompanyEntity(table, item as TableInsert<typeof table>)
+    return data as EntityMap[K]
+  } catch (err) {
+    if (previous) {
+      upsertStore(key, previous)
+    } else {
+      removeFromStore(key, item.id)
+    }
+    throw err
+  }
 }
 
 export async function deleteEntity<K extends keyof EntityMap>(entity: K, id: string): Promise<void> {
@@ -168,8 +181,7 @@ export async function importSampleData(companyId: string): Promise<{ imported: n
   return { imported }
 }
 
-/** @deprecated Use importSampleData */
-
+/** Creates a draft job from a parsed vendor PO. */
 export async function createJobFromVendorPO(
   po: import('@/types/vendor-po').VendorPORecord,
   companyId: string
@@ -185,7 +197,10 @@ export async function createJobFromVendorPO(
   const customerId = matched?.id
     ?? customers.find((c) => c.type === 'property_management')?.id
     ?? customers[0]?.id
-    ?? 'cust-001'
+
+  if (!customerId) {
+    throw new Error('No customer available to attach vendor PO job')
+  }
 
   const job: Job = {
     id: crypto.randomUUID(),
@@ -257,9 +272,15 @@ export async function createInvoiceFromEstimate(
     line_items: estimate.line_items,
     created_at: new Date().toISOString(),
   }
-  await saveEntity('invoices', invoice)
-  await saveEntity('estimates', { ...estimate, status: 'approved' })
-  return invoice
+  const approvedEstimate = { ...estimate, status: 'approved' as const }
+  await saveEntity('estimates', approvedEstimate)
+  try {
+    await saveEntity('invoices', invoice)
+    return invoice
+  } catch (err) {
+    await saveEntity('estimates', estimate)
+    throw err
+  }
 }
 
 export async function createScheduleFromJob(
@@ -339,7 +360,7 @@ export async function listAuditLogs(companyId: string): Promise<AuditLog[]> {
     if (error) throw error
     const items = (data ?? []) as AuditLog[]
     if (items.length > 0) {
-      saveStore(STORE_KEYS.auditLogs, items)
+      mergeStoreById(STORE_KEYS.auditLogs, items)
       return items
     }
     return loadStore<AuditLog>(STORE_KEYS.auditLogs).filter((l) => l.company_id === companyId)
@@ -349,15 +370,22 @@ export async function listAuditLogs(companyId: string): Promise<AuditLog[]> {
 }
 
 export async function savePayment(payment: Payment): Promise<Payment> {
+  const previous = loadStore<Payment>(STORE_KEYS.payments).find((p) => p.id === payment.id)
   upsertStore(STORE_KEYS.payments, payment)
   if (!supabase) throw new Error('Supabase not configured')
 
-  const { data, error } = await upsertRows('payments', payment)
-    .select()
-    .single()
+  try {
+    const { data, error } = await upsertRows('payments', payment)
+      .select()
+      .single()
 
-  if (error) throw error
-  return data as unknown as Payment
+    if (error) throw error
+    return data as unknown as Payment
+  } catch (err) {
+    if (previous) upsertStore(STORE_KEYS.payments, previous)
+    else removeFromStore(STORE_KEYS.payments, payment.id)
+    throw err
+  }
 }
 
 export async function listPayments(companyId: string): Promise<Payment[]> {
@@ -381,7 +409,7 @@ export async function listPayments(companyId: string): Promise<Payment[]> {
 
     const items = (data ?? []) as Payment[]
     if (items.length > 0) {
-      saveStore(STORE_KEYS.payments, items)
+      mergeStoreById(STORE_KEYS.payments, items)
       return items
     }
 
@@ -392,15 +420,22 @@ export async function listPayments(companyId: string): Promise<Payment[]> {
 }
 
 export async function saveFuelLog(log: FuelLog): Promise<FuelLog> {
+  const previous = loadStore<FuelLog>(STORE_KEYS.fuelLogs).find((f) => f.id === log.id)
   upsertStore(STORE_KEYS.fuelLogs, log)
   if (!supabase) throw new Error('Supabase not configured')
 
-  const { data, error } = await upsertRows('fuel_logs', log)
-    .select()
-    .single()
+  try {
+    const { data, error } = await upsertRows('fuel_logs', log)
+      .select()
+      .single()
 
-  if (error) throw error
-  return data as unknown as FuelLog
+    if (error) throw error
+    return data as unknown as FuelLog
+  } catch (err) {
+    if (previous) upsertStore(STORE_KEYS.fuelLogs, previous)
+    else removeFromStore(STORE_KEYS.fuelLogs, log.id)
+    throw err
+  }
 }
 
 export async function listFuelLogs(companyId: string): Promise<FuelLog[]> {
@@ -423,7 +458,7 @@ export async function listFuelLogs(companyId: string): Promise<FuelLog[]> {
 
     const items = (data ?? []) as FuelLog[]
     if (items.length > 0) {
-      saveStore(STORE_KEYS.fuelLogs, items)
+      mergeStoreById(STORE_KEYS.fuelLogs, items)
       return items
     }
 
@@ -434,15 +469,22 @@ export async function listFuelLogs(companyId: string): Promise<FuelLog[]> {
 }
 
 export async function saveTimeEntry(entry: TimeEntry): Promise<TimeEntry> {
+  const previous = loadStore<TimeEntry>(STORE_KEYS.timeEntries).find((e) => e.id === entry.id)
   upsertStore(STORE_KEYS.timeEntries, entry)
   if (!supabase) throw new Error('Supabase not configured')
 
-  const { data, error } = await upsertRows('time_entries', entry)
-    .select()
-    .single()
+  try {
+    const { data, error } = await upsertRows('time_entries', entry)
+      .select()
+      .single()
 
-  if (error) throw error
-  return data as unknown as TimeEntry
+    if (error) throw error
+    return data as unknown as TimeEntry
+  } catch (err) {
+    if (previous) upsertStore(STORE_KEYS.timeEntries, previous)
+    else removeFromStore(STORE_KEYS.timeEntries, entry.id)
+    throw err
+  }
 }
 
 export async function listTimeEntries(companyId: string): Promise<TimeEntry[]> {
@@ -460,7 +502,7 @@ export async function listTimeEntries(companyId: string): Promise<TimeEntry[]> {
     if (error) throw error
     const items = (data ?? []) as TimeEntry[]
     if (items.length > 0) {
-      saveStore(STORE_KEYS.timeEntries, items)
+      mergeStoreById(STORE_KEYS.timeEntries, items)
       return items
     }
     return local

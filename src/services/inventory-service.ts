@@ -1,6 +1,6 @@
 import type { InventoryTransaction, InventoryTransactionType, Material } from '@/types'
 import { listEntities, saveEntity } from '@/services/entity-service'
-import { loadStore, saveStore, upsertStore, STORE_KEYS } from '@/lib/data-store'
+import { loadStore, upsertStore, mergeStoreById, STORE_KEYS } from '@/lib/data-store'
 import { supabase } from '@/lib/supabase'
 import { insertRows } from '@/lib/supabase-queries'
 
@@ -28,7 +28,7 @@ export async function listInventoryTransactions(companyId: string): Promise<Inve
     if (error) throw error
     const items = (data ?? []) as InventoryTransaction[]
     if (items.length > 0) {
-      saveStore(STORE_KEYS.inventory, items)
+      mergeStoreById(STORE_KEYS.inventory, items)
       return items
     }
     return local

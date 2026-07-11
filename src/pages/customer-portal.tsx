@@ -80,13 +80,18 @@ export default function CustomerPortalPage() {
     window.location.href = '/login?portal=1'
   }
 
-  const updateNotifyPref = (key: keyof CustomerNotificationPreferences, value: boolean) => {
+  const updateNotifyPref = async (key: keyof CustomerNotificationPreferences, value: boolean) => {
+    const previous = notifyPrefs
     const next = { ...notifyPrefs, [key]: value }
     setNotifyPrefs(next)
-    saveCustomerNotificationPreferences(portal.customerId, next)
-    void portalUpdateNotificationPreferences(next).then((ok) => {
-      if (ok) toast.success(t.customerPortal.preferencesSaved)
-    })
+    const ok = await portalUpdateNotificationPreferences(next)
+    if (ok) {
+      saveCustomerNotificationPreferences(portal.customerId, next)
+      toast.success(t.customerPortal.preferencesSaved)
+      return
+    }
+    setNotifyPrefs(previous)
+    toast.error(t.common.notificationFailed)
   }
 
   const submitReview = (rating: number, comment: string) => {

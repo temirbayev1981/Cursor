@@ -11,69 +11,79 @@ function useCompanyId() {
   return company?.id ?? 'comp-001'
 }
 
+function useCompanyQueryScope() {
+  const { company, isLoading } = useAuth()
+  const companyId = company?.id ?? ''
+  return {
+    companyId,
+    enabled: !isLoading && Boolean(company?.id),
+    queryKey: company?.id ?? 'pending',
+  }
+}
+
 export function useJobs() {
-  const companyId = useCompanyId()
-  return useQuery({ queryKey: ['jobs', companyId], queryFn: () => listEntities('jobs', companyId) })
+  const { companyId, enabled, queryKey } = useCompanyQueryScope()
+  return useQuery({ queryKey: ['jobs', queryKey], queryFn: () => listEntities('jobs', companyId), enabled })
 }
 
 export function useCustomers() {
-  const companyId = useCompanyId()
-  return useQuery({ queryKey: ['customers', companyId], queryFn: () => listEntities('customers', companyId) })
+  const { companyId, enabled, queryKey } = useCompanyQueryScope()
+  return useQuery({ queryKey: ['customers', queryKey], queryFn: () => listEntities('customers', companyId), enabled })
 }
 
 export function useEstimates() {
-  const companyId = useCompanyId()
-  return useQuery({ queryKey: ['estimates', companyId], queryFn: () => listEntities('estimates', companyId) })
+  const { companyId, enabled, queryKey } = useCompanyQueryScope()
+  return useQuery({ queryKey: ['estimates', queryKey], queryFn: () => listEntities('estimates', companyId), enabled })
 }
 
 export function useInvoices() {
-  const companyId = useCompanyId()
-  return useQuery({ queryKey: ['invoices', companyId], queryFn: () => listEntities('invoices', companyId) })
+  const { companyId, enabled, queryKey } = useCompanyQueryScope()
+  return useQuery({ queryKey: ['invoices', queryKey], queryFn: () => listEntities('invoices', companyId), enabled })
 }
 
 export function useEmployees() {
-  const companyId = useCompanyId()
-  return useQuery({ queryKey: ['employees', companyId], queryFn: () => listEntities('employees', companyId) })
+  const { companyId, enabled, queryKey } = useCompanyQueryScope()
+  return useQuery({ queryKey: ['employees', queryKey], queryFn: () => listEntities('employees', companyId), enabled })
 }
 
 export function useSchedules() {
-  const companyId = useCompanyId()
-  return useQuery({ queryKey: ['schedules', companyId], queryFn: () => listEntities('schedules', companyId) })
+  const { companyId, enabled, queryKey } = useCompanyQueryScope()
+  return useQuery({ queryKey: ['schedules', queryKey], queryFn: () => listEntities('schedules', companyId), enabled })
 }
 
 export function useProperties() {
-  const companyId = useCompanyId()
-  return useQuery({ queryKey: ['properties', companyId], queryFn: () => listEntities('properties', companyId) })
+  const { companyId, enabled, queryKey } = useCompanyQueryScope()
+  return useQuery({ queryKey: ['properties', queryKey], queryFn: () => listEntities('properties', companyId), enabled })
 }
 
 export function useMaterials() {
-  const companyId = useCompanyId()
-  return useQuery({ queryKey: ['materials', companyId], queryFn: () => listEntities('materials', companyId) })
+  const { companyId, enabled, queryKey } = useCompanyQueryScope()
+  return useQuery({ queryKey: ['materials', queryKey], queryFn: () => listEntities('materials', companyId), enabled })
 }
 
 export function useVehicles() {
-  const companyId = useCompanyId()
-  return useQuery({ queryKey: ['vehicles', companyId], queryFn: () => listEntities('vehicles', companyId) })
+  const { companyId, enabled, queryKey } = useCompanyQueryScope()
+  return useQuery({ queryKey: ['vehicles', queryKey], queryFn: () => listEntities('vehicles', companyId), enabled })
 }
 
 export function useExpenses() {
-  const companyId = useCompanyId()
-  return useQuery({ queryKey: ['expenses', companyId], queryFn: () => listEntities('expenses', companyId) })
+  const { companyId, enabled, queryKey } = useCompanyQueryScope()
+  return useQuery({ queryKey: ['expenses', queryKey], queryFn: () => listEntities('expenses', companyId), enabled })
 }
 
 export function useWorkOrders() {
-  const companyId = useCompanyId()
-  return useQuery({ queryKey: ['workOrders', companyId], queryFn: () => listEntities('workOrders', companyId) })
+  const { companyId, enabled, queryKey } = useCompanyQueryScope()
+  return useQuery({ queryKey: ['workOrders', queryKey], queryFn: () => listEntities('workOrders', companyId), enabled })
 }
 
 export function useServices() {
-  const companyId = useCompanyId()
-  return useQuery({ queryKey: ['services', companyId], queryFn: () => listEntities('services', companyId) })
+  const { companyId, enabled, queryKey } = useCompanyQueryScope()
+  return useQuery({ queryKey: ['services', queryKey], queryFn: () => listEntities('services', companyId), enabled })
 }
 
 export function useFuelLogs() {
-  const companyId = useCompanyId()
-  return useQuery({ queryKey: ['fuelLogs', companyId], queryFn: () => listFuelLogs(companyId) })
+  const { companyId, enabled, queryKey } = useCompanyQueryScope()
+  return useQuery({ queryKey: ['fuelLogs', queryKey], queryFn: () => listFuelLogs(companyId), enabled })
 }
 
 export function useSaveWorkOrder() {
@@ -525,9 +535,9 @@ export function useImportSampleData() {
 }
 
 export function useGlobalSearch(query: string) {
-  const companyId = useCompanyId()
+  const { companyId, enabled: companyReady, queryKey } = useCompanyQueryScope()
   return useQuery({
-    queryKey: ['search', companyId, query],
+    queryKey: ['search', queryKey, query],
     queryFn: async () => {
       if (!query || query.length < 2) return { jobs: [], customers: [], estimates: [] as Estimate[], invoices: [] as Invoice[] }
       const q = query.toLowerCase()
@@ -544,15 +554,16 @@ export function useGlobalSearch(query: string) {
         invoices: (invoices as Invoice[]).filter((i) => i.invoice_number.toLowerCase().includes(q)).slice(0, 5),
       }
     },
-    enabled: query.length >= 2,
+    enabled: companyReady && query.length >= 2,
   })
 }
 
 export function useInventoryTransactionsList() {
-  const companyId = useCompanyId()
+  const { companyId, enabled, queryKey } = useCompanyQueryScope()
   return useQuery({
-    queryKey: ['inventory', companyId],
+    queryKey: ['inventory', queryKey],
     queryFn: () => listInventoryTransactions(companyId),
+    enabled,
   })
 }
 
@@ -590,9 +601,10 @@ export function useReceiveStock() {
 }
 
 export function useAuditLogs() {
-  const companyId = useCompanyId()
+  const { companyId, enabled, queryKey } = useCompanyQueryScope()
   return useQuery({
-    queryKey: ['auditLogs', companyId],
+    queryKey: ['auditLogs', queryKey],
     queryFn: () => listAuditLogs(companyId),
+    enabled,
   })
 }

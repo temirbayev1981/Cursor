@@ -1,17 +1,45 @@
 import path from 'path'
-import { readFileSync } from 'node:fs'
-import { defineConfig } from 'vite'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 const pkg = JSON.parse(readFileSync('./package.json', 'utf8'))
+
+function baseAwareManifest(): Plugin {
+  return {
+    name: 'base-aware-manifest',
+    closeBundle() {
+      const base = process.env.VITE_BASE_PATH || '/'
+      const prefix = base === '/' ? '' : base.replace(/\/$/, '')
+      const manifestPath = path.join(__dirname, 'public/manifest.json')
+      const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
+        start_url: string
+        icons: { src: string }[]
+        shortcuts?: { url: string }[]
+      }
+      manifest.start_url = `${prefix}/` || '/'
+      manifest.icons = manifest.icons.map((icon) => ({
+        ...icon,
+        src: `${prefix}${icon.src}`,
+      }))
+      if (manifest.shortcuts) {
+        manifest.shortcuts = manifest.shortcuts.map((shortcut) => ({
+          ...shortcut,
+          url: `${prefix}${shortcut.url}`,
+        }))
+      }
+      writeFileSync(path.join(__dirname, 'dist/manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`)
+    },
+  }
+}
 
 export default defineConfig({
   base: process.env.VITE_BASE_PATH || '/',
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(process.env.VITE_APP_VERSION ?? pkg.version),
   },
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), baseAwareManifest()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

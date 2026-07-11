@@ -48,12 +48,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!supabase) return
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, authSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, authSession) => {
       if (!authSession) {
         setUser(null)
         setCompany(null)
         setOnboardingComplete(false)
         localStorage.removeItem('handymanos_auth')
+        return
+      }
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        void restoreSession()
       }
     })
 

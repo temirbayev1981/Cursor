@@ -1,4 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import * as env from '@/lib/env'
+import * as supabaseLib from '@/lib/supabase'
 import {
   sendNotification,
   notifyJobScheduled,
@@ -26,6 +28,11 @@ describe('notification-service', () => {
   beforeEach(() => {
     clearNotificationQueue()
     clearNotificationSkipLog()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
   })
 
   it('notifyResultMessage returns queued info when message is stored locally', () => {
@@ -82,6 +89,27 @@ describe('notification-service', () => {
     expect(item.to).toBe('test@example.com')
     expect(item.status).toBe('queued')
     expect(item.id).toBeTruthy()
+  })
+
+  it('sendNotification queues when webhook delivery fails', async () => {
+    vi.spyOn(env, 'getNotificationEndpoint').mockReturnValue('https://example.com/notify')
+    vi.spyOn(env, 'getSmsEndpoint').mockReturnValue(undefined)
+    vi.spyOn(supabaseLib, 'getSupabaseAuthHeaders').mockResolvedValue({
+      Authorization: 'Bearer test',
+      apikey: 'test',
+      'Content-Type': 'application/json',
+    })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('fail', { status: 500 })))
+
+    const result = await sendNotification({
+      to: 'fail@example.com',
+      subject: 'Retry me',
+      body: 'Hello',
+      channel: 'email',
+    })
+
+    expect(result).toEqual({ ok: true, queued: true })
+    expect(getNotificationQueueSize()).toBe(1)
   })
 
   it('notifyJobScheduled uses Russian templates when locale is ru', async () => {
