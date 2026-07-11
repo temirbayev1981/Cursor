@@ -122,7 +122,7 @@ See [CHANGELOG.md](./CHANGELOG.md) for release history. To merge the 1.7.x PR st
 | Merge stacked PRs | [MERGE.md](./MERGE.md) (completed) |
 | Post-release ops | [POST_RELEASE.md](./POST_RELEASE.md) |
 
-Current version: **1.13.4**
+Current version: **1.13.5**
 
 ## Security
 

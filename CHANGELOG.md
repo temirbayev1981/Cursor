@@ -2,6 +2,23 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.13.5] — 2026-07-11
+
+Production bug-fix audit — data integrity, notifications, PWA, security.
+
+### Phase 131 — Audit bug fixes
+- Entity cache: `mergeStoreById` preserves multi-tenant offline data on sync
+- `saveEntity` / payment / fuel / time entry: rollback local cache on Supabase failure
+- Notifications: webhook failures enqueue for retry instead of dropping
+- Email Edge Function: HTML-escape notification body/subject (XSS)
+- PWA: base-path aware service worker + manifest for GitHub Pages
+- Dispatch: await job status save before sending notifications
+- Portal prefs: rollback UI on RPC failure
+- Offline sync: normalize `start`/`end` vs `start_time`/`end_time` on clock-out
+- Auth: restore session on `SIGNED_IN` / `TOKEN_REFRESHED` in other tabs
+- Queries: disable entity fetches until company is loaded (no `comp-001` leak)
+- **172** unit tests, **230** E2E tests (mock)
+
 ## [1.13.4] — 2026-07-10
 
 Lazy recharts chunks and live-backend E2E smoke.
