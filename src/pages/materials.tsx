@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import { MaterialForm } from '@/components/forms/material-form'
 import { useAuth } from '@/contexts/auth-context'
 import { useMaterials, useSaveMaterial, useInventoryTransactionsList, useReceiveStock } from '@/hooks/use-entities'
+import { useTablePagination } from '@/hooks/use-table-pagination'
 import { formatCurrencyPrecise, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
@@ -31,6 +32,7 @@ export default function MaterialsPage() {
   const saveMaterial = useSaveMaterial()
   const receiveStock = useReceiveStock()
   const lowStock = materials.filter((m) => m.quantity <= m.reorder_level)
+  const pagination = useTablePagination(materials)
 
   const handleSave = (material: Material) => {
     saveMaterial.mutate(material, {
@@ -100,8 +102,12 @@ export default function MaterialsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <div className="lg:col-span-2">
-          <DataTable headers={[t.materials.material, t.materials.category, t.materials.cost, t.materials.qty, t.materials.stockStatus, '']}>
-            {materials.map((mat) => {
+          <DataTable
+            headers={[t.materials.material, t.materials.category, t.materials.cost, t.materials.qty, t.materials.stockStatus, '']}
+            pagination={pagination}
+            paginationTestId="materials-pagination"
+          >
+            {pagination.paginatedItems.map((mat) => {
               const isLow = mat.quantity <= mat.reorder_level
               return (
                 <DataTableRow key={mat.id}>

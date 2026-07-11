@@ -33,4 +33,20 @@ test.describe('Live backend smoke', () => {
     await page.goto('/login')
     await expect(page.getByRole('link', { name: /руководство|user guide|instructions/i })).toBeVisible()
   })
+
+  test('static PWA and guide assets are served', async ({ request }) => {
+    for (const path of ['/INSTRUCTIONS.en.md', '/manifest.json', '/sw.js']) {
+      const response = await request.get(path)
+      expect(response.ok(), `${path} should return 200`).toBeTruthy()
+      const body = await response.text()
+      expect(body.length).toBeGreaterThan(0)
+    }
+  })
+
+  test('english instructions asset contains user guide heading', async ({ request }) => {
+    const response = await request.get('/INSTRUCTIONS.en.md')
+    expect(response.ok()).toBeTruthy()
+    const text = await response.text()
+    expect(text).toMatch(/user guide/i)
+  })
 })

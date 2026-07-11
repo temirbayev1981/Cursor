@@ -15,19 +15,21 @@ import { useWorkOrders } from '@/hooks/use-entities'
 import { saveWorkOrderFromAI } from '@/services/entity-service'
 import { useAuth } from '@/contexts/auth-context'
 import { analyzeWorkOrderPDF, analyzeEmailWorkOrder, analyzePhoto } from '@/lib/ai'
-import { extractTextFromPdfFiles } from '@/lib/pdf-extract'
+import { extractTextFromPdfFiles, isPdfFile } from '@/lib/pdf-extract'
 import { isVendorPOText, parseVendorPOText } from '@/lib/vendor-po-parser'
 import { useQueryClient } from '@tanstack/react-query'
 import { useVendorPOs, useSaveVendorPOs, useDeleteVendorPO, useSeedVendorPOs } from '@/hooks/use-vendor-pos'
 import type { AIExtractedData } from '@/types'
 import { formatCurrency } from '@/lib/utils'
 import { toast } from 'sonner'
+import { useMutationCompanyScope } from '@/hooks/use-company-scope'
 import { useTranslation } from '@/contexts/locale-context'
 
 export default function WorkOrdersPage() {
   const { t } = useTranslation()
   const { company } = useAuth()
-  const companyId = company?.id ?? ''
+  const { companyId: scopedCompanyId, ready: companyReady } = useMutationCompanyScope()
+  const companyId = scopedCompanyId ?? company?.id ?? ''
   const [analyzing, setAnalyzing] = useState(false)
   const [parsingPdf, setParsingPdf] = useState(false)
   const [extracted, setExtracted] = useState<AIExtractedData | null>(null)
@@ -80,50 +82,59 @@ export default function WorkOrdersPage() {
   }, [companyId, queryClient, t.workOrders.analysisComplete, t.workOrders.analysisFailed])
 
   const handleVendorPOUpload = useCallback(async (files: File[]) => {
-    if (!companyId) {
-      toast.error(t.vendorPO.parseError)
+    if (!companyReady || !companyId) {
+      toast.error(t.vendorPO.companyNotReady)
       return
     }
-    const pdfFiles = files.filter((f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'))
-    if (pdfFiles.length === 0) return
+    const pdfFiles = files.filter(isPdfFile)
+    if (pdfFiles.length === 0) {
+      toast.error(t.vendorPO.notVendorPO)
+      return
+    }
 
     setParsingPdf(true)
+    const fileErrors: string[] = []
     try {
       const extracted = await extractTextFromPdfFiles(pdfFiles)
       const parsed = []
       for (const { fileName, text } of extracted) {
         if (!text.trim()) {
-          toast.error(`${fileName}: ${t.vendorPO.pdfEmpty}`)
+          fileErrors.push(`${fileName}: ${t.vendorPO.pdfEmpty}`)
           continue
         }
         if (!isVendorPOText(text)) {
-          toast.error(`${fileName}: ${t.vendorPO.notVendorPO}`)
+          fileErrors.push(`${fileName}: ${t.vendorPO.notVendorPO}`)
           continue
         }
         const row = parseVendorPOText(text, fileName, companyId)
         if (!row.vendor_po_number) {
-          toast.error(`${fileName}: ${t.vendorPO.poNumberMissing}`)
+          fileErrors.push(`${fileName}: ${t.vendorPO.poNumberMissing}`)
           continue
         }
         parsed.push(row)
       }
       if (parsed.length === 0) {
-        toast.error(t.vendorPO.parseError)
+        toast.error(fileErrors.length === 1 ? fileErrors[0] : t.vendorPO.noValidFiles)
         return
       }
       await saveVendorPOs.mutateAsync(parsed)
       toast.success(`${t.vendorPO.parseSuccess}: ${parsed.length}`)
+      if (fileErrors.length > 0) {
+        toast.info(t.vendorPO.noValidFiles)
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       if (/vendor_po|permission|policy|violates|uuid|company_id/i.test(message)) {
         toast.error(t.vendorPO.saveError)
+      } else if (/PDF extract failed|worker|Invalid PDF/i.test(message)) {
+        toast.error(t.vendorPO.pdfExtractFailed)
       } else {
         toast.error(t.vendorPO.parseError)
       }
     } finally {
       setParsingPdf(false)
     }
-  }, [companyId, saveVendorPOs, t.vendorPO])
+  }, [companyId, companyReady, saveVendorPOs, t.vendorPO])
 
   const onDropVendorPO = useCallback((files: File[]) => {
     void handleVendorPOUpload(files)
@@ -132,7 +143,7 @@ export default function WorkOrdersPage() {
   const onDropGeneral = useCallback((files: File[]) => {
     const file = files[0]
     if (!file) return
-    if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+    if (isPdfFile(file)) {
       void handleVendorPOUpload([file])
       return
     }
@@ -151,8 +162,9 @@ export default function WorkOrdersPage() {
 
   const vendorDropzone = useDropzone({
     onDrop: onDropVendorPO,
-    accept: { 'application/pdf': ['.pdf'] },
+    accept: { 'application/pdf': ['.pdf'], 'application/x-pdf': ['.pdf'] },
     multiple: true,
+    useFsAccessApi: false,
   })
 
   const generalDropzone = useDropzone({

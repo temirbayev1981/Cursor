@@ -10,6 +10,7 @@ import { VehicleForm } from '@/components/forms/vehicle-form'
 import { FuelLogForm } from '@/components/forms/fuel-log-form'
 import { useAuth } from '@/contexts/auth-context'
 import { useVehicles, useFuelLogs, useSaveVehicle, useSaveFuelLog } from '@/hooks/use-entities'
+import { useTablePagination } from '@/hooks/use-table-pagination'
 import { formatCurrencyPrecise, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
@@ -31,6 +32,7 @@ export default function VehiclesPage() {
   const saveFuelLog = useSaveFuelLog()
   const totalFuelCost = fuelLogs.reduce((s, l) => s + l.total_cost, 0)
   const totalMiles = fuelLogs.reduce((s, l) => s + l.miles, 0)
+  const fuelPagination = useTablePagination(fuelLogs)
 
   const handleSaveVehicle = (vehicle: Vehicle) => {
     saveVehicle.mutate(vehicle, {
@@ -148,8 +150,12 @@ export default function VehiclesPage() {
           </CardContent>
         )}
         <CardContent className="p-0">
-          <DataTable headers={[t.vehicles.date, t.vehicles.vehicle, t.vehicles.miles, t.vehicles.gallons, t.vehicles.pricePerGal, t.vehicles.total]}>
-            {fuelLogs.map((log) => {
+          <DataTable
+            headers={[t.vehicles.date, t.vehicles.vehicle, t.vehicles.miles, t.vehicles.gallons, t.vehicles.pricePerGal, t.vehicles.total]}
+            pagination={fuelPagination}
+            paginationTestId="fuel-logs-pagination"
+          >
+            {fuelPagination.paginatedItems.map((log) => {
               const vehicle = vehicles.find((v) => v.id === log.vehicle_id)
               return (
                 <DataTableRow key={log.id}>

@@ -1,12 +1,22 @@
 import { cn } from '@/lib/utils'
+import { TablePagination } from '@/components/shared/table-pagination'
+import type { TablePaginationResult } from '@/hooks/use-table-pagination'
 
-interface DataTableProps {
+interface DataTableProps<T = unknown> {
   headers: string[]
   children: React.ReactNode
   className?: string
+  pagination?: TablePaginationResult<T>
+  paginationTestId?: string
 }
 
-export function DataTable({ headers, children, className }: DataTableProps) {
+export function DataTable<T = unknown>({
+  headers,
+  children,
+  className,
+  pagination,
+  paginationTestId,
+}: DataTableProps<T>) {
   return (
     <div className={cn('glass-card overflow-hidden', className)}>
       <div className="overflow-x-auto">
@@ -26,6 +36,7 @@ export function DataTable({ headers, children, className }: DataTableProps) {
           <tbody className="divide-y divide-border">{children}</tbody>
         </table>
       </div>
+      {pagination && <TablePagination pagination={pagination} testId={paginationTestId} />}
     </div>
   )
 }

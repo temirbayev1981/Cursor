@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CustomerForm } from '@/components/forms/customer-form'
 import { useAuth } from '@/contexts/auth-context'
 import { useCustomers, useSaveCustomer } from '@/hooks/use-entities'
+import { useTablePagination } from '@/hooks/use-table-pagination'
 import { formatCurrency } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
@@ -34,6 +35,7 @@ export default function CustomersPage() {
   const filtered = customers.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase())
   )
+  const pagination = useTablePagination(filtered, { resetDeps: [search] })
 
   if (isLoading) return <TableSkeleton />
 
@@ -111,8 +113,12 @@ export default function CustomersPage() {
         <Input placeholder={t.customers.search} className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} data-testid="customers-search" />
       </div>
 
-      <DataTable headers={[t.customers.customer, t.customers.type, t.customers.contact, t.customers.jobs, t.customers.revenue, t.common.since, '']}>
-        {filtered.map((customer) => (
+      <DataTable
+        headers={[t.customers.customer, t.customers.type, t.customers.contact, t.customers.jobs, t.customers.revenue, t.common.since, '']}
+        pagination={pagination}
+        paginationTestId="customers-pagination"
+      >
+        {pagination.paginatedItems.map((customer) => (
           <DataTableRow key={customer.id}>
             <DataTableCell>
               <div>
