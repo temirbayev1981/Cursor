@@ -126,10 +126,13 @@ export default function WorkOrdersPage() {
       const message = error instanceof Error ? error.message : String(error)
       if (/vendor_po|permission|policy|violates|uuid|company_id/i.test(message)) {
         toast.error(t.vendorPO.saveError)
-      } else if (/PDF extract failed|worker|Invalid PDF/i.test(message)) {
+      } else if (/PDF extract failed|PDF OCR failed|worker|Invalid PDF|pdf\.js|fake worker|Failed to fetch|\.mjs|Canvas|password protected|corrupted/i.test(message)) {
         toast.error(t.vendorPO.pdfExtractFailed)
+      } else if (/companyId is required/i.test(message)) {
+        toast.error(t.vendorPO.companyNotReady)
       } else {
         toast.error(t.vendorPO.parseError)
+        if (import.meta.env.DEV) console.error('Vendor PO PDF error:', message)
       }
     } finally {
       setParsingPdf(false)
@@ -229,7 +232,9 @@ export default function WorkOrdersPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => seedVendorPOs.mutate()}
+                    onClick={() => seedVendorPOs.mutate(undefined, {
+                      onError: () => toast.error(t.vendorPO.saveError),
+                    })}
                     disabled={seedVendorPOs.isPending}
                   >
                     {t.vendorPO.loadSampleData}
