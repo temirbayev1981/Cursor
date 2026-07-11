@@ -53,25 +53,35 @@ export function isPdfFile(file: File): boolean {
   )
 }
 
-function pdfDocumentOptions(data: ArrayBuffer | Uint8Array) {
+function pdfDocumentOptions(data: ArrayBuffer | Uint8Array, disableWorker = false) {
   return {
     data,
     useSystemFonts: true,
     useWorkerFetch: false,
     disableFontFace: true,
+    disableWorker,
   }
 }
 
+function isIosSafari(): boolean {
+  if (typeof navigator === 'undefined') return false
+  const ua = navigator.userAgent
+  return /iPhone|iPad|iPod/i.test(ua) && !/CriOS|FxiOS|EdgiOS/i.test(ua)
+}
+
 async function loadPdfDocument(pdfjsLib: PdfJsModule, buffer: ArrayBuffer): Promise<PdfDocument> {
-  const attempts = [
-    () => pdfjsLib.getDocument(pdfDocumentOptions(buffer)).promise,
-    () => pdfjsLib.getDocument(pdfDocumentOptions(new Uint8Array(buffer))).promise,
+  const variants = [
+    pdfDocumentOptions(buffer, false),
+    pdfDocumentOptions(new Uint8Array(buffer), false),
   ]
+  if (isIosSafari()) {
+    variants.push(pdfDocumentOptions(new Uint8Array(buffer), true))
+  }
 
   let lastError: unknown
-  for (const attempt of attempts) {
+  for (const options of variants) {
     try {
-      return await attempt()
+      return await pdfjsLib.getDocument(options).promise
     } catch (err) {
       lastError = err
     }
@@ -80,7 +90,7 @@ async function loadPdfDocument(pdfjsLib: PdfJsModule, buffer: ArrayBuffer): Prom
   resetPdfjs()
   const reloaded = await getPdfjs()
   try {
-    return await reloaded.getDocument(pdfDocumentOptions(new Uint8Array(buffer))).promise
+    return await reloaded.getDocument(pdfDocumentOptions(new Uint8Array(buffer), isIosSafari())).promise
   } catch (retryError) {
     const detail = lastError instanceof Error ? lastError.message : String(lastError)
     const retryDetail = retryError instanceof Error ? retryError.message : String(retryError)

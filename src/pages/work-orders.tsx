@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { analyzeWorkOrderPDF, analyzeEmailWorkOrder, analyzePhoto } from '@/lib/ai'
 import { extractTextFromPdfFiles, isPdfFile } from '@/lib/pdf-extract'
 import { isVendorPOText, parseVendorPOText } from '@/lib/vendor-po-parser'
+import { getErrorMessage, isPdfExtractError, isVendorPOSaveError } from '@/lib/error-message'
 import { useQueryClient } from '@tanstack/react-query'
 import { useVendorPOs, useSaveVendorPOs, useDeleteVendorPO, useSeedVendorPOs } from '@/hooks/use-vendor-pos'
 import type { AIExtractedData } from '@/types'
@@ -123,17 +124,17 @@ export default function WorkOrdersPage() {
         toast.info(t.vendorPO.noValidFiles)
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      if (/vendor_po|permission|policy|violates|uuid|company_id|supabase not configured|load failed|network|fetch|jwt|auth|timeout|aborted|postgrest/i.test(message)) {
+      const message = getErrorMessage(error)
+      if (isVendorPOSaveError(message)) {
         toast.error(t.vendorPO.saveError)
-      } else if (/PDF extract failed|PDF OCR failed|worker|Invalid PDF|pdf\.js|fake worker|Failed to fetch|\.mjs|Canvas|password protected|corrupted|api version/i.test(message)) {
+      } else if (isPdfExtractError(message)) {
         toast.error(t.vendorPO.pdfExtractFailed)
       } else if (/companyId is required|company context is not available/i.test(message)) {
         toast.error(t.vendorPO.companyNotReady)
       } else {
         toast.error(t.vendorPO.parseError)
-        console.error('Vendor PO PDF error:', message)
       }
+      console.error('Vendor PO PDF error:', message)
     } finally {
       setParsingPdf(false)
     }
