@@ -6,15 +6,24 @@ Include: VENDOR PO #, Client PO #, vendor PO number (format like 207872-02), Pri
 Do not summarize or add JSON.`
 
 export function assertPdfBase64Size(pdfBase64: string, maxBytes = DEFAULT_MAX_BYTES): void {
-  const binary = atob(pdfBase64)
+  let binary: string
+  try {
+    binary = atob(pdfBase64)
+  } catch {
+    throw new Error('Invalid PDF encoding')
+  }
   if (binary.length > maxBytes) {
     throw new Error('PDF too large')
+  }
+  if (binary.length < 4 || !binary.startsWith('%PDF')) {
+    throw new Error('Invalid PDF file')
   }
 }
 
 export async function extractTextFromPdfWithOpenAI(
   pdfBase64: string,
   openaiKey: string,
+  model = 'gpt-4o-mini',
 ): Promise<string> {
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -23,7 +32,7 @@ export async function extractTextFromPdfWithOpenAI(
       Authorization: `Bearer ${openaiKey}`,
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model,
       messages: [
         { role: 'system', content: VENDOR_PO_OCR_SYSTEM },
         {
@@ -61,5 +70,13 @@ export async function extractVendorPoPdfText(
   openaiKey: string,
 ): Promise<string> {
   assertPdfBase64Size(pdfBase64)
-  return extractTextFromPdfWithOpenAI(pdfBase64, openaiKey)
+  try {
+    return await extractTextFromPdfWithOpenAI(pdfBase64, openaiKey, 'gpt-4o-mini')
+  } catch (miniErr) {
+    const detail = miniErr instanceof Error ? miniErr.message : String(miniErr)
+    if (/invalid pdf|invalid pdf encoding|pdf too large/i.test(detail)) {
+      throw miniErr
+    }
+    return extractTextFromPdfWithOpenAI(pdfBase64, openaiKey, 'gpt-4o')
+  }
 }

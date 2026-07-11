@@ -5,8 +5,8 @@ import { getErrorMessage } from '@/lib/error-message'
 import { extractTextFromPdfCdn } from '@/lib/pdf-extract-cdn'
 import {
   canExtractPdfOnServer,
+  clearServerPdfExtractProbeCache,
   extractTextFromPdfServer,
-  isServerPdfExtractAvailable,
 } from '@/lib/pdf-extract-server'
 
 type PdfDocument = Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>
@@ -174,21 +174,34 @@ async function extractTextFromPdfClient(file: File): Promise<string> {
 }
 
 async function extractTextFromPdfMobile(file: File): Promise<string> {
-  if (canExtractPdfOnServer() && await isServerPdfExtractAvailable()) {
+  const attempts: string[] = []
+
+  if (canExtractPdfOnServer()) {
     try {
       return await extractTextFromPdfServer(file)
     } catch (serverErr) {
-      console.warn('Server PDF extract failed, trying CDN pdf.js:', getErrorMessage(serverErr))
+      const detail = getErrorMessage(serverErr)
+      attempts.push(`server: ${detail}`)
+      clearServerPdfExtractProbeCache()
+      console.warn('Server PDF extract failed, trying CDN pdf.js:', detail)
     }
   }
 
   try {
     return await extractTextFromPdfCdn(file)
   } catch (cdnErr) {
-    console.warn('CDN PDF extract failed, trying bundled pdf.js:', getErrorMessage(cdnErr))
+    const detail = getErrorMessage(cdnErr)
+    attempts.push(`cdn: ${detail}`)
+    console.warn('CDN PDF extract failed, trying bundled pdf.js:', detail)
   }
 
-  return extractTextFromPdfClient(file)
+  try {
+    return await extractTextFromPdfClient(file)
+  } catch (clientErr) {
+    const detail = getErrorMessage(clientErr)
+    attempts.push(`client: ${detail}`)
+    throw new Error(`PDF extract failed: ${attempts.join('; ')}`)
+  }
 }
 
 export async function extractTextFromPdf(file: File): Promise<string> {

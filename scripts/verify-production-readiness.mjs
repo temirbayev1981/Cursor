@@ -1075,10 +1075,10 @@ if (openaiProxy.includes('images')) {
   ok = false
 }
 
-if (pdfExtract.includes('extractTextFromPdfCdn') && pdfExtract.includes('isServerPdfExtractAvailable')) {
-  console.log('✓ pdf-extract mobile fallback chain (server probe → CDN → bundled)')
+if (pdfExtract.includes('extractTextFromPdfCdn') && pdfExtract.includes('canExtractPdfOnServer')) {
+  console.log('✓ pdf-extract mobile fallback chain (server → CDN → bundled)')
 } else {
-  console.log('✗ pdf-extract must probe server and use CDN fallback on mobile')
+  console.log('✗ pdf-extract must use server and CDN fallback on mobile')
   ok = false
 }
 

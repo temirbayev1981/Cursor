@@ -33,9 +33,16 @@ export function vendorPoPdfExtractUserMessage(message: string, fallback: string,
   if (/not deployed|NOT_FOUND|Requested function was not found|function not deployed|404/i.test(message)) {
     return serverHint
   }
+  if (/Unauthorized|sign in again/i.test(message)) {
+    return fallback
+  }
+  if (/file is empty|re-select the file/i.test(message)) {
+    return fallback
+  }
   if (/Failed to fetch|NetworkError|Load failed|network/i.test(message)) return serverHint
-  if (/Unauthorized|sign in again/i.test(message)) return fallback
-  if (/file is empty/i.test(message)) return fallback
+  if (/OpenAI PDF extract failed|Server returned empty/i.test(message)) {
+    return fallback
+  }
   return fallback
 }
 
