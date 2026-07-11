@@ -97,7 +97,10 @@ function parseLocationMatch(block: RegExpMatchArray) {
   }
 }
 
-export function parseVendorPOText(text: string, fileName: string, companyId = 'comp-001'): VendorPOInput {
+export function parseVendorPOText(text: string, fileName: string, companyId: string): VendorPOInput {
+  if (!companyId) {
+    throw new Error('companyId is required for vendor PO parsing')
+  }
   const normalized = normalizeVendorPOText(text)
 
   const vendorPoNumber =

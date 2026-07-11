@@ -3,10 +3,14 @@
 HandymanOS AI ships a single canonical schema: [`schema.sql`](./schema.sql).  
 For existing projects, **re-run the full file** in the Supabase SQL Editor — it is **idempotent** (`IF NOT EXISTS`, `CREATE OR REPLACE`, `DROP POLICY IF EXISTS`).
 
+## Incremental migrations
+
+For databases already on `schema.sql`, apply new files from [`migrations/`](./migrations/) in order. See [`migrations/README.md`](./migrations/README.md).
+
 ## Fresh install
 
 1. Create a Supabase project
-2. Paste and run **`schema.sql`** entirely (check header contains `SCHEMA_VERSION: 2026-07-11c`)
+2. Paste and run **`schema.sql`** entirely (check header contains `SCHEMA_VERSION: 2026-07-11d`)
 3. Deploy Edge Functions (see [DEPLOYMENT.md](../DEPLOYMENT.md))
 4. Verify:
 
@@ -24,7 +28,7 @@ This happens when `profiles` was created before multi-tenant columns were added.
 2. **Or** copy the latest `schema.sql` from [raw GitHub](https://raw.githubusercontent.com/temirbayev1981/Cursor/main/supabase/schema.sql) and run the **entire** file (not only the last ~50 lines).
 3. **Deploy failed on `check_rate_limit`?** You applied only the patch — run the full `schema.sql`, or quick fix: [`schema-smoke-minimal.sql`](./schema-smoke-minimal.sql).
 
-Verify the file header shows `SCHEMA_VERSION: 2026-07-11c` and the file ends with a self-healing `DO $$` backfill block that runs `ALTER TABLE ... ADD COLUMN` before `EXECUTE $sql$`.
+Verify the file header shows `SCHEMA_VERSION: 2026-07-11d` and the file ends with a self-healing `DO $$` backfill block that runs `ALTER TABLE ... ADD COLUMN` before `EXECUTE $sql$`.
 
 ## From 1.6.x → 1.7.x
 

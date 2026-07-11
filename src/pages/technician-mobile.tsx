@@ -36,7 +36,7 @@ export default function TechnicianMobilePage() {
   const { user, company } = useAuth()
   const online = useOnlineStatus()
   const qc = useQueryClient()
-  const companyId = company?.id ?? 'comp-001'
+  const companyId = company?.id ?? ''
   const { data: jobs = [] } = useJobs()
   const { data: employees = [] } = useEmployees()
   const { data: customers = [] } = useCustomers()

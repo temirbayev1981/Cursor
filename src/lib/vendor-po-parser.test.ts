@@ -29,20 +29,20 @@ describe('vendor-po-parser', () => {
   })
 
   it('parses vendor PO number', () => {
-    const result = parseVendorPOText(SAMPLE_PO, 'test.pdf')
+    const result = parseVendorPOText(SAMPLE_PO, 'test.pdf', 'comp-001')
     expect(result.vendor_po_number).toBe('207872-02')
     expect(result.client_po_number).toBe('350531955')
   })
 
   it('parses priority and order type', () => {
-    const result = parseVendorPOText(SAMPLE_PO, 'test.pdf')
+    const result = parseVendorPOText(SAMPLE_PO, 'test.pdf', 'comp-001')
     expect(result.priority).toBe('P30')
     expect(result.order_type).toBe('REPLACE')
     expect(result.nte_amount).toBe(115)
   })
 
   it('parses service location', () => {
-    const result = parseVendorPOText(SAMPLE_PO, 'test.pdf')
+    const result = parseVendorPOText(SAMPLE_PO, 'test.pdf', 'comp-001')
     expect(result.location_number).toBe('09090')
     expect(result.service_address).toContain('317 Main St')
     expect(result.service_city).toBe('Graham')
@@ -51,7 +51,7 @@ describe('vendor-po-parser', () => {
 
   it('parses PDF-flattened text without line breaks', () => {
     const flattened = SAMPLE_PO.replace(/\n/g, ' ')
-    const result = parseVendorPOText(flattened, 'vendor-po-sample.pdf')
+    const result = parseVendorPOText(flattened, 'vendor-po-sample.pdf', 'comp-001')
     expect(result.vendor_po_number).toBe('207872-02')
     expect(result.client_po_number).toBe('350531955')
     expect(result.priority).toBe('P30')

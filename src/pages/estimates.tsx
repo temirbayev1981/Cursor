@@ -26,7 +26,7 @@ export default function EstimatesPage() {
   const [showEngine, setShowEngine] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const { company, user } = useAuth()
-  const companyId = company?.id ?? 'comp-001'
+  const companyId = company?.id ?? ''
   const { data: estimates = [], isLoading: estimatesLoading } = useEstimates()
   const { data: jobs = [], isLoading: jobsLoading } = useJobs()
   const { data: customers = [], isLoading: customersLoading } = useCustomers()

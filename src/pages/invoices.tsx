@@ -32,7 +32,7 @@ export default function InvoicesPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [showForm, setShowForm] = useState(false)
   const { company } = useAuth()
-  const companyId = company?.id ?? 'comp-001'
+  const companyId = company?.id ?? ''
   const { data: invoices = [], isLoading: invoicesLoading, refetch } = useInvoices()
   const { data: customers = [], isLoading: customersLoading } = useCustomers()
   const saveInvoice = useSaveInvoice()

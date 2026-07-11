@@ -17,7 +17,7 @@ import type { Employee } from '@/types'
 export default function TechniciansPage() {
   const { t } = useTranslation()
   const { company } = useAuth()
-  const companyId = company?.id ?? 'comp-001'
+  const companyId = company?.id ?? ''
   const [showForm, setShowForm] = useState(false)
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
   const { data: employees = [], isLoading } = useEmployees()

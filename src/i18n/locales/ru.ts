@@ -587,6 +587,7 @@ export const ru = {
     backToApp: 'К панели',
     loadError: 'Не удалось загрузить руководство',
     hint: 'Полный текст также доступен в файле INSTRUCTIONS.md в репозитории проекта.',
+    toc: 'Содержание',
   },
   settings: {
     title: 'Настройки',

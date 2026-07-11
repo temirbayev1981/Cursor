@@ -31,8 +31,10 @@ export function getOpenAIEndpoint(): string | undefined {
     ?? (hasSupabase ? `${getSupabaseFunctionsUrl()}/openai-proxy` : undefined)
 }
 
-/** True when OpenAI proxy (Supabase Edge Function) or legacy browser key is configured */
-export const hasOpenAI = Boolean(getOpenAIEndpoint() || env.VITE_OPENAI_API_KEY)
+/** True when OpenAI proxy (Supabase Edge Function) is configured. Legacy browser key only in E2E mock. */
+export const hasOpenAI = Boolean(
+  getOpenAIEndpoint() || (isE2eMockBackend && env.VITE_OPENAI_API_KEY),
+)
 
 export function getSupabaseFunctionsUrl(): string | null {
   if (!env.VITE_SUPABASE_URL) return null

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { BookOpen, ArrowLeft } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { Button } from '@/components/ui/button'
+import { MarkdownContent, extractMarkdownHeadings } from '@/components/shared/markdown-content'
 import { useTranslation } from '@/contexts/locale-context'
 
 export default function InstructionsPage() {
@@ -26,6 +27,8 @@ export default function InstructionsPage() {
     return () => { cancelled = true }
   }, [])
 
+  const headings = content ? extractMarkdownHeadings(content).filter((h) => h.level <= 3) : []
+
   return (
     <div className="safe-x pb-8">
       <PageHeader
@@ -41,21 +44,46 @@ export default function InstructionsPage() {
         }
       />
 
-      <div className="glass-card mx-auto max-w-4xl p-6">
-        {error && (
-          <p className="text-destructive">{t.instructions.loadError}</p>
+      <div className="mx-auto flex max-w-5xl flex-col gap-6 lg:flex-row">
+        {headings.length > 0 && (
+          <nav className="glass-card h-fit shrink-0 p-4 lg:sticky lg:top-20 lg:w-56" data-testid="instructions-toc">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {t.instructions.toc}
+            </p>
+            <ul className="space-y-1 text-sm">
+              {headings.map((heading) => (
+                <li
+                  key={heading.id}
+                  className={heading.level === 1 ? '' : heading.level === 2 ? 'pl-2' : 'pl-4'}
+                >
+                  <a
+                    href={`#${heading.id}`}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    {heading.text}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
         )}
-        {!content && !error && (
-          <p className="text-muted-foreground">{t.common.loading}</p>
-        )}
-        {content && (
-          <article className="instructions-doc whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">
-            {content}
-          </article>
-        )}
-        <div className="mt-6 flex items-center gap-2 text-xs text-muted-foreground">
-          <BookOpen className="h-4 w-4" />
-          {t.instructions.hint}
+
+        <div className="glass-card min-w-0 flex-1 p-6">
+          {error && (
+            <p className="text-destructive">{t.instructions.loadError}</p>
+          )}
+          {!content && !error && (
+            <p className="text-muted-foreground">{t.common.loading}</p>
+          )}
+          {content && (
+            <article className="instructions-doc font-sans text-sm">
+              <MarkdownContent source={content} />
+            </article>
+          )}
+          <div className="mt-6 flex items-center gap-2 text-xs text-muted-foreground">
+            <BookOpen className="h-4 w-4" />
+            {t.instructions.hint}
+          </div>
         </div>
       </div>
     </div>

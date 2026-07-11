@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '@/contexts/auth-context'
+import { useCompanyQueryScope, useMutationCompanyScope, requireCompanyId } from '@/hooks/use-company-scope'
 import {
   getVendorPOs,
   saveVendorPOBatch,
@@ -12,56 +12,59 @@ import type { VendorPOInput } from '@/types/vendor-po'
 const QUERY_KEY = 'vendor-pos'
 
 export function useVendorPOs() {
-  const { company } = useAuth()
-  const companyId = company?.id ?? 'comp-001'
+  const { companyId, enabled, queryKey } = useCompanyQueryScope()
 
   return useQuery({
-    queryKey: [QUERY_KEY, companyId],
-    queryFn: () => getVendorPOs(companyId),
+    queryKey: [QUERY_KEY, queryKey],
+    queryFn: () => getVendorPOs(requireCompanyId(companyId)),
+    enabled,
     staleTime: 30_000,
   })
 }
 
 export function useSaveVendorPOs() {
   const queryClient = useQueryClient()
-  const { company } = useAuth()
-  const companyId = company?.id ?? 'comp-001'
+  const { companyId, queryKey } = useMutationCompanyScope()
 
   return useMutation({
-    mutationFn: (inputs: VendorPOInput[]) =>
-      saveVendorPOBatch(inputs.map((input) => ({ ...input, company_id: companyId }))),
+    mutationFn: (inputs: VendorPOInput[]) => {
+      const cid = requireCompanyId(companyId)
+      return saveVendorPOBatch(inputs.map((input) => ({ ...input, company_id: cid })))
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEY, companyId] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY, queryKey] })
     },
   })
 }
 
 export function useDeleteVendorPO() {
   const queryClient = useQueryClient()
-  const { company } = useAuth()
-  const companyId = company?.id ?? 'comp-001'
+  const { companyId, queryKey } = useMutationCompanyScope()
 
   return useMutation({
-    mutationFn: (id: string) => deleteVendorPO(id),
+    mutationFn: (id: string) => {
+      requireCompanyId(companyId)
+      return deleteVendorPO(id)
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEY, companyId] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY, queryKey] })
     },
   })
 }
 
 export function useSeedVendorPOs() {
   const queryClient = useQueryClient()
-  const { company } = useAuth()
-  const companyId = company?.id ?? 'comp-001'
+  const { companyId, queryKey } = useMutationCompanyScope()
 
   return useMutation({
     mutationFn: async () => {
-      const records = SEED_VENDOR_POS.map((r) => ({ ...r, company_id: companyId }))
+      const cid = requireCompanyId(companyId)
+      const records = SEED_VENDOR_POS.map((r) => ({ ...r, company_id: cid }))
       await seedVendorPOs(records)
       return records
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEY, companyId] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY, queryKey] })
     },
   })
 }

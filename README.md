@@ -118,7 +118,7 @@ See [CHANGELOG.md](./CHANGELOG.md) for release history. To merge the 1.7.x PR st
 |-------|-------------------|
 | Release gate | `npm run verify:release` |
 | Production readiness | `npm run verify:production` |
-| E2E tests | `npm run test:e2e` (185 tests) |
+| E2E tests | `npm run test:e2e` (230+ tests) |
 | Live Supabase smoke | `npm run smoke:supabase` (optional) |
 | Platform audit | Settings → System (score ≥ 8.5 with live integrations) |
 | Deploy guide | [DEPLOYMENT.md](./DEPLOYMENT.md) |

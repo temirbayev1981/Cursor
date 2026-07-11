@@ -1,5 +1,5 @@
 import type { AIExtractedData } from '@/types'
-import { hasOpenAI, env, getOpenAIEndpoint } from '@/lib/env'
+import { hasOpenAI, env, getOpenAIEndpoint, isE2eMockBackend } from '@/lib/env'
 import { getSupabaseAuthHeaders } from '@/lib/supabase'
 import { getAIFallbacks } from '@/i18n/ai-fallbacks'
 import type { Locale } from '@/contexts/locale-context'
@@ -41,7 +41,6 @@ async function callOpenAI(systemPrompt: string, userContent: string): Promise<st
   if (!hasOpenAI) return null
 
   const proxyEndpoint = getOpenAIEndpoint()
-  const legacyKey = env.VITE_OPENAI_API_KEY
 
   try {
     if (proxyEndpoint) {
@@ -61,6 +60,8 @@ async function callOpenAI(systemPrompt: string, userContent: string): Promise<st
       return json.content ?? null
     }
 
+    if (!isE2eMockBackend) return null
+    const legacyKey = env.VITE_OPENAI_API_KEY
     if (!legacyKey) return null
 
     const res = await fetch('https://api.openai.com/v1/chat/completions', {

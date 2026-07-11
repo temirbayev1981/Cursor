@@ -48,7 +48,7 @@ export default function SettingsPage() {
   const queryClient = useQueryClient()
   const stored = getStoredCompany()
   const base = stored ?? company
-  const companyId = base?.id ?? 'comp-001'
+  const companyId = company?.id ?? ''
 
   const refreshAuditLogs = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: ['auditLogs', companyId] })
@@ -88,6 +88,7 @@ export default function SettingsPage() {
   const importSampleData = useImportSampleData()
 
   useEffect(() => {
+    if (!companyId) return
     void listTeamInvites(companyId).then(setPendingInvites)
   }, [companyId])
 
@@ -96,10 +97,12 @@ export default function SettingsPage() {
   }, [base?.subscription_plan])
 
   useEffect(() => {
+    if (!companyId) return
     void loadIntegrationProbeHistoryMerged(companyId).then(setProbeHistory)
   }, [companyId])
 
   useEffect(() => {
+    if (!companyId) return
     let cancelled = false
     setProbesLoading(true)
     void probeIntegrationsForSettings()

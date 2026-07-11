@@ -19,7 +19,7 @@ export default function ExpensesPage() {
   const { t } = useTranslation()
   const dateLocale = useDateLocale()
   const { company } = useAuth()
-  const companyId = company?.id ?? 'comp-001'
+  const companyId = company?.id ?? ''
   const [showForm, setShowForm] = useState(false)
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
   const { data: expenses = [], isLoading } = useExpenses()
