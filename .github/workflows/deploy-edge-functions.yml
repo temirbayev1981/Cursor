@@ -42,16 +42,16 @@ jobs:
           npx supabase@latest functions deploy create-checkout-session --project-ref "$SUPABASE_PROJECT_REF"
           npx supabase@latest functions deploy create-subscription-checkout --project-ref "$SUPABASE_PROJECT_REF"
 
-      - name: Verify openai-proxy reachable
+      - name: Verify extract-pdf-text reachable
         if: steps.supa.outputs.configured == 'true'
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
         run: |
-          URL="${VITE_SUPABASE_URL%/}/functions/v1/openai-proxy"
-          CODE=$(curl -sS -o /tmp/probe.json -w "%{http_code}" -X POST "$URL" -H "Content-Type: application/json" -d '{"extractPdf":true,"pdfBase64":"AA=="}')
+          URL="${VITE_SUPABASE_URL%/}/functions/v1/extract-pdf-text"
+          CODE=$(curl -sS -o /tmp/probe.json -w "%{http_code}" -X POST "$URL" -H "Content-Type: application/json" -d '{"pdfBase64":"AA=="}')
           echo "Probe HTTP $CODE"
           if [ "$CODE" = "404" ]; then
-            echo "::error::openai-proxy still returns 404 after deploy"
+            echo "::error::extract-pdf-text still returns 404 after deploy"
             cat /tmp/probe.json
             exit 1
           fi
