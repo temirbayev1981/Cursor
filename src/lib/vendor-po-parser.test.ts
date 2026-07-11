@@ -81,4 +81,17 @@ Call from site`
     expect(result.service_location_name).toContain('Walgreen')
     expect(result.service_address).toContain('3101 New Bern Ave')
   })
+
+  it('parses P1 emergency priority', () => {
+    const text = `Client PO # 350531955
+210214-01
+Priority P1 - EMERGENCY
+Order Type REPAIR
+SERVICE DESCRIPTION
+BUILDING repair
+SPECIAL INSTRUCTIONS
+Call from site`
+    const result = parseVendorPOText(text, 'vendor-po-emergency.pdf', 'comp-001')
+    expect(result.priority).toBe('P1 - EMERGENCY')
+  })
 })

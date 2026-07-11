@@ -27,10 +27,14 @@ export function normalizeVendorPOText(text: string): string {
 }
 
 function extractPriority(normalized: string): string {
+  const emergency = normalized.match(/Priority\s+(P\d{1,2}\s*-\s*EMERGENCY)/i)?.[1]
+  if (emergency) return clean(emergency)
+
   const labeled = [...normalized.matchAll(/Priority\s+(\S+)/gi)]
-  const coded = labeled.map((match) => match[1]).find((value) => /^P\d{2}$/i.test(value))
+  const coded = labeled.map((match) => match[1]).find((value) => /^P\d{1,2}$/i.test(value))
   if (coded) return clean(coded)
-  return clean(normalized.match(/\b(P\d{2})\b/i)?.[1])
+
+  return clean(normalized.match(/\b(P\d{1,2})\b/i)?.[1])
 }
 
 function extractOrderType(normalized: string): string {
