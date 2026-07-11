@@ -62,6 +62,10 @@ Copy `.env.example` to `.env.local` and set **Supabase** credentials (required).
 
 **Supabase is required.** Without `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, the app shows a configuration screen instead of loading data. E2E tests use an in-memory mock backend (`VITE_E2E_MOCK_BACKEND=true` during Playwright builds). See [DEPLOYMENT.md](./DEPLOYMENT.md) for production setup.
 
+## User guide (RU)
+
+**[INSTRUCTIONS.md](./INSTRUCTIONS.md)** — полное руководство: обзор системы, все модули, роли, онбординг, Vendor PO, порталы, интеграции. В приложении: **Настройки → Система → Руководство пользователя** (`/instructions`).
+
 ## Project Structure
 
 ```

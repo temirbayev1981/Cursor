@@ -37,6 +37,7 @@ const InvoicesPage = lazy(() => import('@/pages/invoices'))
 const ReportsPage = lazy(() => import('@/pages/reports'))
 const AIAssistantPage = lazy(() => import('@/pages/ai-assistant'))
 const SettingsPage = lazy(() => import('@/pages/settings'))
+const InstructionsPage = lazy(() => import('@/pages/instructions'))
 const PropertyPortalPage = lazy(() => import('@/pages/property-portal'))
 const CustomerPortalPage = lazy(() => import('@/pages/customer-portal'))
 const PortalAccessPage = lazy(() => import('@/pages/portal-access'))
@@ -126,6 +127,7 @@ function AppRoutes() {
         {enableE2eRoutes && <Route path="/e2e/crash" element={<E2eCrashPage />} />}
         <Route path="/portal/property" element={<PortalRoute portalType="property"><PropertyPortalPage /></PortalRoute>} />
         <Route path="/portal/customer" element={<PortalRoute portalType="customer"><CustomerPortalPage /></PortalRoute>} />
+        <Route path="/instructions" element={<InstructionsPage />} />
         <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
           <Route path="/dashboard" element={<RoleRoute module="dashboard"><DashboardPage /></RoleRoute>} />
           <Route path="/jobs" element={<RoleRoute module="jobs"><JobsPage /></RoleRoute>} />
