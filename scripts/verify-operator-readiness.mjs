@@ -14,6 +14,7 @@ const REQUIRED_SECRETS = [
 ]
 
 const RECOMMENDED_SECRETS = [
+  'SUPABASE_SERVICE_ROLE_KEY',
   'VITE_STRIPE_PUBLISHABLE_KEY',
   'VITE_STRIPE_CHECKOUT_ENDPOINT',
   'VITE_GOOGLE_MAPS_API_KEY',
@@ -58,8 +59,14 @@ try {
 
 if (process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_ANON_KEY) {
   console.log('\n→ Running smoke:supabase (tables + RPCs)')
+  const smokeEnv = {
+    ...process.env,
+    SMOKE_OPTIONAL: process.env.SMOKE_OPTIONAL ?? '0',
+    SMOKE_RPC_OPTIONAL: process.env.SMOKE_RPC_OPTIONAL ?? '0',
+    SMOKE_EDGE_FUNCTIONS_OPTIONAL: process.env.SMOKE_EDGE_FUNCTIONS_OPTIONAL ?? '0',
+  }
   try {
-    execSync('npm run smoke:supabase', { stdio: 'inherit', env: { ...process.env, SMOKE_OPTIONAL: '0' } })
+    execSync('npm run smoke:supabase', { stdio: 'inherit', env: smokeEnv })
   } catch {
     console.log('✗ smoke:supabase failed — check schema.sql and Edge Functions')
     ok = false
@@ -70,11 +77,18 @@ if (process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_ANON_KEY) {
     try {
       execSync('npm run smoke:supabase', {
         stdio: 'inherit',
-        env: { ...process.env, SMOKE_EDGE_FUNCTIONS: '1', SMOKE_OPTIONAL: '0' },
+        env: {
+          ...smokeEnv,
+          SMOKE_EDGE_FUNCTIONS: '1',
+        },
       })
     } catch {
-      console.log('✗ Edge function smoke failed — redeploy supabase/functions')
-      ok = false
+      if (process.env.SMOKE_EDGE_FUNCTIONS_OPTIONAL === '1') {
+        console.log('⚠ Edge function smoke incomplete — deploy supabase/functions when ready')
+      } else {
+        console.log('✗ Edge function smoke failed — redeploy supabase/functions')
+        ok = false
+      }
     }
   } else {
     console.log('\n○ Set SMOKE_EDGE_FUNCTIONS=1 to probe edge functions after deploy')

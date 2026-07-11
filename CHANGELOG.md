@@ -50,6 +50,11 @@ Production bug-fix audit — data integrity, notifications, PWA, security.
 - Smoke script calls `check_rate_limit` with **service role** key (anon always gets 404)
 - Migration `20260711000002_check_rate_limit.sql`; add `SUPABASE_SERVICE_ROLE_KEY` to GitHub Secrets
 
+### Hotfix — CI gates & verify:production
+- `verify:production` gate aligned with `supabase-smoke.yml` (no longer requires `verify:operator` step)
+- `ci.yml` smoke job: service role + optional RPC/edge flags
+- `verify:operator` respects `SMOKE_RPC_OPTIONAL` / `SMOKE_EDGE_FUNCTIONS_OPTIONAL`
+
 ### Phase 133 — Audit phase 2
 - English user guide: `INSTRUCTIONS.en.md` + locale-based `/instructions` loading
 - Entity list pagination: `ENTITY_LIST_LIMIT` (500) on Supabase fetches
