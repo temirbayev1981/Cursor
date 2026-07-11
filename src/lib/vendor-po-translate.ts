@@ -24,8 +24,10 @@ export async function translateProblemDescriptionToRussian(text: string): Promis
       }),
     })
     if (!res.ok) return null
-    const json = await res.json() as { content?: string | null }
-    return json.content?.trim() ?? null
+    const json = await res.json() as { content?: unknown }
+    const content = json.content
+    if (typeof content === 'string') return content.trim() || null
+    return null
   } catch {
     return null
   }

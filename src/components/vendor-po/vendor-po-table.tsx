@@ -110,7 +110,8 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
         className="text-sm"
       >
         {records.map((row) => {
-          const isEmergency = row.priority.includes('EMERGENCY') || row.priority.startsWith('P1')
+          const priority = row.priority ?? ''
+          const isEmergency = priority.includes('EMERGENCY') || priority.startsWith('P1')
           const problemRu = getProblemDescriptionRu(row, problemTranslations[row.id])
           return (
             <DataTableRow key={row.id} className={isEmergency ? 'bg-destructive/5' : ''}>
@@ -120,8 +121,8 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
               </DataTableCell>
               <DataTableCell className="font-mono text-muted-foreground">{row.client_po_number}</DataTableCell>
               <DataTableCell>
-                <Badge variant={isEmergency ? 'destructive' : row.priority.includes('URGENT') ? 'warning' : 'outline'}>
-                  {row.priority}
+                <Badge variant={isEmergency ? 'destructive' : priority.includes('URGENT') ? 'warning' : 'outline'}>
+                  {priority || '—'}
                 </Badge>
               </DataTableCell>
               <DataTableCell>{row.order_type}</DataTableCell>

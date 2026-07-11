@@ -24,21 +24,15 @@ async function readFileBuffer(file: File): Promise<ArrayBuffer> {
 }
 
 export async function hashPdfFile(file: File): Promise<string> {
+  if (typeof crypto === 'undefined' || !crypto.subtle?.digest) {
+    throw new Error('SHA-256 is not available in this browser context')
+  }
   const buffer = await readFileBuffer(file)
   const digest = await crypto.subtle.digest('SHA-256', new Uint8Array(buffer))
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('')
 }
 
-export class VendorPoDuplicateFileError extends Error {
-  readonly fileName: string
-
-  constructor(fileName: string, message?: string) {
-    super(message ?? `PDF file ${fileName} is already uploaded`)
-    this.name = 'VendorPoDuplicateFileError'
-    this.fileName = fileName
-  }
-}
-
-export function isVendorPoDuplicateFileError(error: unknown): error is VendorPoDuplicateFileError {
-  return error instanceof VendorPoDuplicateFileError
-}
+export {
+  VendorPoDuplicateFileError,
+  isVendorPoDuplicateFileError,
+} from '@/lib/vendor-po-errors'

@@ -2,25 +2,22 @@ import type { VendorPORecord, VendorPOInput } from '@/types/vendor-po'
 import { supabase } from '@/lib/supabase'
 import { insertRows, upsertRows } from '@/lib/supabase-queries'
 import { getErrorMessage } from '@/lib/error-message'
-import { normalizeVendorPoFileName, VendorPoDuplicateFileError, isVendorPoDuplicateFileError } from '@/lib/vendor-po-upload'
+import { normalizeVendorPoFileName } from '@/lib/vendor-po-upload'
+import {
+  VendorPoDuplicateError,
+  VendorPoDuplicateFileError,
+  isVendorPoDuplicateError,
+  isVendorPoDuplicateFileError,
+} from '@/lib/vendor-po-errors'
 
-export { VendorPoDuplicateFileError, isVendorPoDuplicateFileError } from '@/lib/vendor-po-upload'
+export {
+  VendorPoDuplicateError,
+  VendorPoDuplicateFileError,
+  isVendorPoDuplicateError,
+  isVendorPoDuplicateFileError,
+} from '@/lib/vendor-po-errors'
 
 const STORAGE_KEY = 'handymanos_vendor_pos'
-
-export class VendorPoDuplicateError extends Error {
-  readonly vendorPoNumber: string
-
-  constructor(vendorPoNumber: string) {
-    super(`Vendor PO ${vendorPoNumber} already exists`)
-    this.name = 'VendorPoDuplicateError'
-    this.vendorPoNumber = vendorPoNumber
-  }
-}
-
-export function isVendorPoDuplicateError(error: unknown): error is VendorPoDuplicateError {
-  return error instanceof VendorPoDuplicateError
-}
 
 function loadLocal(): VendorPORecord[] {
   try {
@@ -40,10 +37,26 @@ function saveLocal(records: VendorPORecord[]) {
       service_description: record.service_description?.slice(0, 1000),
       special_instructions: record.special_instructions?.slice(0, 300),
       work_summary: record.work_summary?.slice(0, 500),
+      problem_description: record.problem_description?.slice(0, 500),
+      problem_description_ru: record.problem_description_ru?.slice(0, 500),
     }))
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed))
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed))
+    } catch (trimErr) {
+      console.warn('Vendor PO local cache save failed:', getErrorMessage(trimErr))
+      throw trimErr
+    }
     console.warn('Vendor PO local cache trimmed:', getErrorMessage(err))
   }
+}
+
+function omitProblemDescriptionFields(record: VendorPORecord): Omit<VendorPORecord, 'problem_description' | 'problem_description_ru'> {
+  const { problem_description: _en, problem_description_ru: _ru, ...rest } = record
+  return rest
+}
+
+function isMissingProblemDescriptionColumnError(message: string): boolean {
+  return /problem_description|schema cache/i.test(message)
 }
 
 function toRecord(input: VendorPOInput): VendorPORecord {
@@ -174,9 +187,17 @@ async function saveVendorPOToSupabase(record: VendorPORecord): Promise<VendorPOR
     throw new VendorPoDuplicateError(record.vendor_po_number)
   }
 
-  const { data, error } = await insertRows('vendor_po_records', record as never)
+  let payload: VendorPORecord | Omit<VendorPORecord, 'problem_description' | 'problem_description_ru'> = record
+  let { data, error } = await insertRows('vendor_po_records', payload as never)
     .select()
     .maybeSingle()
+
+  if (error && isMissingProblemDescriptionColumnError(getErrorMessage(error))) {
+    payload = omitProblemDescriptionFields(record)
+    ;({ data, error } = await insertRows('vendor_po_records', payload as never)
+      .select()
+      .maybeSingle())
+  }
 
   if (error) {
     if (/duplicate key|23505|already exists/i.test(getErrorMessage(error))) {

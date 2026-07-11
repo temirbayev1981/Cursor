@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.9] — 2026-07-11
+
+Fix Vendor PO upload crash / hang when saving problem description.
+
+### Phase 151b — Upload stability
+- Remove blocking OpenAI translation from PDF upload path (translate lazily in table)
+- Retry Supabase insert without `problem_description` columns when DB migration not applied yet
+- Safer `crypto.subtle` check for PDF hash on restricted browser contexts
+- Null-safe priority rendering in vendor PO table
+- Migration `20260711000003_vendor_po_problem_description.sql`
+
 ## [1.14.8] — 2026-07-11
 
 Vendor PO problem description column with Russian translation.
