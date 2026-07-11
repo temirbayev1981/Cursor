@@ -1,0 +1,63 @@
+# Deploy HandymanOS AI to your FTP host (subdomain or folder).
+# Credentials: GitHub → Settings → Secrets and variables → Actions (see DEPLOY-FTP.md).
+
+name: Deploy FTP
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ftp-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Skip when FTP secrets are not configured (no failed runs on every push)
+    if: ${{ secrets.FTP_HOST != '' && secrets.FTP_USER != '' && secrets.FTP_PASSWORD != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test
+
+      - name: Resolve app version
+        run: echo "VITE_APP_VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_ENV"
+
+      - name: Build for FTP / subdomain
+        run: npm run build
+        env:
+          # Subdomain at document root → "/". Subfolder deploy → e.g. "/handymanos/"
+          VITE_BASE_PATH: ${{ secrets.VITE_BASE_PATH || '/' }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_STRIPE_CHECKOUT_ENDPOINT: ${{ secrets.VITE_STRIPE_CHECKOUT_ENDPOINT }}
+          VITE_STRIPE_SUBSCRIPTION_ENDPOINT: ${{ secrets.VITE_STRIPE_SUBSCRIPTION_ENDPOINT }}
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+          VITE_NOTIFICATION_WEBHOOK_URL: ${{ secrets.VITE_NOTIFICATION_WEBHOOK_URL }}
+          VITE_SMS_WEBHOOK_URL: ${{ secrets.VITE_SMS_WEBHOOK_URL }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_ERROR_WEBHOOK_URL: ${{ secrets.VITE_ERROR_WEBHOOK_URL }}
+          VITE_APP_VERSION: ${{ env.VITE_APP_VERSION }}
+
+      - name: Upload dist/ to FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT || 21 }}
+          protocol: ${{ secrets.FTP_PROTOCOL || 'ftp' }}
+          local-dir: ./dist/
+          server-dir: ${{ secrets.FTP_SERVER_DIR || './' }}
+          dangerous-clean-slate: false
+          log-level: minimal
