@@ -79,17 +79,37 @@ jobs:
           esac
           echo "dir=$DIR" >> "$GITHUB_OUTPUT"
 
-      - name: Upload dist/ to FTP
+      - name: Upload dist/ to FTP (lftp, passive FTPS)
         if: steps.ftp.outputs.configured == 'true'
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USER }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: ${{ secrets.FTP_PORT || 21 }}
-          protocol: ${{ secrets.FTP_PROTOCOL || 'ftps' }}
-          security: ${{ secrets.FTP_SECURITY || 'strict' }}
-          local-dir: ./dist/
-          server-dir: ${{ steps.ftp_dir.outputs.dir }}
-          dangerous-clean-slate: false
-          log-level: minimal
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_DIR: ${{ steps.ftp_dir.outputs.dir }}
+          FTP_PROTOCOL: ${{ secrets.FTP_PROTOCOL || 'ftps' }}
+          FTP_PORT: ${{ secrets.FTP_PORT || '21' }}
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq lftp
+          PROTO="${FTP_PROTOCOL}"
+          USE_SSL="false"
+          SCHEME="ftp"
+          if [ "$PROTO" = "ftps" ] || [ "$PROTO" = "ftps-legacy" ]; then
+            USE_SSL="true"
+            SCHEME="ftps"
+          fi
+          lftp -p "${FTP_PORT}" <<LFTP_EOF
+          set ftp:passive-mode true
+          set ftp:ssl-force ${USE_SSL}
+          set ftp:ssl-protect-data ${USE_SSL}
+          set ssl:verify-certificate no
+          set net:timeout 120
+          set net:max-retries 5
+          set net:reconnect-interval-base 5
+          open -u ${FTP_USER},${FTP_PASSWORD} ${SCHEME}://${FTP_HOST}
+          mkdir -f ${FTP_DIR}
+          cd ${FTP_DIR}
+          lcd dist
+          mirror --reverse --verbose --parallel=2
+          quit
+          LFTP_EOF
