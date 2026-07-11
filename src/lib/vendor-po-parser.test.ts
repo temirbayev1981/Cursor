@@ -166,4 +166,48 @@ Call from site`
     expect(result.service_city).toBe('New Bern')
     expect(result.service_zip).toBe('28560-1234')
   })
+
+  it('parses OpenAI comma-separated street and city on one line (CD Maintenance)', () => {
+    const text = `SERVICE LOCATION VENDOR # 1005635
+Walgreen Drug Store - Loc # 210150
+123 Main St, Graham, NC 27253-3319
+Phone # 336-222-6862
+ReadyFix
+929 15th Street Southeast
+Hickory, NC 28602
+Phone # 980-252-3295
+SERVICE DESCRIPTION
+BUILDING repair`
+    const result = parseVendorPOText(text, 'VendorPO-210150-01.pdf', 'comp-001')
+    expect(result.service_address).toContain('123 Main St')
+    expect(result.service_city).toBe('Graham')
+    expect(result.service_state).toBe('NC')
+    expect(result.service_zip).toBe('27253-3319')
+    expect(result.location_number).toBe('210150')
+  })
+
+  it('parses OpenAI comma-separated street and city on one line (Facil-IT)', () => {
+    const text = `SERVICE LOCATION
+Walgreen Drug Store - Loc # 210150
+456 Oak Ave, Raleigh, NC 27610-1216
+Phone # 919-231-5074
+ReadyFix
+929 15th Street Southeast
+Hickory, NC 28602
+VENDOR # 1005635
+SERVICE DESCRIPTION
+Fence repair`
+    const result = parseVendorPOText(text, 'VendorPO-210150-01.pdf', 'comp-001')
+    expect(result.service_address).toContain('456 Oak Ave')
+    expect(result.service_city).toBe('Raleigh')
+    expect(result.service_zip).toBe('27610-1216')
+  })
+
+  it('parses flattened inline service location fallback', () => {
+    const text = `SERVICE LOCATION VENDOR # 1005635 Walgreen - Loc # 210150 789 Pine St, Durham, NC 27701 Phone # 336-222-6862 ReadyFix SERVICE DESCRIPTION BUILDING repair`
+    const result = parseVendorPOText(text, 'VendorPO-210150-01.pdf', 'comp-001')
+    expect(result.service_address).toContain('789 Pine St')
+    expect(result.service_city).toBe('Durham')
+    expect(result.location_number).toBe('210150')
+  })
 })
