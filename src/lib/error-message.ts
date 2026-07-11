@@ -24,7 +24,11 @@ export function isVendorPOSaveError(message: string): boolean {
 }
 
 export function isPdfExtractError(message: string): boolean {
-  return /PDF extract failed|PDF OCR failed|worker|Invalid PDF|pdf\.js|fake worker|Failed to fetch|\.mjs|Canvas|password protected|corrupted|api version|module script|importing a module|couldn't be opened|could not be opened|arraybuffer/i.test(
+  return /PDF extract failed|PDF OCR failed|worker|Invalid PDF|pdf\.js|fake worker|Failed to fetch|\.mjs|Canvas|password protected|corrupted|api version|module script|importing a module|couldn't be opened|could not be opened|arraybuffer|FileReader|chunk|dynamically imported|Loading CSS/i.test(
     message,
   )
+}
+
+export function isVendorPOStorageError(message: string): boolean {
+  return /quota|storage|QuotaExceeded/i.test(message)
 }

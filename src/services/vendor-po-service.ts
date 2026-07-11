@@ -15,7 +15,18 @@ function loadLocal(): VendorPORecord[] {
 }
 
 function saveLocal(records: VendorPORecord[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records))
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records))
+  } catch (err) {
+    const trimmed = records.map((record) => ({
+      ...record,
+      service_description: record.service_description?.slice(0, 1000),
+      special_instructions: record.special_instructions?.slice(0, 300),
+      work_summary: record.work_summary?.slice(0, 500),
+    }))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed))
+    console.warn('Vendor PO local cache trimmed:', getErrorMessage(err))
+  }
 }
 
 function toRecord(input: VendorPOInput): VendorPORecord {
