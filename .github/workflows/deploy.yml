@@ -37,7 +37,9 @@ jobs:
         run: npm run smoke:supabase
         env:
           SMOKE_OPTIONAL: '1'
+          SMOKE_RPC_OPTIONAL: '1'
           SMOKE_EDGE_FUNCTIONS: '1'
+          SMOKE_EDGE_FUNCTIONS_OPTIONAL: '1'
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
       - run: npm run build
