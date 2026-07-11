@@ -1,3 +1,5 @@
+import { publicAsset } from '@/lib/base-path'
+
 let serviceWorkerRegistered = false
 let serviceWorkerReadyPromise: Promise<boolean> | null = null
 
@@ -6,7 +8,7 @@ export function registerServiceWorker() {
 
   serviceWorkerReadyPromise = (async () => {
     try {
-      const registration = await navigator.serviceWorker.register('/sw.js')
+      const registration = await navigator.serviceWorker.register(publicAsset('sw.js'))
       await navigator.serviceWorker.ready
       serviceWorkerRegistered = Boolean(registration.active)
       return serviceWorkerRegistered

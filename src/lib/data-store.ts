@@ -27,6 +27,17 @@ export function removeFromStore<T extends { id: string }>(key: string, id: strin
   saveStore(key, loadStore<T>(key).filter((i) => i.id !== id))
 }
 
+/** Merge remote rows into local cache by id (preserves other tenants' cached rows). */
+export function mergeStoreById<T extends { id: string }>(key: string, incoming: T[]): T[] {
+  const byId = new Map(loadStore<T>(key).map((item) => [item.id, item]))
+  for (const item of incoming) {
+    byId.set(item.id, item)
+  }
+  const merged = Array.from(byId.values())
+  saveStore(key, merged)
+  return merged
+}
+
 export function filterByCompany<T extends { company_id: string }>(items: T[], companyId: string): T[] {
   return items.filter((i) => i.company_id === companyId)
 }

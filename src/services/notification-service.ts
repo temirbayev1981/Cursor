@@ -159,9 +159,12 @@ export async function sendNotification(payload: NotificationPayload): Promise<No
   if (hasWebhook) {
     try {
       const ok = await deliverPayload(payload)
-      return { ok, queued: false }
+      if (ok) return { ok: true, queued: false }
+      enqueue(payload)
+      return { ok: true, queued: true }
     } catch {
-      return { ok: false, queued: false }
+      enqueue(payload)
+      return { ok: true, queued: true }
     }
   }
 
@@ -473,8 +476,9 @@ export async function retryNotification(id: string): Promise<boolean> {
   if (!item) return false
   item.status = 'queued'
   saveQueue(queue)
-  const sent = await flushNotificationQueue()
-  return sent > 0
+  await flushNotificationQueue()
+  const updated = loadQueue().find((i) => i.id === id)
+  return updated?.status === 'sent'
 }
 
 export function notifyResultMessage(
