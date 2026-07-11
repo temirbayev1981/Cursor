@@ -2,6 +2,39 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.10] — 2026-07-11
+
+Fix Vendor PO upload page crash (null DB fields + missing Supabase columns).
+
+### Phase 151c — Upload crash hardening
+- Normalize nullable Supabase fields before table render (`priority`, `work_summary`, etc.)
+- Progressive Supabase insert: retry without `problem_description`, then without `source_file_hash`
+- Duplicate-file lookup falls back when `source_file_hash` column is missing
+- Remote save no longer fails if local cache write fails afterward
+- Migration also adds `source_file_hash` if missing
+
+## [1.14.9] — 2026-07-11
+
+Fix Vendor PO upload crash / hang when saving problem description.
+
+### Phase 151b — Upload stability
+- Remove blocking OpenAI translation from PDF upload path (translate lazily in table)
+- Retry Supabase insert without `problem_description` columns when DB migration not applied yet
+- Safer `crypto.subtle` check for PDF hash on restricted browser contexts
+- Null-safe priority rendering in vendor PO table
+- Migration `20260711000003_vendor_po_problem_description.sql`
+
+## [1.14.8] — 2026-07-11
+
+Vendor PO problem description column with Russian translation.
+
+### Phase 151 — Описание проблемы
+- Extract problem text after the last `/` in SERVICE DESCRIPTION
+- New table column **Описание проблемы** with Russian translation (OpenAI)
+- Click cell to open popup with full translated text
+- `problem_description` and `problem_description_ru` columns in `vendor_po_records`
+- Excel export includes translated problem description
+
 ## [1.14.7] — 2026-07-11
 
 Vendor PO table layout + block duplicate PDF files.

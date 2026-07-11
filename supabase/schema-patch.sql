@@ -165,3 +165,7 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION provision_owner_company() TO authenticated;
+
+-- Vendor PO problem description (v1.14.8+)
+ALTER TABLE vendor_po_records ADD COLUMN IF NOT EXISTS problem_description TEXT;
+ALTER TABLE vendor_po_records ADD COLUMN IF NOT EXISTS problem_description_ru TEXT;

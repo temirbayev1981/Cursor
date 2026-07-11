@@ -710,6 +710,8 @@ CREATE TABLE IF NOT EXISTS vendor_po_records (
   service_category TEXT,
   service_description TEXT,
   work_summary TEXT,
+  problem_description TEXT,
+  problem_description_ru TEXT,
   special_instructions TEXT,
   source_file_name TEXT,
   source_file_hash TEXT,

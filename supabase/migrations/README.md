@@ -16,7 +16,7 @@ Apply migrations in order via Supabase SQL Editor or Supabase CLI:
 | Migration | Purpose |
 |-----------|---------|
 | `20260711000001_auth_provision_owner.sql` | Auth login fix: `handle_new_user`, `provision_owner_company`, profile backfill |
-| `20260711000002_check_rate_limit.sql` | Edge Function rate limiting: `rate_limit_buckets` + `check_rate_limit` RPC |
+| `20260711000003_vendor_po_problem_description.sql` | Vendor PO problem description columns (`problem_description`, `problem_description_ru`) |
 
 After each migration, verify:
 

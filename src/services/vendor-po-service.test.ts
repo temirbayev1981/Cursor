@@ -7,7 +7,7 @@ import {
   VendorPoDuplicateError,
   isVendorPoDuplicateError,
 } from './vendor-po-service'
-import { VendorPoDuplicateFileError } from '@/lib/vendor-po-upload'
+import { VendorPoDuplicateFileError } from '@/lib/vendor-po-errors'
 import type { VendorPOInput } from '@/types/vendor-po'
 
 vi.mock('@/lib/supabase', () => ({

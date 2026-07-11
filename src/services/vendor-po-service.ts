@@ -2,25 +2,28 @@ import type { VendorPORecord, VendorPOInput } from '@/types/vendor-po'
 import { supabase } from '@/lib/supabase'
 import { insertRows, upsertRows } from '@/lib/supabase-queries'
 import { getErrorMessage } from '@/lib/error-message'
-import { normalizeVendorPoFileName, VendorPoDuplicateFileError, isVendorPoDuplicateFileError } from '@/lib/vendor-po-upload'
+import { normalizeVendorPoFileName } from '@/lib/vendor-po-upload'
+import {
+  VendorPoDuplicateError,
+  VendorPoDuplicateFileError,
+  isVendorPoDuplicateError,
+  isVendorPoDuplicateFileError,
+} from '@/lib/vendor-po-errors'
+import {
+  normalizeVendorPORecord,
+  omitOptionalVendorPoFields,
+  omitProblemDescriptionFields,
+  isMissingVendorPoColumnError,
+} from '@/lib/vendor-po-record'
 
-export { VendorPoDuplicateFileError, isVendorPoDuplicateFileError } from '@/lib/vendor-po-upload'
+export {
+  VendorPoDuplicateError,
+  VendorPoDuplicateFileError,
+  isVendorPoDuplicateError,
+  isVendorPoDuplicateFileError,
+} from '@/lib/vendor-po-errors'
 
 const STORAGE_KEY = 'handymanos_vendor_pos'
-
-export class VendorPoDuplicateError extends Error {
-  readonly vendorPoNumber: string
-
-  constructor(vendorPoNumber: string) {
-    super(`Vendor PO ${vendorPoNumber} already exists`)
-    this.name = 'VendorPoDuplicateError'
-    this.vendorPoNumber = vendorPoNumber
-  }
-}
-
-export function isVendorPoDuplicateError(error: unknown): error is VendorPoDuplicateError {
-  return error instanceof VendorPoDuplicateError
-}
 
 function loadLocal(): VendorPORecord[] {
   try {
@@ -40,8 +43,15 @@ function saveLocal(records: VendorPORecord[]) {
       service_description: record.service_description?.slice(0, 1000),
       special_instructions: record.special_instructions?.slice(0, 300),
       work_summary: record.work_summary?.slice(0, 500),
+      problem_description: record.problem_description?.slice(0, 500),
+      problem_description_ru: record.problem_description_ru?.slice(0, 500),
     }))
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed))
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed))
+    } catch (trimErr) {
+      console.warn('Vendor PO local cache save failed:', getErrorMessage(trimErr))
+      throw trimErr
+    }
     console.warn('Vendor PO local cache trimmed:', getErrorMessage(err))
   }
 }
@@ -103,17 +113,24 @@ export async function vendorPdfFileExists(
   }
   if (!supabase) return false
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('vendor_po_records')
     .select('source_file_name, source_file_hash')
     .eq('company_id', companyId)
+
+  if (error && isMissingVendorPoColumnError(getErrorMessage(error))) {
+    ;({ data, error } = await supabase
+      .from('vendor_po_records')
+      .select('source_file_name')
+      .eq('company_id', companyId))
+  }
 
   if (error) {
     console.error('Vendor PO file duplicate lookup failed:', getErrorMessage(error))
     return false
   }
 
-  for (const row of (data ?? []) as Array<{ source_file_name: string | null; source_file_hash: string | null }>) {
+  for (const row of (data ?? []) as Array<{ source_file_name: string | null; source_file_hash?: string | null }>) {
     if (row.source_file_name && normalizeVendorPoFileName(row.source_file_name) === normalized) return true
     if (fileHash && row.source_file_hash === fileHash) return true
   }
@@ -174,22 +191,36 @@ async function saveVendorPOToSupabase(record: VendorPORecord): Promise<VendorPOR
     throw new VendorPoDuplicateError(record.vendor_po_number)
   }
 
-  const { data, error } = await insertRows('vendor_po_records', record as never)
-    .select()
-    .maybeSingle()
+  const payloads = [
+    record,
+    omitProblemDescriptionFields(record),
+    omitOptionalVendorPoFields(record),
+  ]
 
-  if (error) {
-    if (/duplicate key|23505|already exists/i.test(getErrorMessage(error))) {
-      throw new VendorPoDuplicateError(record.vendor_po_number)
-    }
-    throw error
+  let lastError: unknown
+  for (const payload of payloads) {
+    const { data, error } = await insertRows('vendor_po_records', payload as never)
+      .select()
+      .maybeSingle()
+
+    if (!error && data) return normalizeVendorPORecord(data as VendorPORecord)
+
+    lastError = error
+    const message = getErrorMessage(error)
+    if (!isMissingVendorPoColumnError(message)) break
   }
-  if (data) return data as VendorPORecord
-  throw new Error('vendor_po save succeeded but row was not returned')
+
+  const message = getErrorMessage(lastError)
+  if (/duplicate key|23505|already exists/i.test(message)) {
+    throw new VendorPoDuplicateError(record.vendor_po_number)
+  }
+  throw lastError
 }
 
 export async function getVendorPOs(companyId: string): Promise<VendorPORecord[]> {
-  const local = loadLocal().filter((row) => row.company_id === companyId)
+  const local = loadLocal()
+    .filter((row) => row.company_id === companyId)
+    .map(normalizeVendorPORecord)
 
   if (!supabase) {
     return local.sort((a, b) => b.created_at.localeCompare(a.created_at))
@@ -206,7 +237,8 @@ export async function getVendorPOs(companyId: string): Promise<VendorPORecord[]>
     return local.sort((a, b) => b.created_at.localeCompare(a.created_at))
   }
 
-  return mergeVendorPOLists((data ?? []) as VendorPORecord[], local, companyId)
+  const remote = ((data ?? []) as VendorPORecord[]).map(normalizeVendorPORecord)
+  return mergeVendorPOLists(remote, local, companyId)
 }
 
 export async function saveVendorPO(input: VendorPOInput): Promise<VendorPORecord> {
@@ -220,17 +252,21 @@ export async function saveVendorPO(input: VendorPOInput): Promise<VendorPORecord
   }
 
   if (!supabase) {
-    return saveLocalVendorPO(record)
+    return normalizeVendorPORecord(saveLocalVendorPO(record))
   }
 
   try {
     const saved = await saveVendorPOToSupabase(record)
-    saveLocalVendorPO(saved)
+    try {
+      saveLocalVendorPO(saved)
+    } catch (localError) {
+      console.warn('Vendor PO local cache after remote save failed:', getErrorMessage(localError))
+    }
     return saved
   } catch (remoteError) {
     if (isVendorPoDuplicateError(remoteError) || isVendorPoDuplicateFileError(remoteError)) throw remoteError
     console.error('Vendor PO Supabase save failed:', getErrorMessage(remoteError))
-    return saveLocalVendorPO(record)
+    return normalizeVendorPORecord(saveLocalVendorPO(record))
   }
 }
 
