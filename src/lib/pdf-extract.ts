@@ -4,48 +4,27 @@ import { hasOpenAI } from '@/lib/env'
 type PdfJsModule = typeof import('pdfjs-dist')
 type PdfDocument = Awaited<ReturnType<PdfJsModule['getDocument']>['promise']>
 
-const PDFJS_VERSION = '6.1.200'
 const OCR_MAX_PAGES = 2
 const OCR_RENDER_SCALE = 1.5
 
 let pdfjsReady: Promise<PdfJsModule> | null = null
 
-function isMobileSafari(): boolean {
-  if (typeof navigator === 'undefined') return false
-  const ua = navigator.userAgent
-  return /iPhone|iPad|iPod/i.test(ua) && !/CriOS|FxiOS|EdgiOS/i.test(ua)
-}
-
-function cdnAsset(path: string): string {
-  return `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/${path}`
-}
-
-function resolveWorkerSrc(workerUrl: string): string {
-  if (typeof window === 'undefined') return workerUrl
+function bundledWorkerSrc(): string {
+  const base = import.meta.env.BASE_URL || '/'
+  if (typeof window === 'undefined') {
+    return `${base}pdf.worker.min.mjs`
+  }
   try {
-    return new URL(workerUrl, window.location.href).href
+    return new URL('pdf.worker.min.mjs', window.location.href).href
   } catch {
-    return workerUrl
+    return `${base}pdf.worker.min.mjs`
   }
 }
 
 async function configurePdfWorker(pdfjsLib: PdfJsModule): Promise<void> {
   // workerPort breaks on many FTP hosts + iOS Safari (.mjs MIME / module workers).
-  // Let pdf.js load the worker from workerSrc only.
   pdfjsLib.GlobalWorkerOptions.workerPort = null
-
-  const cdnWorker = cdnAsset('build/pdf.worker.min.mjs')
-  if (isMobileSafari()) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = cdnWorker
-    return
-  }
-
-  try {
-    const workerModule = await import('pdfjs-dist/build/pdf.worker.min.mjs?url')
-    pdfjsLib.GlobalWorkerOptions.workerSrc = resolveWorkerSrc(workerModule.default)
-  } catch {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = cdnWorker
-  }
+  pdfjsLib.GlobalWorkerOptions.workerSrc = bundledWorkerSrc()
 }
 
 async function getPdfjs(): Promise<PdfJsModule> {
@@ -79,9 +58,7 @@ function pdfDocumentOptions(data: ArrayBuffer | Uint8Array) {
     data,
     useSystemFonts: true,
     useWorkerFetch: false,
-    standardFontDataUrl: cdnAsset('standard_fonts/'),
-    cMapUrl: cdnAsset('cmaps/'),
-    cMapPacked: true,
+    disableFontFace: true,
   }
 }
 

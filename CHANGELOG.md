@@ -6,6 +6,13 @@ All notable changes to HandymanOS AI are documented here.
 
 Production bug-fix audit — data integrity, notifications, PWA, security.
 
+### Phase 136 — Facil-IT Vendor PO PDF fix (mobile)
+- PDF extract: same-origin `pdf.worker.min.mjs` (no CDN) for iOS Safari / FTP hosts
+- Facil-IT parser: reversed pdf.js text (client PO, priority, NTE, service location)
+- Vendor PO upload: clearer save vs extract error mapping; console log on unknown failures
+- E2E: user fixture `vendor-po-210072-01.pdf` (Walgreens PO 210072-01)
+- **202** unit tests, **38** E2E vendor PO specs
+
 ### Phase 131 — Audit bug fixes
 - Entity cache: `mergeStoreById` preserves multi-tenant offline data on sync
 - `saveEntity` / payment / fuel / time entry: rollback local cache on Supabase failure

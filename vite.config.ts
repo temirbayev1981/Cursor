@@ -1,10 +1,21 @@
 import path from 'path'
-import { readFileSync, writeFileSync } from 'node:fs'
+import { copyFileSync, readFileSync, writeFileSync } from 'node:fs'
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 const pkg = JSON.parse(readFileSync('./package.json', 'utf8'))
+
+function copyPdfWorker(): Plugin {
+  const src = path.join(__dirname, 'node_modules/pdfjs-dist/build/pdf.worker.min.mjs')
+  const dest = path.join(__dirname, 'public/pdf.worker.min.mjs')
+  return {
+    name: 'copy-pdf-worker',
+    buildStart() {
+      copyFileSync(src, dest)
+    },
+  }
+}
 
 function baseAwareManifest(): Plugin {
   return {
@@ -39,7 +50,7 @@ export default defineConfig({
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(process.env.VITE_APP_VERSION ?? pkg.version),
   },
-  plugins: [react(), tailwindcss(), baseAwareManifest()],
+  plugins: [react(), tailwindcss(), copyPdfWorker(), baseAwareManifest()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

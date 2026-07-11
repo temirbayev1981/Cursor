@@ -23,6 +23,18 @@ test.describe('Work orders vendor PO', () => {
     await expect(page.getByText(/317 Main St/i).first()).toBeVisible()
   })
 
+  test('Facil-IT Walgreens PO 210072-01 parses from user PDF fixture', async ({ page }) => {
+    await page.goto('/work-orders')
+
+    const dropzone = page.getByTestId('work-orders-vendor-po-dropzone')
+    await dropzone.locator('input[type="file"]').setInputFiles('e2e/fixtures/vendor-po-210072-01.pdf')
+
+    await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 20000 })
+    await expect(page.getByText('210072-01').first()).toBeVisible()
+    await expect(page.getByText('355708360').first()).toBeVisible()
+    await expect(page.getByText(/3101 New Bern Ave/i).first()).toBeVisible()
+  })
+
   test('create job from parsed vendor PO navigates to jobs list', async ({ page }) => {
     await page.goto('/work-orders')
 
