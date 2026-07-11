@@ -71,7 +71,7 @@ jobs:
           VITE_BUILD_TIME: ${{ env.VITE_BUILD_TIME }}
 
       - name: Deploy Supabase Edge Functions (when access token set)
-        if: steps.ftp.outputs.configured == 'true' && secrets.SUPABASE_ACCESS_TOKEN != ''
+        if: steps.ftp.outputs.configured == 'true'
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
