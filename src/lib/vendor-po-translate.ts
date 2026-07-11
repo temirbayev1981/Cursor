@@ -1,8 +1,8 @@
-import { hasOpenAI, getOpenAIEndpoint } from '@/lib/env'
+import { hasOpenAI } from '@/lib/env'
 import { extractProblemDescription } from '@/lib/vendor-po-parser'
-import { getSupabaseAuthHeaders } from '@/lib/supabase'
+import { callOpenAIProxy } from '@/lib/openai-proxy-client'
 import type { VendorPOInput } from '@/types/vendor-po'
-import { fetchWithTimeout, withTimeout } from '@/lib/with-timeout'
+import { withTimeout } from '@/lib/with-timeout'
 
 const TRANSLATE_SYSTEM = `You translate vendor work order problem descriptions from English to Russian.
 Return ONLY the Russian translation. Keep technical terms clear. Do not add quotes or explanations.`
@@ -14,30 +14,12 @@ export async function translateProblemDescriptionToRussian(text: string): Promis
   const trimmed = text.trim()
   if (!trimmed || !hasOpenAI) return null
 
-  const proxyEndpoint = getOpenAIEndpoint()
-  if (!proxyEndpoint) return null
-
-  try {
-    const headers = await getSupabaseAuthHeaders()
-    const res = await fetchWithTimeout(proxyEndpoint, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        system: TRANSLATE_SYSTEM,
-        user: trimmed.slice(0, 2000),
-        model: 'gpt-4o-mini',
-        temperature: 0.2,
-      }),
-      timeoutMs: FETCH_TIMEOUT_MS,
-    })
-    if (!res.ok) return null
-    const json = await res.json() as { content?: unknown }
-    const content = json.content
-    if (typeof content === 'string') return content.trim() || null
-    return null
-  } catch {
-    return null
-  }
+  return callOpenAIProxy({
+    system: TRANSLATE_SYSTEM,
+    user: trimmed.slice(0, 2000),
+    model: 'gpt-4o-mini',
+    temperature: 0.2,
+  }, { timeoutMs: FETCH_TIMEOUT_MS })
 }
 
 function needsRussianProblemTranslation(input: VendorPOInput): string | null {
