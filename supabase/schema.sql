@@ -1,21 +1,61 @@
--- HandymanOS AI - Database Schema
--- Run this in Supabase SQL Editor
+-- HandymanOS AI - Database Schema (idempotent)
+-- Safe to re-run: creates missing objects, replaces functions, skips existing tables/types.
+-- Run this entire file in Supabase SQL Editor (one paste → Run).
 
 -- Enable extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Custom types
-CREATE TYPE user_role AS ENUM ('owner', 'admin', 'dispatcher', 'technician', 'accountant', 'customer');
-CREATE TYPE job_status AS ENUM ('draft', 'scheduled', 'in_progress', 'completed', 'cancelled', 'on_hold');
-CREATE TYPE estimate_status AS ENUM ('draft', 'sent', 'approved', 'rejected', 'expired');
-CREATE TYPE invoice_status AS ENUM ('draft', 'sent', 'paid', 'partial', 'overdue', 'cancelled');
-CREATE TYPE priority_level AS ENUM ('low', 'medium', 'high', 'emergency');
-CREATE TYPE subscription_plan AS ENUM ('starter', 'professional', 'enterprise');
-CREATE TYPE customer_type AS ENUM ('residential', 'commercial', 'property_management');
-CREATE TYPE vehicle_type AS ENUM ('truck', 'van', 'trailer', 'car');
+DO $$ BEGIN
+  CREATE TYPE user_role AS ENUM ('owner', 'admin', 'dispatcher', 'technician', 'accountant', 'customer');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE job_status AS ENUM ('draft', 'scheduled', 'in_progress', 'completed', 'cancelled', 'on_hold');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE estimate_status AS ENUM ('draft', 'sent', 'approved', 'rejected', 'expired');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE invoice_status AS ENUM ('draft', 'sent', 'paid', 'partial', 'overdue', 'cancelled');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE priority_level AS ENUM ('low', 'medium', 'high', 'emergency');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE subscription_plan AS ENUM ('starter', 'professional', 'enterprise');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE customer_type AS ENUM ('residential', 'commercial', 'property_management');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE vehicle_type AS ENUM ('truck', 'van', 'trailer', 'car');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
 -- Companies
-CREATE TABLE companies (
+CREATE TABLE IF NOT EXISTS companies (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL,
   email TEXT NOT NULL,
@@ -30,7 +70,7 @@ CREATE TABLE companies (
 );
 
 -- Profiles (extends auth.users)
-CREATE TABLE profiles (
+CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
   email TEXT NOT NULL,
@@ -43,7 +83,7 @@ CREATE TABLE profiles (
 );
 
 -- Multi-company membership (active company remains profiles.company_id)
-CREATE TABLE company_members (
+CREATE TABLE IF NOT EXISTS company_members (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
@@ -52,11 +92,11 @@ CREATE TABLE company_members (
   UNIQUE(company_id, profile_id)
 );
 
-CREATE INDEX idx_company_members_profile ON company_members(profile_id);
-CREATE INDEX idx_company_members_company ON company_members(company_id);
+CREATE INDEX IF NOT EXISTS idx_company_members_profile ON company_members(profile_id);
+CREATE INDEX IF NOT EXISTS idx_company_members_company ON company_members(company_id);
 
 -- Customers
-CREATE TABLE customers (
+CREATE TABLE IF NOT EXISTS customers (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -73,7 +113,7 @@ CREATE TABLE customers (
 );
 
 -- Properties
-CREATE TABLE properties (
+CREATE TABLE IF NOT EXISTS properties (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
@@ -88,7 +128,7 @@ CREATE TABLE properties (
 );
 
 -- Employees
-CREATE TABLE employees (
+CREATE TABLE IF NOT EXISTS employees (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   profile_id UUID REFERENCES profiles(id),
@@ -107,7 +147,7 @@ CREATE TABLE employees (
 );
 
 -- Service Catalog
-CREATE TABLE service_catalog (
+CREATE TABLE IF NOT EXISTS service_catalog (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -122,7 +162,7 @@ CREATE TABLE service_catalog (
 );
 
 -- Jobs
-CREATE TABLE jobs (
+CREATE TABLE IF NOT EXISTS jobs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   customer_id UUID NOT NULL REFERENCES customers(id),
@@ -148,7 +188,7 @@ CREATE TABLE jobs (
 );
 
 -- Job Tasks
-CREATE TABLE job_tasks (
+CREATE TABLE IF NOT EXISTS job_tasks (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
@@ -161,7 +201,7 @@ CREATE TABLE job_tasks (
 );
 
 -- Work Orders
-CREATE TABLE work_orders (
+CREATE TABLE IF NOT EXISTS work_orders (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   customer_id UUID REFERENCES customers(id),
@@ -175,7 +215,7 @@ CREATE TABLE work_orders (
 );
 
 -- Estimates
-CREATE TABLE estimates (
+CREATE TABLE IF NOT EXISTS estimates (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   customer_id UUID NOT NULL REFERENCES customers(id),
@@ -196,7 +236,7 @@ CREATE TABLE estimates (
 );
 
 -- Invoices
-CREATE TABLE invoices (
+CREATE TABLE IF NOT EXISTS invoices (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   customer_id UUID NOT NULL REFERENCES customers(id),
@@ -215,7 +255,7 @@ CREATE TABLE invoices (
 );
 
 -- Payments
-CREATE TABLE payments (
+CREATE TABLE IF NOT EXISTS payments (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   invoice_id UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
   amount DECIMAL(12,2) NOT NULL,
@@ -225,7 +265,7 @@ CREATE TABLE payments (
 );
 
 -- Materials
-CREATE TABLE materials (
+CREATE TABLE IF NOT EXISTS materials (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -241,7 +281,7 @@ CREATE TABLE materials (
 );
 
 -- Inventory transactions
-CREATE TABLE inventory (
+CREATE TABLE IF NOT EXISTS inventory (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   material_id UUID NOT NULL REFERENCES materials(id) ON DELETE CASCADE,
   job_id UUID REFERENCES jobs(id),
@@ -252,7 +292,7 @@ CREATE TABLE inventory (
 );
 
 -- Vehicles
-CREATE TABLE vehicles (
+CREATE TABLE IF NOT EXISTS vehicles (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -267,7 +307,7 @@ CREATE TABLE vehicles (
 );
 
 -- Fuel Logs
-CREATE TABLE fuel_logs (
+CREATE TABLE IF NOT EXISTS fuel_logs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   vehicle_id UUID NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
   date DATE NOT NULL,
@@ -280,7 +320,7 @@ CREATE TABLE fuel_logs (
 );
 
 -- Expenses
-CREATE TABLE expenses (
+CREATE TABLE IF NOT EXISTS expenses (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   category TEXT NOT NULL,
@@ -294,7 +334,7 @@ CREATE TABLE expenses (
 );
 
 -- Schedule Events
-CREATE TABLE schedule_events (
+CREATE TABLE IF NOT EXISTS schedule_events (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
@@ -308,7 +348,7 @@ CREATE TABLE schedule_events (
 );
 
 -- Documents
-CREATE TABLE documents (
+CREATE TABLE IF NOT EXISTS documents (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   entity_type TEXT NOT NULL,
@@ -320,7 +360,7 @@ CREATE TABLE documents (
 );
 
 -- Photos
-CREATE TABLE photos (
+CREATE TABLE IF NOT EXISTS photos (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   job_id UUID REFERENCES jobs(id),
@@ -332,7 +372,7 @@ CREATE TABLE photos (
 );
 
 -- AI Results
-CREATE TABLE ai_results (
+CREATE TABLE IF NOT EXISTS ai_results (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   source_type TEXT NOT NULL,
@@ -344,7 +384,7 @@ CREATE TABLE ai_results (
 );
 
 -- Notifications
-CREATE TABLE notifications (
+CREATE TABLE IF NOT EXISTS notifications (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   user_id UUID REFERENCES profiles(id),
@@ -356,7 +396,7 @@ CREATE TABLE notifications (
 );
 
 -- Integration probe history (operator cloud sync)
-CREATE TABLE integration_probe_runs (
+CREATE TABLE IF NOT EXISTS integration_probe_runs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   checked_at TIMESTAMPTZ NOT NULL,
@@ -366,7 +406,7 @@ CREATE TABLE integration_probe_runs (
 );
 
 -- Audit Logs
-CREATE TABLE audit_logs (
+CREATE TABLE IF NOT EXISTS audit_logs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   user_id UUID REFERENCES profiles(id),
@@ -379,20 +419,20 @@ CREATE TABLE audit_logs (
 );
 
 -- Indexes
-CREATE INDEX idx_profiles_company ON profiles(company_id);
-CREATE INDEX idx_customers_company ON customers(company_id);
-CREATE INDEX idx_jobs_company ON jobs(company_id);
-CREATE INDEX idx_jobs_status ON jobs(status);
-CREATE INDEX idx_jobs_customer ON jobs(customer_id);
-CREATE INDEX idx_jobs_technician ON jobs(assigned_technician_id);
-CREATE INDEX idx_estimates_company ON estimates(company_id);
-CREATE INDEX idx_invoices_company ON invoices(company_id);
-CREATE INDEX idx_materials_company ON materials(company_id);
-CREATE INDEX idx_schedule_events_company ON schedule_events(company_id);
-CREATE INDEX idx_schedule_events_time ON schedule_events(start_time, end_time);
-CREATE INDEX idx_audit_logs_company ON audit_logs(company_id);
-CREATE INDEX idx_integration_probe_runs_company ON integration_probe_runs(company_id);
-CREATE INDEX idx_integration_probe_runs_checked ON integration_probe_runs(checked_at DESC);
+CREATE INDEX IF NOT EXISTS idx_profiles_company ON profiles(company_id);
+CREATE INDEX IF NOT EXISTS idx_customers_company ON customers(company_id);
+CREATE INDEX IF NOT EXISTS idx_jobs_company ON jobs(company_id);
+CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);
+CREATE INDEX IF NOT EXISTS idx_jobs_customer ON jobs(customer_id);
+CREATE INDEX IF NOT EXISTS idx_jobs_technician ON jobs(assigned_technician_id);
+CREATE INDEX IF NOT EXISTS idx_estimates_company ON estimates(company_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_company ON invoices(company_id);
+CREATE INDEX IF NOT EXISTS idx_materials_company ON materials(company_id);
+CREATE INDEX IF NOT EXISTS idx_schedule_events_company ON schedule_events(company_id);
+CREATE INDEX IF NOT EXISTS idx_schedule_events_time ON schedule_events(start_time, end_time);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_company ON audit_logs(company_id);
+CREATE INDEX IF NOT EXISTS idx_integration_probe_runs_company ON integration_probe_runs(company_id);
+CREATE INDEX IF NOT EXISTS idx_integration_probe_runs_checked ON integration_probe_runs(checked_at DESC);
 
 -- Row Level Security
 ALTER TABLE companies ENABLE ROW LEVEL SECURITY;
@@ -428,106 +468,138 @@ RETURNS UUID AS $$
 $$ LANGUAGE SQL SECURITY DEFINER STABLE;
 
 -- RLS Policies (company-scoped access)
+DROP POLICY IF EXISTS "Users can view own company" ON companies;
 CREATE POLICY "Users can view own company" ON companies
   FOR SELECT USING (
     id = get_user_company_id()
     OR id IN (SELECT company_id FROM company_members WHERE profile_id = auth.uid())
   );
 
+DROP POLICY IF EXISTS "Authenticated users can create company" ON companies;
 CREATE POLICY "Authenticated users can create company" ON companies
   FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
+DROP POLICY IF EXISTS "Company members can update company" ON companies;
 CREATE POLICY "Company members can update company" ON companies
   FOR UPDATE USING (id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can view profiles" ON profiles;
 CREATE POLICY "Company members can view profiles" ON profiles
   FOR SELECT USING (company_id = get_user_company_id() OR id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
 CREATE POLICY "Users can insert own profile" ON profiles
   FOR INSERT WITH CHECK (id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
 CREATE POLICY "Users can update own profile" ON profiles
   FOR UPDATE USING (id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can view own memberships" ON company_members;
 CREATE POLICY "Users can view own memberships" ON company_members
   FOR SELECT USING (profile_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can view company memberships" ON company_members;
 CREATE POLICY "Users can view company memberships" ON company_members
   FOR SELECT USING (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can view customers" ON customers;
 CREATE POLICY "Company members can view customers" ON customers
   FOR ALL USING (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can view properties" ON properties;
 CREATE POLICY "Company members can view properties" ON properties
   FOR ALL USING (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can view employees" ON employees;
 CREATE POLICY "Company members can view employees" ON employees
   FOR ALL USING (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can manage jobs" ON jobs;
 CREATE POLICY "Company members can manage jobs" ON jobs
   FOR ALL USING (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can manage job tasks" ON job_tasks;
 CREATE POLICY "Company members can manage job tasks" ON job_tasks
   FOR ALL USING (job_id IN (SELECT id FROM jobs WHERE company_id = get_user_company_id()));
 
+DROP POLICY IF EXISTS "Company members can manage work orders" ON work_orders;
 CREATE POLICY "Company members can manage work orders" ON work_orders
   FOR ALL USING (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can manage estimates" ON estimates;
 CREATE POLICY "Company members can manage estimates" ON estimates
   FOR ALL USING (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can manage invoices" ON invoices;
 CREATE POLICY "Company members can manage invoices" ON invoices
   FOR ALL USING (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can manage materials" ON materials;
 CREATE POLICY "Company members can manage materials" ON materials
   FOR ALL USING (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can manage vehicles" ON vehicles;
 CREATE POLICY "Company members can manage vehicles" ON vehicles
   FOR ALL USING (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can manage expenses" ON expenses;
 CREATE POLICY "Company members can manage expenses" ON expenses
   FOR ALL USING (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can manage schedule" ON schedule_events;
 CREATE POLICY "Company members can manage schedule" ON schedule_events
   FOR ALL USING (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can view audit logs" ON audit_logs;
 CREATE POLICY "Company members can view audit logs" ON audit_logs
   FOR SELECT USING (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can insert audit logs" ON audit_logs;
 CREATE POLICY "Company members can insert audit logs" ON audit_logs
   FOR INSERT WITH CHECK (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can view probe runs" ON integration_probe_runs;
 CREATE POLICY "Company members can view probe runs" ON integration_probe_runs
   FOR SELECT USING (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can insert probe runs" ON integration_probe_runs;
 CREATE POLICY "Company members can insert probe runs" ON integration_probe_runs
   FOR INSERT WITH CHECK (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can manage payments" ON payments;
 CREATE POLICY "Company members can manage payments" ON payments
   FOR ALL USING (
     invoice_id IN (SELECT id FROM invoices WHERE company_id = get_user_company_id())
   );
 
+DROP POLICY IF EXISTS "Company members can manage inventory" ON inventory;
 CREATE POLICY "Company members can manage inventory" ON inventory
   FOR ALL USING (
     material_id IN (SELECT id FROM materials WHERE company_id = get_user_company_id())
   );
 
+DROP POLICY IF EXISTS "Company members can manage fuel logs" ON fuel_logs;
 CREATE POLICY "Company members can manage fuel logs" ON fuel_logs
   FOR ALL USING (vehicle_id IN (SELECT id FROM vehicles WHERE company_id = get_user_company_id()));
 
+DROP POLICY IF EXISTS "Company members can manage documents" ON documents;
 CREATE POLICY "Company members can manage documents" ON documents
   FOR ALL USING (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can manage photos" ON photos;
 CREATE POLICY "Company members can manage photos" ON photos
   FOR ALL USING (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can manage ai results" ON ai_results;
 CREATE POLICY "Company members can manage ai results" ON ai_results
   FOR ALL USING (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can manage notifications" ON notifications;
 CREATE POLICY "Company members can manage notifications" ON notifications
   FOR ALL USING (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Company members can view service catalog" ON service_catalog;
 CREATE POLICY "Company members can view service catalog" ON service_catalog
   FOR ALL USING (company_id = get_user_company_id());
 
@@ -540,15 +612,19 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS companies_updated_at ON companies;
 CREATE TRIGGER companies_updated_at BEFORE UPDATE ON companies
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
+DROP TRIGGER IF EXISTS profiles_updated_at ON profiles;
 CREATE TRIGGER profiles_updated_at BEFORE UPDATE ON profiles
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
+DROP TRIGGER IF EXISTS customers_updated_at ON customers;
 CREATE TRIGGER customers_updated_at BEFORE UPDATE ON customers
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
+DROP TRIGGER IF EXISTS jobs_updated_at ON jobs;
 CREATE TRIGGER jobs_updated_at BEFORE UPDATE ON jobs
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
@@ -566,11 +642,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS jobs_calculate_profit ON jobs;
 CREATE TRIGGER jobs_calculate_profit BEFORE INSERT OR UPDATE ON jobs
   FOR EACH ROW EXECUTE FUNCTION calculate_job_profit();
 
 -- Vendor PO Records (CD Maintenance / Facil-IT PDF imports)
-CREATE TABLE vendor_po_records (
+CREATE TABLE IF NOT EXISTS vendor_po_records (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   vendor_po_number TEXT NOT NULL,
@@ -606,11 +683,12 @@ CREATE TABLE vendor_po_records (
   UNIQUE(company_id, vendor_po_number)
 );
 
-CREATE INDEX idx_vendor_po_company ON vendor_po_records(company_id);
-CREATE INDEX idx_vendor_po_number ON vendor_po_records(vendor_po_number);
+CREATE INDEX IF NOT EXISTS idx_vendor_po_company ON vendor_po_records(company_id);
+CREATE INDEX IF NOT EXISTS idx_vendor_po_number ON vendor_po_records(vendor_po_number);
 
 ALTER TABLE vendor_po_records ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Company members can manage vendor PO records" ON vendor_po_records;
 CREATE POLICY "Company members can manage vendor PO records" ON vendor_po_records
   FOR ALL USING (company_id = get_user_company_id());
 
@@ -636,7 +714,7 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- Portal magic links (customer / property manager access)
-CREATE TABLE portal_tokens (
+CREATE TABLE IF NOT EXISTS portal_tokens (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
@@ -647,16 +725,17 @@ CREATE TABLE portal_tokens (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_portal_tokens_company ON portal_tokens(company_id);
-CREATE INDEX idx_portal_tokens_token ON portal_tokens(token);
+CREATE INDEX IF NOT EXISTS idx_portal_tokens_company ON portal_tokens(company_id);
+CREATE INDEX IF NOT EXISTS idx_portal_tokens_token ON portal_tokens(token);
 
 ALTER TABLE portal_tokens ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Company members can manage portal tokens" ON portal_tokens;
 CREATE POLICY "Company members can manage portal tokens" ON portal_tokens
   FOR ALL USING (company_id = get_user_company_id());
 
 -- Team invites
-CREATE TABLE team_invites (
+CREATE TABLE IF NOT EXISTS team_invites (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   email TEXT NOT NULL,
@@ -668,11 +747,12 @@ CREATE TABLE team_invites (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_team_invites_company ON team_invites(company_id);
-CREATE INDEX idx_team_invites_token ON team_invites(token);
+CREATE INDEX IF NOT EXISTS idx_team_invites_company ON team_invites(company_id);
+CREATE INDEX IF NOT EXISTS idx_team_invites_token ON team_invites(token);
 
 ALTER TABLE team_invites ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Company members can manage team invites" ON team_invites;
 CREATE POLICY "Company members can manage team invites" ON team_invites
   FOR ALL USING (company_id = get_user_company_id());
 
@@ -793,7 +873,7 @@ BEGIN
 END;
 $$;
 
-CREATE TABLE customer_reviews (
+CREATE TABLE IF NOT EXISTS customer_reviews (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
@@ -802,11 +882,12 @@ CREATE TABLE customer_reviews (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_customer_reviews_company ON customer_reviews(company_id);
-CREATE INDEX idx_customer_reviews_customer ON customer_reviews(customer_id);
+CREATE INDEX IF NOT EXISTS idx_customer_reviews_company ON customer_reviews(company_id);
+CREATE INDEX IF NOT EXISTS idx_customer_reviews_customer ON customer_reviews(customer_id);
 
 ALTER TABLE customer_reviews ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Company members can view customer reviews" ON customer_reviews;
 CREATE POLICY "Company members can view customer reviews" ON customer_reviews
   FOR SELECT USING (company_id = get_user_company_id());
 
@@ -965,7 +1046,7 @@ $$;
 GRANT EXECUTE ON FUNCTION accept_team_invite(TEXT) TO authenticated;
 
 -- Time entries (technician clock in/out)
-CREATE TABLE time_entries (
+CREATE TABLE IF NOT EXISTS time_entries (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
@@ -978,11 +1059,12 @@ CREATE TABLE time_entries (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_time_entries_company ON time_entries(company_id);
-CREATE INDEX idx_time_entries_job ON time_entries(job_id);
+CREATE INDEX IF NOT EXISTS idx_time_entries_company ON time_entries(company_id);
+CREATE INDEX IF NOT EXISTS idx_time_entries_job ON time_entries(job_id);
 
 ALTER TABLE time_entries ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Company members can manage time entries" ON time_entries;
 CREATE POLICY "Company members can manage time entries" ON time_entries
   FOR ALL USING (company_id = get_user_company_id());
 
@@ -991,24 +1073,28 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('handymanos', 'handymanos', false)
 ON CONFLICT (id) DO UPDATE SET public = false;
 
+DROP POLICY IF EXISTS "Company members can read files" ON storage.objects;
 CREATE POLICY "Company members can read files" ON storage.objects
   FOR SELECT USING (
     bucket_id = 'handymanos'
     AND (storage.foldername(name))[1] = get_user_company_id()::text
   );
 
+DROP POLICY IF EXISTS "Company members can upload files" ON storage.objects;
 CREATE POLICY "Company members can upload files" ON storage.objects
   FOR INSERT WITH CHECK (
     bucket_id = 'handymanos'
     AND (storage.foldername(name))[1] = get_user_company_id()::text
   );
 
+DROP POLICY IF EXISTS "Company members can update files" ON storage.objects;
 CREATE POLICY "Company members can update files" ON storage.objects
   FOR UPDATE USING (
     bucket_id = 'handymanos'
     AND (storage.foldername(name))[1] = get_user_company_id()::text
   );
 
+DROP POLICY IF EXISTS "Company members can delete files" ON storage.objects;
 CREATE POLICY "Company members can delete files" ON storage.objects
   FOR DELETE USING (
     bucket_id = 'handymanos'

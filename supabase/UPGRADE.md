@@ -1,7 +1,7 @@
 # Supabase schema upgrades
 
 HandymanOS AI ships a single canonical schema: [`schema.sql`](./schema.sql).  
-For existing projects, **re-run the full file** in the Supabase SQL Editor (idempotent `CREATE OR REPLACE` / `IF NOT EXISTS` where possible).
+For existing projects, **re-run the full file** in the Supabase SQL Editor — it is **idempotent** (`IF NOT EXISTS`, `CREATE OR REPLACE`, `DROP POLICY IF EXISTS`).
 
 ## Fresh install
 
