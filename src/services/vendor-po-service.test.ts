@@ -1,5 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { getVendorPOs, saveVendorPO, saveVendorPOBatch, deleteVendorPO } from './vendor-po-service'
+import {
+  getVendorPOs,
+  saveVendorPO,
+  saveVendorPOBatch,
+  deleteVendorPO,
+  VendorPoDuplicateError,
+  isVendorPoDuplicateError,
+} from './vendor-po-service'
 import type { VendorPOInput } from '@/types/vendor-po'
 
 vi.mock('@/lib/supabase', () => ({
@@ -49,13 +56,15 @@ describe('vendor-po-service', () => {
     expect(list[0]?.id).toBe(saved.id)
   })
 
-  it('upserts duplicate vendor PO numbers for the same company', async () => {
-    const first = await saveVendorPO(sampleInput)
-    const second = await saveVendorPO({ ...sampleInput, work_summary: 'Updated summary' })
-    expect(second.id).toBe(first.id)
-    expect(second.work_summary).toBe('Updated summary')
+  it('rejects duplicate vendor PO numbers for the same company', async () => {
+    await saveVendorPO(sampleInput)
+    await expect(saveVendorPO({ ...sampleInput, work_summary: 'Updated summary' }))
+      .rejects
+      .toBeInstanceOf(VendorPoDuplicateError)
     const list = await getVendorPOs(COMPANY_ID)
     expect(list).toHaveLength(1)
+    expect(list[0]?.work_summary).toBe('Ceiling tile replace')
+    expect(isVendorPoDuplicateError(new VendorPoDuplicateError('207872-02'))).toBe(true)
   })
 
   it('saveVendorPOBatch saves multiple records', async () => {

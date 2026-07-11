@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.6] — 2026-07-11
+
+Block duplicate Vendor PO uploads.
+
+### Phase 149 — Duplicate PO guard
+- Reject upload when `vendor_po_number` already exists for the company
+- Detect duplicates within the same multi-file batch
+- User message: «Наряд 210071-01 уже загружен»
+- E2E: re-upload same PDF is rejected
+
 ## [1.14.5] — 2026-07-11
 
 Fix Facil-IT Vendor PO service location parsing (e.g. PO 210071-01 Loc # 17900).

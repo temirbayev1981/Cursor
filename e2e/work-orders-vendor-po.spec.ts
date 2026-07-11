@@ -63,4 +63,18 @@ test.describe('Work orders vendor PO', () => {
     await expect(page.getByText('207872-02').first()).toBeVisible()
     await expect(page.getByText('210214-01').first()).toBeVisible()
   })
+
+  test('rejects duplicate vendor PO upload', async ({ page }) => {
+    await page.goto('/work-orders')
+
+    const dropzone = page.getByTestId('work-orders-vendor-po-dropzone')
+    const input = dropzone.locator('input[type="file"]')
+    await input.setInputFiles('e2e/fixtures/vendor-po-sample.pdf')
+    await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('vendor-po-record-count')).toHaveText('1', { timeout: 10000 })
+
+    await input.setInputFiles('e2e/fixtures/vendor-po-sample.pdf')
+    await expect(page.getByText(/207872-02.*уже загружен|207872-02.*already uploaded/i).first()).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('vendor-po-record-count')).toHaveText('1', { timeout: 10000 })
+  })
 })
