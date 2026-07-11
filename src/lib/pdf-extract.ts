@@ -1,14 +1,14 @@
+import * as pdfjsLib from 'pdfjs-dist'
 import { ocrImagesToText } from '@/lib/pdf-ocr'
 import { hasOpenAI } from '@/lib/env'
 import { getErrorMessage } from '@/lib/error-message'
 
-type PdfJsModule = typeof import('pdfjs-dist')
-type PdfDocument = Awaited<ReturnType<PdfJsModule['getDocument']>['promise']>
+type PdfDocument = Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>
 
 const OCR_MAX_PAGES = 2
 const OCR_RENDER_SCALE = 1.5
 
-let pdfjsReady: Promise<PdfJsModule> | null = null
+let pdfjsConfigured = false
 
 function normalizeBasePath(): string {
   const base = import.meta.env.BASE_URL || '/'
@@ -21,24 +21,25 @@ export function bundledWorkerSrc(): string {
   return new URL(workerPath, window.location.origin).href
 }
 
-async function configurePdfWorker(pdfjsLib: PdfJsModule): Promise<void> {
+/** iOS/iPadOS Safari and other touch browsers cannot reliably run pdf.js module workers. */
+export function prefersNoPdfWorker(): boolean {
+  if (typeof navigator === 'undefined') return false
+  const ua = navigator.userAgent
+  if (/iPhone|iPad|iPod|Android/i.test(ua)) return true
+  // iPadOS 13+ may report as Macintosh with touch points.
+  if (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1) return true
+  return false
+}
+
+function ensurePdfjsConfigured(): void {
+  if (pdfjsConfigured) return
   pdfjsLib.GlobalWorkerOptions.workerPort = null
   pdfjsLib.GlobalWorkerOptions.workerSrc = bundledWorkerSrc()
+  pdfjsConfigured = true
 }
 
-async function getPdfjs(): Promise<PdfJsModule> {
-  if (!pdfjsReady) {
-    pdfjsReady = (async () => {
-      const pdfjsLib = await import('pdfjs-dist')
-      await configurePdfWorker(pdfjsLib)
-      return pdfjsLib
-    })()
-  }
-  return pdfjsReady
-}
-
-function resetPdfjs(): void {
-  pdfjsReady = null
+export function warmUpPdfJs(): void {
+  ensurePdfjsConfigured()
 }
 
 export function isPdfFile(file: File): boolean {
@@ -82,17 +83,25 @@ function pdfDocumentOptions(data: ArrayBuffer | Uint8Array, disableWorker = fals
     useSystemFonts: true,
     useWorkerFetch: false,
     disableFontFace: true,
-    disableWorker,
+    disableWorker: disableWorker || prefersNoPdfWorker(),
   }
 }
 
-async function loadPdfDocument(pdfjsLib: PdfJsModule, buffer: ArrayBuffer): Promise<PdfDocument> {
-  const variants = [
-    pdfDocumentOptions(new Uint8Array(buffer), false),
-    pdfDocumentOptions(buffer, false),
-    pdfDocumentOptions(new Uint8Array(buffer), true),
-    pdfDocumentOptions(buffer, true),
-  ]
+async function loadPdfDocument(buffer: ArrayBuffer): Promise<PdfDocument> {
+  ensurePdfjsConfigured()
+
+  const noWorker = prefersNoPdfWorker()
+  const variants = noWorker
+    ? [
+        pdfDocumentOptions(new Uint8Array(buffer), true),
+        pdfDocumentOptions(buffer, true),
+      ]
+    : [
+        pdfDocumentOptions(new Uint8Array(buffer), false),
+        pdfDocumentOptions(buffer, false),
+        pdfDocumentOptions(new Uint8Array(buffer), true),
+        pdfDocumentOptions(buffer, true),
+      ]
 
   let lastError: unknown
   for (const options of variants) {
@@ -103,15 +112,8 @@ async function loadPdfDocument(pdfjsLib: PdfJsModule, buffer: ArrayBuffer): Prom
     }
   }
 
-  resetPdfjs()
-  const reloaded = await getPdfjs()
-  try {
-    return await reloaded.getDocument(pdfDocumentOptions(new Uint8Array(buffer), true)).promise
-  } catch (retryError) {
-    const detail = getErrorMessage(lastError)
-    const retryDetail = getErrorMessage(retryError)
-    throw new Error(`PDF extract failed: ${detail} (retry: ${retryDetail})`)
-  }
+  const detail = getErrorMessage(lastError)
+  throw new Error(`PDF extract failed: ${detail}`)
 }
 
 async function renderPageToDataUrl(pdf: PdfDocument, pageNumber: number): Promise<string> {
@@ -138,9 +140,8 @@ async function ocrPdfPages(pdf: PdfDocument): Promise<string> {
 }
 
 export async function extractTextFromPdf(file: File): Promise<string> {
-  const pdfjsLib = await getPdfjs()
   const buffer = await readFileBuffer(file)
-  const pdf = await loadPdfDocument(pdfjsLib, buffer)
+  const pdf = await loadPdfDocument(buffer)
 
   const pages: string[] = []
 

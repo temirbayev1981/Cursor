@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Upload, FileText, Mail, Camera, Loader2, Check, Edit, Table2, Database } from 'lucide-react'
+import { AppVersionBadge } from '@/components/shared/app-version-badge'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -15,7 +16,7 @@ import { useWorkOrders } from '@/hooks/use-entities'
 import { saveWorkOrderFromAI } from '@/services/entity-service'
 import { useAuth } from '@/contexts/auth-context'
 import { analyzeWorkOrderPDF, analyzeEmailWorkOrder, analyzePhoto } from '@/lib/ai'
-import { tryExtractTextFromPdf, isPdfFile } from '@/lib/pdf-extract'
+import { tryExtractTextFromPdf, isPdfFile, warmUpPdfJs } from '@/lib/pdf-extract'
 import { isVendorPOText, parseVendorPOText } from '@/lib/vendor-po-parser'
 import { getErrorMessage, isPdfExtractError, isVendorPOSaveError, isVendorPOStorageError } from '@/lib/error-message'
 import { useQueryClient } from '@tanstack/react-query'
@@ -47,6 +48,10 @@ export default function WorkOrdersPage() {
   const saveVendorPOs = useSaveVendorPOs()
   const deleteVendorPO = useDeleteVendorPO()
   const seedVendorPOs = useSeedVendorPOs()
+
+  useEffect(() => {
+    warmUpPdfJs()
+  }, [])
 
   useEffect(() => {
     const seeded = localStorage.getItem('handymanos_vendor_pos_seeded')
@@ -95,13 +100,12 @@ export default function WorkOrdersPage() {
 
     setParsingPdf(true)
     const fileErrors: string[] = []
-    let extractError: string | undefined
     try {
       const parsed = []
       for (const file of pdfFiles) {
         const { fileName, text, error } = await tryExtractTextFromPdf(file)
         if (error) {
-          extractError = `${fileName}: ${error}`
+          console.error('Vendor PO PDF extract failed:', fileName, error)
           fileErrors.push(`${fileName}: ${t.vendorPO.pdfExtractFailed}`)
           continue
         }
@@ -121,11 +125,7 @@ export default function WorkOrdersPage() {
         parsed.push(row)
       }
       if (parsed.length === 0) {
-        if (extractError && isPdfExtractError(extractError)) {
-          toast.error(t.vendorPO.pdfExtractFailed)
-        } else {
-          toast.error(fileErrors.length === 1 ? fileErrors[0] : t.vendorPO.noValidFiles)
-        }
+        toast.error(fileErrors.length === 1 ? fileErrors[0] : t.vendorPO.noValidFiles)
         return
       }
       await saveVendorPOs.mutateAsync(parsed)
@@ -195,6 +195,7 @@ export default function WorkOrdersPage() {
       <PageHeader
         title={t.workOrders.title}
         description={t.workOrders.description}
+        actions={<AppVersionBadge />}
       />
 
       <Tabs defaultValue="vendor-po" className="mb-8">
