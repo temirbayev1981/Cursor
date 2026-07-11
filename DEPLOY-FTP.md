@@ -48,7 +48,7 @@
 | `FTP_HOST` | `ftp.ваш-домен.ru` |
 | `FTP_USER` | логин FTP |
 | `FTP_PASSWORD` | пароль FTP |
-| `FTP_SERVER_DIR` | папка субдомена, напр. `/public_html/app/` |
+| `FTP_SERVER_DIR` | папка субдомена, напр. `/public_html/app/` (слэш в конце добавится автоматически) |
 
 ### Обязательные (Supabase)
 
