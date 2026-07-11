@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { parseVendorPOText, isVendorPOText, normalizeVendorPOText } from '@/lib/vendor-po-parser'
 import FACILIT_FLATTENED from './__fixtures__/vendor-po-210072-extracted.txt?raw'
+import VENDOR_PO_210071 from './__fixtures__/vendor-po-210071-extracted.txt?raw'
 
 const SAMPLE_PO = `VENDOR PO # Service Date
 Client PO # 350531955
@@ -80,6 +81,19 @@ Call from site`
     expect(result.nte_amount).toBe(115)
     expect(result.service_location_name).toContain('Walgreen')
     expect(result.service_address).toContain('3101 New Bern Ave')
+  })
+
+  it('parses Facil-IT Walgreens PO 210071-01 service location Loc # 17900', () => {
+    expect(isVendorPOText(VENDOR_PO_210071)).toBe(true)
+    const result = parseVendorPOText(VENDOR_PO_210071, 'VendorPO-210071-01.pdf', 'comp-001')
+    expect(result.vendor_po_number).toBe('210071-01')
+    expect(result.service_location_name).toContain('Walgreen Drug Store')
+    expect(result.location_number).toBe('17900')
+    expect(result.service_address).toContain('3465 S CHURCH ST')
+    expect(result.service_city).toBe('Burlington')
+    expect(result.service_state).toBe('NC')
+    expect(result.service_zip).toBe('27215-9111')
+    expect(result.service_phone).toBe('336-584-3374')
   })
 
   it('parses P1 emergency priority', () => {
