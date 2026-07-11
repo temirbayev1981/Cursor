@@ -2,7 +2,12 @@ import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { ocrImagesToText } from '@/lib/pdf-ocr'
 import { hasOpenAI } from '@/lib/env'
 import { getErrorMessage } from '@/lib/error-message'
-import { canExtractPdfOnServer, extractTextFromPdfServer } from '@/lib/pdf-extract-server'
+import { extractTextFromPdfCdn } from '@/lib/pdf-extract-cdn'
+import {
+  canExtractPdfOnServer,
+  extractTextFromPdfServer,
+  isServerPdfExtractAvailable,
+} from '@/lib/pdf-extract-server'
 
 type PdfDocument = Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>
 
@@ -27,7 +32,6 @@ export function prefersNoPdfWorker(): boolean {
   if (typeof navigator === 'undefined') return false
   const ua = navigator.userAgent
   if (/iPhone|iPad|iPod|Android/i.test(ua)) return true
-  // iPadOS 13+ may report as Macintosh with touch points.
   if (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1) return true
   return false
 }
@@ -169,9 +173,27 @@ async function extractTextFromPdfClient(file: File): Promise<string> {
   }
 }
 
+async function extractTextFromPdfMobile(file: File): Promise<string> {
+  if (canExtractPdfOnServer() && await isServerPdfExtractAvailable()) {
+    try {
+      return await extractTextFromPdfServer(file)
+    } catch (serverErr) {
+      console.warn('Server PDF extract failed, trying CDN pdf.js:', getErrorMessage(serverErr))
+    }
+  }
+
+  try {
+    return await extractTextFromPdfCdn(file)
+  } catch (cdnErr) {
+    console.warn('CDN PDF extract failed, trying bundled pdf.js:', getErrorMessage(cdnErr))
+  }
+
+  return extractTextFromPdfClient(file)
+}
+
 export async function extractTextFromPdf(file: File): Promise<string> {
-  if (prefersNoPdfWorker() && canExtractPdfOnServer()) {
-    return await extractTextFromPdfServer(file)
+  if (prefersNoPdfWorker()) {
+    return extractTextFromPdfMobile(file)
   }
 
   try {
