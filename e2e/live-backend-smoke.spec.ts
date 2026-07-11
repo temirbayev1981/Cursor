@@ -25,7 +25,7 @@ test.describe('Live backend smoke', () => {
 
   test('instructions page loads user guide', async ({ page }) => {
     await page.goto('/instructions')
-    await expect(page.getByRole('heading', { name: /руководство|user guide/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /руководство пользователя|user guide/i }).first()).toBeVisible()
     await expect(page.locator('.instructions-doc')).toBeVisible({ timeout: 15000 })
   })
 

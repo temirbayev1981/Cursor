@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test.describe('Instructions page', () => {
   test('renders formatted user guide with table of contents', async ({ page }) => {
     await page.goto('/instructions')
-    await expect(page.getByRole('heading', { name: /руководство|user guide/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /руководство пользователя|user guide/i }).first()).toBeVisible()
     await expect(page.locator('.instructions-doc h2, .instructions-doc h3').first()).toBeVisible({ timeout: 10000 })
     await expect(page.getByTestId('instructions-toc')).toBeVisible({ timeout: 10000 })
   })
