@@ -94,4 +94,76 @@ Call from site`
     const result = parseVendorPOText(text, 'vendor-po-emergency.pdf', 'comp-001')
     expect(result.priority).toBe('P1 - EMERGENCY')
   })
+
+  it('parses OpenAI multiline Facil-IT service location', () => {
+    const text = `VENDOR PO # 210379-01
+Client PO # 355708360
+Priority P30
+Order Type REPAIR
+SERVICE LOCATION
+Walgreen Drug Store - Loc # 09635
+3101 New Bern Ave
+Raleigh, NC 27610-1216
+Phone # 919-231-5074
+ReadyFix
+929 15th Street Southeast
+Hickory, NC 28602
+Phone # 980-252-3295
+VENDOR # 1005635
+SERVICE DESCRIPTION
+Fence repair
+SPECIAL INSTRUCTIONS
+Call from site`
+    const result = parseVendorPOText(text, 'VendorPO-210379-01.pdf', 'comp-001')
+    expect(result.service_location_name).toContain('Walgreen')
+    expect(result.service_address).toContain('3101 New Bern Ave')
+    expect(result.service_city).toBe('Raleigh')
+    expect(result.service_state).toBe('NC')
+    expect(result.service_zip).toBe('27610-1216')
+  })
+
+  it('parses OpenAI multiline CD Maintenance service location', () => {
+    const text = `VENDOR PO # Service Date
+Client PO # 350531955
+207872-02
+Priority P30
+Order Type REPLACE
+SERVICE LOCATION VENDOR # 1005635
+Walgreen Drug Store - Loc # 09090
+317 Main St
+Graham, NC 27253-3319
+Phone # 336-222-6862
+ReadyFix
+929 15th Street Southeast
+Hickory, NC 28602
+Phone # 980-252-3295
+SERVICE DESCRIPTION
+BUILDING INTERIOR repair
+SPECIAL INSTRUCTIONS
+TECH MUST CALL`
+    const result = parseVendorPOText(text, 'vendor-po-sample.pdf', 'comp-001')
+    expect(result.service_address).toContain('317 Main St')
+    expect(result.service_city).toBe('Graham')
+    expect(result.location_number).toBe('09090')
+  })
+
+  it('parses multi-word city names in service location', () => {
+    const text = `SERVICE LOCATION VENDOR # 1005635
+Walgreen Drug Store - Loc # 09090
+100 S Main St
+New Bern, NC 28560-1234
+Phone # 336-222-6862
+ReadyFix
+929 15th Street Southeast
+Hickory, NC 28602
+Phone # 980-252-3295
+SERVICE DESCRIPTION
+BUILDING repair
+SPECIAL INSTRUCTIONS
+Call from site`
+    const result = parseVendorPOText(text, 'vendor-po.pdf', 'comp-001')
+    expect(result.service_address).toContain('100 S Main St')
+    expect(result.service_city).toBe('New Bern')
+    expect(result.service_zip).toBe('28560-1234')
+  })
 })
