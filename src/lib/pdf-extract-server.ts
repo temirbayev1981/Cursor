@@ -1,4 +1,4 @@
-import { getExtractPdfEndpoint, getOpenAIEndpoint, hasSupabase, isE2eMockBackend } from '@/lib/env'
+import { getExtractPdfEndpoint, hasSupabase, isE2eMockBackend } from '@/lib/env'
 import { getSupabaseAuthHeaders } from '@/lib/supabase'
 import { getErrorMessage } from '@/lib/error-message'
 
@@ -26,17 +26,8 @@ async function fileToBase64(file: File): Promise<string> {
   })
 }
 
-function serverEndpoints(): { url: string; extractPdf?: boolean }[] {
-  const endpoints: { url: string; extractPdf?: boolean }[] = []
-  const openai = getOpenAIEndpoint()
-  if (openai) endpoints.push({ url: openai, extractPdf: true })
-  const dedicated = getExtractPdfEndpoint()
-  if (dedicated && dedicated !== openai) endpoints.push({ url: dedicated })
-  return endpoints
-}
-
 export function canExtractPdfOnServer(): boolean {
-  return serverEndpoints().length > 0 && hasSupabase && !isE2eMockBackend
+  return Boolean(getExtractPdfEndpoint()) && hasSupabase && !isE2eMockBackend
 }
 
 function readProbeCache(): boolean | null {
@@ -64,7 +55,7 @@ export async function isServerPdfExtractAvailable(): Promise<boolean> {
   const cached = readProbeCache()
   if (cached !== null) return cached
 
-  const endpoint = getOpenAIEndpoint() ?? getExtractPdfEndpoint()
+  const endpoint = getExtractPdfEndpoint()
   if (!endpoint) {
     writeProbeCache(false)
     return false
@@ -75,7 +66,7 @@ export async function isServerPdfExtractAvailable(): Promise<boolean> {
     const res = await fetch(endpoint, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ extractPdf: true, pdfBase64: 'AA==' }),
+      body: JSON.stringify({ pdfBase64: 'AA==' }),
     })
     const available = res.status !== 404
     writeProbeCache(available)
@@ -86,16 +77,12 @@ export async function isServerPdfExtractAvailable(): Promise<boolean> {
   }
 }
 
-async function postPdfExtract(
-  endpoint: string,
-  pdfBase64: string,
-  extractPdf?: boolean,
-): Promise<string> {
+async function postPdfExtract(endpoint: string, pdfBase64: string): Promise<string> {
   const headers = await getSupabaseAuthHeaders()
   const res = await fetch(endpoint, {
     method: 'POST',
     headers,
-    body: JSON.stringify(extractPdf ? { extractPdf: true, pdfBase64 } : { pdfBase64 }),
+    body: JSON.stringify({ pdfBase64 }),
   })
 
   const json = await res.json().catch(() => ({})) as {
@@ -123,23 +110,13 @@ export async function extractTextFromPdfServer(file: File): Promise<string> {
     throw new Error(`PDF exceeds ${MAX_PDF_BYTES} byte limit`)
   }
 
-  const pdfBase64 = await fileToBase64(file)
-  const endpoints = serverEndpoints()
-  if (endpoints.length === 0) {
+  const endpoint = getExtractPdfEndpoint()
+  if (!endpoint) {
     throw new Error('Server PDF extract endpoint not configured')
   }
 
-  let lastError: unknown
-  for (const { url, extractPdf } of endpoints) {
-    try {
-      return await postPdfExtract(url, pdfBase64, extractPdf)
-    } catch (err) {
-      lastError = err
-      console.warn('PDF server extract attempt failed:', url, getErrorMessage(err))
-    }
-  }
-
-  throw lastError instanceof Error ? lastError : new Error(getErrorMessage(lastError))
+  const pdfBase64 = await fileToBase64(file)
+  return postPdfExtract(endpoint, pdfBase64)
 }
 
 export function serverExtractErrorMessage(err: unknown): string {

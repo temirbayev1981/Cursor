@@ -1,4 +1,4 @@
-// Server-side PDF text extraction — reliable fallback for iOS Safari where client pdf.js fails.
+// Server-side PDF text extraction via OpenAI (lightweight — no pdf.js bundle).
 // Deploy: supabase functions deploy extract-pdf-text
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
@@ -26,6 +26,10 @@ serve(async (req) => {
     }
 
     const openaiKey = Deno.env.get('OPENAI_API_KEY')
+    if (!openaiKey) {
+      return jsonResponse({ error: 'OPENAI_API_KEY not configured' }, 500)
+    }
+
     const text = await extractVendorPoPdfText(pdfBase64, openaiKey)
     return jsonResponse({ text })
   } catch (err) {

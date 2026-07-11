@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.1] — 2026-07-11
+
+Fix Edge Function deploy 413 — remove pdf.js from openai-proxy.
+
+### Phase 144 — Lightweight extract-pdf-text
+- `openai-proxy` reverted to slim bundle (no pdf.js — was 31 MB, caused 413)
+- `extract-pdf-text` uses **OpenAI-only** PDF text extraction (no pdfjs-dist)
+- Client calls `extract-pdf-text` only (not openai-proxy extractPdf)
+- **211** unit tests
+
 ## [1.14.0] — 2026-07-11
 
 iOS Vendor PO PDF — CDN pdf.js fallback when Supabase Edge Functions missing.

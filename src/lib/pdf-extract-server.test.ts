@@ -40,7 +40,7 @@ describe('pdf-extract-server', () => {
     expect(fetch).toHaveBeenCalledTimes(1)
   })
 
-  it('extractTextFromPdfServer posts extractPdf to openai-proxy first', async () => {
+  it('extractTextFromPdfServer posts pdfBase64 to extract-pdf-text', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       new Response(JSON.stringify({ text: 'VENDOR PO # 210379-01' }), { status: 200 }),
     )
@@ -49,7 +49,12 @@ describe('pdf-extract-server', () => {
     const text = await extractTextFromPdfServer(file)
 
     expect(text).toContain('210379-01')
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://example.test/functions/v1/extract-pdf-text',
+      expect.objectContaining({ method: 'POST' }),
+    )
     const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))
-    expect(body.extractPdf).toBe(true)
+    expect(body.pdfBase64).toBeTruthy()
+    expect(body.extractPdf).toBeUndefined()
   })
 })

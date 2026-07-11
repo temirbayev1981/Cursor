@@ -1048,10 +1048,23 @@ if (existsSync('supabase/functions/extract-pdf-text/index.ts')) {
 const openaiProxy = existsSync('supabase/functions/openai-proxy/index.ts')
   ? readFileSync('supabase/functions/openai-proxy/index.ts', 'utf8')
   : ''
-if (openaiProxy.includes('extractPdf') && openaiProxy.includes('pdfBase64')) {
-  console.log('✓ openai-proxy supports extractPdf for iOS Vendor PO PDF')
+if (openaiProxy.includes('extractPdf')) {
+  console.log('✗ openai-proxy must not bundle pdf.js (extractPdf removed — use extract-pdf-text)')
+  ok = false
 } else {
-  console.log('✗ openai-proxy must support extractPdf + pdfBase64')
+  console.log('✓ openai-proxy stays lightweight (no pdf.js bundle)')
+}
+
+const extractPdfFn = existsSync('supabase/functions/extract-pdf-text/index.ts')
+  ? readFileSync('supabase/functions/extract-pdf-text/index.ts', 'utf8')
+  : ''
+const sharedPdfExtract = existsSync('supabase/functions/_shared/pdf-extract.ts')
+  ? readFileSync('supabase/functions/_shared/pdf-extract.ts', 'utf8')
+  : ''
+if (extractPdfFn && sharedPdfExtract.includes('extractTextFromPdfWithOpenAI') && !sharedPdfExtract.includes('pdfjs-dist')) {
+  console.log('✓ extract-pdf-text uses OpenAI-only PDF extract (no pdf.js)')
+} else {
+  console.log('✗ extract-pdf-text must use OpenAI-only shared pdf-extract (no pdfjs-dist)')
   ok = false
 }
 
