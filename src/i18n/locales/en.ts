@@ -270,6 +270,7 @@ export const en: TranslationKeys = {
     location: 'Location',
     address: 'Address',
     problemDescription: 'Problem description',
+    problemDescriptionTranslating: 'Translating…',
     workScope: 'Work Scope',
     uploaded: 'Uploaded',
     details: 'Order Details',

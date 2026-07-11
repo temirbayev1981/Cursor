@@ -1,5 +1,5 @@
 import type { VendorPORecord } from '@/types/vendor-po'
-import { getProblemDescriptionRu } from '@/lib/vendor-po-problem'
+import { getProblemDescriptionEn, getProblemDescriptionRu } from '@/lib/vendor-po-problem'
 import type { Job, Customer, Employee, Estimate, Invoice } from '@/types'
 import type { ChartDataPoint } from '@/lib/analytics'
 import { computeTechnicianPerformance, computeServiceProfitability, computeReportSummary } from '@/lib/analytics'
@@ -28,7 +28,7 @@ export async function exportVendorPOsToExcel(records: VendorPORecord[], filename
     'Штат': r.service_state,
     'ZIP': r.service_zip,
     'Телефон': r.service_phone,
-    'Описание проблемы': getProblemDescriptionRu(r),
+    'Описание проблемы': getProblemDescriptionRu(r) || getProblemDescriptionEn(r),
     'Объём работ': r.work_summary,
     'Категория': r.service_category,
     'Заказчик': r.client_company,

@@ -6,5 +6,11 @@ export function getProblemDescriptionEn(row: VendorPORecord): string {
 }
 
 export function getProblemDescriptionRu(row: VendorPORecord, translated?: string): string {
-  return row.problem_description_ru || translated || getProblemDescriptionEn(row)
+  return row.problem_description_ru || translated || ''
+}
+
+export function needsProblemDescriptionTranslation(row: VendorPORecord): boolean {
+  if (row.problem_description_ru) return false
+  const en = getProblemDescriptionEn(row)
+  return Boolean(en && /[a-z]/i.test(en))
 }

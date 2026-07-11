@@ -13,9 +13,10 @@ import { useWorkflow } from '@/contexts/workflow-context'
 import { useAuth } from '@/contexts/auth-context'
 import { requireCompanyId } from '@/hooks/use-company-scope'
 import { exportVendorPOsToExcel, groupVendorPOsByAddress } from '@/lib/export'
-import { getProblemDescriptionEn, getProblemDescriptionRu } from '@/lib/vendor-po-problem'
+import { getProblemDescriptionEn, getProblemDescriptionRu, needsProblemDescriptionTranslation } from '@/lib/vendor-po-problem'
 import { normalizeVendorPORecord } from '@/lib/vendor-po-record'
 import { translateProblemDescriptionToRussian } from '@/lib/vendor-po-translate'
+import { updateVendorPOProblemRu } from '@/services/vendor-po-service'
 import { toast } from 'sonner'
 
 interface VendorPOTableProps {
@@ -32,6 +33,7 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
   const [selected, setSelected] = useState<VendorPORecord | null>(null)
   const [cellHint, setCellHint] = useState<{ title: string; text: string } | null>(null)
   const [problemTranslations, setProblemTranslations] = useState<Record<string, string>>({})
+  const [translatingProblemIds, setTranslatingProblemIds] = useState<Set<string>>(new Set())
   const attemptedProblemIds = useRef(new Set<string>())
   const dateLocale = useDateLocale()
 
@@ -39,13 +41,19 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
     let cancelled = false
     void (async () => {
       for (const row of records) {
-        if (cancelled || row.problem_description_ru || attemptedProblemIds.current.has(row.id)) continue
+        if (cancelled || !needsProblemDescriptionTranslation(row) || attemptedProblemIds.current.has(row.id)) continue
         const en = getProblemDescriptionEn(row)
-        if (!en || !/[a-z]/i.test(en)) continue
         attemptedProblemIds.current.add(row.id)
+        setTranslatingProblemIds((prev) => new Set(prev).add(row.id))
         const ru = await translateProblemDescriptionToRussian(en)
+        setTranslatingProblemIds((prev) => {
+          const next = new Set(prev)
+          next.delete(row.id)
+          return next
+        })
         if (cancelled || !ru) continue
         setProblemTranslations((prev) => ({ ...prev, [row.id]: ru }))
+        void updateVendorPOProblemRu(row.id, ru).catch(() => undefined)
       }
     })()
     return () => {
@@ -115,6 +123,7 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
           const priority = row.priority
           const isEmergency = priority.includes('EMERGENCY') || priority.startsWith('P1')
           const problemRu = getProblemDescriptionRu(row, problemTranslations[row.id])
+          const isTranslatingProblem = translatingProblemIds.has(row.id) && !problemRu
           return (
             <DataTableRow key={row.id} className={isEmergency ? 'bg-destructive/5' : ''}>
               <DataTableCell className="font-mono font-medium whitespace-nowrap">
@@ -156,6 +165,10 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
                   >
                     {problemRu}
                   </button>
+                ) : isTranslatingProblem ? (
+                  <span className="text-muted-foreground italic" data-testid={`vendor-po-problem-translating-${row.id}`}>
+                    {t.vendorPO.problemDescriptionTranslating}
+                  </span>
                 ) : (
                   <span className="text-muted-foreground">—</span>
                 )}

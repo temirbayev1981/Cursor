@@ -268,6 +268,7 @@ export const ru = {
     location: 'Объект',
     address: 'Адрес',
     problemDescription: 'Описание проблемы',
+    problemDescriptionTranslating: 'Перевод…',
     workScope: 'Объём работ',
     uploaded: 'Загружен',
     details: 'Детали наряда',
