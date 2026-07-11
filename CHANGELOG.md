@@ -2,6 +2,10 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.13.6] — 2026-07-11
+
+iOS Vendor PO PDF import hardening + dashboard version badge.
+
 ## [1.13.5] — 2026-07-11
 
 Production bug-fix audit — data integrity, notifications, PWA, security.
@@ -23,6 +27,14 @@ Production bug-fix audit — data integrity, notifications, PWA, security.
 ### Phase 138 — Dashboard version badge
 - Main dashboard shows app version + UTC build timestamp (`VITE_BUILD_TIME` from CI)
 - Deploy workflows inject build time on FTP and GitHub Pages builds
+
+### Phase 139 — iOS PDF import hardening
+- PDF worker URL always resolved from site origin (not current route path)
+- Mobile/iOS: `disableWorker` first, `FileReader` fallback for `arrayBuffer()`
+- Per-file PDF extract errors (no whole-batch failure); clearer extract vs parse toasts
+- Service worker v4: network-first for `/assets/*` hashed bundles (no stale PDF code)
+- Truncate large vendor PO text fields before localStorage save
+- Mobile E2E: iPhone viewport uploads `vendor-po-210072-01.pdf`
 
 ### Phase 131 — Audit bug fixes
 - Entity cache: `mergeStoreById` preserves multi-tenant offline data on sync

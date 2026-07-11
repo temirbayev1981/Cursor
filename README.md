@@ -54,7 +54,7 @@ npm run test:e2e
 
 Open [http://localhost:5173](http://localhost:5173) after configuring Supabase (see below).
 
-**Current version:** 1.13.5 — see [RELEASE.md](./RELEASE.md) and [CHANGELOG.md](./CHANGELOG.md).
+**Current version:** 1.13.6 — see [RELEASE.md](./RELEASE.md) and [CHANGELOG.md](./CHANGELOG.md).
 
 Copy `.env.example` to `.env.local` and set **Supabase** credentials (required). Add Stripe, maps, and notification webhooks for full production features.
 

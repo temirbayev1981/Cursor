@@ -1,14 +1,14 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = 'handymanos-v3'
+const CACHE_NAME = 'handymanos-v4'
 const SHELL = ['/', '/index.html', '/manifest.json', '/favicon.svg']
 
 function isNavigationRequest(request) {
   return request.mode === 'navigate' || SHELL.includes(new URL(request.url).pathname)
 }
 
-function isCacheableAsset(pathname) {
-  return pathname.endsWith('.js') || pathname.endsWith('.css') || pathname.endsWith('.woff2')
+function isHashedAsset(pathname) {
+  return pathname.startsWith('/assets/') && (pathname.endsWith('.js') || pathname.endsWith('.css'))
 }
 
 self.addEventListener('install', (event) => {
@@ -46,16 +46,23 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
+  // Hashed bundles: network-first — stale chunk cache caused old PDF logic on mobile
+  if (isHashedAsset(url.pathname)) {
+    event.respondWith(
+      fetch(event.request)
+        .then((res) => {
+          if (res.ok) {
+            const clone = res.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
+          }
+          return res
+        })
+        .catch(() => caches.match(event.request))
+    )
+    return
+  }
+
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const network = fetch(event.request).then((res) => {
-        if (res.ok && isCacheableAsset(url.pathname)) {
-          const clone = res.clone()
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
-        }
-        return res
-      })
-      return cached || network
-    })
+    caches.match(event.request).then((cached) => cached || fetch(event.request))
   )
 })

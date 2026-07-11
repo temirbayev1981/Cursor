@@ -212,7 +212,7 @@ export function parseVendorPOText(text: string, fileName: string, companyId: str
   const serviceDescription = extractSection(normalized, 'SERVICE DESCRIPTION', [
     'SPECIAL INSTRUCTIONS',
     'Print Date:',
-  ])
+  ]).slice(0, 4000)
 
   const specialInstructions = extractSection(normalized, 'SPECIAL INSTRUCTIONS', [
     'Print Date:',

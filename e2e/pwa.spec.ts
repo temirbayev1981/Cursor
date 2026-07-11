@@ -11,7 +11,7 @@ test.describe('PWA assets', () => {
     const sw = await request.get('/sw.js')
     expect(sw.ok()).toBeTruthy()
     const swText = await sw.text()
-    expect(swText).toContain('handymanos-v3')
+    expect(swText).toContain('handymanos-v4')
   })
 
   test('service worker registers after page load', async ({ page }) => {

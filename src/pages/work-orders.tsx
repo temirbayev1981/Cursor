@@ -15,9 +15,9 @@ import { useWorkOrders } from '@/hooks/use-entities'
 import { saveWorkOrderFromAI } from '@/services/entity-service'
 import { useAuth } from '@/contexts/auth-context'
 import { analyzeWorkOrderPDF, analyzeEmailWorkOrder, analyzePhoto } from '@/lib/ai'
-import { extractTextFromPdfFiles, isPdfFile } from '@/lib/pdf-extract'
+import { tryExtractTextFromPdf, isPdfFile } from '@/lib/pdf-extract'
 import { isVendorPOText, parseVendorPOText } from '@/lib/vendor-po-parser'
-import { getErrorMessage, isPdfExtractError, isVendorPOSaveError } from '@/lib/error-message'
+import { getErrorMessage, isPdfExtractError, isVendorPOSaveError, isVendorPOStorageError } from '@/lib/error-message'
 import { useQueryClient } from '@tanstack/react-query'
 import { useVendorPOs, useSaveVendorPOs, useDeleteVendorPO, useSeedVendorPOs } from '@/hooks/use-vendor-pos'
 import type { AIExtractedData } from '@/types'
@@ -95,10 +95,16 @@ export default function WorkOrdersPage() {
 
     setParsingPdf(true)
     const fileErrors: string[] = []
+    let extractError: string | undefined
     try {
-      const extracted = await extractTextFromPdfFiles(pdfFiles)
       const parsed = []
-      for (const { fileName, text } of extracted) {
+      for (const file of pdfFiles) {
+        const { fileName, text, error } = await tryExtractTextFromPdf(file)
+        if (error) {
+          extractError = `${fileName}: ${error}`
+          fileErrors.push(`${fileName}: ${t.vendorPO.pdfExtractFailed}`)
+          continue
+        }
         if (!text.trim()) {
           fileErrors.push(`${fileName}: ${t.vendorPO.pdfEmpty}`)
           continue
@@ -115,7 +121,11 @@ export default function WorkOrdersPage() {
         parsed.push(row)
       }
       if (parsed.length === 0) {
-        toast.error(fileErrors.length === 1 ? fileErrors[0] : t.vendorPO.noValidFiles)
+        if (extractError && isPdfExtractError(extractError)) {
+          toast.error(t.vendorPO.pdfExtractFailed)
+        } else {
+          toast.error(fileErrors.length === 1 ? fileErrors[0] : t.vendorPO.noValidFiles)
+        }
         return
       }
       await saveVendorPOs.mutateAsync(parsed)
@@ -125,7 +135,7 @@ export default function WorkOrdersPage() {
       }
     } catch (error) {
       const message = getErrorMessage(error)
-      if (isVendorPOSaveError(message)) {
+      if (isVendorPOSaveError(message) || isVendorPOStorageError(message)) {
         toast.error(t.vendorPO.saveError)
       } else if (isPdfExtractError(message)) {
         toast.error(t.vendorPO.pdfExtractFailed)

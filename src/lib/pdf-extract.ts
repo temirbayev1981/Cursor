@@ -1,5 +1,6 @@
 import { ocrImagesToText } from '@/lib/pdf-ocr'
 import { hasOpenAI } from '@/lib/env'
+import { getErrorMessage } from '@/lib/error-message'
 
 type PdfJsModule = typeof import('pdfjs-dist')
 type PdfDocument = Awaited<ReturnType<PdfJsModule['getDocument']>['promise']>
@@ -9,20 +10,18 @@ const OCR_RENDER_SCALE = 1.5
 
 let pdfjsReady: Promise<PdfJsModule> | null = null
 
-function bundledWorkerSrc(): string {
+function normalizeBasePath(): string {
   const base = import.meta.env.BASE_URL || '/'
-  if (typeof window === 'undefined') {
-    return `${base}pdf.worker.min.mjs`
-  }
-  try {
-    return new URL('pdf.worker.min.mjs', window.location.href).href
-  } catch {
-    return `${base}pdf.worker.min.mjs`
-  }
+  return base.endsWith('/') ? base : `${base}/`
+}
+
+export function bundledWorkerSrc(): string {
+  const workerPath = `${normalizeBasePath()}pdf.worker.min.mjs`
+  if (typeof window === 'undefined') return workerPath
+  return new URL(workerPath, window.location.origin).href
 }
 
 async function configurePdfWorker(pdfjsLib: PdfJsModule): Promise<void> {
-  // workerPort breaks on many FTP hosts + iOS Safari (.mjs MIME / module workers).
   pdfjsLib.GlobalWorkerOptions.workerPort = null
   pdfjsLib.GlobalWorkerOptions.workerSrc = bundledWorkerSrc()
 }
@@ -50,7 +49,31 @@ export function isPdfFile(file: File): boolean {
     || type === 'application/x-pdf'
     || name.endsWith('.pdf')
     || (type === 'application/octet-stream' && name.endsWith('.pdf'))
+    || (!type && name.endsWith('.pdf'))
   )
+}
+
+async function readFileBuffer(file: File): Promise<ArrayBuffer> {
+  if (typeof file.arrayBuffer === 'function') {
+    try {
+      return await file.arrayBuffer()
+    } catch {
+      // iOS WebViews sometimes fail arrayBuffer(); fall back to FileReader.
+    }
+  }
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (reader.result instanceof ArrayBuffer) {
+        resolve(reader.result)
+        return
+      }
+      reject(new Error('FileReader did not return ArrayBuffer'))
+    }
+    reader.onerror = () => reject(reader.error ?? new Error('FileReader failed to read PDF'))
+    reader.readAsArrayBuffer(file)
+  })
 }
 
 function pdfDocumentOptions(data: ArrayBuffer | Uint8Array, disableWorker = false) {
@@ -63,20 +86,13 @@ function pdfDocumentOptions(data: ArrayBuffer | Uint8Array, disableWorker = fals
   }
 }
 
-function isIosSafari(): boolean {
-  if (typeof navigator === 'undefined') return false
-  const ua = navigator.userAgent
-  return /iPhone|iPad|iPod/i.test(ua) && !/CriOS|FxiOS|EdgiOS/i.test(ua)
-}
-
 async function loadPdfDocument(pdfjsLib: PdfJsModule, buffer: ArrayBuffer): Promise<PdfDocument> {
   const variants = [
-    pdfDocumentOptions(buffer, false),
     pdfDocumentOptions(new Uint8Array(buffer), false),
+    pdfDocumentOptions(buffer, false),
+    pdfDocumentOptions(new Uint8Array(buffer), true),
+    pdfDocumentOptions(buffer, true),
   ]
-  if (isIosSafari()) {
-    variants.push(pdfDocumentOptions(new Uint8Array(buffer), true))
-  }
 
   let lastError: unknown
   for (const options of variants) {
@@ -90,10 +106,10 @@ async function loadPdfDocument(pdfjsLib: PdfJsModule, buffer: ArrayBuffer): Prom
   resetPdfjs()
   const reloaded = await getPdfjs()
   try {
-    return await reloaded.getDocument(pdfDocumentOptions(new Uint8Array(buffer), isIosSafari())).promise
+    return await reloaded.getDocument(pdfDocumentOptions(new Uint8Array(buffer), true)).promise
   } catch (retryError) {
-    const detail = lastError instanceof Error ? lastError.message : String(lastError)
-    const retryDetail = retryError instanceof Error ? retryError.message : String(retryError)
+    const detail = getErrorMessage(lastError)
+    const retryDetail = getErrorMessage(retryError)
     throw new Error(`PDF extract failed: ${detail} (retry: ${retryDetail})`)
   }
 }
@@ -123,7 +139,7 @@ async function ocrPdfPages(pdf: PdfDocument): Promise<string> {
 
 export async function extractTextFromPdf(file: File): Promise<string> {
   const pdfjsLib = await getPdfjs()
-  const buffer = await file.arrayBuffer()
+  const buffer = await readFileBuffer(file)
   const pdf = await loadPdfDocument(pdfjsLib, buffer)
 
   const pages: string[] = []
@@ -153,13 +169,19 @@ export async function extractTextFromPdf(file: File): Promise<string> {
 export async function extractTextFromPdfFiles(files: File[]): Promise<{ fileName: string; text: string }[]> {
   const results: { fileName: string; text: string }[] = []
   for (const file of files) {
-    try {
-      const text = await extractTextFromPdf(file)
-      results.push({ fileName: file.name, text })
-    } catch (err) {
-      const detail = err instanceof Error ? err.message : String(err)
-      throw new Error(`${file.name}: ${detail}`)
-    }
+    const text = await extractTextFromPdf(file)
+    results.push({ fileName: file.name, text })
   }
   return results
+}
+
+export async function tryExtractTextFromPdf(
+  file: File,
+): Promise<{ fileName: string; text: string; error?: string }> {
+  try {
+    const text = await extractTextFromPdf(file)
+    return { fileName: file.name, text }
+  } catch (err) {
+    return { fileName: file.name, text: '', error: getErrorMessage(err) }
+  }
 }
