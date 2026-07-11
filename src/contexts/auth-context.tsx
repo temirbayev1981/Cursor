@@ -33,14 +33,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [onboardingComplete, setOnboardingComplete] = useState(false)
 
   const restoreSession = useCallback(async () => {
-    const session = await loadUserSession()
-    if (session) {
-      setUser(session.profile)
-      setCompany(session.company)
-      setOnboardingComplete(resolveOnboardingState(session.profile.role, session.company))
-      localStorage.setItem('handymanos_auth', 'true')
+    try {
+      const session = await Promise.race([
+        loadUserSession(),
+        new Promise<null>((resolve) => window.setTimeout(() => resolve(null), 8000)),
+      ])
+      if (session) {
+        setUser(session.profile)
+        setCompany(session.company)
+        setOnboardingComplete(resolveOnboardingState(session.profile.role, session.company))
+        localStorage.setItem('handymanos_auth', 'true')
+      }
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }, [])
 
   useEffect(() => { void restoreSession() }, [restoreSession])
@@ -62,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [restoreSession])
 
   const signUp = async (email: string, password: string, fullName: string, inviteToken?: string): Promise<PostAuthState> => {
     const { profile, company: newCompany } = await registerUserWithCompany(email, password, fullName, inviteToken)

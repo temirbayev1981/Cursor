@@ -1,7 +1,15 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = 'handymanos-v2'
+const CACHE_NAME = 'handymanos-v3'
 const SHELL = ['/', '/index.html', '/manifest.json', '/favicon.svg']
+
+function isNavigationRequest(request) {
+  return request.mode === 'navigate' || SHELL.includes(new URL(request.url).pathname)
+}
+
+function isCacheableAsset(pathname) {
+  return pathname.endsWith('.js') || pathname.endsWith('.css') || pathname.endsWith('.woff2')
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -22,16 +30,32 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
   if (url.origin !== self.location.origin) return
 
+  // HTML/navigation: network-first so deploys are visible immediately
+  if (isNavigationRequest(event.request)) {
+    event.respondWith(
+      fetch(event.request)
+        .then((res) => {
+          if (res.ok) {
+            const clone = res.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
+          }
+          return res
+        })
+        .catch(() => caches.match('/index.html'))
+    )
+    return
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      if (cached) return cached
-      return fetch(event.request).then((res) => {
-        if (res.ok && (url.pathname.endsWith('.js') || url.pathname.endsWith('.css') || SHELL.includes(url.pathname))) {
+      const network = fetch(event.request).then((res) => {
+        if (res.ok && isCacheableAsset(url.pathname)) {
           const clone = res.clone()
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
         }
         return res
-      }).catch(() => caches.match('/index.html'))
+      })
+      return cached || network
     })
   )
 })
