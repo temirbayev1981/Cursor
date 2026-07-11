@@ -1,5 +1,5 @@
 -- HandymanOS AI - Database Schema (idempotent)
--- SCHEMA_VERSION: 2026-07-11b  (verify this line before running)
+-- SCHEMA_VERSION: 2026-07-11c  (verify this line before running)
 -- Safe to re-run: creates missing objects, replaces functions, skips existing tables/types.
 -- Run this ENTIRE file in Supabase SQL Editor (one paste → Run). Do not run only the tail.
 -- Fresh copy: https://raw.githubusercontent.com/temirbayev1981/Cursor/main/supabase/schema.sql
@@ -97,6 +97,12 @@ CREATE TABLE IF NOT EXISTS company_members (
 
 CREATE INDEX IF NOT EXISTS idx_company_members_profile ON company_members(profile_id);
 CREATE INDEX IF NOT EXISTS idx_company_members_company ON company_members(company_id);
+
+-- Upgrade company_members if table existed from an older partial migration
+ALTER TABLE company_members ADD COLUMN IF NOT EXISTS company_id UUID REFERENCES companies(id) ON DELETE CASCADE;
+ALTER TABLE company_members ADD COLUMN IF NOT EXISTS profile_id UUID REFERENCES profiles(id) ON DELETE CASCADE;
+ALTER TABLE company_members ADD COLUMN IF NOT EXISTS role user_role NOT NULL DEFAULT 'technician';
+ALTER TABLE company_members ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
 
 -- Upgrade existing tables (must run before indexes/functions reference these columns)
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS company_id UUID REFERENCES companies(id) ON DELETE CASCADE;
@@ -1197,15 +1203,23 @@ $$;
 
 GRANT EXECUTE ON FUNCTION get_accessible_companies() TO authenticated;
 
--- Backfill memberships from existing profiles (dynamic SQL — PL/pgSQL validates static SQL at compile time)
+-- Backfill memberships from existing profiles (self-healing: adds missing columns, then inserts)
 DO $$
 BEGIN
+  ALTER TABLE profiles ADD COLUMN IF NOT EXISTS company_id UUID REFERENCES companies(id) ON DELETE CASCADE;
+  ALTER TABLE company_members ADD COLUMN IF NOT EXISTS company_id UUID REFERENCES companies(id) ON DELETE CASCADE;
+  ALTER TABLE company_members ADD COLUMN IF NOT EXISTS profile_id UUID REFERENCES profiles(id) ON DELETE CASCADE;
+  ALTER TABLE company_members ADD COLUMN IF NOT EXISTS role user_role NOT NULL DEFAULT 'technician';
+
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_schema = 'public' AND table_name = 'profiles' AND column_name = 'company_id'
   ) AND EXISTS (
-    SELECT 1 FROM information_schema.tables
-    WHERE table_schema = 'public' AND table_name = 'company_members'
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'company_members' AND column_name = 'company_id'
+  ) AND EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'company_members' AND column_name = 'profile_id'
   ) THEN
     EXECUTE $sql$
       INSERT INTO company_members (company_id, profile_id, role)
