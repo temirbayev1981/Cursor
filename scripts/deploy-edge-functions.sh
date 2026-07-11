@@ -5,6 +5,7 @@ set -euo pipefail
 
 FUNCTIONS=(
   openai-proxy
+  extract-pdf-text
   create-checkout-session
   create-subscription-checkout
   stripe-webhook

@@ -37,6 +37,7 @@ const edgeFunctions = [
   'create-checkout-session',
   'create-subscription-checkout',
   'openai-proxy',
+  'extract-pdf-text',
   'send-notification',
   'send-sms',
   'stripe-webhook',
@@ -1028,11 +1029,26 @@ console.log('\nBundle & registry:')
 const pdfExtract = readFileSync('src/lib/pdf-extract.ts', 'utf8')
 if (
   pdfExtract.includes("import * as pdfjsLib from 'pdfjs-dist'")
+  || pdfExtract.includes("import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'")
   || (pdfExtract.includes("await import('pdfjs-dist')") && !pdfExtract.includes("import * as pdfjsLib from 'pdfjs-dist'"))
 ) {
   console.log('✓ pdf-extract loads pdfjs (static import or lazy on demand)')
 } else {
   console.log('✗ pdf-extract must import pdfjs-dist')
+  ok = false
+}
+
+if (existsSync('supabase/functions/extract-pdf-text/index.ts')) {
+  console.log('✓ extract-pdf-text edge function for iOS PDF fallback')
+} else {
+  console.log('✗ extract-pdf-text edge function required')
+  ok = false
+}
+
+if (pdfExtract.includes('extractTextFromPdfServer') && pdfExtract.includes('canExtractPdfOnServer')) {
+  console.log('✓ pdf-extract server fallback wired for touch devices')
+} else {
+  console.log('✗ pdf-extract must call server fallback on mobile')
   ok = false
 }
 

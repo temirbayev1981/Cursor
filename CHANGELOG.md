@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.13.8] — 2026-07-11
+
+iOS Safari Vendor PO PDF — server-side extract fallback + pdf.js legacy build.
+
+### Phase 141 — iOS PDF server fallback
+- New Edge Function `extract-pdf-text`: server-side pdf.js legacy extract (auth + rate limit)
+- iPhone/iPad: server extract first in production; client legacy pdf.js as fallback
+- Client pdf.js switched to **legacy build** (`isEvalSupported: false`) for Safari CSP compatibility
+- Legacy `pdf.worker.min.mjs` copied to `public/` for same-origin worker URL
+- **210** unit tests
+
 ## [1.13.7] — 2026-07-11
 
 iOS Safari PDF read fix — static pdf.js bundle, no worker on touch devices.

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 
-vi.mock('pdfjs-dist', () => ({
+vi.mock('pdfjs-dist/legacy/build/pdf.mjs', () => ({
   GlobalWorkerOptions: {
     workerSrc: '',
     workerPort: null,
@@ -8,6 +8,11 @@ vi.mock('pdfjs-dist', () => ({
   getDocument: vi.fn(() => ({
     promise: Promise.resolve({ numPages: 0 }),
   })),
+}))
+
+vi.mock('@/lib/pdf-extract-server', () => ({
+  canExtractPdfOnServer: () => false,
+  extractTextFromPdfServer: vi.fn(),
 }))
 
 import { bundledWorkerSrc, prefersNoPdfWorker, warmUpPdfJs } from '@/lib/pdf-extract'
