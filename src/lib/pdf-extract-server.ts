@@ -1,6 +1,7 @@
 import { getExtractPdfEndpoint, hasSupabase, isE2eMockBackend } from '@/lib/env'
 import { getSupabaseAuthHeaders, supabase } from '@/lib/supabase'
 import { getErrorMessage } from '@/lib/error-message'
+import { fetchWithTimeout } from '@/lib/with-timeout'
 
 const MAX_PDF_BYTES = 8 * 1024 * 1024
 const PROBE_KEY = 'handymanos_pdf_server_probe'
@@ -110,10 +111,11 @@ export async function isServerPdfExtractAvailable(): Promise<boolean> {
 
   try {
     const headers = await getSupabaseAuthHeaders()
-    const res = await fetch(endpoint, {
+    const res = await fetchWithTimeout(endpoint, {
       method: 'POST',
       headers,
       body: JSON.stringify({ pdfBase64: 'AA==' }),
+      timeoutMs: 12_000,
     })
     const available = res.status !== 404
     writeProbeCache(available)
@@ -130,10 +132,11 @@ async function postPdfExtract(
   options: { refreshAuth?: boolean } = {},
 ): Promise<string> {
   const headers = await getSupabaseAuthHeaders()
-  const res = await fetch(endpoint, {
+  const res = await fetchWithTimeout(endpoint, {
     method: 'POST',
     headers,
     body: JSON.stringify({ pdfBase64 }),
+    timeoutMs: 90_000,
   })
 
   const json = await res.json().catch(() => ({})) as {

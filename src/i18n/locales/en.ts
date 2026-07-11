@@ -284,6 +284,7 @@ export const en: TranslationKeys = {
     parseError: 'PDF parsing error',
     companyNotReady: 'Company is still loading. Please wait and try again.',
     pdfExtractFailed: 'Could not read the PDF. Try another file or upload from a desktop browser.',
+    uploadTimeout: 'Upload took too long. Check your connection and try again.',
     pdfServerNotDeployed: 'Server PDF service is not deployed. Deploy openai-proxy Edge Function in Supabase. Using fallback mode.',
     noValidFiles: 'No files could be parsed. Check CD Maintenance / Facil-IT / Walgreens PO format.',
     saveError: 'Failed to save work order to database',
