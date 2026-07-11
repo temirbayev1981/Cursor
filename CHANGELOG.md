@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.3] — 2026-07-11
+
+Fix iOS Vendor PO PDF read regression — resilient server extract and CDN fallback.
+
+### Phase 146 — PDF extract resilience
+- Mobile always tries **server extract** first (no probe-cache skip)
+- Refresh Supabase session before Edge Function calls; retry once on 401
+- `FileReader` + `arrayBuffer` dual path for base64 upload on iOS
+- CDN pdf.js fallback: **jsDelivr** mirror when cdnjs blocked
+- Clear server probe cache after extract failure
+- Server: validate PDF magic bytes; OpenAI **gpt-4o** fallback when mini fails
+
 ## [1.14.2] — 2026-07-11
 
 Vendor PO parser — fix service location address for OpenAI multiline PDF text.

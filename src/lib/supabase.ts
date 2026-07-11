@@ -25,8 +25,13 @@ export async function getSupabaseAuthHeaders(): Promise<Record<string, string>> 
   }
 
   const { data: { session } } = await supabase.auth.getSession()
-  if (session?.access_token) {
-    headers.Authorization = `Bearer ${session.access_token}`
+  let accessToken = session?.access_token
+  if (session) {
+    const { data: refreshed } = await supabase.auth.refreshSession()
+    accessToken = refreshed.session?.access_token ?? accessToken
+  }
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`
   } else if (anonKey) {
     headers.Authorization = `Bearer ${anonKey}`
   }
