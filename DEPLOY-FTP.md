@@ -31,7 +31,7 @@
 | Порт | `21` (обычно) | секрет `FTP_PORT` (опционально) |
 | Папка субдомена | `/public_html/app/` | секрет `FTP_SERVER_DIR` |
 
-Для **FTPS** (шифрование): добавьте секрет `FTP_PROTOCOL` = `ftps`.
+Для **FTPS** (шифрование, большинство хостингов): по умолчанию уже `ftps`. При ошибке сертификата добавьте секрет `FTP_SECURITY` = `loose`.
 
 ---
 
@@ -73,8 +73,9 @@
 
 | Secret | Назначение |
 |--------|------------|
-| `FTP_PORT` | `21` или `990` |
-| `FTP_PROTOCOL` | `ftp` или `ftps` |
+| `FTP_PORT` | `21` (FTPS explicit) или `990` (FTPS implicit) |
+| `FTP_PROTOCOL` | `ftps` (по умолчанию) или `ftp` / `ftps-legacy` |
+| `FTP_SECURITY` | `loose` — если ошибка сертификата TLS |
 | `VITE_STRIPE_*`, `VITE_GOOGLE_MAPS_API_KEY`, … | как в [DEPLOYMENT.md](./DEPLOYMENT.md) |
 
 После сохранения секретов их **нельзя просмотреть** — только перезаписать.
