@@ -7,6 +7,12 @@ function clean(value?: string | null): string {
 /** PDF.js often flattens line breaks — restore markers so regex parsers still work. */
 export function normalizeVendorPOText(text: string): string {
   let normalized = text.replace(/\r\n/g, '\n')
+
+  normalized = normalized
+    .replace(/\s+(SERVICE LOCATION\b)/gi, '\n$1')
+    .replace(/(Loc #\s*\d+)\s+(\d{1,6}\s+)/gi, '$1\n$2')
+    .replace(/(,\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?)\s+(Phone #)/gi, '$1\n$2')
+
   const lineCount = normalized.split('\n').filter(Boolean).length
   if (lineCount >= 8) return normalized
 
@@ -16,7 +22,6 @@ export function normalizeVendorPOText(text: string): string {
     .replace(/\s+(Priority\b)/gi, '\n$1')
     .replace(/\s+(Order Type\b)/gi, '\n$1')
     .replace(/\s+(NTE\b)/gi, '\n$1')
-    .replace(/\s+(SERVICE LOCATION\b)/gi, '\n$1')
     .replace(/\s+(ReadyFix)\s+/gi, '\n$1\n')
     .replace(/\s+(SERVICE DESCRIPTION\b)/gi, '\n$1')
     .replace(/\s+(SPECIAL INSTRUCTIONS\b)/gi, '\n$1')
@@ -24,8 +29,6 @@ export function normalizeVendorPOText(text: string): string {
     .replace(/(\d{5}(?:-\d{4})?)\s+(Phone #)/gi, '$1\n$2')
     .replace(/(\d{6}-\d{2})\s+(VENDOR PO #)/gi, '$1\n$2')
     .replace(/(\d{9})\s+(Client PO #)/gi, '$1\n$2')
-    .replace(/(Loc #\s*\d+)\s+(\d{1,6}\s+)/gi, '$1\n$2')
-    .replace(/(,\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?)\s+(Phone #)/gi, '$1\n$2')
 }
 
 function extractPriority(normalized: string): string {
@@ -89,17 +92,47 @@ function parseCityStateZip(line: string) {
   }
 }
 
-/** "123 Main St, Graham, NC 27253-3319" on a single line (common OpenAI output). */
-function parseStreetCityStateZipLine(line: string) {
-  const cleaned = clean(line)
-  const match = cleaned.match(/^(.+?),\s*([A-Za-z][A-Za-z .'-]*),\s*([A-Z]{2})\s+(\d{5}(?:-\d{4})?)$/)
+/** "123 Main St, Graham, NC 27253" or "3465 S CHURCH ST Burlington, NC 27215-9111". */
+function parseAddressLine(line: string) {
+  const cleaned = clean(line.replace(/\n/g, ' '))
+  if (!cleaned) return null
+
+  const commaSeparated = cleaned.match(
+    /^(.+?),\s*([A-Za-z][A-Za-z .'-]*),\s*([A-Z]{2})\s+(\d{5}(?:-\d{4})?)$/
+  )
+  if (commaSeparated) {
+    return {
+      serviceStreet: clean(commaSeparated[1]),
+      serviceCity: clean(commaSeparated[2]),
+      serviceState: commaSeparated[3],
+      serviceZip: commaSeparated[4],
+      serviceCityStateZip: `${clean(commaSeparated[2])}, ${commaSeparated[3]} ${commaSeparated[4]}`,
+    }
+  }
+
+  const spacedCity = cleaned.match(
+    /^(\d{1,6}\s+.+)\s+([A-Za-z][A-Za-z .'-]+),\s*([A-Z]{2})\s+(\d{5}(?:-\d{4})?)$/
+  )
+  if (spacedCity) {
+    return {
+      serviceStreet: clean(spacedCity[1]),
+      serviceCity: clean(spacedCity[2]),
+      serviceState: spacedCity[3],
+      serviceZip: spacedCity[4],
+      serviceCityStateZip: `${clean(spacedCity[2])}, ${spacedCity[3]} ${spacedCity[4]}`,
+    }
+  }
+
+  return null
+}
+
+function parseServiceLocHeader(text: string) {
+  const flat = clean(text.replace(/\n/g, ' '))
+  const match = flat.match(/(.+?)\s*-?\s*Loc #\s*(\d+)/i)
   if (!match) return null
   return {
-    serviceStreet: clean(match[1]),
-    serviceCity: clean(match[2]),
-    serviceState: match[3],
-    serviceZip: match[4],
-    serviceCityStateZip: `${clean(match[2])}, ${match[3]} ${match[4]}`,
+    serviceLocationName: clean(match[1].replace(/SERVICE LOCATION:?/i, '')),
+    locationNumber: match[2],
   }
 }
 
@@ -157,7 +190,7 @@ function parseCdMultilineCommaLocation(normalized: string) {
   )
   if (!block) return null
 
-  const combined = parseStreetCityStateZipLine(block[4])
+  const combined = parseAddressLine(block[4])
   if (!combined) return null
 
   return buildLocationResult({
@@ -199,7 +232,7 @@ function parseFacilItMultilineCommaLocation(normalized: string) {
   )
   if (!block) return null
 
-  const combined = parseStreetCityStateZipLine(block[3])
+  const combined = parseAddressLine(block[3])
   if (!combined) return null
 
   return buildLocationResult({
@@ -227,18 +260,22 @@ function parseInlineServiceLocation(normalized: string) {
     ?? ''
 
   const locHeader = section.match(/(.+?)\s*-?\s*Loc #\s*(\d+)/i)
-  const serviceLocationName = clean(
+  const header = parseServiceLocHeader(section)
+  const serviceLocationName = header?.serviceLocationName ?? clean(
     locHeader?.[1]
       ?.replace(/SERVICE LOCATION VENDOR #\s*\d+/i, '')
       .replace(/SERVICE LOCATION:?/i, '')
       ?? ''
   )
-  const locationNumber = locHeader?.[2]
+  const locationNumber = header?.locationNumber ?? locHeader?.[2]
 
   const commaAddr = section.match(
     /(\d{1,6}\s+[^,\n]+,\s*[A-Za-z][A-Za-z .'-]*,\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?)/
   )?.[1]
-  const combined = commaAddr ? parseStreetCityStateZipLine(commaAddr) : null
+    ?? section.match(
+      /(\d{1,6}\s+.+?,\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?)/
+    )?.[1]
+  const combined = commaAddr ? parseAddressLine(commaAddr) : null
 
   const splitAddr = !combined
     ? section.match(
@@ -281,6 +318,43 @@ function parseInlineServiceLocation(normalized: string) {
   return null
 }
 
+/** Facil-IT layout: SERVICE LOCATION … Loc # … address … Phone # … ReadyFix … VENDOR # */
+function parseFacilItSection(normalized: string) {
+  if (/SERVICE LOCATION\s+VENDOR\s*#/i.test(normalized)) return null
+
+  const section = normalized.match(
+    /SERVICE LOCATION([\s\S]*?)(?=SERVICE DESCRIPTION|SPECIAL INSTRUCTIONS|Print Date:|$)/i
+  )?.[1]
+  if (!section) return null
+
+  const header = parseServiceLocHeader(section)
+  if (!header) return null
+
+  const flatSection = clean(section.replace(/\n/g, ' '))
+  const afterHeader = flatSection.slice(
+    flatSection.search(/Loc #\s*\d+/i) + flatSection.match(/Loc #\s*\d+/i)![0].length
+  )
+  const serviceSlice = (afterHeader.split(/ReadyFix/i)[0] ?? afterHeader).replace(/\s*Fax #.*$/i, '')
+  const phoneMatch = serviceSlice.match(/^\s*(.+?)\s+Phone #\s*([\d-]+)/i)
+  const address = phoneMatch ? parseAddressLine(phoneMatch[1]) : null
+  const servicePhone = phoneMatch?.[2] ?? section.match(/Phone #\s*([\d-]+)/i)?.[1] ?? ''
+  const vendorNumber = section.match(/VENDOR #\s*(\d+)/i)?.[1] ?? ''
+
+  if (!address) return null
+
+  return buildLocationResult({
+    vendorNumber,
+    serviceLocationName: header.serviceLocationName,
+    locationNumber: header.locationNumber,
+    serviceStreet: address.serviceStreet,
+    serviceCity: address.serviceCity,
+    serviceState: address.serviceState,
+    serviceZip: address.serviceZip,
+    serviceCityStateZip: address.serviceCityStateZip,
+    servicePhone: clean(servicePhone),
+  })
+}
+
 function parseLocationBlock(normalized: string) {
   const multilineCd = parseCdMultilineLocation(normalized)
   if (multilineCd) return multilineCd
@@ -293,6 +367,9 @@ function parseLocationBlock(normalized: string) {
 
   const multilineFacilitComma = parseFacilItMultilineCommaLocation(normalized)
   if (multilineFacilitComma) return multilineFacilitComma
+
+  const facilitSection = parseFacilItSection(normalized)
+  if (facilitSection) return facilitSection
 
   const block = normalized.match(
     /SERVICE LOCATION VENDOR #\s*(\d+)\s*\n(.+?)\s+ReadyFix\s*\n([^\n]+)\n([^\n]+)\s+Phone #\s*([\d-]+)/is
@@ -308,46 +385,7 @@ function parseLocationBlock(normalized: string) {
     return parseLocationMatch(flat)
   }
 
-  const facilit = normalized.match(
-    /SERVICE LOCATION\s+(.+?)\s+ReadyFix\s+(.+?)\s+Phone #\s*([\d-]+)(?:\s+Fax #[^V]*)?\s+VENDOR #\s*(\d+)/is
-  )
-  if (facilit) {
-    return parseFacilItLocation(facilit)
-  }
-
   return parseInlineServiceLocation(normalized)
-}
-
-function parseFacilItLocation(block: RegExpMatchArray) {
-  const serviceBlock = block[1]
-  const vendorStreetLine = clean(block[2])
-  const vendorNumber = block[4]
-
-  const serviceMatch = serviceBlock.match(
-    /(.+?)\s+Loc #\s*(\d+)\s+(\d+\s+.+)\s+([A-Za-z][A-Za-z .]*,\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?)\s+Phone #\s*([\d-]+)/is
-  )
-
-  const serviceLocationName = clean(serviceMatch?.[1] ?? serviceBlock.split(/\s+Loc #/i)[0])
-  const locationNumber = serviceMatch?.[2]
-  const serviceStreet = clean(serviceMatch?.[3] ?? '')
-  const serviceCityStateZip = clean(serviceMatch?.[4] ?? '')
-  const servicePhone = clean(serviceMatch?.[5] ?? '')
-
-  const serviceParts = serviceCityStateZip.match(/^(.+),\s*([A-Z]{2})\s+(\d{5}(?:-\d{4})?)$/)
-
-  return {
-    vendorNumber,
-    serviceLocationName,
-    locationNumber,
-    serviceStreet,
-    serviceCity: clean(serviceParts?.[1] ?? ''),
-    serviceState: serviceParts?.[2] ?? '',
-    serviceZip: serviceParts?.[3] ?? '',
-    serviceCityStateZip,
-    servicePhone,
-    vendorStreet: vendorStreetLine,
-    vendorCityStateZip: '',
-  }
 }
 
 function parseLocationMatch(block: RegExpMatchArray) {

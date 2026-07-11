@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.5] — 2026-07-11
+
+Fix Facil-IT Vendor PO service location parsing (e.g. PO 210071-01 Loc # 17900).
+
+### Phase 148 — Facil-IT location object
+- Parse `3465 S CHURCH ST Burlington, NC 27215` (street + city without comma between)
+- Unified `parseFacilItSection` for flattened Facil-IT PDF text
+- Always normalize SERVICE LOCATION block splits (even multiline OpenAI output)
+- Fixture: `VendorPO-210071-01.pdf` + extracted text test
+
 ## [1.14.4] — 2026-07-11
 
 Vendor PO — fix address parsing and work-scope popup.
