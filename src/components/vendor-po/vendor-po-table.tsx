@@ -10,6 +10,7 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
 import { useWorkflow } from '@/contexts/workflow-context'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
 import { requireCompanyId } from '@/hooks/use-company-scope'
 import { exportVendorPOsToExcel, groupVendorPOsByAddress } from '@/lib/export'
@@ -32,7 +33,8 @@ interface VendorPOTableProps {
 export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps) {
   const { t } = useTranslation()
   const { runVendorPOWorkflow, isRunning } = useWorkflow()
-  const { company, user } = useAuth()
+  const { company, user, isAuthenticated, isLoading: authLoading } = useAuth()
+  const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [selected, setSelected] = useState<VendorPORecord | null>(null)
   const [cellHint, setCellHint] = useState<{ title: string; text: string } | null>(null)
@@ -45,6 +47,7 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
     return initial
   })
   const attemptedProblemIds = useRef(new Set<string>())
+  const [translationPass, setTranslationPass] = useState(0)
   const dateLocale = useDateLocale()
 
   useEffect(() => {
@@ -60,6 +63,8 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
   }, [records, problemTranslations])
 
   useEffect(() => {
+    if (authLoading || !isAuthenticated) return
+
     let cancelled = false
     void (async () => {
       for (const row of records) {
@@ -79,13 +84,35 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
           continue
         }
         setProblemTranslations((prev) => ({ ...prev, [row.id]: ru }))
-        void updateVendorPOProblemRu(row.id, ru).catch(() => undefined)
+        try {
+          await updateVendorPOProblemRu(row.id, ru)
+          void queryClient.invalidateQueries({ queryKey: ['vendor-pos'] })
+        } catch {
+          // Local state still shows Russian
+        }
       }
     })()
     return () => {
       cancelled = true
     }
-  }, [records])
+  }, [records, authLoading, isAuthenticated, queryClient, translationPass])
+
+  useEffect(() => {
+    if (authLoading || !isAuthenticated) return
+
+    const timer = window.setInterval(() => {
+      let hasPending = false
+      for (const row of records) {
+        if (needsProblemDescriptionTranslation(row) && !problemTranslations[row.id]) {
+          attemptedProblemIds.current.delete(row.id)
+          hasPending = true
+        }
+      }
+      if (hasPending) setTranslationPass((pass) => pass + 1)
+    }, 60_000)
+
+    return () => window.clearInterval(timer)
+  }, [records, authLoading, isAuthenticated, problemTranslations])
 
   const addressGroups = groupVendorPOsByAddress(records)
   const multiSiteAddresses = [...addressGroups.entries()].filter(([, v]) => v.length > 1)

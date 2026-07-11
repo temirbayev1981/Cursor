@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.15] — 2026-07-11
+
+Fix Vendor PO problem description translation not running in production.
+
+### Hotfix — Translation auth & retry
+- Call `openai-proxy` via `supabase.functions.invoke` with session refresh
+- Fall back to fetch with JWT headers when invoke fails
+- Start lazy translation only after user auth is ready
+- Retry failed translations every 60s; persist Russian to DB and refresh query cache
+
 ## [1.14.14] — 2026-07-11
 
 Fix empty «Описание проблемы» column when Russian translation is pending or failed.
