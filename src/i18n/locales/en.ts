@@ -159,6 +159,8 @@ export const en: TranslationKeys = {
   dashboard: {
     title: 'Executive Dashboard',
     description: 'Real-time business performance overview',
+    versionLabel: 'Version',
+    buildLabel: 'Build',
     revenueToday: 'Revenue Today',
     revenueMonth: 'Revenue This Month',
     openJobs: 'Open Jobs',

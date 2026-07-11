@@ -26,6 +26,7 @@ import { useJobs, useCustomers, useEstimates, useExpenses, useEmployees, useFuel
 import { Skeleton } from '@/components/shared/skeleton'
 import { formatCurrency } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
+import { AppVersionBadge } from '@/components/shared/app-version-badge'
 
 export default function DashboardPage() {
   const { t } = useTranslation()
@@ -59,7 +60,11 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <PageHeader title={t.dashboard.title} description={t.dashboard.description} />
+      <PageHeader
+        title={t.dashboard.title}
+        description={t.dashboard.description}
+        actions={<AppVersionBadge />}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" data-testid="dashboard-stat-cards">
         <StatCard title={t.dashboard.revenueToday} value={metrics.revenueToday} icon={DollarSign} format="currency" trend={comparison.revenueTrend} delay={0} />
