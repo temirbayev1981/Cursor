@@ -74,7 +74,7 @@
 | Secret | Назначение |
 |--------|------------|
 | `FTP_PORT` | `21` (FTPS explicit) или `990` (FTPS implicit) |
-| `FTP_PROTOCOL` | `ftps` (по умолчанию) или `ftp` / `ftps-legacy` |
+| `FTP_PROTOCOL` | `ftps` = explicit TLS на порту 21 (как FileZilla). `ftps-legacy` = implicit, порт 990 |
 | `VITE_STRIPE_*`, `VITE_GOOGLE_MAPS_API_KEY`, … | как в [DEPLOYMENT.md](./DEPLOYMENT.md) |
 
 После сохранения секретов их **нельзя просмотреть** — только перезаписать.
@@ -125,7 +125,7 @@ Workflow: `.github/workflows/deploy-ftp.yml`
 |---------|---------|
 | Workflow не появляется / скипается | Добавьте `FTP_HOST`, `FTP_USER`, `FTP_PASSWORD` |
 | `530 Login incorrect` | Проверьте логин/пароль в секретах |
-| `550 SSL/TLS required` | Секрет `FTP_PROTOCOL` = `ftps` (по умолчанию уже ftps) |
+| `gnutls_handshake: unexpected TLS packet` | Оставьте `FTP_PROTOCOL=ftps` и `FTP_PORT=21` (explicit TLS). Не используйте `ftps://` на 21 вручную |
 | `ECONNRESET` (data socket) | Passive FTPS через lftp. Проверьте: не блокировать «чужие IP» на хостинге |
 | Деплой висит 10+ минут | Отмените run (Cancel), обновите workflow, перезапустите. Норма: 2–5 мин на ~4 MB |
 | Ошибка сертификата TLS | В workflow уже `ssl:verify-certificate no` (lftp) |

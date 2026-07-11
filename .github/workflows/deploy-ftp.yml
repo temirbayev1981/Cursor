@@ -96,10 +96,22 @@ jobs:
           PROTO="${FTP_PROTOCOL}"
           USE_SSL="false"
           SCHEME="ftp"
-          if [ "$PROTO" = "ftps" ] || [ "$PROTO" = "ftps-legacy" ]; then
+          LFTP_PORT="${FTP_PORT}"
+          if [ "$PROTO" = "ftps" ]; then
+            # Explicit FTPS (FileZilla: "FTP over TLS") — plain ftp:// then STARTTLS
+            USE_SSL="true"
+            SCHEME="ftp"
+            LFTP_PORT="${FTP_PORT:-21}"
+          elif [ "$PROTO" = "ftps-legacy" ]; then
+            # Implicit FTPS — TLS from first byte, usually port 990
             USE_SSL="true"
             SCHEME="ftps"
+            LFTP_PORT="${FTP_PORT:-990}"
           fi
+          NETRC_HOME="$(mktemp -d)"
+          chmod 700 "$NETRC_HOME"
+          printf 'machine %s\nlogin %s\npassword %s\n' "$FTP_HOST" "$FTP_USER" "$FTP_PASSWORD" > "$NETRC_HOME/.netrc"
+          chmod 600 "$NETRC_HOME/.netrc"
           LFTP_SCRIPT="$(mktemp)"
           {
             echo "set ftp:passive-mode true"
@@ -109,14 +121,15 @@ jobs:
             echo "set net:timeout 30"
             echo "set net:max-retries 2"
             echo "set net:reconnect-interval-base 5"
-            printf 'open -u %s,%s %s://%s:%s\n' "$FTP_USER" "$FTP_PASSWORD" "$SCHEME" "$FTP_HOST" "$FTP_PORT"
-            echo "mkdir -f ${FTP_DIR}"
+            echo "open ${SCHEME}://${FTP_HOST}:${LFTP_PORT}"
+            echo "mkdir -p ${FTP_DIR}"
             echo "cd ${FTP_DIR}"
             echo "lcd dist"
             echo "mirror --reverse --verbose"
             echo "quit"
           } > "$LFTP_SCRIPT"
           echo "FTP upload started (~4 MB, $(find dist -type f | wc -l) files)..."
-          lftp -f "$LFTP_SCRIPT"
+          HOME="$NETRC_HOME" lftp -f "$LFTP_SCRIPT"
           rm -f "$LFTP_SCRIPT"
+          rm -rf "$NETRC_HOME"
           echo "FTP upload finished."
