@@ -626,6 +626,7 @@ export const ru = {
       email: { name: 'Email', desc: 'Email-уведомления клиентам' },
       sms: { name: 'SMS', desc: 'SMS-оповещения мастерам' },
       observability: { name: 'Наблюдаемость', desc: 'Sentry или error webhook мониторинг' },
+      quickbooks: { name: 'QuickBooks', desc: 'Синхронизация учёта (скоро)' },
     },
     integrationProbeLive: 'Онлайн',
     integrationProbeUnreachable: 'Недоступно',

@@ -1218,7 +1218,61 @@ for (const file of phase3Files) {
   }
 }
 
+const phase135Files = [
+  'src/hooks/use-server-entity-table.ts',
+  'src/lib/pdf-ocr.ts',
+  'OPERATOR_RUNBOOK.md',
+  'scripts/operator-prod-checklist.mjs',
+  'e2e/mobile-smoke.spec.ts',
+]
+console.log('\nRoadmap phase 135:')
+for (const file of phase135Files) {
+  if (existsSync(file)) {
+    console.log(`✓ ${file}`)
+  } else {
+    console.log(`✗ missing: ${file}`)
+    ok = false
+  }
+}
+
+const entityService = existsSync('src/services/entity-service.ts')
+  ? readFileSync('src/services/entity-service.ts', 'utf8')
+  : ''
+if (entityService.includes('listEntitiesPage')) {
+  console.log('✓ entity-service listEntitiesPage for server pagination')
+} else {
+  console.log('✗ entity-service must export listEntitiesPage')
+  ok = false
+}
+
+const openaiProxy = existsSync('supabase/functions/openai-proxy/index.ts')
+  ? readFileSync('supabase/functions/openai-proxy/index.ts', 'utf8')
+  : ''
+if (openaiProxy.includes('images')) {
+  console.log('✓ openai-proxy supports vision images for PDF OCR')
+} else {
+  console.log('✗ openai-proxy must accept images[] for OCR')
+  ok = false
+}
+
 const pkgJson = JSON.parse(readFileSync('package.json', 'utf8'))
+if (pkgJson.scripts?.['verify:operator:prod']) {
+  console.log('✓ verify:operator:prod npm script')
+} else {
+  console.log('✗ package.json must define verify:operator:prod')
+  ok = false
+}
+
+const integrationsPanel = existsSync('src/components/settings/settings-integrations-panel.tsx')
+  ? readFileSync('src/components/settings/settings-integrations-panel.tsx', 'utf8')
+  : ''
+if (integrationsPanel.includes('quickbooks')) {
+  console.log('✓ QuickBooks integration card registered')
+} else {
+  console.log('✗ settings-integrations-panel must include quickbooks')
+  ok = false
+}
+
 if (pkgJson.devDependencies?.['@axe-core/playwright']) {
   console.log('✓ @axe-core/playwright dependency')
 } else {

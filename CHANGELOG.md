@@ -38,6 +38,14 @@ Production bug-fix audit — data integrity, notifications, PWA, security.
 - i18n: pagination labels (RU/EN)
 - **193** unit tests, **233+** E2E tests (mock)
 
+### Phase 135 — Roadmap to 10/10
+- Server-side table pagination: `listEntitiesPage` + `useServerEntityTable` on customers, jobs, invoices
+- Vendor PO scanned PDFs: OpenAI vision OCR fallback (`pdf-ocr.ts`, `openai-proxy` `images[]` support)
+- QuickBooks integration card (coming soon) in Settings → Integrations
+- Operator: `OPERATOR_RUNBOOK.md`, `npm run verify:operator:prod` checklist script
+- E2E: `mobile-smoke.spec.ts` (iPhone 13), axe + pagination coverage on jobs/invoices/settings
+- **201** unit tests, **237+** E2E tests (mock)
+
 ### Phase 133 — Audit phase 2
 - English user guide: `INSTRUCTIONS.en.md` + locale-based `/instructions` loading
 - Entity list pagination: `ENTITY_LIST_LIMIT` (500) on Supabase fetches

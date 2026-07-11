@@ -25,16 +25,27 @@ serve(async (req) => {
       return jsonResponse({ error: 'OPENAI_API_KEY not configured' }, 500)
     }
 
-    const { system, user, model = 'gpt-4o-mini', temperature = 0.3 } = await req.json() as {
+    const { system, user, model = 'gpt-4o-mini', temperature = 0.3, images } = await req.json() as {
       system?: string
       user?: string
       model?: string
       temperature?: number
+      images?: string[]
     }
 
     if (!system || !user) {
       return jsonResponse({ error: 'system and user required' }, 400)
     }
+
+    const userContent = Array.isArray(images) && images.length > 0
+      ? [
+          { type: 'text', text: user },
+          ...images.slice(0, 3).map((url) => ({
+            type: 'image_url',
+            image_url: { url, detail: 'high' },
+          })),
+        ]
+      : user
 
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -46,9 +57,10 @@ serve(async (req) => {
         model,
         messages: [
           { role: 'system', content: system },
-          { role: 'user', content: user },
+          { role: 'user', content: userContent },
         ],
         temperature,
+        max_tokens: 4096,
       }),
     })
 
