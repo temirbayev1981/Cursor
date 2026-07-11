@@ -124,15 +124,15 @@ export default function WorkOrdersPage() {
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      if (/vendor_po|permission|policy|violates|uuid|company_id/i.test(message)) {
+      if (/vendor_po|permission|policy|violates|uuid|company_id|supabase not configured|load failed|network|fetch|jwt|auth|timeout|aborted|postgrest/i.test(message)) {
         toast.error(t.vendorPO.saveError)
-      } else if (/PDF extract failed|PDF OCR failed|worker|Invalid PDF|pdf\.js|fake worker|Failed to fetch|\.mjs|Canvas|password protected|corrupted/i.test(message)) {
+      } else if (/PDF extract failed|PDF OCR failed|worker|Invalid PDF|pdf\.js|fake worker|Failed to fetch|\.mjs|Canvas|password protected|corrupted|api version/i.test(message)) {
         toast.error(t.vendorPO.pdfExtractFailed)
-      } else if (/companyId is required/i.test(message)) {
+      } else if (/companyId is required|company context is not available/i.test(message)) {
         toast.error(t.vendorPO.companyNotReady)
       } else {
         toast.error(t.vendorPO.parseError)
-        if (import.meta.env.DEV) console.error('Vendor PO PDF error:', message)
+        console.error('Vendor PO PDF error:', message)
       }
     } finally {
       setParsingPdf(false)
