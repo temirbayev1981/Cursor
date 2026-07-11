@@ -25,6 +25,7 @@ export function formatAuthError(error: unknown, messages?: AuthErrorMessages): s
     if (/email not confirmed/i.test(message)) return messages?.emailNotConfirmed ?? message
     if (/invalid login credentials/i.test(message)) return messages?.invalidCredentials ?? message
     if (/session not found/i.test(message)) return messages?.accountIncomplete ?? message
+    if (/account setup is incomplete/i.test(message)) return messages?.accountIncomplete ?? message
     if (/profile not found/i.test(message)) return messages?.profileMissing ?? message
     if (/company not found/i.test(message)) return messages?.companyMissing ?? message
     if (/confirm your email/i.test(message)) return messages?.registrationPending ?? message
@@ -40,6 +41,80 @@ async function provisionOwnerCompanyIfNeeded(): Promise<boolean> {
   const { data, error } = await supabase.rpc('provision_owner_company')
   if (error) return false
   return Boolean(data)
+}
+
+async function repairOwnerSessionClient(user: {
+  id: string
+  email?: string | null
+  user_metadata?: Record<string, unknown>
+}): Promise<string> {
+  if (!supabase) throw new Error('Supabase not configured')
+
+  const userId = user.id
+  const email = user.email ?? ''
+  const fullName = String((user.user_metadata?.full_name as string | undefined) ?? email.split('@')[0] ?? 'Owner')
+
+  const { data: existingProfile, error: profileError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .maybeSingle()
+
+  if (profileError) throw new Error(profileError.message)
+
+  if (existingProfile?.company_id) {
+    return existingProfile.company_id
+  }
+
+  if (!existingProfile) {
+    const { error: insertProfileError } = await supabase.from('profiles').insert({
+      id: userId,
+      email,
+      full_name: fullName,
+      role: 'owner',
+    })
+    if (insertProfileError) throw new Error(insertProfileError.message)
+  }
+
+  const companyId = crypto.randomUUID()
+  const { error: companyError } = await supabase.from('companies').insert({
+    id: companyId,
+    name: `${fullName}'s Handyman Co.`,
+    email,
+    subscription_plan: 'starter',
+    settings: {},
+  })
+  if (companyError) throw new Error(companyError.message)
+
+  const { error: updateProfileError } = await supabase
+    .from('profiles')
+    .update({ company_id: companyId, role: 'owner' })
+    .eq('id', userId)
+  if (updateProfileError) throw new Error(updateProfileError.message)
+
+  await supabase.from('company_members').insert({
+    company_id: companyId,
+    profile_id: userId,
+    role: 'owner',
+  })
+
+  return companyId
+}
+
+export async function ensureOwnerCompanyLinked(user: {
+  id: string
+  email?: string | null
+  user_metadata?: Record<string, unknown>
+}): Promise<void> {
+  try {
+    await repairOwnerSessionClient(user)
+    return
+  } catch {
+    const rpcOk = await provisionOwnerCompanyIfNeeded()
+    if (!rpcOk) {
+      throw new Error('Account setup is incomplete. Contact support or re-run supabase/schema-patch.sql in Supabase SQL Editor.')
+    }
+  }
 }
 
 async function ensureEmployeeForInvite(
@@ -190,11 +265,13 @@ export async function registerUserWithCompany(
   const session = await loadUserSession()
   if (session) return session
 
-  if (authData.session) {
-    const repaired = await provisionOwnerCompanyIfNeeded()
-    if (repaired) {
+  if (authData.session?.user) {
+    try {
+      await ensureOwnerCompanyLinked(authData.session.user)
       const repairedSession = await loadUserSession()
       if (repairedSession) return repairedSession
+    } catch {
+      // fall through to registration pending message
     }
   }
 
@@ -207,35 +284,33 @@ export async function loadUserSession(): Promise<{ profile: Profile; company: Co
   const { data: { session } } = await supabase.auth.getSession()
   if (!session?.user) return null
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', session.user.id)
-    .single()
+    .maybeSingle()
 
-  if (!profile) return null
+  if (profileError) return null
 
-  const typedProfile = profile as unknown as Profile
-  if (!typedProfile.company_id) {
-    const repaired = await provisionOwnerCompanyIfNeeded()
-    if (!repaired) return null
+  let typedProfile = profile as unknown as Profile | null
+  if (!typedProfile?.company_id) {
+    try {
+      await ensureOwnerCompanyLinked(session.user)
+    } catch {
+      return null
+    }
 
-    const { data: repairedProfile } = await supabase
+    const { data: repairedProfile, error: repairedError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', session.user.id)
-      .single()
+      .maybeSingle()
 
-    if (!repairedProfile) return null
-    const refreshedProfile = repairedProfile as unknown as Profile
-    if (!refreshedProfile.company_id) return null
-
-    const company = await fetchCompanyById(refreshedProfile.company_id)
-    return { profile: refreshedProfile, company }
+    if (repairedError || !repairedProfile?.company_id) return null
+    typedProfile = repairedProfile as unknown as Profile
   }
 
   const company = await fetchCompanyById(typedProfile.company_id)
-
   return { profile: typedProfile, company }
 }
 
