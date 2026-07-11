@@ -201,6 +201,8 @@ export default function WorkOrdersPage() {
         toast.error(t.vendorPO.saveError)
       } else if (isPdfExtractError(message)) {
         toast.error(t.vendorPO.pdfExtractFailed)
+      } else if (/timed out after/i.test(message)) {
+        toast.error(t.vendorPO.uploadTimeout)
       } else if (/companyId is required|company context is not available/i.test(message)) {
         toast.error(t.vendorPO.companyNotReady)
       } else {

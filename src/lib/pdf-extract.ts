@@ -8,6 +8,7 @@ import {
   clearServerPdfExtractProbeCache,
   extractTextFromPdfServer,
 } from '@/lib/pdf-extract-server'
+import { withTimeout } from '@/lib/with-timeout'
 
 type PdfDocument = Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>
 
@@ -94,6 +95,10 @@ function pdfDocumentOptions(data: ArrayBuffer | Uint8Array, disableWorker = fals
 }
 
 async function loadPdfDocument(buffer: ArrayBuffer): Promise<PdfDocument> {
+  return withTimeout(loadPdfDocumentInner(buffer), 45_000, 'PDF parse')
+}
+
+async function loadPdfDocumentInner(buffer: ArrayBuffer): Promise<PdfDocument> {
   ensurePdfjsConfigured()
 
   const noWorker = prefersNoPdfWorker()
@@ -205,6 +210,10 @@ async function extractTextFromPdfMobile(file: File): Promise<string> {
 }
 
 export async function extractTextFromPdf(file: File): Promise<string> {
+  return withTimeout(extractTextFromPdfInner(file), 120_000, 'PDF extract')
+}
+
+async function extractTextFromPdfInner(file: File): Promise<string> {
   if (prefersNoPdfWorker()) {
     return extractTextFromPdfMobile(file)
   }

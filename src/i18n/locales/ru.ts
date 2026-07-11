@@ -282,6 +282,7 @@ export const ru = {
     parseError: 'Ошибка разбора PDF',
     companyNotReady: 'Компания ещё загружается. Подождите и повторите.',
     pdfExtractFailed: 'Не удалось прочитать PDF. Попробуйте другой файл или откройте с компьютера.',
+    uploadTimeout: 'Загрузка заняла слишком много времени. Проверьте интернет и попробуйте снова.',
     pdfServerNotDeployed: 'Сервис чтения PDF на сервере не развёрнут. Нужен деплой Edge Functions в Supabase (openai-proxy). Пока используется резервный режим.',
     noValidFiles: 'Не удалось разобрать ни один файл. Проверьте формат CD Maintenance / Facil-IT / Walgreens PO.',
     saveError: 'Не удалось сохранить наряд в базу',

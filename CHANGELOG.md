@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.12] — 2026-07-11
+
+Fix infinite spinner when uploading Vendor PO PDF.
+
+### Hotfix — Upload hang
+- Timeouts on PDF extract (client/server), Supabase save, and duplicate lookups
+- Remove blocking `refreshSession()` on every API call (was hanging auth refresh)
+- Targeted duplicate-file queries instead of loading all `vendor_po_records`
+- User-facing timeout message when upload exceeds limits
+
 ## [1.14.11] — 2026-07-11
 
 Deploy workflow: FTP upload before Edge Functions; optional Supabase migration step.

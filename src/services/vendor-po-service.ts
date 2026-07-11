@@ -15,6 +15,15 @@ import {
   omitProblemDescriptionFields,
   isMissingVendorPoColumnError,
 } from '@/lib/vendor-po-record'
+import { withTimeout } from '@/lib/with-timeout'
+
+const SUPABASE_OP_TIMEOUT_MS = 15_000
+
+type SupabaseResult<T> = { data: T | null; error: unknown }
+
+function supabaseOp<T>(builder: PromiseLike<SupabaseResult<T>>, label: string): Promise<SupabaseResult<T>> {
+  return withTimeout(Promise.resolve(builder), SUPABASE_OP_TIMEOUT_MS, label)
+}
 
 export {
   VendorPoDuplicateError,
@@ -113,26 +122,43 @@ export async function vendorPdfFileExists(
   }
   if (!supabase) return false
 
-  let { data, error } = await supabase
-    .from('vendor_po_records')
-    .select('source_file_name, source_file_hash')
-    .eq('company_id', companyId)
+  try {
+    if (fileHash) {
+      const { data, error } = await supabaseOp(
+        supabase
+          .from('vendor_po_records')
+          .select('id')
+          .eq('company_id', companyId)
+          .eq('source_file_hash', fileHash)
+          .limit(1)
+          .maybeSingle(),
+        'vendor PO hash lookup',
+      )
+      if (!error && data) return true
+      if (error && !isMissingVendorPoColumnError(getErrorMessage(error))) {
+        console.error('Vendor PO hash duplicate lookup failed:', getErrorMessage(error))
+      }
+    }
 
-  if (error && isMissingVendorPoColumnError(getErrorMessage(error))) {
-    ;({ data, error } = await supabase
-      .from('vendor_po_records')
-      .select('source_file_name')
-      .eq('company_id', companyId))
-  }
+    const { data, error } = await supabaseOp<{ source_file_name: string | null }>(
+      supabase
+        .from('vendor_po_records')
+        .select('source_file_name')
+        .eq('company_id', companyId)
+        .ilike('source_file_name', fileName)
+        .limit(1)
+        .maybeSingle(),
+      'vendor PO filename lookup',
+    )
+    if (!error && data?.source_file_name && normalizeVendorPoFileName(data.source_file_name) === normalized) {
+      return true
+    }
 
-  if (error) {
-    console.error('Vendor PO file duplicate lookup failed:', getErrorMessage(error))
-    return false
-  }
-
-  for (const row of (data ?? []) as Array<{ source_file_name: string | null; source_file_hash?: string | null }>) {
-    if (row.source_file_name && normalizeVendorPoFileName(row.source_file_name) === normalized) return true
-    if (fileHash && row.source_file_hash === fileHash) return true
+    if (error) {
+      console.error('Vendor PO file duplicate lookup failed:', getErrorMessage(error))
+    }
+  } catch (err) {
+    console.error('Vendor PO file duplicate lookup failed:', getErrorMessage(err))
   }
   return false
 }
@@ -175,12 +201,15 @@ export async function getExistingVendorPoNumbers(companyId: string): Promise<Set
 
 async function findExistingVendorPO(record: VendorPORecord): Promise<Pick<VendorPORecord, 'id' | 'created_at'> | null> {
   if (!supabase) return null
-  const { data, error } = await supabase
-    .from('vendor_po_records')
-    .select('id, created_at')
-    .eq('company_id', record.company_id)
-    .eq('vendor_po_number', record.vendor_po_number)
-    .maybeSingle()
+  const { data, error } = await supabaseOp(
+    supabase
+      .from('vendor_po_records')
+      .select('id, created_at')
+      .eq('company_id', record.company_id)
+      .eq('vendor_po_number', record.vendor_po_number)
+      .maybeSingle(),
+    'vendor PO lookup',
+  )
   if (error) throw error
   return data as Pick<VendorPORecord, 'id' | 'created_at'> | null
 }
@@ -199,9 +228,12 @@ async function saveVendorPOToSupabase(record: VendorPORecord): Promise<VendorPOR
 
   let lastError: unknown
   for (const payload of payloads) {
-    const { data, error } = await insertRows('vendor_po_records', payload as never)
-      .select()
-      .maybeSingle()
+    const { data, error } = await supabaseOp<VendorPORecord>(
+      insertRows('vendor_po_records', payload as never)
+        .select()
+        .maybeSingle(),
+      'vendor PO save',
+    )
 
     if (!error && data) return normalizeVendorPORecord(data as VendorPORecord)
 
@@ -244,10 +276,10 @@ export async function getVendorPOs(companyId: string): Promise<VendorPORecord[]>
 export async function saveVendorPO(input: VendorPOInput): Promise<VendorPORecord> {
   const record = toRecord(input)
 
-  if (await vendorPoNumberExists(record.company_id, record.vendor_po_number)) {
+  if (await withTimeout(vendorPoNumberExists(record.company_id, record.vendor_po_number), SUPABASE_OP_TIMEOUT_MS, 'vendor PO duplicate check')) {
     throw new VendorPoDuplicateError(record.vendor_po_number)
   }
-  if (await vendorPdfFileExists(record.company_id, record.source_file_name, record.source_file_hash)) {
+  if (await withTimeout(vendorPdfFileExists(record.company_id, record.source_file_name, record.source_file_hash), SUPABASE_OP_TIMEOUT_MS, 'vendor PO file duplicate check')) {
     throw new VendorPoDuplicateFileError(record.source_file_name)
   }
 
