@@ -61,7 +61,7 @@ function loadScript(src: string, id: string): Promise<void> {
 async function loadCdnPdfJsFromSource(source: (typeof CDN_SOURCES)[number]): Promise<CdnPdfJs> {
   delete window.pdfjsLib
   await loadScript(`${source.base}/${source.pdf}`, source.scriptId)
-  const lib = window.pdfjsLib
+  const lib = window.pdfjsLib as CdnPdfJs | undefined
   if (!lib?.getDocument) throw new Error(`CDN pdf.js failed to initialize (${source.scriptId})`)
   lib.GlobalWorkerOptions.workerPort = null
   lib.GlobalWorkerOptions.workerSrc = `${source.base}/${source.worker}`
