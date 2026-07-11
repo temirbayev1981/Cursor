@@ -1,5 +1,6 @@
 import type { Company, Profile, UserRole, Employee } from '@/types'
 import { supabase } from '@/lib/supabase'
+import { insertRows, updateRows } from '@/lib/supabase-queries'
 import { shouldSkipOnboardingForRole } from '@/lib/permissions'
 import { getTeamInvitePreview, acceptTeamInvite } from '@/services/invite-service'
 import { addCompanyMembership } from '@/services/company-service'
@@ -62,12 +63,13 @@ async function repairOwnerSessionClient(user: {
 
   if (profileError) throw new Error(profileError.message)
 
-  if (existingProfile?.company_id) {
-    return existingProfile.company_id
+  const profileRow = existingProfile as Profile | null
+  if (profileRow?.company_id) {
+    return profileRow.company_id
   }
 
-  if (!existingProfile) {
-    const { error: insertProfileError } = await supabase.from('profiles').insert({
+  if (!profileRow) {
+    const { error: insertProfileError } = await insertRows('profiles', {
       id: userId,
       email,
       full_name: fullName,
@@ -77,7 +79,7 @@ async function repairOwnerSessionClient(user: {
   }
 
   const companyId = crypto.randomUUID()
-  const { error: companyError } = await supabase.from('companies').insert({
+  const { error: companyError } = await insertRows('companies', {
     id: companyId,
     name: `${fullName}'s Handyman Co.`,
     email,
@@ -86,13 +88,15 @@ async function repairOwnerSessionClient(user: {
   })
   if (companyError) throw new Error(companyError.message)
 
-  const { error: updateProfileError } = await supabase
-    .from('profiles')
-    .update({ company_id: companyId, role: 'owner' })
-    .eq('id', userId)
+  const { error: updateProfileError } = await updateRows(
+    'profiles',
+    { company_id: companyId, role: 'owner' },
+    'id',
+    userId,
+  )
   if (updateProfileError) throw new Error(updateProfileError.message)
 
-  await supabase.from('company_members').insert({
+  await insertRows('company_members', {
     company_id: companyId,
     profile_id: userId,
     role: 'owner',
@@ -306,7 +310,7 @@ export async function loadUserSession(): Promise<{ profile: Profile; company: Co
       .eq('id', session.user.id)
       .maybeSingle()
 
-    if (repairedError || !repairedProfile?.company_id) return null
+    if (repairedError || !(repairedProfile as Profile | null)?.company_id) return null
     typedProfile = repairedProfile as unknown as Profile
   }
 
