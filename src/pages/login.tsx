@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/contexts/auth-context'
 import { useTranslation } from '@/contexts/locale-context'
@@ -94,6 +94,8 @@ export default function LoginPage() {
                 <TabsTrigger value="signin" className="flex-1">{t.auth.signIn}</TabsTrigger>
                 <TabsTrigger value="signup" className="flex-1">{t.auth.signUp}</TabsTrigger>
               </TabsList>
+              <TabsContent value="signin" className="hidden" tabIndex={-1} aria-hidden="true" />
+              <TabsContent value="signup" className="hidden" tabIndex={-1} aria-hidden="true" />
             </Tabs>
             <CardDescription className="pt-2">{mode === 'signin' ? t.auth.signInDesc : t.auth.signUpDesc}</CardDescription>
           </CardHeader>

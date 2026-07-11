@@ -5,9 +5,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Sun, Moon, Copy, BookOpen } from 'lucide-react'
+import { Sun, Moon, Copy } from 'lucide-react'
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { Link } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
 import { useTheme } from '@/contexts/theme-context'
@@ -15,10 +14,10 @@ import { useTranslation } from '@/contexts/locale-context'
 import { hasStripe, hasGoogleMaps, hasOpenAI, hasSupabase, hasNotificationConfigured, hasSmsConfigured, hasObservability } from '@/lib/env'
 import { useImportSampleData, useAuditLogs } from '@/hooks/use-entities'
 import { logAudit } from '@/services/entity-service'
-import { NotificationHubPanel } from '@/components/settings/notification-hub-panel'
+import { SettingsIntegrationsPanel, type IntegrationKey } from '@/components/settings/settings-integrations-panel'
+import { SettingsSystemPanel } from '@/components/settings/settings-system-panel'
 import { getErrorReports } from '@/lib/observability'
 import { computePlatformHealth } from '@/lib/platform-health'
-import { formatAuditAction, countUniqueAuditActions, AUDIT_ACTION_COUNT } from '@/lib/audit-labels'
 import { computePlatformAudit } from '@/lib/platform-audit'
 import {
   getLatestIntegrationProbeHistory,
@@ -27,7 +26,7 @@ import {
   syncIntegrationProbeHistoryToSupabase,
   type IntegrationProbeHistoryEntry,
 } from '@/lib/integration-probe-history'
-import { INTEGRATION_PROBE_IDS, probeIntegrationsForSettings, probesToRecord, summarizeIntegrationProbes } from '@/lib/integration-probe-ui'
+import { probeIntegrationsForSettings, probesToRecord, summarizeIntegrationProbes } from '@/lib/integration-probe-ui'
 import { isServiceWorkerRegistered, whenServiceWorkerReady } from '@/lib/pwa'
 import { computeSystemMetrics } from '@/lib/system-metrics'
 import { getStoredCompany } from '@/services/onboarding-service'
@@ -38,8 +37,6 @@ import { toast } from 'sonner'
 import type { UserRole, SubscriptionPlan } from '@/types'
 
 const INVITE_ROLES: UserRole[] = ['admin', 'dispatcher', 'technician', 'accountant']
-
-const INTEGRATION_KEYS = ['stripe', 'maps', 'openai', 'supabase', 'email', 'sms', 'observability'] as const
 
 export default function SettingsPage() {
   const { company, user, updateCompanyDetails } = useAuth()
@@ -75,7 +72,7 @@ export default function SettingsPage() {
     address: base?.address ?? '',
   })
 
-  const integrationStatus: Record<typeof INTEGRATION_KEYS[number], 'connected' | 'configure' | 'comingSoon'> = {
+  const integrationStatus: Record<IntegrationKey, 'connected' | 'configure' | 'comingSoon'> = {
     stripe: hasStripe ? 'connected' : 'configure',
     maps: hasGoogleMaps ? 'connected' : 'configure',
     openai: hasOpenAI ? 'connected' : 'configure',
@@ -196,20 +193,6 @@ export default function SettingsPage() {
     { key: 'professional', price: PLAN_PRICES.professional },
     { key: 'enterprise', price: PLAN_PRICES.enterprise },
   ]
-
-  const getIntegrationStatus = (key: typeof INTEGRATION_KEYS[number]) => {
-    const status = integrationStatus[key]
-    if (status === 'connected') return t.common.connected
-    if (status === 'configure') return t.common.configure
-    return t.common.comingSoon
-  }
-
-  const getIntegrationProbeLabel = (key: typeof INTEGRATION_KEYS[number]) => {
-    if (probesLoading) return t.settings.integrationProbeChecking
-    const reachable = integrationProbes[key]
-    if (reachable === null || reachable === undefined) return null
-    return reachable ? t.settings.integrationProbeLive : t.settings.integrationProbeUnreachable
-  }
 
   const getRoleDescription = (index: number) => {
     if (index === 0) return t.common.fullAccess
@@ -332,61 +315,13 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="integrations">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <p className="text-sm text-muted-foreground" data-testid="integration-probes-summary">
-              {probesLoading
-                ? t.settings.integrationProbesSummaryChecking
-                : probeSummary.total > 0
-                  ? t.settings.integrationProbesSummary
-                      .replace('{live}', String(probeSummary.live))
-                      .replace('{total}', String(probeSummary.total))
-                  : t.settings.integrationProbesSummaryNone}
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              data-testid="integration-probes-refresh"
-              disabled={probesLoading}
-              onClick={refreshIntegrationProbes}
-            >
-              {t.settings.integrationProbesRefresh}
-            </Button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {INTEGRATION_KEYS.map((key) => {
-              const card = t.settings.integrationCards[key]
-              const status = integrationStatus[key]
-              const probeLabel = getIntegrationProbeLabel(key)
-              const probeFailed = status === 'connected' && integrationProbes[key] === false
-              return (
-                <Card key={key} data-testid={`integration-card-${key}`}>
-                  <CardContent className="p-5 flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{card.name}</p>
-                      <p className="text-sm text-muted-foreground">{card.desc}</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <Badge
-                        variant={probeFailed ? 'destructive' : status === 'connected' ? 'success' : 'outline'}
-                        data-testid={`integration-status-${key}`}
-                      >
-                        {probeFailed ? t.settings.integrationProbeUnreachable : getIntegrationStatus(key)}
-                      </Badge>
-                      {probeLabel && (
-                        <Badge
-                          variant={integrationProbes[key] ? 'success' : 'outline'}
-                          className="text-xs"
-                          data-testid={`integration-probe-${key}`}
-                        >
-                          {probeLabel}
-                        </Badge>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
+          <SettingsIntegrationsPanel
+            integrationStatus={integrationStatus}
+            integrationProbes={integrationProbes}
+            probesLoading={probesLoading}
+            probeSummary={probeSummary}
+            onRefreshProbes={refreshIntegrationProbes}
+          />
         </TabsContent>
 
         <TabsContent value="team">
@@ -472,234 +407,21 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="system">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="md:col-span-2" data-testid="settings-user-guide">
-              <CardHeader><CardTitle>{t.settings.userGuide}</CardTitle></CardHeader>
-              <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-muted-foreground">{t.settings.userGuideDesc}</p>
-                <Button variant="outline" asChild>
-                  <Link to="/instructions">
-                    <BookOpen className="h-4 w-4" />
-                    {t.settings.openUserGuide}
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-            <Card className="md:col-span-2">
-              <CardHeader><CardTitle>{t.settings.platformAudit}</CardTitle></CardHeader>
-              <CardContent className="space-y-3">
-                {platformAudit.score < 8.5 && (
-                  <p
-                    className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-                    data-testid="platform-audit-low-score"
-                  >
-                    {t.settings.platformAuditLowScore}
-                  </p>
-                )}
-                {!serviceWorkerReady && (
-                  <p className="rounded-lg border border-border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground" data-testid="sw-first-visit-hint">
-                    {t.settings.swFirstVisitHint}
-                  </p>
-                )}
-                <div className="flex items-center gap-4">
-                  <div className="text-3xl font-bold">{platformAudit.score}/10</div>
-                  <div>
-                    <Badge variant={platformAudit.readyForProduction ? 'success' : 'outline'}>
-                      {platformAudit.grade}
-                    </Badge>
-                    <p className="text-sm text-muted-foreground mt-1">{t.settings.auditSummary[platformAudit.summaryKey]}</p>
-                  </div>
-                </div>
-                <ul className="text-sm space-y-1 text-muted-foreground">
-                  {platformAudit.recommendationIds.map((id) => (
-                    <li key={id}>• {t.settings.auditRecommendations[id]}</li>
-                  ))}
-                </ul>
-                <div className="flex flex-wrap gap-2 pt-2" data-testid="platform-audit-checklist">
-                  {platformAudit.checks.map((check) => (
-                    <Badge
-                      key={check.id}
-                      variant={check.ok ? 'success' : 'outline'}
-                      data-testid={`platform-audit-check-${check.id}`}
-                    >
-                      {t.settings.auditCheckLabels[check.id as keyof typeof t.settings.auditCheckLabels] ?? check.label}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="md:col-span-2">
-              <CardHeader><CardTitle>{t.settings.platformHealth}</CardTitle></CardHeader>
-              <CardContent className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="text-4xl font-bold">{platformHealth.score}/10</div>
-                  <div>
-                    <Badge variant={platformHealth.readyForProduction ? 'success' : 'outline'}>
-                      {platformHealth.grade}
-                    </Badge>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {platformHealth.readyForProduction
-                        ? t.settings.productionReady
-                        : t.settings.needsConfiguration}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {platformHealth.checks.map((check) => (
-                    <Badge key={check.id} variant={check.ok ? 'success' : 'outline'}>
-                      {check.label}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="md:col-span-2">
-              <CardHeader><CardTitle>{t.settings.systemMetrics}</CardTitle></CardHeader>
-              <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div className="rounded-lg bg-secondary/30 p-3">
-                  <p className="text-muted-foreground">{t.settings.platformScore}</p>
-                  <Badge variant={systemMetrics.status === 'healthy' ? 'success' : systemMetrics.status === 'degraded' ? 'outline' : 'destructive'}>
-                    {systemStatusLabel}
-                  </Badge>
-                </div>
-                <div className="rounded-lg bg-secondary/30 p-3">
-                  <p className="text-muted-foreground">{t.settings.errorsLast24h}</p>
-                  <p className="text-2xl font-bold">{systemMetrics.errorsLast24h}</p>
-                </div>
-                <div className="rounded-lg bg-secondary/30 p-3">
-                  <p className="text-muted-foreground">{t.settings.offlineQueue}</p>
-                  <p className="text-2xl font-bold">{systemMetrics.offlineQueueSize}</p>
-                </div>
-                <div className="rounded-lg bg-secondary/30 p-3">
-                  <p className="text-muted-foreground">{t.settings.notificationQueue}</p>
-                  <p className="text-2xl font-bold">{systemMetrics.notificationQueueSize}</p>
-                </div>
-                {systemMetrics.lastErrorAt && (
-                  <p className="col-span-full text-xs text-muted-foreground">
-                    {t.settings.lastError}: {new Date(systemMetrics.lastErrorAt).toLocaleString()}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-            <Card className="md:col-span-2" data-testid="integration-probe-history">
-              <CardHeader>
-                <CardTitle>{t.settings.integrationProbeHistory}</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {latestProbeHistory
-                    ? t.settings.integrationProbeHistoryLatest.replace(
-                        '{time}',
-                        new Date(latestProbeHistory.checkedAt).toLocaleString(),
-                      )
-                    : null}
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                {probeHistory.length === 0 ? (
-                  <p className="text-muted-foreground">{t.settings.integrationProbeHistoryEmpty}</p>
-                ) : (
-                  probeHistory.slice(0, 5).map((entry, index) => (
-                    <div
-                      key={entry.checkedAt}
-                      className="rounded-lg bg-secondary/30 p-3"
-                      data-testid={`integration-probe-history-entry-${index}`}
-                    >
-                      <div className="mb-2 flex items-center justify-between gap-2">
-                        <p className="font-medium">
-                          {new Date(entry.checkedAt).toLocaleString()}
-                        </p>
-                        <Badge variant={entry.summary.unreachable > 0 ? 'outline' : 'success'}>
-                          {t.settings.integrationProbesSummary
-                            .replace('{live}', String(entry.summary.live))
-                            .replace('{total}', String(entry.summary.total))}
-                        </Badge>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {INTEGRATION_PROBE_IDS.map((id) => {
-                          const reachable = entry.results[id]
-                          if (reachable === null || reachable === undefined) return null
-                          const card = t.settings.integrationCards[id]
-                          return (
-                            <Badge
-                              key={`${entry.checkedAt}-${id}`}
-                              variant={reachable ? 'success' : 'destructive'}
-                              data-testid={`integration-probe-history-${id}-${index}`}
-                            >
-                              {card.name}: {reachable ? t.settings.integrationProbeLive : t.settings.integrationProbeUnreachable}
-                            </Badge>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
-            {hasSupabase && (
-              <Card className="md:col-span-2">
-                <CardHeader><CardTitle>{t.settings.supabaseCard}</CardTitle></CardHeader>
-                <CardContent className="flex items-center justify-between gap-4">
-                  <p className="text-sm text-muted-foreground">
-                    {t.settings.importSampleDesc}
-                  </p>
-                  <Button
-                    variant="outline"
-                    data-testid="import-sample-data"
-                    disabled={importSampleData.isPending}
-                    onClick={() => importSampleData.mutate(undefined, {
-                      onSuccess: (r) => {
-                        refreshAuditLogs()
-                        toast.success(`${t.settings.imported}: ${r.imported}`)
-                      },
-                      onError: (e) => toast.error(e.message),
-                    })}
-                  >
-                    {t.settings.importSampleData}
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-            <Card>
-              <CardHeader>
-                <CardTitle>{t.settings.auditLog} ({auditLogs.length})</CardTitle>
-                <p className="text-sm text-muted-foreground" data-testid="audit-coverage-summary">
-                  {t.settings.auditCoverageSummary
-                    .replace('{unique}', String(countUniqueAuditActions(auditLogs)))
-                    .replace('{total}', String(AUDIT_ACTION_COUNT))}
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm max-h-64 overflow-y-auto" data-testid="audit-log-list">
-                {auditLogs.length === 0 ? (
-                  <p className="text-muted-foreground">{t.common.noData}</p>
-                ) : (
-                  auditLogs.slice(0, 20).map((log) => (
-                    <div
-                      key={log.id}
-                      className="rounded bg-secondary/30 p-2"
-                      data-testid={`audit-log-${log.id}`}
-                      data-audit-action={log.action}
-                    >
-                      <p className="font-medium">{formatAuditAction(log.action, t.settings.auditActions)}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {log.entity_type} · {new Date(log.created_at).toLocaleString()}
-                      </p>
-                    </div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
-            <NotificationHubPanel onQueueChange={refreshSystemMetrics} />
-            <Card>
-              <CardHeader><CardTitle>{t.settings.errorReportsPanel.replace('{count}', String(errors.length))}</CardTitle></CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                {errors.length === 0 ? <p className="text-muted-foreground">{t.settings.noErrors}</p> : errors.map((e, i) => (
-                  <div key={i} className="rounded bg-secondary/30 p-2">
-                    <p className="font-medium truncate">{e.message}</p>
-                    <p className="text-xs text-muted-foreground">{e.timestamp}</p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
+          <SettingsSystemPanel
+            platformAudit={platformAudit}
+            platformHealth={platformHealth}
+            systemMetrics={systemMetrics}
+            systemStatusLabel={systemStatusLabel}
+            probeHistory={probeHistory}
+            latestProbeHistory={latestProbeHistory}
+            serviceWorkerReady={serviceWorkerReady}
+            auditLogs={auditLogs}
+            errors={errors}
+            hasSupabase={hasSupabase}
+            importSampleData={importSampleData}
+            onRefreshAuditLogs={refreshAuditLogs}
+            onRefreshSystemMetrics={refreshSystemMetrics}
+          />
         </TabsContent>
       </Tabs>
     </div>

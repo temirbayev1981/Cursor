@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { ExpenseForm } from '@/components/forms/expense-form'
 import { useAuth } from '@/contexts/auth-context'
 import { useExpenses, useSaveExpense } from '@/hooks/use-entities'
+import { useTablePagination } from '@/hooks/use-table-pagination'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
@@ -25,6 +26,7 @@ export default function ExpensesPage() {
   const { data: expenses = [], isLoading } = useExpenses()
   const saveExpense = useSaveExpense()
   const total = expenses.reduce((s, e) => s + e.amount, 0)
+  const pagination = useTablePagination(expenses)
 
   const handleSave = (expense: Expense) => {
     saveExpense.mutate(expense, {
@@ -68,8 +70,12 @@ export default function ExpensesPage() {
         <p className="text-3xl font-bold">{formatCurrency(total)}</p>
       </div>
 
-      <DataTable headers={[t.vehicles.date, t.expenses.category, t.expenses.descriptionCol, t.expenses.amount, t.expenses.linked, '']}>
-        {expenses.map((exp) => (
+      <DataTable
+        headers={[t.vehicles.date, t.expenses.category, t.expenses.descriptionCol, t.expenses.amount, t.expenses.linked, '']}
+        pagination={pagination}
+        paginationTestId="expenses-pagination"
+      >
+        {pagination.paginatedItems.map((exp) => (
           <DataTableRow key={exp.id}>
             <DataTableCell>{formatDate(exp.date, dateLocale)}</DataTableCell>
             <DataTableCell><Badge variant="outline">{exp.category}</Badge></DataTableCell>

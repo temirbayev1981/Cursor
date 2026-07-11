@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/contexts/auth-context'
 import { useEstimates, useJobs, useCustomers, useServices, useSaveEstimate, useConvertEstimateToInvoice, useInvoices } from '@/hooks/use-entities'
+import { useTablePagination } from '@/hooks/use-table-pagination'
 import { generateInvoiceNumber } from '@/services/payment-service'
 import { notifyEstimateSent, notifyEstimateSentSms, notifyResultMessage } from '@/services/notification-service'
 import { logAudit } from '@/services/entity-service'
@@ -34,6 +35,7 @@ export default function EstimatesPage() {
   const { data: invoices = [] } = useInvoices()
   const saveEstimate = useSaveEstimate()
   const convertToInvoice = useConvertEstimateToInvoice()
+  const pagination = useTablePagination(estimates)
 
   const smartEstimate = generateSmartEstimate(
     'Drywall Repair',
@@ -206,8 +208,12 @@ export default function EstimatesPage() {
       {estimatesLoading || jobsLoading || customersLoading ? (
         <TableSkeleton cols={8} />
       ) : (
-      <DataTable headers={[t.estimates.estimate, t.customers.customer, t.jobs.status, t.estimates.labor, t.estimates.materials, t.estimates.total, t.estimates.validUntil, '']}>
-        {estimates.map((est) => {
+      <DataTable
+        headers={[t.estimates.estimate, t.customers.customer, t.jobs.status, t.estimates.labor, t.estimates.materials, t.estimates.total, t.estimates.validUntil, '']}
+        pagination={pagination}
+        paginationTestId="estimates-pagination"
+      >
+        {pagination.paginatedItems.map((est) => {
           const customer = customers.find((c) => c.id === est.customer_id)
           return (
             <DataTableRow key={est.id}>

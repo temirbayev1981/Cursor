@@ -13,6 +13,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/contexts/auth-context'
 import { useJobs, useCustomers, useEmployees, useSaveJob, useBulkUpdateJobStatus, useBulkAssignTechnician, useBulkScheduleJobs, useBulkDeleteJobs } from '@/hooks/use-entities'
+import { useTablePagination } from '@/hooks/use-table-pagination'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
@@ -54,6 +55,7 @@ export default function JobsPage() {
     const matchesStatus = statusFilter === 'all' || job.status === statusFilter
     return matchesSearch && matchesStatus
   })
+  const pagination = useTablePagination(filtered, { resetDeps: [search, statusFilter] })
 
   const allFilteredSelected = filtered.length > 0 && filtered.every((job) => selectedIds.has(job.id))
 
@@ -285,8 +287,12 @@ export default function JobsPage() {
       )}
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <DataTable headers={['', t.jobs.job, t.jobs.customer, t.jobs.technician, t.jobs.status, t.jobs.priority, t.jobs.revenue, t.jobs.profit, t.jobs.scheduledDate, '']}>
-          {filtered.map((job) => {
+        <DataTable
+          headers={['', t.jobs.job, t.jobs.customer, t.jobs.technician, t.jobs.status, t.jobs.priority, t.jobs.revenue, t.jobs.profit, t.jobs.scheduledDate, '']}
+          pagination={pagination}
+          paginationTestId="jobs-pagination"
+        >
+          {pagination.paginatedItems.map((job) => {
             const customer = customers.find((c) => c.id === job.customer_id)
             const tech = employees.find((e) => e.id === job.assigned_technician_id)
             return (

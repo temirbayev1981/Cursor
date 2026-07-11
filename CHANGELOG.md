@@ -29,6 +29,13 @@ Production bug-fix audit — data integrity, notifications, PWA, security.
 - Live E2E smoke: instructions page + login link
 - Docs sync: RELEASE 1.13.5, UPGRADE schema `2026-07-11d`
 
+### Phase 134 — Audit phase 3
+- Client-side table pagination: `useTablePagination` + `TablePagination` on customers, jobs, invoices, estimates, expenses, materials, fuel logs
+- Settings refactor: `SettingsIntegrationsPanel` + `SettingsSystemPanel` extracted from `settings.tsx`
+- E2E: `@axe-core/playwright` axe scans (`a11y-axe.spec.ts`), live smoke extended for PWA/guide static assets
+- i18n: pagination labels (RU/EN)
+- **193** unit tests, **233+** E2E tests (mock)
+
 ### Phase 133 — Audit phase 2
 - English user guide: `INSTRUCTIONS.en.md` + locale-based `/instructions` loading
 - Entity list pagination: `ENTITY_LIST_LIMIT` (500) on Supabase fetches

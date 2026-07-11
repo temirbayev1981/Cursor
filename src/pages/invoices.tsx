@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/contexts/auth-context'
 import { useInvoices, useCustomers, useSaveInvoice, useSendInvoice, usePayInvoice } from '@/hooks/use-entities'
+import { useTablePagination } from '@/hooks/use-table-pagination'
 import { generateInvoiceNumber } from '@/services/payment-service'
 import { notifyInvoiceSentSms, notifyResultMessage } from '@/services/notification-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -65,6 +66,7 @@ export default function InvoicesPage() {
   const paidMonth = invoices
     .filter((i) => i.status === 'paid' && i.paid_date && isThisMonth(i.paid_date))
     .reduce((s, i) => s + i.amount_paid, 0)
+  const pagination = useTablePagination(invoices)
 
   if (invoicesLoading || customersLoading) return <TableSkeleton cols={8} />
 
@@ -180,8 +182,12 @@ export default function InvoicesPage() {
         </div>
       </div>
 
-      <DataTable headers={[t.invoices.invoiceNum, t.invoices.customer, t.invoices.status, t.invoices.subtotal, t.invoices.tax, t.invoices.total, t.invoices.paid, t.invoices.dueDate, '']}>
-        {invoices.map((inv) => {
+      <DataTable
+        headers={[t.invoices.invoiceNum, t.invoices.customer, t.invoices.status, t.invoices.subtotal, t.invoices.tax, t.invoices.total, t.invoices.paid, t.invoices.dueDate, '']}
+        pagination={pagination}
+        paginationTestId="invoices-pagination"
+      >
+        {pagination.paginatedItems.map((inv) => {
           const customer = customers.find((c) => c.id === inv.customer_id)
           return (
             <DataTableRow key={inv.id}>

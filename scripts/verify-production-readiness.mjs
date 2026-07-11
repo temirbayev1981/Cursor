@@ -1201,6 +1201,48 @@ if (!legacyWorkflows.some((wf) => existsSync(wf))) {
   console.log('✓ no legacy GitHub Pages boilerplate workflows')
 }
 
+const phase3Files = [
+  'src/hooks/use-table-pagination.ts',
+  'src/components/shared/table-pagination.tsx',
+  'src/components/settings/settings-integrations-panel.tsx',
+  'src/components/settings/settings-system-panel.tsx',
+  'e2e/a11y-axe.spec.ts',
+]
+console.log('\nAudit phase 3:')
+for (const file of phase3Files) {
+  if (existsSync(file)) {
+    console.log(`✓ ${file}`)
+  } else {
+    console.log(`✗ missing: ${file}`)
+    ok = false
+  }
+}
+
+const pkgJson = JSON.parse(readFileSync('package.json', 'utf8'))
+if (pkgJson.devDependencies?.['@axe-core/playwright']) {
+  console.log('✓ @axe-core/playwright dependency')
+} else {
+  console.log('✗ @axe-core/playwright devDependency required')
+  ok = false
+}
+
+const settingsPage = existsSync('src/pages/settings.tsx')
+  ? readFileSync('src/pages/settings.tsx', 'utf8')
+  : ''
+if (settingsPage.includes('SettingsIntegrationsPanel') && settingsPage.includes('SettingsSystemPanel')) {
+  console.log('✓ settings page uses extracted panels')
+} else {
+  console.log('✗ settings.tsx must use SettingsIntegrationsPanel and SettingsSystemPanel')
+  ok = false
+}
+
+if (liveE2e.includes('INSTRUCTIONS.en.md') && liveE2e.includes('manifest.json') && liveE2e.includes('sw.js')) {
+  console.log('✓ live smoke checks static PWA/guide assets')
+} else {
+  console.log('✗ live-backend-smoke must verify INSTRUCTIONS.en.md, manifest.json, sw.js')
+  ok = false
+}
+
 const prodSourceDirs = ['src/pages', 'src/hooks', 'src/components']
 let compLeak = false
 for (const dir of prodSourceDirs) {
