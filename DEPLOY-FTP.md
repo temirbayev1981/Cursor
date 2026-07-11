@@ -133,6 +133,7 @@ Workflow: `.github/workflows/deploy-ftp.yml`
 | `gnutls_handshake: unexpected TLS packet` | Оставьте `FTP_PROTOCOL=ftps` и `FTP_PORT=21` (explicit TLS). Не используйте `ftps://` на 21 вручную |
 | `ECONNRESET` (data socket) | Passive FTPS через lftp. Проверьте: не блокировать «чужие IP» на хостинге |
 | Деплой висит 10+ минут | Отмените run (Cancel), обновите workflow, перезапустите. Норма: 2–5 мин на ~4 MB |
+| Белый/синий экран после смены `VITE_BASE_PATH` | Очистите кэш сайта (Settings → Clear site data) или откройте в режиме инкогнито; перезапустите Deploy FTP |
 | Ошибка сертификата TLS | В workflow уже `ssl:verify-certificate no` (lftp) |
 | Файлы не в той папке | Исправьте `FTP_SERVER_DIR` (слэш в конце добавится автоматически) |
 | Сайт без стилей | Неверный `VITE_BASE_PATH` — для субдомена ставьте `/` |
