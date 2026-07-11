@@ -13,6 +13,13 @@ Production bug-fix audit — data integrity, notifications, PWA, security.
 - E2E: user fixture `vendor-po-210072-01.pdf` (Walgreens PO 210072-01)
 - **202** unit tests, **38** E2E vendor PO specs
 
+### Phase 137 — Vendor PO save resilience
+- `getErrorMessage()` for Supabase PostgrestError objects (no more `[object Object]` → parse error)
+- Vendor PO save: preserve id on upsert, `maybeSingle` + fetch fallback
+- Local cache fallback when Supabase save/load fails; merged list in `getVendorPOs`
+- iOS Safari: `disableWorker` PDF fallback when worker load fails
+- **205** unit tests
+
 ### Phase 131 — Audit bug fixes
 - Entity cache: `mergeStoreById` preserves multi-tenant offline data on sync
 - `saveEntity` / payment / fuel / time entry: rollback local cache on Supabase failure
