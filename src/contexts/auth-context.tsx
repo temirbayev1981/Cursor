@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback, type React
 import type { Profile, Company, UserRole, OnboardingData } from '@/types'
 import { supabase } from '@/lib/supabase'
 import { persistOnboarding } from '@/services/onboarding-service'
-import { registerUserWithCompany, loadUserSession, markOnboardingCompleteForInvitedMember, resolveOnboardingState, acceptInviteForCurrentUser } from '@/services/auth-service'
+import { registerUserWithCompany, loadUserSession, markOnboardingCompleteForInvitedMember, resolveOnboardingState, acceptInviteForCurrentUser, ensureOwnerCompanyLinked } from '@/services/auth-service'
 import { type PostAuthState } from '@/lib/permissions'
 import { setActiveCompany, registerCompany, fetchAccessibleCompanies, syncActiveCompanyToProfile, updateCompanyProfile, type CompanyProfilePatch } from '@/services/company-service'
 import { logAudit } from '@/services/entity-service'
@@ -83,13 +83,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string): Promise<PostAuthState> => {
     if (!supabase) throw new Error('Supabase not configured')
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
-    await restoreSession()
+
+    const authUser = data.user ?? data.session?.user
+    if (authUser) {
+      try {
+        await ensureOwnerCompanyLinked(authUser)
+      } catch (repairError) {
+        throw repairError
+      }
+    }
+
     const session = await loadUserSession()
     if (!session) throw new Error('Session not found')
+
+    setUser(session.profile)
+    setCompany(session.company)
     const complete = resolveOnboardingState(session.profile.role, session.company)
     setOnboardingComplete(complete)
+    localStorage.setItem('handymanos_auth', 'true')
     return {
       role: session.profile.role,
       onboardingComplete: complete,

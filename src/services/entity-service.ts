@@ -98,7 +98,11 @@ async function upsertCompanyEntity<T extends EntityTable>(
   table: T,
   item: TableInsert<T>,
 ): Promise<TableRow<T>> {
-  const { data, error } = await upsertRows(table, item)
+  const payload = table === 'materials'
+    ? (({ customer_price: _generated, ...rest }) => rest)(item as TableInsert<'materials'> & { customer_price?: number })
+    : item
+
+  const { data, error } = await upsertRows(table, payload as TableInsert<T>)
     .select()
     .single()
 

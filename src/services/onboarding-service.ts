@@ -43,10 +43,16 @@ export async function persistOnboarding(data: OnboardingData, companyId: string,
 
   if (!supabase) throw new Error('Supabase not configured')
 
-  await upsertRows('companies', {
-    ...company,
+  const { error: companyError } = await upsertRows('companies', {
+    id: companyId,
+    name: company.name,
+    email: company.email,
+    phone: company.phone,
+    address: company.address,
+    subscription_plan: company.subscription_plan,
     settings: company.settings as Json,
   })
+  if (companyError) throw companyError
   localStorage.setItem('handymanos_company', JSON.stringify(company))
 
   for (const emp of data.employees) {

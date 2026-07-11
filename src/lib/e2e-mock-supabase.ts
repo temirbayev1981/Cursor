@@ -327,6 +327,33 @@ function handleRpc(fn: string, args: Record<string, unknown>): { data: unknown; 
     return { data: true, error: null }
   }
 
+  if (fn === 'provision_owner_company') {
+    const session = getSession()
+    if (!session?.user.id) return { data: null, error: null }
+    const profiles = loadTable('profiles')
+    const profileIdx = profiles.findIndex((p) => p.id === session.user.id)
+    if (profileIdx < 0) return { data: null, error: null }
+    if (profiles[profileIdx].company_id) {
+      return { data: profiles[profileIdx].company_id, error: null }
+    }
+    const companyId = crypto.randomUUID()
+    const fullName = String(profiles[profileIdx].full_name ?? session.user.email.split('@')[0])
+    upsertRow('companies', {
+      id: companyId,
+      name: `${fullName}'s Handyman Co.`,
+      email: session.user.email,
+      phone: '',
+      address: '',
+      subscription_plan: 'starter',
+      settings: {},
+      created_at: new Date().toISOString(),
+    })
+    profiles[profileIdx] = { ...profiles[profileIdx], company_id: companyId, role: 'owner' }
+    saveTable('profiles', profiles)
+    upsertRow('company_members', { company_id: companyId, profile_id: session.user.id, role: 'owner' })
+    return { data: companyId, error: null }
+  }
+
   if (fn === 'get_portal_estimates' || fn === 'get_portal_invoices' || fn === 'get_portal_jobs') {
     const token = String(args.p_token ?? '')
     const portal = portalTokenRow(token)
@@ -443,29 +470,42 @@ export function createE2eMockSupabase(): DbClient {
           error: null,
         }
       },
-      signUp: async ({ email, password: _password, options }: { email: string; password: string; options?: { data?: { full_name?: string } } }) => {
+      signUp: async ({ email, password: _password, options }: { email: string; password: string; options?: { data?: { full_name?: string; signup_type?: string } } }) => {
         const userId = crypto.randomUUID()
-        const companyId = crypto.randomUUID()
         const fullName = options?.data?.full_name ?? email.split('@')[0]
-        upsertRow('companies', {
-          id: companyId,
-          name: `${fullName}'s Handyman Co.`,
-          email,
-          phone: '',
-          address: '',
-          subscription_plan: 'starter',
-          settings: {},
-          created_at: new Date().toISOString(),
-        })
-        upsertRow('profiles', {
-          id: userId,
-          company_id: companyId,
-          email,
-          full_name: fullName,
-          role: 'owner',
-          created_at: new Date().toISOString(),
-        })
-        upsertRow('company_members', { company_id: companyId, profile_id: userId, role: 'owner' })
+        const signupType = options?.data?.signup_type ?? 'owner'
+
+        if (signupType !== 'invite') {
+          const companyId = crypto.randomUUID()
+          upsertRow('companies', {
+            id: companyId,
+            name: `${fullName}'s Handyman Co.`,
+            email,
+            phone: '',
+            address: '',
+            subscription_plan: 'starter',
+            settings: {},
+            created_at: new Date().toISOString(),
+          })
+          upsertRow('profiles', {
+            id: userId,
+            company_id: companyId,
+            email,
+            full_name: fullName,
+            role: 'owner',
+            created_at: new Date().toISOString(),
+          })
+          upsertRow('company_members', { company_id: companyId, profile_id: userId, role: 'owner' })
+        } else {
+          upsertRow('profiles', {
+            id: userId,
+            email,
+            full_name: fullName,
+            role: 'technician',
+            created_at: new Date().toISOString(),
+          })
+        }
+
         setSession({ id: userId, email })
         return {
           data: { user: { id: userId, email }, session: getSession() },

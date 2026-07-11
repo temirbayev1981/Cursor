@@ -3,6 +3,7 @@ import {
   isOnboardingComplete,
   markOnboardingCompleteForInvitedMember,
   resolveOnboardingState,
+  formatAuthError,
 } from './auth-service'
 import { DEMO_COMPANY } from '@/data/mock-data'
 
@@ -32,5 +33,17 @@ describe('auth-service onboarding helpers', () => {
 
   it('requires onboarding for owner without setup', () => {
     expect(resolveOnboardingState('owner', DEMO_COMPANY)).toBe(false)
+  })
+
+  it('maps common auth errors to user-facing messages', () => {
+    expect(formatAuthError({ message: 'Email not confirmed' }, {
+      authError: 'Auth error',
+      emailNotConfirmed: 'Confirm email',
+      invalidCredentials: 'Bad login',
+      accountIncomplete: 'Incomplete',
+      profileMissing: 'No profile',
+      companyMissing: 'No company',
+      registrationPending: 'Pending',
+    })).toBe('Confirm email')
   })
 })
