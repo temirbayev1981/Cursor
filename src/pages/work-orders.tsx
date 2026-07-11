@@ -20,6 +20,7 @@ import { tryExtractTextFromPdf, isPdfFile, warmUpPdfJs, prefersNoPdfWorker } fro
 import { getCdnPdfJs } from '@/lib/pdf-extract-cdn'
 import { isVendorPOText, parseVendorPOText } from '@/lib/vendor-po-parser'
 import { getErrorMessage, isPdfExtractError, isVendorPOSaveError, isVendorPOStorageError, vendorPoPdfExtractUserMessage } from '@/lib/error-message'
+import { isVendorPoDuplicateError } from '@/services/vendor-po-service'
 import { useQueryClient } from '@tanstack/react-query'
 import { useVendorPOs, useSaveVendorPOs, useDeleteVendorPO, useSeedVendorPOs } from '@/hooks/use-vendor-pos'
 import type { AIExtractedData } from '@/types'
@@ -104,6 +105,8 @@ export default function WorkOrdersPage() {
 
     setParsingPdf(true)
     const fileErrors: string[] = []
+    const seenInBatch = new Set<string>()
+    const existingNumbers = new Set(vendorPOs.map((po) => po.vendor_po_number))
     try {
       const parsed = []
       for (const file of pdfFiles) {
@@ -127,6 +130,15 @@ export default function WorkOrdersPage() {
           fileErrors.push(`${fileName}: ${t.vendorPO.poNumberMissing}`)
           continue
         }
+        if (existingNumbers.has(row.vendor_po_number)) {
+          fileErrors.push(`${fileName}: ${t.vendorPO.duplicate.replace('{poNumber}', row.vendor_po_number)}`)
+          continue
+        }
+        if (seenInBatch.has(row.vendor_po_number)) {
+          fileErrors.push(`${fileName}: ${t.vendorPO.duplicateInBatch.replace('{poNumber}', row.vendor_po_number)}`)
+          continue
+        }
+        seenInBatch.add(row.vendor_po_number)
         parsed.push(row)
       }
       if (parsed.length === 0) {
@@ -136,11 +148,18 @@ export default function WorkOrdersPage() {
       await saveVendorPOs.mutateAsync(parsed)
       toast.success(`${t.vendorPO.parseSuccess}: ${parsed.length}`)
       if (fileErrors.length > 0) {
-        toast.info(t.vendorPO.noValidFiles)
+        const duplicateCount = fileErrors.filter((msg) => /уже загружен|already uploaded|повторяется|appears twice/i.test(msg)).length
+        if (duplicateCount > 0) {
+          toast.info(t.vendorPO.duplicatesSkipped.replace('{count}', String(duplicateCount)))
+        } else {
+          toast.info(t.vendorPO.noValidFiles)
+        }
       }
     } catch (error) {
       const message = getErrorMessage(error)
-      if (isVendorPOSaveError(message) || isVendorPOStorageError(message)) {
+      if (isVendorPoDuplicateError(error)) {
+        toast.error(t.vendorPO.duplicate.replace('{poNumber}', error.vendorPoNumber))
+      } else if (isVendorPOSaveError(message) || isVendorPOStorageError(message)) {
         toast.error(t.vendorPO.saveError)
       } else if (isPdfExtractError(message)) {
         toast.error(t.vendorPO.pdfExtractFailed)
@@ -153,7 +172,7 @@ export default function WorkOrdersPage() {
     } finally {
       setParsingPdf(false)
     }
-  }, [companyId, companyReady, saveVendorPOs, t.vendorPO])
+  }, [companyId, companyReady, saveVendorPOs, t.vendorPO, vendorPOs])
 
   const onDropVendorPO = useCallback((files: File[]) => {
     void handleVendorPOUpload(files)

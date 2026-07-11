@@ -1,9 +1,23 @@
 import type { VendorPORecord, VendorPOInput } from '@/types/vendor-po'
 import { supabase } from '@/lib/supabase'
-import { upsertRows } from '@/lib/supabase-queries'
+import { insertRows, upsertRows } from '@/lib/supabase-queries'
 import { getErrorMessage } from '@/lib/error-message'
 
 const STORAGE_KEY = 'handymanos_vendor_pos'
+
+export class VendorPoDuplicateError extends Error {
+  readonly vendorPoNumber: string
+
+  constructor(vendorPoNumber: string) {
+    super(`Vendor PO ${vendorPoNumber} already exists`)
+    this.name = 'VendorPoDuplicateError'
+    this.vendorPoNumber = vendorPoNumber
+  }
+}
+
+export function isVendorPoDuplicateError(error: unknown): error is VendorPoDuplicateError {
+  return error instanceof VendorPoDuplicateError
+}
 
 function loadLocal(): VendorPORecord[] {
   try {
@@ -55,13 +69,47 @@ function saveLocalVendorPO(record: VendorPORecord): VendorPORecord {
     (row) => row.vendor_po_number === record.vendor_po_number && row.company_id === record.company_id,
   )
   if (duplicate) {
-    const updated = { ...duplicate, ...record, id: duplicate.id, created_at: duplicate.created_at }
-    saveLocal(existing.map((row) => (row.id === duplicate.id ? updated : row)))
-    return updated
+    throw new VendorPoDuplicateError(record.vendor_po_number)
   }
   const next = [record, ...existing]
   saveLocal(next)
   return record
+}
+
+export async function vendorPoNumberExists(companyId: string, vendorPoNumber: string): Promise<boolean> {
+  if (loadLocal().some((row) => row.company_id === companyId && row.vendor_po_number === vendorPoNumber)) {
+    return true
+  }
+  if (!supabase) return false
+  const existing = await findExistingVendorPO({
+    company_id: companyId,
+    vendor_po_number: vendorPoNumber,
+  } as VendorPORecord)
+  return existing !== null
+}
+
+export async function getExistingVendorPoNumbers(companyId: string): Promise<Set<string>> {
+  const numbers = new Set(
+    loadLocal()
+      .filter((row) => row.company_id === companyId)
+      .map((row) => row.vendor_po_number),
+  )
+  if (!supabase) return numbers
+
+  const { data, error } = await supabase
+    .from('vendor_po_records')
+    .select('vendor_po_number')
+    .eq('company_id', companyId)
+
+  if (error) {
+    console.error('Vendor PO duplicate lookup failed:', getErrorMessage(error))
+    return numbers
+  }
+
+  for (const row of (data ?? []) as Array<{ vendor_po_number: string | null }>) {
+    if (row.vendor_po_number) numbers.add(row.vendor_po_number)
+  }
+  return numbers
 }
 
 async function findExistingVendorPO(record: VendorPORecord): Promise<Pick<VendorPORecord, 'id' | 'created_at'> | null> {
@@ -78,28 +126,21 @@ async function findExistingVendorPO(record: VendorPORecord): Promise<Pick<Vendor
 
 async function saveVendorPOToSupabase(record: VendorPORecord): Promise<VendorPORecord> {
   const existing = await findExistingVendorPO(record)
-  const payload = existing
-    ? { ...record, id: existing.id, created_at: existing.created_at }
-    : record
+  if (existing) {
+    throw new VendorPoDuplicateError(record.vendor_po_number)
+  }
 
-  const { data, error } = await upsertRows('vendor_po_records', payload, {
-    onConflict: 'company_id,vendor_po_number',
-  })
+  const { data, error } = await insertRows('vendor_po_records', record as never)
     .select()
     .maybeSingle()
 
-  if (error) throw error
+  if (error) {
+    if (/duplicate key|23505|already exists/i.test(getErrorMessage(error))) {
+      throw new VendorPoDuplicateError(record.vendor_po_number)
+    }
+    throw error
+  }
   if (data) return data as VendorPORecord
-
-  const { data: fetched, error: fetchError } = await supabase!
-    .from('vendor_po_records')
-    .select('*')
-    .eq('company_id', payload.company_id)
-    .eq('vendor_po_number', payload.vendor_po_number)
-    .maybeSingle()
-
-  if (fetchError) throw fetchError
-  if (fetched) return fetched as VendorPORecord
   throw new Error('vendor_po save succeeded but row was not returned')
 }
 
@@ -127,6 +168,10 @@ export async function getVendorPOs(companyId: string): Promise<VendorPORecord[]>
 export async function saveVendorPO(input: VendorPOInput): Promise<VendorPORecord> {
   const record = toRecord(input)
 
+  if (await vendorPoNumberExists(record.company_id, record.vendor_po_number)) {
+    throw new VendorPoDuplicateError(record.vendor_po_number)
+  }
+
   if (!supabase) {
     return saveLocalVendorPO(record)
   }
@@ -136,6 +181,7 @@ export async function saveVendorPO(input: VendorPOInput): Promise<VendorPORecord
     saveLocalVendorPO(saved)
     return saved
   } catch (remoteError) {
+    if (isVendorPoDuplicateError(remoteError)) throw remoteError
     console.error('Vendor PO Supabase save failed:', getErrorMessage(remoteError))
     return saveLocalVendorPO(record)
   }
