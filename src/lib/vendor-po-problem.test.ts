@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
+  getProblemDescriptionCell,
   getProblemDescriptionEn,
   getProblemDescriptionRu,
   needsProblemDescriptionTranslation,
@@ -52,5 +53,26 @@ describe('vendor-po-problem', () => {
     expect(needsProblemDescriptionTranslation(base)).toBe(true)
     expect(needsProblemDescriptionTranslation({ ...base, problem_description_ru: 'Столб' })).toBe(false)
     expect(needsProblemDescriptionTranslation({ ...base, problem_description: '', service_description: 'REPLACE' })).toBe(false)
+  })
+
+  it('getProblemDescriptionCell falls back to English when Russian is missing', () => {
+    expect(getProblemDescriptionCell(base)).toEqual({
+      text: 'The pole is leaning',
+      state: 'en',
+      isTranslating: false,
+    })
+  })
+
+  it('getProblemDescriptionCell prefers Russian and marks translating state', () => {
+    expect(getProblemDescriptionCell({ ...base, problem_description_ru: 'Столб наклонён' })).toEqual({
+      text: 'Столб наклонён',
+      state: 'ru',
+      isTranslating: false,
+    })
+    expect(getProblemDescriptionCell(base, { isTranslating: true })).toEqual({
+      text: 'The pole is leaning',
+      state: 'en',
+      isTranslating: true,
+    })
   })
 })

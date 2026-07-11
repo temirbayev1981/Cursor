@@ -2,6 +2,15 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.14] — 2026-07-11
+
+Fix empty «Описание проблемы» column when Russian translation is pending or failed.
+
+### Hotfix — Problem description display
+- Show English text as fallback until Russian translation is ready
+- Backfill `problem_description` from `service_description` on load
+- Retry lazy translation after failure; show «Перевод…» under English while in progress
+
 ## [1.14.13] — 2026-07-11
 
 Russian translation for Vendor PO problem description.
