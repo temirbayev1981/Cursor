@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.2] — 2026-07-11
+
+Vendor PO parser — fix service location address for OpenAI multiline PDF text.
+
+### Phase 145 — Vendor PO address parsing
+- Multiline `SERVICE LOCATION` blocks (OpenAI / server extract output)
+- CD Maintenance and Facil-IT layouts: street, city, zip on separate lines
+- Multi-word city names (e.g. New Bern)
+- **213** unit tests
+
 ## [1.14.1] — 2026-07-11
 
 Fix Edge Function deploy 413 — remove pdf.js from openai-proxy.
