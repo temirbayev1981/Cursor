@@ -53,6 +53,15 @@ describe('vendor-po-record', () => {
     expect(normalized.order_type).toBe('')
   })
 
+  it('normalizeVendorPORecord backfills problem_description from service_description', () => {
+    const normalized = normalizeVendorPORecord({
+      ...base,
+      problem_description: undefined,
+      service_description: 'BUILDING EXTERIOR / The pole in the back is leaning',
+    })
+    expect(normalized.problem_description).toBe('The pole in the back is leaning')
+  })
+
   it('omitProblemDescriptionFields strips translation fields', () => {
     const stripped = omitProblemDescriptionFields(base)
     expect(stripped).not.toHaveProperty('problem_description')

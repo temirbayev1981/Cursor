@@ -13,7 +13,11 @@ import { useWorkflow } from '@/contexts/workflow-context'
 import { useAuth } from '@/contexts/auth-context'
 import { requireCompanyId } from '@/hooks/use-company-scope'
 import { exportVendorPOsToExcel, groupVendorPOsByAddress } from '@/lib/export'
-import { getProblemDescriptionEn, getProblemDescriptionRu, needsProblemDescriptionTranslation } from '@/lib/vendor-po-problem'
+import {
+  getProblemDescriptionCell,
+  getProblemDescriptionEn,
+  needsProblemDescriptionTranslation,
+} from '@/lib/vendor-po-problem'
 import { normalizeVendorPORecord } from '@/lib/vendor-po-record'
 import { translateProblemDescriptionToRussian } from '@/lib/vendor-po-translate'
 import { updateVendorPOProblemRu } from '@/services/vendor-po-service'
@@ -33,9 +37,27 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
   const [selected, setSelected] = useState<VendorPORecord | null>(null)
   const [cellHint, setCellHint] = useState<{ title: string; text: string } | null>(null)
   const [problemTranslations, setProblemTranslations] = useState<Record<string, string>>({})
-  const [translatingProblemIds, setTranslatingProblemIds] = useState<Set<string>>(new Set())
+  const [translatingProblemIds, setTranslatingProblemIds] = useState<Set<string>>(() => {
+    const initial = new Set<string>()
+    for (const row of records) {
+      if (needsProblemDescriptionTranslation(row)) initial.add(row.id)
+    }
+    return initial
+  })
   const attemptedProblemIds = useRef(new Set<string>())
   const dateLocale = useDateLocale()
+
+  useEffect(() => {
+    setTranslatingProblemIds(() => {
+      const next = new Set<string>()
+      for (const row of records) {
+        if (needsProblemDescriptionTranslation(row) && !problemTranslations[row.id]) {
+          next.add(row.id)
+        }
+      }
+      return next
+    })
+  }, [records, problemTranslations])
 
   useEffect(() => {
     let cancelled = false
@@ -46,12 +68,16 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
         attemptedProblemIds.current.add(row.id)
         setTranslatingProblemIds((prev) => new Set(prev).add(row.id))
         const ru = await translateProblemDescriptionToRussian(en)
+        if (cancelled) return
         setTranslatingProblemIds((prev) => {
           const next = new Set(prev)
           next.delete(row.id)
           return next
         })
-        if (cancelled || !ru) continue
+        if (!ru) {
+          attemptedProblemIds.current.delete(row.id)
+          continue
+        }
         setProblemTranslations((prev) => ({ ...prev, [row.id]: ru }))
         void updateVendorPOProblemRu(row.id, ru).catch(() => undefined)
       }
@@ -122,8 +148,10 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
           const row = normalizeVendorPORecord(rawRow)
           const priority = row.priority
           const isEmergency = priority.includes('EMERGENCY') || priority.startsWith('P1')
-          const problemRu = getProblemDescriptionRu(row, problemTranslations[row.id])
-          const isTranslatingProblem = translatingProblemIds.has(row.id) && !problemRu
+          const problemCell = getProblemDescriptionCell(row, {
+            translated: problemTranslations[row.id],
+            isTranslating: translatingProblemIds.has(row.id),
+          })
           return (
             <DataTableRow key={row.id} className={isEmergency ? 'bg-destructive/5' : ''}>
               <DataTableCell className="font-mono font-medium whitespace-nowrap">
@@ -155,20 +183,19 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
                 </p>
               </DataTableCell>
               <DataTableCell className="align-top">
-                {problemRu ? (
+                {problemCell.text ? (
                   <button
                     type="button"
-                    className="line-clamp-2 leading-snug break-words text-left w-full cursor-pointer hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-sm"
-                    onClick={() => setCellHint({ title: t.vendorPO.problemDescription, text: problemRu })}
+                    className={`line-clamp-2 leading-snug break-words text-left w-full cursor-pointer hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-sm${problemCell.state === 'en' ? ' text-muted-foreground' : ''}`}
+                    onClick={() => setCellHint({ title: t.vendorPO.problemDescription, text: problemCell.text })}
                     data-testid={`vendor-po-problem-${row.id}`}
                     aria-label={t.vendorPO.problemDescription}
                   >
-                    {problemRu}
+                    {problemCell.text}
+                    {problemCell.isTranslating ? (
+                      <span className="block text-xs italic mt-0.5">{t.vendorPO.problemDescriptionTranslating}</span>
+                    ) : null}
                   </button>
-                ) : isTranslatingProblem ? (
-                  <span className="text-muted-foreground italic" data-testid={`vendor-po-problem-translating-${row.id}`}>
-                    {t.vendorPO.problemDescriptionTranslating}
-                  </span>
                 ) : (
                   <span className="text-muted-foreground">—</span>
                 )}
@@ -250,7 +277,10 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
                 <Detail label={t.vendorPO.address} value={`${selected.service_address}, ${selected.service_city}, ${selected.service_state}`} className="col-span-2" />
                 <Detail
                   label={t.vendorPO.problemDescription}
-                  value={getProblemDescriptionRu(selected, problemTranslations[selected.id])}
+                  value={getProblemDescriptionCell(selected, {
+                    translated: problemTranslations[selected.id],
+                    isTranslating: translatingProblemIds.has(selected.id),
+                  }).text || (translatingProblemIds.has(selected.id) ? t.vendorPO.problemDescriptionTranslating : undefined)}
                   className="col-span-2"
                 />
                 <Detail label={t.vendorPO.workScope} value={selected.work_summary} className="col-span-2" />

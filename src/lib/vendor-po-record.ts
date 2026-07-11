@@ -1,9 +1,14 @@
+import { extractProblemDescription } from '@/lib/vendor-po-parser'
 import type { VendorPORecord } from '@/types/vendor-po'
 
 /** Coerce nullable Supabase fields so table render never throws. */
 export function normalizeVendorPORecord(row: VendorPORecord): VendorPORecord {
+  const serviceDescription = row.service_description ?? ''
+  const problemDescription = row.problem_description || extractProblemDescription(serviceDescription) || undefined
+
   return {
     ...row,
+    problem_description: problemDescription,
     client_po_number: row.client_po_number ?? '',
     priority: row.priority ?? '',
     order_type: row.order_type ?? '',
