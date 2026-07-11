@@ -1,6 +1,9 @@
 -- HandymanOS AI - Database Schema (idempotent)
+-- SCHEMA_VERSION: 2026-07-11b  (verify this line before running)
 -- Safe to re-run: creates missing objects, replaces functions, skips existing tables/types.
--- Run this entire file in Supabase SQL Editor (one paste → Run).
+-- Run this ENTIRE file in Supabase SQL Editor (one paste → Run). Do not run only the tail.
+-- Fresh copy: https://raw.githubusercontent.com/temirbayev1981/Cursor/main/supabase/schema.sql
+-- If you see "column company_id does not exist", run supabase/schema-patch.sql first, then re-run this file.
 
 -- Enable extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -94,6 +97,20 @@ CREATE TABLE IF NOT EXISTS company_members (
 
 CREATE INDEX IF NOT EXISTS idx_company_members_profile ON company_members(profile_id);
 CREATE INDEX IF NOT EXISTS idx_company_members_company ON company_members(company_id);
+
+-- Upgrade existing tables (must run before indexes/functions reference these columns)
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS company_id UUID REFERENCES companies(id) ON DELETE CASCADE;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS address TEXT;
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS logo_url TEXT;
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS subscription_plan subscription_plan DEFAULT 'starter';
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS settings JSONB DEFAULT '{}';
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
 
 -- Customers
 CREATE TABLE IF NOT EXISTS customers (
@@ -417,6 +434,13 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   new_data JSONB,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS type customer_type DEFAULT 'residential';
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS notification_preferences JSONB DEFAULT '{"email": true, "sms": false}'::jsonb;
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS total_revenue DECIMAL(12,2) DEFAULT 0;
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS job_count INTEGER DEFAULT 0;
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
 
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_profiles_company ON profiles(company_id);
@@ -1173,38 +1197,22 @@ $$;
 
 GRANT EXECUTE ON FUNCTION get_accessible_companies() TO authenticated;
 
--- Upgrade existing tables (CREATE TABLE IF NOT EXISTS does not add new columns)
-ALTER TABLE profiles ADD COLUMN IF NOT EXISTS company_id UUID REFERENCES companies(id) ON DELETE CASCADE;
-ALTER TABLE profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT;
-ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone TEXT;
-ALTER TABLE profiles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
-
-ALTER TABLE companies ADD COLUMN IF NOT EXISTS phone TEXT;
-ALTER TABLE companies ADD COLUMN IF NOT EXISTS address TEXT;
-ALTER TABLE companies ADD COLUMN IF NOT EXISTS logo_url TEXT;
-ALTER TABLE companies ADD COLUMN IF NOT EXISTS subscription_plan subscription_plan DEFAULT 'starter';
-ALTER TABLE companies ADD COLUMN IF NOT EXISTS settings JSONB DEFAULT '{}';
-ALTER TABLE companies ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
-ALTER TABLE companies ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
-
-ALTER TABLE customers ADD COLUMN IF NOT EXISTS type customer_type DEFAULT 'residential';
-ALTER TABLE customers ADD COLUMN IF NOT EXISTS notes TEXT;
-ALTER TABLE customers ADD COLUMN IF NOT EXISTS notification_preferences JSONB DEFAULT '{"email": true, "sms": false}'::jsonb;
-ALTER TABLE customers ADD COLUMN IF NOT EXISTS total_revenue DECIMAL(12,2) DEFAULT 0;
-ALTER TABLE customers ADD COLUMN IF NOT EXISTS job_count INTEGER DEFAULT 0;
-ALTER TABLE customers ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
-
--- Backfill memberships from existing profiles (only when company_id column exists)
+-- Backfill memberships from existing profiles (dynamic SQL — PL/pgSQL validates static SQL at compile time)
 DO $$
 BEGIN
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_schema = 'public' AND table_name = 'profiles' AND column_name = 'company_id'
+  ) AND EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'company_members'
   ) THEN
-    INSERT INTO company_members (company_id, profile_id, role)
-    SELECT company_id, id, role
-    FROM profiles
-    WHERE company_id IS NOT NULL
-    ON CONFLICT (company_id, profile_id) DO NOTHING;
+    EXECUTE $sql$
+      INSERT INTO company_members (company_id, profile_id, role)
+      SELECT company_id, id, role
+      FROM profiles
+      WHERE company_id IS NOT NULL
+      ON CONFLICT (company_id, profile_id) DO NOTHING
+    $sql$;
   END IF;
 END $$;
