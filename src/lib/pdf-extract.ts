@@ -171,11 +171,7 @@ async function extractTextFromPdfClient(file: File): Promise<string> {
 
 export async function extractTextFromPdf(file: File): Promise<string> {
   if (prefersNoPdfWorker() && canExtractPdfOnServer()) {
-    try {
-      return await extractTextFromPdfServer(file)
-    } catch (serverErr) {
-      console.warn('Server PDF extract failed, falling back to client:', getErrorMessage(serverErr))
-    }
+    return await extractTextFromPdfServer(file)
   }
 
   try {

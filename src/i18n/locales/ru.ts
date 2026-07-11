@@ -281,6 +281,7 @@ export const ru = {
     parseError: 'Ошибка разбора PDF',
     companyNotReady: 'Компания ещё загружается. Подождите и повторите.',
     pdfExtractFailed: 'Не удалось прочитать PDF. Попробуйте другой файл или откройте с компьютера.',
+    pdfServerNotDeployed: 'Сервис чтения PDF на сервере недоступен. Обновите Edge Functions (openai-proxy) в Supabase.',
     noValidFiles: 'Не удалось разобрать ни один файл. Проверьте формат CD Maintenance / Facil-IT / Walgreens PO.',
     saveError: 'Не удалось сохранить наряд в базу',
     pdfEmpty: 'PDF не содержит текста (возможно, это скан без OCR)',

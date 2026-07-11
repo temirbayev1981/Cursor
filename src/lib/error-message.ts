@@ -24,9 +24,16 @@ export function isVendorPOSaveError(message: string): boolean {
 }
 
 export function isPdfExtractError(message: string): boolean {
-  return /PDF extract failed|PDF OCR failed|worker|Invalid PDF|pdf\.js|fake worker|Failed to fetch|\.mjs|Canvas|password protected|corrupted|api version|module script|importing a module|couldn't be opened|could not be opened|arraybuffer|FileReader|chunk|dynamically imported|Loading CSS/i.test(
+  return /PDF extract failed|PDF OCR failed|PDF file is empty|Server returned empty|PDF extract function not deployed|worker|Invalid PDF|pdf\.js|fake worker|Failed to fetch|\.mjs|Canvas|password protected|corrupted|api version|module script|importing a module|couldn't be opened|could not be opened|arraybuffer|FileReader|chunk|dynamically imported|Loading CSS|Unauthorized — sign in/i.test(
     message,
   )
+}
+
+export function vendorPoPdfExtractUserMessage(message: string, fallback: string, serverHint: string): string {
+  if (/not deployed|404/i.test(message)) return serverHint
+  if (/Unauthorized|sign in again/i.test(message)) return fallback
+  if (/file is empty/i.test(message)) return fallback
+  return fallback
 }
 
 export function isVendorPOStorageError(message: string): boolean {

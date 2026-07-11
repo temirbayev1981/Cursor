@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.13.9] — 2026-07-11
+
+iOS Vendor PO PDF — route mobile extract through deployed openai-proxy.
+
+### Phase 142 — Mobile PDF via openai-proxy
+- `openai-proxy` Edge Function: `extractPdf` + `pdfBase64` mode (pdf.js + OpenAI OCR fallback)
+- iPhone/iPad: server-only PDF extract (no broken client pdf.js retry loop)
+- Client tries `openai-proxy` first, then `extract-pdf-text`; sends `apikey` + auth headers
+- Clearer toast when Edge Function not deployed (404)
+- **211** unit tests
+
 ## [1.13.8] — 2026-07-11
 
 iOS Safari Vendor PO PDF — server-side extract fallback + pdf.js legacy build.
