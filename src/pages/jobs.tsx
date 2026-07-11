@@ -33,7 +33,7 @@ export default function JobsPage() {
   const [bulkTechnicianId, setBulkTechnicianId] = useState('emp-002')
   const [bulkDeleteArmed, setBulkDeleteArmed] = useState(false)
   const { company } = useAuth()
-  const companyId = company?.id ?? 'comp-001'
+  const companyId = company?.id ?? ''
   const { data: jobs = [], isLoading } = useJobs()
   const { data: customers = [] } = useCustomers()
   const { data: employees = [] } = useEmployees()

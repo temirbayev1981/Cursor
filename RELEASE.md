@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.13.4
+# HandymanOS AI — Release 1.13.5
 
-**Status:** merged to `main` (tags **`v1.7.4`**–**`v1.13.4`**, current package **1.13.4**).
+**Status:** merged to `main` (current package **1.13.5**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 

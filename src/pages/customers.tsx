@@ -27,7 +27,7 @@ export default function CustomersPage() {
   const [showForm, setShowForm] = useState(false)
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
   const { company } = useAuth()
-  const companyId = company?.id ?? 'comp-001'
+  const companyId = company?.id ?? ''
   const { data: customers = [], isLoading } = useCustomers()
   const saveCustomer = useSaveCustomer()
 

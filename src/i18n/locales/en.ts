@@ -589,6 +589,7 @@ export const en: TranslationKeys = {
     backToApp: 'Back to dashboard',
     loadError: 'Failed to load the user guide',
     hint: 'Full text is also available as INSTRUCTIONS.md in the project repository.',
+    toc: 'Contents',
   },
   settings: {
     title: 'Settings',

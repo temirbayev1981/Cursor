@@ -22,4 +22,15 @@ test.describe('Live backend smoke', () => {
     await page.goto('/dashboard')
     await expect(page).toHaveURL(/\/login/, { timeout: 15000 })
   })
+
+  test('instructions page loads user guide', async ({ page }) => {
+    await page.goto('/instructions')
+    await expect(page.getByRole('heading', { name: /руководство пользователя|user guide/i }).first()).toBeVisible()
+    await expect(page.locator('.instructions-doc')).toBeVisible({ timeout: 15000 })
+  })
+
+  test('login page links to instructions', async ({ page }) => {
+    await page.goto('/login')
+    await expect(page.getByRole('link', { name: /руководство|user guide|instructions/i })).toBeVisible()
+  })
 })

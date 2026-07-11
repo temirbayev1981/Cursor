@@ -17,7 +17,17 @@ Production bug-fix audit — data integrity, notifications, PWA, security.
 - Offline sync: normalize `start`/`end` vs `start_time`/`end_time` on clock-out
 - Auth: restore session on `SIGNED_IN` / `TOKEN_REFRESHED` in other tabs
 - Queries: disable entity fetches until company is loaded (no `comp-001` leak)
-- **172** unit tests, **230** E2E tests (mock)
+- **189** unit tests, **230+** E2E tests (mock)
+
+### Phase 132 — System hardening
+- Removed legacy GitHub Pages workflows (`static.yml`, `jekyll-gh-pages.yml`)
+- `/instructions`: markdown rendering, table of contents, E2E coverage
+- Removed `comp-001` fallback across hooks and pages; `requireCompanyId` guard
+- OpenAI: browser API key disabled in production (proxy/E2E mock only)
+- Supabase incremental migrations (`supabase/migrations/`)
+- Unit tests: billing, payment, stripe, inventory, vendor-po services
+- Live E2E smoke: instructions page + login link
+- Docs sync: RELEASE 1.13.5, UPGRADE schema `2026-07-11d`
 
 ## [1.13.4] — 2026-07-10
 

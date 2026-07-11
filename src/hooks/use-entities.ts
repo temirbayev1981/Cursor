@@ -1,25 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
+import { useCompanyQueryScope, useMutationCompanyScope, requireCompanyId } from '@/hooks/use-company-scope'
 import { listEntities, saveEntity, deleteEntity, createJobFromVendorPO, createEstimateFromJob, createInvoiceFromEstimate, createScheduleFromJob, importSampleData, listFuelLogs, saveFuelLog, listAuditLogs, logAudit } from '@/services/entity-service'
 import { recordInvoicePayment, sendInvoiceToCustomer } from '@/services/payment-service'
 import { listInventoryTransactions, applyMaterialsOnJob, receiveStock } from '@/services/inventory-service'
 import type { Job, Customer, Estimate, Invoice, Employee, Material, Vehicle, Expense, FuelLog } from '@/types'
 import type { VendorPORecord } from '@/types/vendor-po'
 
-function useCompanyId() {
-  const { company } = useAuth()
-  return company?.id ?? 'comp-001'
-}
-
-function useCompanyQueryScope() {
-  const { company, isLoading } = useAuth()
-  const companyId = company?.id ?? ''
-  return {
-    companyId,
-    enabled: !isLoading && Boolean(company?.id),
-    queryKey: company?.id ?? 'pending',
-  }
-}
+export { useCompanyQueryScope } from '@/hooks/use-company-scope'
 
 export function useJobs() {
   const { companyId, enabled, queryKey } = useCompanyQueryScope()
@@ -88,26 +76,30 @@ export function useFuelLogs() {
 
 export function useSaveWorkOrder() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   return useMutation({
-    mutationFn: (wo: import('@/types').WorkOrder) => saveEntity('workOrders', wo),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['workOrders', companyId] }),
+    mutationFn: (wo: import('@/types').WorkOrder) => {
+      requireCompanyId(companyId)
+      return saveEntity('workOrders', wo)
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['workOrders', queryKey] }),
   })
 }
 
 export function useSaveCustomer() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
     mutationFn: async (customer: Customer) => {
-      const existing = await listEntities('customers', companyId) as Customer[]
+      const cid = requireCompanyId(companyId)
+      const existing = await listEntities('customers', cid) as Customer[]
       const isNew = !existing.some((c) => c.id === customer.id)
       await saveEntity('customers', customer)
       return { customer, isNew }
     },
     onSuccess: ({ customer, isNew }) => {
-      if (user) {
+      if (user && companyId) {
         void logAudit(
           companyId,
           user.id,
@@ -116,24 +108,25 @@ export function useSaveCustomer() {
           customer.id,
         )
       }
-      qc.invalidateQueries({ queryKey: ['customers', companyId] })
+      qc.invalidateQueries({ queryKey: ['customers', queryKey] })
     },
   })
 }
 
 export function useSaveJob() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
     mutationFn: async (job: Job) => {
-      const existing = await listEntities('jobs', companyId) as Job[]
+      const cid = requireCompanyId(companyId)
+      const existing = await listEntities('jobs', cid) as Job[]
       const isNew = !existing.some((j) => j.id === job.id)
       await saveEntity('jobs', job)
       return { job, isNew }
     },
     onSuccess: ({ job, isNew }) => {
-      if (user) {
+      if (user && companyId) {
         void logAudit(
           companyId,
           user.id,
@@ -142,98 +135,107 @@ export function useSaveJob() {
           job.id,
         )
       }
-      qc.invalidateQueries({ queryKey: ['jobs', companyId] })
+      qc.invalidateQueries({ queryKey: ['jobs', queryKey] })
     },
   })
 }
 
 export function useCreateJobFromPO() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   return useMutation({
-    mutationFn: (po: VendorPORecord) => createJobFromVendorPO(po, companyId),
+    mutationFn: (po: VendorPORecord) => {
+      const cid = requireCompanyId(companyId)
+      return createJobFromVendorPO(po, cid)
+    },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['jobs', companyId] })
-      qc.invalidateQueries({ queryKey: ['estimates', companyId] })
+      qc.invalidateQueries({ queryKey: ['jobs', queryKey] })
+      qc.invalidateQueries({ queryKey: ['estimates', queryKey] })
     },
   })
 }
 
 export function useCreateEstimateFromJob() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
-    mutationFn: (job: Job) => createEstimateFromJob(job, companyId),
+    mutationFn: (job: Job) => {
+      const cid = requireCompanyId(companyId)
+      return createEstimateFromJob(job, cid)
+    },
     onSuccess: (estimate) => {
-      qc.invalidateQueries({ queryKey: ['estimates', companyId] })
-      if (user) void logAudit(companyId, user.id, 'estimate.create', 'estimate', estimate.id)
+      qc.invalidateQueries({ queryKey: ['estimates', queryKey] })
+      if (user && companyId) void logAudit(companyId, user.id, 'estimate.create', 'estimate', estimate.id)
     },
   })
 }
 
 export function useUpdateJobStatus() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
     mutationFn: async ({ job, status }: { job: Job; status: Job['status'] }) =>
       saveEntity('jobs', { ...job, status }),
     onSuccess: (_data, { job }) => {
-      if (user) void logAudit(companyId, user.id, 'job.status_change', 'job', job.id)
-      qc.invalidateQueries({ queryKey: ['jobs', companyId] })
+      if (user && companyId) void logAudit(companyId, user.id, 'job.status_change', 'job', job.id)
+      qc.invalidateQueries({ queryKey: ['jobs', queryKey] })
     },
   })
 }
 
 export function useBulkUpdateJobStatus() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
     mutationFn: async ({ jobs, status }: { jobs: Job[]; status: Job['status'] }) => {
+      requireCompanyId(companyId)
       for (const job of jobs) {
         await saveEntity('jobs', { ...job, status })
       }
     },
     onSuccess: (_data, { jobs, status }) => {
-      if (user && status === 'cancelled') {
+      if (user && companyId && status === 'cancelled') {
         for (const job of jobs) {
           void logAudit(companyId, user.id, 'jobs.bulk_cancel', 'job', job.id)
         }
       }
-      qc.invalidateQueries({ queryKey: ['jobs', companyId] })
+      qc.invalidateQueries({ queryKey: ['jobs', queryKey] })
     },
   })
 }
 
 export function useBulkAssignTechnician() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
     mutationFn: async ({ jobs, technicianId }: { jobs: Job[]; technicianId: string }) => {
+      requireCompanyId(companyId)
       for (const job of jobs) {
         await saveEntity('jobs', { ...job, assigned_technician_id: technicianId })
       }
     },
     onSuccess: (_data, { jobs }) => {
-      if (user) {
+      if (user && companyId) {
         for (const job of jobs) {
           void logAudit(companyId, user.id, 'jobs.bulk_assign', 'job', job.id)
         }
       }
-      qc.invalidateQueries({ queryKey: ['jobs', companyId] })
+      qc.invalidateQueries({ queryKey: ['jobs', queryKey] })
     },
   })
 }
 
 export function useBulkScheduleJobs() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
     mutationFn: async ({ jobs, technicianId }: { jobs: Job[]; technicianId: string }) => {
+      requireCompanyId(companyId)
       const scheduledDate = new Date().toISOString()
       for (const job of jobs) {
         await saveEntity('jobs', {
@@ -245,112 +247,116 @@ export function useBulkScheduleJobs() {
       }
     },
     onSuccess: (_data, { jobs }) => {
-      if (user) {
+      if (user && companyId) {
         for (const job of jobs) {
           void logAudit(companyId, user.id, 'jobs.bulk_schedule', 'job', job.id)
         }
       }
-      qc.invalidateQueries({ queryKey: ['jobs', companyId] })
+      qc.invalidateQueries({ queryKey: ['jobs', queryKey] })
     },
   })
 }
 
 export function useBulkDeleteJobs() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
     mutationFn: async (jobs: Job[]) => {
+      requireCompanyId(companyId)
       for (const job of jobs) {
         await deleteEntity('jobs', job.id)
       }
       return jobs
     },
     onSuccess: (jobs) => {
-      if (user) {
+      if (user && companyId) {
         for (const job of jobs) {
           void logAudit(companyId, user.id, 'jobs.bulk_delete', 'job', job.id)
         }
       }
-      qc.invalidateQueries({ queryKey: ['jobs', companyId] })
+      qc.invalidateQueries({ queryKey: ['jobs', queryKey] })
     },
   })
 }
 
 export function useSaveInvoice() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { queryKey } = useMutationCompanyScope()
   return useMutation({
     mutationFn: (invoice: Invoice) => saveEntity('invoices', invoice),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['invoices', companyId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['invoices', queryKey] }),
   })
 }
 
 export function usePayInvoice() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
     mutationFn: ({ invoice, amount }: { invoice: Invoice; amount: number }) =>
       recordInvoicePayment(invoice, amount),
     onSuccess: (_data, { invoice }) => {
-      if (user) void logAudit(companyId, user.id, 'invoice.payment', 'invoice', invoice.id)
-      qc.invalidateQueries({ queryKey: ['invoices', companyId] })
+      if (user && companyId) void logAudit(companyId, user.id, 'invoice.payment', 'invoice', invoice.id)
+      qc.invalidateQueries({ queryKey: ['invoices', queryKey] })
     },
   })
 }
 
 export function useSendInvoice() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
     mutationFn: ({ invoice, email, customer }: { invoice: Invoice; email: string; customer?: Customer }) =>
       sendInvoiceToCustomer(invoice, email, invoice.customer_id, customer),
     onSuccess: (_data, { invoice }) => {
-      if (user) void logAudit(companyId, user.id, 'invoice.sent', 'invoice', invoice.id)
-      qc.invalidateQueries({ queryKey: ['invoices', companyId] })
+      if (user && companyId) void logAudit(companyId, user.id, 'invoice.sent', 'invoice', invoice.id)
+      qc.invalidateQueries({ queryKey: ['invoices', queryKey] })
     },
   })
 }
 
 export function useSaveEstimate() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { queryKey } = useMutationCompanyScope()
   return useMutation({
     mutationFn: (estimate: Estimate) => saveEntity('estimates', estimate),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['estimates', companyId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['estimates', queryKey] }),
   })
 }
 
 export function useConvertEstimateToInvoice() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
-    mutationFn: async ({ estimate, invoiceNumber }: { estimate: Estimate; invoiceNumber: string }) =>
-      createInvoiceFromEstimate(estimate, companyId, invoiceNumber),
+    mutationFn: async ({ estimate, invoiceNumber }: { estimate: Estimate; invoiceNumber: string }) => {
+      const cid = requireCompanyId(companyId)
+      return createInvoiceFromEstimate(estimate, cid, invoiceNumber)
+    },
     onSuccess: (invoice) => {
-      if (user) void logAudit(companyId, user.id, 'invoice.create', 'invoice', invoice.id)
-      qc.invalidateQueries({ queryKey: ['estimates', companyId] })
-      qc.invalidateQueries({ queryKey: ['invoices', companyId] })
+      if (user && companyId) void logAudit(companyId, user.id, 'invoice.create', 'invoice', invoice.id)
+      qc.invalidateQueries({ queryKey: ['estimates', queryKey] })
+      qc.invalidateQueries({ queryKey: ['invoices', queryKey] })
     },
   })
 }
 
 export function useSaveProperty() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
     mutationFn: async (property: import('@/types').Property) => {
-      const existing = await listEntities('properties', companyId) as import('@/types').Property[]
+      const cid = requireCompanyId(companyId)
+      const existing = await listEntities('properties', cid) as import('@/types').Property[]
       const isNew = !existing.some((p) => p.id === property.id)
       await saveEntity('properties', property)
       return { property, isNew }
     },
     onSuccess: ({ property, isNew }) => {
-      if (user) {
+      if (user && companyId) {
         void logAudit(
           companyId,
           user.id,
@@ -359,24 +365,25 @@ export function useSaveProperty() {
           property.id,
         )
       }
-      qc.invalidateQueries({ queryKey: ['properties', companyId] })
+      qc.invalidateQueries({ queryKey: ['properties', queryKey] })
     },
   })
 }
 
 export function useSaveEmployee() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
     mutationFn: async (employee: Employee) => {
-      const existing = await listEntities('employees', companyId) as Employee[]
+      const cid = requireCompanyId(companyId)
+      const existing = await listEntities('employees', cid) as Employee[]
       const isNew = !existing.some((e) => e.id === employee.id)
       await saveEntity('employees', employee)
       return { employee, isNew }
     },
     onSuccess: ({ employee, isNew }) => {
-      if (user) {
+      if (user && companyId) {
         void logAudit(
           companyId,
           user.id,
@@ -385,24 +392,25 @@ export function useSaveEmployee() {
           employee.id,
         )
       }
-      qc.invalidateQueries({ queryKey: ['employees', companyId] })
+      qc.invalidateQueries({ queryKey: ['employees', queryKey] })
     },
   })
 }
 
 export function useSaveMaterial() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
     mutationFn: async (material: Material) => {
-      const existing = await listEntities('materials', companyId) as Material[]
+      const cid = requireCompanyId(companyId)
+      const existing = await listEntities('materials', cid) as Material[]
       const isNew = !existing.some((m) => m.id === material.id)
       await saveEntity('materials', material)
       return { material, isNew }
     },
     onSuccess: ({ material, isNew }) => {
-      if (user) {
+      if (user && companyId) {
         void logAudit(
           companyId,
           user.id,
@@ -411,24 +419,25 @@ export function useSaveMaterial() {
           material.id,
         )
       }
-      qc.invalidateQueries({ queryKey: ['materials', companyId] })
+      qc.invalidateQueries({ queryKey: ['materials', queryKey] })
     },
   })
 }
 
 export function useSaveVehicle() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
     mutationFn: async (vehicle: Vehicle) => {
-      const existing = await listEntities('vehicles', companyId) as Vehicle[]
+      const cid = requireCompanyId(companyId)
+      const existing = await listEntities('vehicles', cid) as Vehicle[]
       const isNew = !existing.some((v) => v.id === vehicle.id)
       await saveEntity('vehicles', vehicle)
       return { vehicle, isNew }
     },
     onSuccess: ({ vehicle, isNew }) => {
-      if (user) {
+      if (user && companyId) {
         void logAudit(
           companyId,
           user.id,
@@ -437,25 +446,26 @@ export function useSaveVehicle() {
           vehicle.id,
         )
       }
-      qc.invalidateQueries({ queryKey: ['vehicles', companyId] })
-      qc.invalidateQueries({ queryKey: ['fuelLogs', companyId] })
+      qc.invalidateQueries({ queryKey: ['vehicles', queryKey] })
+      qc.invalidateQueries({ queryKey: ['fuelLogs', queryKey] })
     },
   })
 }
 
 export function useSaveFuelLog() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
     mutationFn: async (log: FuelLog) => {
-      const existing = await listFuelLogs(companyId)
+      const cid = requireCompanyId(companyId)
+      const existing = await listFuelLogs(cid)
       const isNew = !existing.some((item) => item.id === log.id)
       await saveFuelLog(log)
       return { log, isNew }
     },
     onSuccess: ({ log, isNew }) => {
-      if (user) {
+      if (user && companyId) {
         void logAudit(
           companyId,
           user.id,
@@ -464,24 +474,25 @@ export function useSaveFuelLog() {
           log.id,
         )
       }
-      qc.invalidateQueries({ queryKey: ['fuelLogs', companyId] })
+      qc.invalidateQueries({ queryKey: ['fuelLogs', queryKey] })
     },
   })
 }
 
 export function useSaveExpense() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
     mutationFn: async (expense: Expense) => {
-      const existing = await listEntities('expenses', companyId) as Expense[]
+      const cid = requireCompanyId(companyId)
+      const existing = await listEntities('expenses', cid) as Expense[]
       const isNew = !existing.some((e) => e.id === expense.id)
       await saveEntity('expenses', expense)
       return { expense, isNew }
     },
     onSuccess: ({ expense, isNew }) => {
-      if (user) {
+      if (user && companyId) {
         void logAudit(
           companyId,
           user.id,
@@ -490,14 +501,14 @@ export function useSaveExpense() {
           expense.id,
         )
       }
-      qc.invalidateQueries({ queryKey: ['expenses', companyId] })
+      qc.invalidateQueries({ queryKey: ['expenses', queryKey] })
     },
   })
 }
 
 export function useCreateScheduleFromJob() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
     mutationFn: async ({
@@ -512,23 +523,29 @@ export function useCreateScheduleFromJob() {
       startTime: string
       endTime: string
       location: string
-    }) => createScheduleFromJob(job, companyId, technicianId, startTime, endTime, location),
+    }) => {
+      const cid = requireCompanyId(companyId)
+      return createScheduleFromJob(job, cid, technicianId, startTime, endTime, location)
+    },
     onSuccess: (schedule) => {
-      if (user) void logAudit(companyId, user.id, 'schedule.create', 'schedule', schedule.id)
-      qc.invalidateQueries({ queryKey: ['schedules', companyId] })
-      qc.invalidateQueries({ queryKey: ['jobs', companyId] })
+      if (user && companyId) void logAudit(companyId, user.id, 'schedule.create', 'schedule', schedule.id)
+      qc.invalidateQueries({ queryKey: ['schedules', queryKey] })
+      qc.invalidateQueries({ queryKey: ['jobs', queryKey] })
     },
   })
 }
 
 export function useImportSampleData() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
-    mutationFn: () => importSampleData(companyId),
+    mutationFn: () => {
+      const cid = requireCompanyId(companyId)
+      return importSampleData(cid)
+    },
     onSuccess: () => {
-      if (user) void logAudit(companyId, user.id, 'sample.import', 'company', companyId)
+      if (user && companyId) void logAudit(companyId, user.id, 'sample.import', 'company', companyId)
       qc.invalidateQueries()
     },
   })
@@ -569,33 +586,38 @@ export function useInventoryTransactionsList() {
 
 export function useInventoryTransactions() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
     mutationFn: (params: {
       companyId: string
       jobId: string
       items: { materialId: string; quantity: number }[]
-    }) => applyMaterialsOnJob(params.companyId, params.jobId, params.items),
+    }) => {
+      const cid = requireCompanyId(companyId)
+      return applyMaterialsOnJob(params.companyId ?? cid, params.jobId, params.items)
+    },
     onSuccess: (_transactions, params) => {
-      if (user) void logAudit(companyId, user.id, 'inventory.apply', 'job', params.jobId)
-      qc.invalidateQueries({ queryKey: ['inventory', companyId] })
-      qc.invalidateQueries({ queryKey: ['materials', companyId] })
+      if (user && companyId) void logAudit(companyId, user.id, 'inventory.apply', 'job', params.jobId)
+      qc.invalidateQueries({ queryKey: ['inventory', queryKey] })
+      qc.invalidateQueries({ queryKey: ['materials', queryKey] })
     },
   })
 }
 
 export function useReceiveStock() {
   const qc = useQueryClient()
-  const companyId = useCompanyId()
+  const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
-    mutationFn: (params: { materialId: string; quantity: number; notes?: string }) =>
-      receiveStock(companyId, params.materialId, params.quantity, params.notes),
+    mutationFn: (params: { materialId: string; quantity: number; notes?: string }) => {
+      const cid = requireCompanyId(companyId)
+      return receiveStock(cid, params.materialId, params.quantity, params.notes)
+    },
     onSuccess: (_transaction, params) => {
-      if (user) void logAudit(companyId, user.id, 'inventory.receive', 'material', params.materialId)
-      qc.invalidateQueries({ queryKey: ['inventory', companyId] })
-      qc.invalidateQueries({ queryKey: ['materials', companyId] })
+      if (user && companyId) void logAudit(companyId, user.id, 'inventory.receive', 'material', params.materialId)
+      qc.invalidateQueries({ queryKey: ['inventory', queryKey] })
+      qc.invalidateQueries({ queryKey: ['materials', queryKey] })
     },
   })
 }

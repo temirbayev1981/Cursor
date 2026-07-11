@@ -21,7 +21,7 @@ export default function MaterialsPage() {
   const { t } = useTranslation()
   const dateLocale = useDateLocale()
   const { company } = useAuth()
-  const companyId = company?.id ?? 'comp-001'
+  const companyId = company?.id ?? ''
   const [showForm, setShowForm] = useState(false)
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null)
   const [receiveMaterialId, setReceiveMaterialId] = useState<string | null>(null)

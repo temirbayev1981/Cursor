@@ -11,6 +11,7 @@ import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
 import { useWorkflow } from '@/contexts/workflow-context'
 import { useAuth } from '@/contexts/auth-context'
+import { requireCompanyId } from '@/hooks/use-company-scope'
 import { exportVendorPOsToExcel, groupVendorPOsByAddress } from '@/lib/export'
 import { toast } from 'sonner'
 
@@ -33,7 +34,9 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
 
   const handleCreateJob = async (po: VendorPORecord) => {
     try {
-      await runVendorPOWorkflow(po, company?.id ?? 'comp-001', user?.id ?? 'user-001')
+      const companyId = requireCompanyId(company?.id)
+      const userId = user?.id ?? 'user-001'
+      await runVendorPOWorkflow(po, companyId, userId)
       toast.success(t.vendorPO.jobCreatedFrom.replace('{poNumber}', po.vendor_po_number))
       navigate('/jobs')
     } catch {

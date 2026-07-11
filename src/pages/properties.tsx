@@ -17,7 +17,7 @@ export default function PropertiesPage() {
   const [showForm, setShowForm] = useState(false)
   const [editingProperty, setEditingProperty] = useState<Property | null>(null)
   const { company } = useAuth()
-  const companyId = company?.id ?? 'comp-001'
+  const companyId = company?.id ?? ''
   const { data: properties = [], isLoading: propsLoading } = useProperties()
   const { data: customers = [], isLoading: custLoading } = useCustomers()
   const saveProperty = useSaveProperty()

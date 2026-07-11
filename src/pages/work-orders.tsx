@@ -27,7 +27,7 @@ import { useTranslation } from '@/contexts/locale-context'
 export default function WorkOrdersPage() {
   const { t } = useTranslation()
   const { company } = useAuth()
-  const companyId = company?.id ?? 'comp-001'
+  const companyId = company?.id ?? ''
   const [analyzing, setAnalyzing] = useState(false)
   const [parsingPdf, setParsingPdf] = useState(false)
   const [extracted, setExtracted] = useState<AIExtractedData | null>(null)
@@ -55,6 +55,10 @@ export default function WorkOrdersPage() {
   }, [isLoading, vendorPOs.length, seedVendorPOs])
 
   const handleAnalyze = useCallback(async (content: string, type: 'pdf' | 'email' | 'photo', file?: File) => {
+    if (!companyId) {
+      toast.error(t.workOrders.analysisFailed)
+      return
+    }
     setAnalyzing(true)
     setExtracted(null)
     try {
@@ -76,6 +80,10 @@ export default function WorkOrdersPage() {
   }, [companyId, queryClient, t.workOrders.analysisComplete, t.workOrders.analysisFailed])
 
   const handleVendorPOUpload = useCallback(async (files: File[]) => {
+    if (!companyId) {
+      toast.error(t.vendorPO.parseError)
+      return
+    }
     const pdfFiles = files.filter((f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'))
     if (pdfFiles.length === 0) return
 
