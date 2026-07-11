@@ -1147,10 +1147,10 @@ if (deployWorkflow.includes('smoke:supabase') && !deployWorkflow.includes('conti
 const nightlySmoke = existsSync('.github/workflows/supabase-smoke.yml')
   ? readFileSync('.github/workflows/supabase-smoke.yml', 'utf8')
   : ''
-if (nightlySmoke.includes('verify:operator')) {
-  console.log('✓ nightly smoke runs operator readiness')
+if (nightlySmoke.includes('smoke:supabase') && nightlySmoke.includes('SUPABASE_SERVICE_ROLE_KEY')) {
+  console.log('✓ supabase-smoke workflow runs live connectivity checks with service role')
 } else {
-  console.log('✗ supabase-smoke.yml must run verify:operator')
+  console.log('✗ supabase-smoke.yml must run smoke:supabase with SUPABASE_SERVICE_ROLE_KEY')
   ok = false
 }
 
@@ -1320,7 +1320,11 @@ if (!compLeak) {
 }
 
 console.log('\n→ Running verify:release')
-execSync('npm run verify:release', { stdio: 'inherit' })
+try {
+  execSync('npm run verify:release', { stdio: 'inherit' })
+} catch {
+  ok = false
+}
 
 if (!ok) {
   console.error('\nProduction readiness check failed')
