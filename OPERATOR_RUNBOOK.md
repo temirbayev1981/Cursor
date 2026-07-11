@@ -11,8 +11,10 @@ npm run verify:operator:prod
 ## 1. Supabase
 
 1. Apply `supabase/schema.sql` on fresh projects, or incremental files in `supabase/migrations/`.
-2. **Required migration:** `supabase/migrations/20260711000001_auth_provision_owner.sql` — run in SQL Editor if signup/login fails.
-3. GitHub Secrets: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
+2. **Required migrations** (SQL Editor, in order):
+   - `supabase/migrations/20260711000001_auth_provision_owner.sql` — if login/signup fails
+   - `supabase/migrations/20260711000002_check_rate_limit.sql` — if `supabase-smoke` reports missing `check_rate_limit`
+3. GitHub Secrets: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (for strict smoke checks).
 
 ## 2. Edge Functions
 

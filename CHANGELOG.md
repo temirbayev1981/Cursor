@@ -46,6 +46,10 @@ Production bug-fix audit — data integrity, notifications, PWA, security.
 - E2E: `mobile-smoke.spec.ts` (iPhone 13), axe + pagination coverage on jobs/invoices/settings
 - **201** unit tests, **237+** E2E tests (mock)
 
+### Hotfix — supabase-smoke `check_rate_limit`
+- Smoke script calls `check_rate_limit` with **service role** key (anon always gets 404)
+- Migration `20260711000002_check_rate_limit.sql`; add `SUPABASE_SERVICE_ROLE_KEY` to GitHub Secrets
+
 ### Phase 133 — Audit phase 2
 - English user guide: `INSTRUCTIONS.en.md` + locale-based `/instructions` loading
 - Entity list pagination: `ENTITY_LIST_LIMIT` (500) on Supabase fetches

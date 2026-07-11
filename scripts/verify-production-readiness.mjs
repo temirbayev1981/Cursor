@@ -1165,6 +1165,7 @@ console.log('\nSupabase migrations:')
 const migrationFiles = [
   'supabase/migrations/README.md',
   'supabase/migrations/20260711000001_auth_provision_owner.sql',
+  'supabase/migrations/20260711000002_check_rate_limit.sql',
 ]
 for (const file of migrationFiles) {
   if (existsSync(file)) {
