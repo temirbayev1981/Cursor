@@ -1,13 +1,20 @@
 type PdfJsModule = typeof import('pdfjs-dist')
 
+const PDFJS_VERSION = '6.1.200'
+
 let pdfjsReady: Promise<PdfJsModule> | null = null
 
 async function getPdfjs(): Promise<PdfJsModule> {
   if (!pdfjsReady) {
     pdfjsReady = (async () => {
       const pdfjsLib = await import('pdfjs-dist')
-      const worker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url')
-      pdfjsLib.GlobalWorkerOptions.workerSrc = worker.default
+      try {
+        const worker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url')
+        pdfjsLib.GlobalWorkerOptions.workerSrc = worker.default
+      } catch {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.mjs`
+      }
       return pdfjsLib
     })()
   }

@@ -84,11 +84,20 @@ export default function WorkOrdersPage() {
       const extracted = await extractTextFromPdfFiles(pdfFiles)
       const parsed = []
       for (const { fileName, text } of extracted) {
+        if (!text.trim()) {
+          toast.error(`${fileName}: ${t.vendorPO.pdfEmpty}`)
+          continue
+        }
         if (!isVendorPOText(text)) {
           toast.error(`${fileName}: ${t.vendorPO.notVendorPO}`)
           continue
         }
-        parsed.push(parseVendorPOText(text, fileName))
+        const row = parseVendorPOText(text, fileName, companyId)
+        if (!row.vendor_po_number) {
+          toast.error(`${fileName}: ${t.vendorPO.poNumberMissing}`)
+          continue
+        }
+        parsed.push(row)
       }
       if (parsed.length === 0) {
         toast.error(t.vendorPO.parseError)
@@ -96,12 +105,17 @@ export default function WorkOrdersPage() {
       }
       await saveVendorPOs.mutateAsync(parsed)
       toast.success(`${t.vendorPO.parseSuccess}: ${parsed.length}`)
-    } catch {
-      toast.error(t.vendorPO.parseError)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      if (/vendor_po|permission|policy|violates|uuid|company_id/i.test(message)) {
+        toast.error(t.vendorPO.saveError)
+      } else {
+        toast.error(t.vendorPO.parseError)
+      }
     } finally {
       setParsingPdf(false)
     }
-  }, [saveVendorPOs, t.vendorPO.notVendorPO, t.vendorPO.parseError, t.vendorPO.parseSuccess])
+  }, [companyId, saveVendorPOs, t.vendorPO])
 
   const onDropVendorPO = useCallback((files: File[]) => {
     void handleVendorPOUpload(files)

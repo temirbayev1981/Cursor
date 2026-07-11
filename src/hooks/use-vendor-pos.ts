@@ -28,7 +28,8 @@ export function useSaveVendorPOs() {
   const companyId = company?.id ?? 'comp-001'
 
   return useMutation({
-    mutationFn: (inputs: VendorPOInput[]) => saveVendorPOBatch(inputs),
+    mutationFn: (inputs: VendorPOInput[]) =>
+      saveVendorPOBatch(inputs.map((input) => ({ ...input, company_id: companyId }))),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY, companyId] })
     },
