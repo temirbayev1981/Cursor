@@ -31,7 +31,7 @@
 | Порт | `21` (обычно) | секрет `FTP_PORT` (опционально) |
 | Папка субдомена | `/public_html/app/` | секрет `FTP_SERVER_DIR` |
 
-Для **FTPS** (шифрование, большинство хостингов): по умолчанию уже `ftps`. При ошибке сертификата добавьте секрет `FTP_SECURITY` = `loose`.
+Для **FTPS** (шифрование): по умолчанию `ftps` + passive mode через `lftp`.
 
 ---
 
@@ -75,7 +75,6 @@
 |--------|------------|
 | `FTP_PORT` | `21` (FTPS explicit) или `990` (FTPS implicit) |
 | `FTP_PROTOCOL` | `ftps` (по умолчанию) или `ftp` / `ftps-legacy` |
-| `FTP_SECURITY` | `loose` — если ошибка сертификата TLS |
 | `VITE_STRIPE_*`, `VITE_GOOGLE_MAPS_API_KEY`, … | как в [DEPLOYMENT.md](./DEPLOYMENT.md) |
 
 После сохранения секретов их **нельзя просмотреть** — только перезаписать.
@@ -126,7 +125,10 @@ Workflow: `.github/workflows/deploy-ftp.yml`
 |---------|---------|
 | Workflow не появляется / скипается | Добавьте `FTP_HOST`, `FTP_USER`, `FTP_PASSWORD` |
 | `530 Login incorrect` | Проверьте логин/пароль в секретах |
-| Файлы не в той папке | Исправьте `FTP_SERVER_DIR` (часто нужен завершающий `/`) |
+| `550 SSL/TLS required` | Секрет `FTP_PROTOCOL` = `ftps` (по умолчанию уже ftps) |
+| `ECONNRESET` (data socket) | Passive FTPS через lftp (в workflow уже включено). Проверьте в панели хостинга: не блокировать «чужие IP» / разрешить внешний FTP |
+| Ошибка сертификата TLS | В workflow уже `ssl:verify-certificate no` (lftp) |
+| Файлы не в той папке | Исправьте `FTP_SERVER_DIR` (слэш в конце добавится автоматически) |
 | Сайт без стилей | Неверный `VITE_BASE_PATH` — для субдомена ставьте `/` |
 | 404 на `/dashboard` и т.п. | Нет mod_rewrite / `.htaccess` — загрузите из `dist/.htaccess` |
 | «Supabase required» | Добавьте `VITE_SUPABASE_URL` и `VITE_SUPABASE_ANON_KEY`, перезапустите Deploy FTP |
