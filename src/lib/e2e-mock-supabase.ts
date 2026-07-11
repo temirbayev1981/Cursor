@@ -167,6 +167,7 @@ class MockQueryBuilder implements PromiseLike<{ data: unknown; error: { message:
   private orderAsc = true
   private singleRow = false
   private maybeSingleRow = false
+  private limitCount: number | null = null
   private upsertConflict: string | null = null
 
   constructor(table: string) {
@@ -195,7 +196,7 @@ class MockQueryBuilder implements PromiseLike<{ data: unknown; error: { message:
   }
   single() { this.singleRow = true; return this }
   maybeSingle() { this.maybeSingleRow = true; this.singleRow = true; return this }
-  limit(_n: number) { return this }
+  limit(n: number) { this.limitCount = n; return this }
 
   then<TResult1 = { data: unknown; error: { message: string } | null }, TResult2 = never>(
     onfulfilled?: ((value: { data: unknown; error: { message: string } | null }) => TResult1 | PromiseLike<TResult1>) | null,
@@ -244,6 +245,9 @@ class MockQueryBuilder implements PromiseLike<{ data: unknown; error: { message:
         const bv = String(b[this.orderCol!] ?? '')
         return this.orderAsc ? av.localeCompare(bv) : bv.localeCompare(av)
       })
+    }
+    if (this.limitCount != null) {
+      rows = rows.slice(0, this.limitCount)
     }
     if (this.singleRow) {
       const row = rows[0] ?? null

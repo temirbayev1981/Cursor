@@ -586,7 +586,7 @@ export const ru = {
     description: 'Описание системы, модулей и возможностей HandymanOS AI',
     backToApp: 'К панели',
     loadError: 'Не удалось загрузить руководство',
-    hint: 'Полный текст также доступен в файле INSTRUCTIONS.md в репозитории проекта.',
+    hint: 'Полный текст: INSTRUCTIONS.md (RU) и INSTRUCTIONS.en.md (EN) в репозитории.',
     toc: 'Содержание',
   },
   settings: {

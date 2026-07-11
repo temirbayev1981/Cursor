@@ -588,7 +588,7 @@ export const en: TranslationKeys = {
     description: 'HandymanOS AI system overview, modules, and features',
     backToApp: 'Back to dashboard',
     loadError: 'Failed to load the user guide',
-    hint: 'Full text is also available as INSTRUCTIONS.md in the project repository.',
+    hint: 'Full text: INSTRUCTIONS.md (RU) and INSTRUCTIONS.en.md (EN) in the repository.',
     toc: 'Contents',
   },
   settings: {

@@ -64,7 +64,7 @@ Copy `.env.example` to `.env.local` and set **Supabase** credentials (required).
 
 ## User guide (RU)
 
-**[INSTRUCTIONS.md](./INSTRUCTIONS.md)** — полное руководство: обзор системы, все модули, роли, онбординг, Vendor PO, порталы, интеграции. В приложении: **Настройки → Система → Руководство пользователя** (`/instructions`).
+**[INSTRUCTIONS.md](./INSTRUCTIONS.md)** (RU) · **[INSTRUCTIONS.en.md](./INSTRUCTIONS.en.md)** (EN) — полное руководство. В приложении: **Настройки → Система → Руководство пользователя** (`/instructions`, язык по локали приложения).
 
 ## Project Structure
 

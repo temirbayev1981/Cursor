@@ -5,15 +5,21 @@ import { PageHeader } from '@/components/shared/page-header'
 import { Button } from '@/components/ui/button'
 import { MarkdownContent, extractMarkdownHeadings } from '@/components/shared/markdown-content'
 import { useTranslation } from '@/contexts/locale-context'
+import type { Locale } from '@/contexts/locale-context'
+
+function instructionsFileForLocale(locale: Locale): string {
+  return locale === 'en' ? 'INSTRUCTIONS.en.md' : 'INSTRUCTIONS.md'
+}
 
 export default function InstructionsPage() {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const [content, setContent] = useState<string | null>(null)
   const [error, setError] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-    void fetch(`${import.meta.env.BASE_URL}INSTRUCTIONS.md`)
+    const file = instructionsFileForLocale(locale)
+    void fetch(`${import.meta.env.BASE_URL}${file}`)
       .then((response) => {
         if (!response.ok) throw new Error('not found')
         return response.text()
@@ -25,7 +31,7 @@ export default function InstructionsPage() {
         if (!cancelled) setError(true)
       })
     return () => { cancelled = true }
-  }, [])
+  }, [locale])
 
   const headings = content ? extractMarkdownHeadings(content).filter((h) => h.level <= 3) : []
 

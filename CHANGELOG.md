@@ -29,6 +29,14 @@ Production bug-fix audit — data integrity, notifications, PWA, security.
 - Live E2E smoke: instructions page + login link
 - Docs sync: RELEASE 1.13.5, UPGRADE schema `2026-07-11d`
 
+### Phase 133 — Audit phase 2
+- English user guide: `INSTRUCTIONS.en.md` + locale-based `/instructions` loading
+- Entity list pagination: `ENTITY_LIST_LIMIT` (500) on Supabase fetches
+- Operator script: `npm run deploy:edge-functions`
+- `POST_RELEASE.md` updated for 1.13.5, migrations, FTP deploy
+- verify:production gates: migrations, EN guide, no legacy workflows, no `comp-001` leak
+- E2E: `a11y-smoke.spec.ts`, EN instructions locale test
+
 ## [1.13.4] — 2026-07-10
 
 Lazy recharts chunks and live-backend E2E smoke.

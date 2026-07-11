@@ -8,6 +8,7 @@ import {
 import { matchCustomerFromVendorPO } from '@/lib/vendor-po-customer-match'
 import { supabase } from '@/lib/supabase'
 import { insertRows, upsertRows, type TableInsert, type TableRow } from '@/lib/supabase-queries'
+import { ENTITY_LIST_LIMIT } from '@/lib/entity-limits'
 
 type EntityTable =
   | 'jobs'
@@ -89,6 +90,7 @@ async function fetchCompanyEntities<T>(table: EntityTable, companyId: string): P
     .select('*')
     .eq('company_id', companyId)
     .order('created_at', { ascending: false })
+    .limit(ENTITY_LIST_LIMIT)
 
   if (error) throw error
   return (data ?? []) as T[]

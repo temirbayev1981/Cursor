@@ -1161,6 +1161,67 @@ if (nightlySmoke.includes('schedule:') && nightlySmoke.includes("cron: '0 6 * * 
   ok = false
 }
 
+console.log('\nSupabase migrations:')
+const migrationFiles = [
+  'supabase/migrations/README.md',
+  'supabase/migrations/20260711000001_auth_provision_owner.sql',
+]
+for (const file of migrationFiles) {
+  if (existsSync(file)) {
+    console.log(`✓ ${file}`)
+  } else {
+    console.log(`✗ missing: ${file}`)
+    ok = false
+  }
+}
+
+const instructionsEn = existsSync('public/INSTRUCTIONS.en.md') && existsSync('INSTRUCTIONS.en.md')
+if (instructionsEn) {
+  console.log('✓ bilingual user guide (INSTRUCTIONS.en.md)')
+} else {
+  console.log('✗ INSTRUCTIONS.en.md required in public/ and repo root')
+  ok = false
+}
+
+if (existsSync('scripts/deploy-edge-functions.sh')) {
+  console.log('✓ Edge Function deploy script present')
+} else {
+  console.log('✗ missing scripts/deploy-edge-functions.sh')
+  ok = false
+}
+
+const legacyWorkflows = ['.github/workflows/static.yml', '.github/workflows/jekyll-gh-pages.yml']
+for (const wf of legacyWorkflows) {
+  if (existsSync(wf)) {
+    console.log(`✗ legacy workflow must be removed: ${wf}`)
+    ok = false
+  }
+}
+if (!legacyWorkflows.some((wf) => existsSync(wf))) {
+  console.log('✓ no legacy GitHub Pages boilerplate workflows')
+}
+
+const prodSourceDirs = ['src/pages', 'src/hooks', 'src/components']
+let compLeak = false
+for (const dir of prodSourceDirs) {
+  if (!existsSync(dir)) continue
+  for (const name of readdirSync(dir, { recursive: true })) {
+    if (typeof name !== 'string') continue
+    if (!name.endsWith('.ts') && !name.endsWith('.tsx')) continue
+    if (name.endsWith('.test.ts') || name.endsWith('.test.tsx')) continue
+    const rel = `${dir}/${name}`
+    const text = readFileSync(rel, 'utf8')
+    if (text.includes("comp-001")) {
+      console.log(`✗ comp-001 fallback leak in ${rel}`)
+      compLeak = true
+      ok = false
+    }
+  }
+}
+if (!compLeak) {
+  console.log('✓ no comp-001 fallback in production src (pages/hooks/components)')
+}
+
 console.log('\n→ Running verify:release')
 execSync('npm run verify:release', { stdio: 'inherit' })
 

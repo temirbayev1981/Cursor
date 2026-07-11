@@ -15,4 +15,13 @@ test.describe('Instructions page', () => {
     await expect(page).toHaveURL(/\/instructions/)
     await expect(page.locator('.instructions-doc')).toBeVisible({ timeout: 10000 })
   })
+
+  test('loads English guide when locale is EN', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('handymanos_locale', 'en')
+    })
+    await page.goto('/instructions')
+    await expect(page.getByRole('heading', { name: /user guide/i }).first()).toBeVisible()
+    await expect(page.locator('.instructions-doc')).toContainText(/System overview/i)
+  })
 })
