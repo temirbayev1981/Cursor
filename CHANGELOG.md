@@ -20,6 +20,10 @@ Production bug-fix audit — data integrity, notifications, PWA, security.
 - iOS Safari: `disableWorker` PDF fallback when worker load fails
 - **205** unit tests
 
+### Phase 138 — Dashboard version badge
+- Main dashboard shows app version + UTC build timestamp (`VITE_BUILD_TIME` from CI)
+- Deploy workflows inject build time on FTP and GitHub Pages builds
+
 ### Phase 131 — Audit bug fixes
 - Entity cache: `mergeStoreById` preserves multi-tenant offline data on sync
 - `saveEntity` / payment / fuel / time entry: rollback local cache on Supabase failure

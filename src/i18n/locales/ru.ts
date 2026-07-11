@@ -157,6 +157,8 @@ export const ru = {
   dashboard: {
     title: 'Панель руководителя',
     description: 'Обзор бизнес-показателей в реальном времени',
+    versionLabel: 'Версия',
+    buildLabel: 'Сборка',
     revenueToday: 'Выручка сегодня',
     revenueMonth: 'Выручка за месяц',
     openJobs: 'Открытые заказы',

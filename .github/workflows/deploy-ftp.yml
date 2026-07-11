@@ -48,7 +48,9 @@ jobs:
 
       - name: Resolve app version
         if: steps.ftp.outputs.configured == 'true'
-        run: echo "VITE_APP_VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_ENV"
+        run: |
+          echo "VITE_APP_VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_ENV"
+          echo "VITE_BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
 
       - name: Build for FTP / subdomain
         if: steps.ftp.outputs.configured == 'true'
@@ -66,6 +68,7 @@ jobs:
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
           VITE_ERROR_WEBHOOK_URL: ${{ secrets.VITE_ERROR_WEBHOOK_URL }}
           VITE_APP_VERSION: ${{ env.VITE_APP_VERSION }}
+          VITE_BUILD_TIME: ${{ env.VITE_BUILD_TIME }}
 
       - name: Normalize FTP server directory
         if: steps.ftp.outputs.configured == 'true'

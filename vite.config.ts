@@ -49,6 +49,9 @@ export default defineConfig({
   base: process.env.VITE_BASE_PATH || '/',
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(process.env.VITE_APP_VERSION ?? pkg.version),
+    'import.meta.env.VITE_BUILD_TIME': JSON.stringify(
+      process.env.VITE_BUILD_TIME ?? new Date().toISOString(),
+    ),
   },
   plugins: [react(), tailwindcss(), copyPdfWorker(), baseAwareManifest()],
   resolve: {

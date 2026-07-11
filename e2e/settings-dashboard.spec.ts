@@ -521,6 +521,8 @@ test.describe('Dashboard analytics', () => {
   test('executive dashboard shows stat cards and chart sections', async ({ page }) => {
     await page.goto('/dashboard')
     await expect(page.getByRole('heading', { name: /панель руководителя|executive dashboard/i })).toBeVisible()
+    await expect(page.getByTestId('app-version-badge')).toBeVisible()
+    await expect(page.getByTestId('app-version-badge')).toContainText(/версия|version/i)
 
     const stats = page.getByTestId('dashboard-stat-cards')
     await expect(stats.getByText(/выручка сегодня|revenue today/i).first()).toBeVisible()
