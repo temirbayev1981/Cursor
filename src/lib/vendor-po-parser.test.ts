@@ -28,6 +28,16 @@ describe('vendor-po-parser', () => {
     expect(isVendorPOText('random text')).toBe(false)
   })
 
+  it('detects vendor PO text without VENDOR PO header when Client PO markers exist', () => {
+    const text = `Client PO # 350531955
+207872-02
+SERVICE DESCRIPTION
+BUILDING INTERIOR repair
+SPECIAL INSTRUCTIONS
+Call from site`
+    expect(isVendorPOText(text)).toBe(true)
+  })
+
   it('parses vendor PO number', () => {
     const result = parseVendorPOText(SAMPLE_PO, 'test.pdf', 'comp-001')
     expect(result.vendor_po_number).toBe('207872-02')

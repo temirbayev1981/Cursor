@@ -33,6 +33,8 @@ Production bug-fix audit — data integrity, notifications, PWA, security.
 - Client-side table pagination: `useTablePagination` + `TablePagination` on customers, jobs, invoices, estimates, expenses, materials, fuel logs
 - Settings refactor: `SettingsIntegrationsPanel` + `SettingsSystemPanel` extracted from `settings.tsx`
 - E2E: `@axe-core/playwright` axe scans (`a11y-axe.spec.ts`), live smoke extended for PWA/guide static assets
+- a11y: document `<title>` in `index.html`, Radix login tabs expose `TabsContent` targets for ARIA
+- Vendor PO PDF import: robust pdf.js worker on iOS/Safari, clearer errors, relaxed PO text detection
 - i18n: pagination labels (RU/EN)
 - **193** unit tests, **233+** E2E tests (mock)
 

@@ -185,5 +185,8 @@ export function parseVendorPOText(text: string, fileName: string, companyId: str
 }
 
 export function isVendorPOText(text: string): boolean {
-  return /VENDOR PO #/i.test(text) && /SERVICE DESCRIPTION/i.test(text)
+  const normalized = normalizeVendorPOText(text)
+  const hasVendorMarker = /VENDOR\s*PO\s*#/i.test(normalized) || /Client PO #/i.test(normalized)
+  const hasDescription = /SERVICE DESCRIPTION/i.test(normalized) || /SPECIAL INSTRUCTIONS/i.test(normalized)
+  return hasVendorMarker && hasDescription
 }
