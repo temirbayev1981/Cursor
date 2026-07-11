@@ -15,27 +15,44 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # Skip when FTP secrets are not configured (no failed runs on every push)
-    if: ${{ secrets.FTP_HOST != '' && secrets.FTP_USER != '' && secrets.FTP_PASSWORD != '' }}
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check FTP credentials
+        id: ftp
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          if [ -z "$FTP_HOST" ] || [ -z "$FTP_USER" ] || [ -z "$FTP_PASSWORD" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::FTP secrets missing. Add FTP_HOST, FTP_USER, FTP_PASSWORD — see DEPLOY-FTP.md"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-node@v4
+        if: steps.ftp.outputs.configured == 'true'
         with:
           node-version: '22'
           cache: 'npm'
 
       - run: npm ci
+        if: steps.ftp.outputs.configured == 'true'
       - run: npm run lint
+        if: steps.ftp.outputs.configured == 'true'
       - run: npm run test
+        if: steps.ftp.outputs.configured == 'true'
 
       - name: Resolve app version
+        if: steps.ftp.outputs.configured == 'true'
         run: echo "VITE_APP_VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_ENV"
 
       - name: Build for FTP / subdomain
+        if: steps.ftp.outputs.configured == 'true'
         run: npm run build
         env:
-          # Subdomain at document root → "/". Subfolder deploy → e.g. "/handymanos/"
           VITE_BASE_PATH: ${{ secrets.VITE_BASE_PATH || '/' }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
@@ -50,6 +67,7 @@ jobs:
           VITE_APP_VERSION: ${{ env.VITE_APP_VERSION }}
 
       - name: Upload dist/ to FTP
+        if: steps.ftp.outputs.configured == 'true'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
