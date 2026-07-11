@@ -15,6 +15,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
 
@@ -81,6 +82,7 @@ jobs:
 
       - name: Upload dist/ to FTP (lftp, passive FTPS)
         if: steps.ftp.outputs.configured == 'true'
+        timeout-minutes: 8
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
@@ -98,18 +100,23 @@ jobs:
             USE_SSL="true"
             SCHEME="ftps"
           fi
-          lftp -p "${FTP_PORT}" <<LFTP_EOF
-          set ftp:passive-mode true
-          set ftp:ssl-force ${USE_SSL}
-          set ftp:ssl-protect-data ${USE_SSL}
-          set ssl:verify-certificate no
-          set net:timeout 120
-          set net:max-retries 5
-          set net:reconnect-interval-base 5
-          open -u ${FTP_USER},${FTP_PASSWORD} ${SCHEME}://${FTP_HOST}
-          mkdir -f ${FTP_DIR}
-          cd ${FTP_DIR}
-          lcd dist
-          mirror --reverse --verbose --parallel=2
-          quit
-          LFTP_EOF
+          LFTP_SCRIPT="$(mktemp)"
+          {
+            echo "set ftp:passive-mode true"
+            echo "set ftp:ssl-force ${USE_SSL}"
+            echo "set ftp:ssl-protect-data ${USE_SSL}"
+            echo "set ssl:verify-certificate no"
+            echo "set net:timeout 30"
+            echo "set net:max-retries 2"
+            echo "set net:reconnect-interval-base 5"
+            printf 'open -u %s,%s %s://%s\n' "$FTP_USER" "$FTP_PASSWORD" "$SCHEME" "$FTP_HOST"
+            echo "mkdir -f ${FTP_DIR}"
+            echo "cd ${FTP_DIR}"
+            echo "lcd dist"
+            echo "mirror --reverse --verbose"
+            echo "quit"
+          } > "$LFTP_SCRIPT"
+          echo "FTP upload started (~4 MB, $(find dist -type f | wc -l) files)..."
+          lftp -p "${FTP_PORT}" -f "$LFTP_SCRIPT"
+          rm -f "$LFTP_SCRIPT"
+          echo "FTP upload finished."
