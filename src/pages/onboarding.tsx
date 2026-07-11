@@ -13,6 +13,7 @@ import { LanguageSwitcher } from '@/components/shared/language-switcher'
 import { toast } from 'sonner'
 import type { OnboardingData } from '@/types'
 import { loadOnboardingData, saveOnboardingData } from '@/services/onboarding-service'
+import { formatAuthError } from '@/services/auth-service'
 
 const EMPTY_ONBOARDING: OnboardingData = {
   company: { name: '', email: '', phone: '', address: '' },
@@ -115,8 +116,16 @@ export default function OnboardingPage() {
       await completeOnboarding(payload)
       toast.success(t.auth.completeSetup)
       navigate('/dashboard')
-    } catch {
-      toast.error(t.onboarding.saveFailed)
+    } catch (error) {
+      toast.error(formatAuthError(error, {
+        authError: t.onboarding.saveFailed,
+        emailNotConfirmed: t.auth.emailNotConfirmed,
+        invalidCredentials: t.auth.invalidCredentials,
+        accountIncomplete: t.auth.accountIncomplete,
+        profileMissing: t.auth.profileMissing,
+        companyMissing: t.auth.companyMissing,
+        registrationPending: t.auth.registrationPending,
+      }))
     }
   }
 
