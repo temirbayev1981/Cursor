@@ -117,6 +117,6 @@ jobs:
             echo "quit"
           } > "$LFTP_SCRIPT"
           echo "FTP upload started (~4 MB, $(find dist -type f | wc -l) files)..."
-          lftp -p "${FTP_PORT}" -f "$LFTP_SCRIPT"
+          lftp -f "$LFTP_SCRIPT"
           rm -f "$LFTP_SCRIPT"
           echo "FTP upload finished."
