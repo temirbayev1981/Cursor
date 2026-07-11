@@ -27,6 +27,7 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
   const { company, user } = useAuth()
   const navigate = useNavigate()
   const [selected, setSelected] = useState<VendorPORecord | null>(null)
+  const [workScopeHint, setWorkScopeHint] = useState<string | null>(null)
   const dateLocale = useDateLocale()
 
   const addressGroups = groupVendorPOsByAddress(records)
@@ -101,7 +102,15 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
                 <p className="text-xs text-muted-foreground">{row.service_city}, {row.service_state}</p>
               </DataTableCell>
               <DataTableCell>
-                <p className="max-w-[200px] truncate" title={row.work_summary}>{row.work_summary}</p>
+                <button
+                  type="button"
+                  className="max-w-[200px] truncate text-left w-full cursor-pointer hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-sm"
+                  onClick={() => setWorkScopeHint(row.work_summary || row.service_description)}
+                  data-testid={`vendor-po-work-scope-${row.id}`}
+                  aria-label={t.vendorPO.workScope}
+                >
+                  {row.work_summary}
+                </button>
               </DataTableCell>
               <DataTableCell className="text-muted-foreground whitespace-nowrap text-xs">
                 {formatDate(row.created_at, dateLocale)}
@@ -127,6 +136,29 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
           )
         })}
       </DataTable>
+
+      {workScopeHint && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-4"
+          onClick={() => setWorkScopeHint(null)}
+          data-testid="vendor-po-work-scope-hint"
+        >
+          <Card
+            className="w-full max-w-lg max-h-[70vh] overflow-y-auto shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <CardHeader className="flex flex-row items-start justify-between gap-3 pb-2">
+              <CardTitle className="text-base">{t.vendorPO.workScope}</CardTitle>
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setWorkScopeHint(null)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{workScopeHint}</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setSelected(null)}>

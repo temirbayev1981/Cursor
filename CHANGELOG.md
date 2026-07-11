@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.4] — 2026-07-11
+
+Vendor PO — fix address parsing and work-scope popup.
+
+### Phase 147 — Address + work scope UX
+- Parse OpenAI comma-separated address lines (`123 Main St, Graham, NC 27253`)
+- Facil-IT and CD Maintenance comma-line layouts
+- Inline fallback for flattened `SERVICE LOCATION` blocks
+- Click **Объём работ** cell to open full-text popup (mobile-friendly)
+
 ## [1.14.3] — 2026-07-11
 
 Fix iOS Vendor PO PDF read regression — resilient server extract and CDN fallback.
