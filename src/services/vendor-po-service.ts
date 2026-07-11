@@ -9,6 +9,12 @@ import {
   isVendorPoDuplicateError,
   isVendorPoDuplicateFileError,
 } from '@/lib/vendor-po-errors'
+import {
+  normalizeVendorPORecord,
+  omitOptionalVendorPoFields,
+  omitProblemDescriptionFields,
+  isMissingVendorPoColumnError,
+} from '@/lib/vendor-po-record'
 
 export {
   VendorPoDuplicateError,
@@ -48,15 +54,6 @@ function saveLocal(records: VendorPORecord[]) {
     }
     console.warn('Vendor PO local cache trimmed:', getErrorMessage(err))
   }
-}
-
-function omitProblemDescriptionFields(record: VendorPORecord): Omit<VendorPORecord, 'problem_description' | 'problem_description_ru'> {
-  const { problem_description: _en, problem_description_ru: _ru, ...rest } = record
-  return rest
-}
-
-function isMissingProblemDescriptionColumnError(message: string): boolean {
-  return /problem_description|schema cache/i.test(message)
 }
 
 function toRecord(input: VendorPOInput): VendorPORecord {
@@ -116,17 +113,24 @@ export async function vendorPdfFileExists(
   }
   if (!supabase) return false
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('vendor_po_records')
     .select('source_file_name, source_file_hash')
     .eq('company_id', companyId)
+
+  if (error && isMissingVendorPoColumnError(getErrorMessage(error))) {
+    ;({ data, error } = await supabase
+      .from('vendor_po_records')
+      .select('source_file_name')
+      .eq('company_id', companyId))
+  }
 
   if (error) {
     console.error('Vendor PO file duplicate lookup failed:', getErrorMessage(error))
     return false
   }
 
-  for (const row of (data ?? []) as Array<{ source_file_name: string | null; source_file_hash: string | null }>) {
+  for (const row of (data ?? []) as Array<{ source_file_name: string | null; source_file_hash?: string | null }>) {
     if (row.source_file_name && normalizeVendorPoFileName(row.source_file_name) === normalized) return true
     if (fileHash && row.source_file_hash === fileHash) return true
   }
@@ -187,30 +191,36 @@ async function saveVendorPOToSupabase(record: VendorPORecord): Promise<VendorPOR
     throw new VendorPoDuplicateError(record.vendor_po_number)
   }
 
-  let payload: VendorPORecord | Omit<VendorPORecord, 'problem_description' | 'problem_description_ru'> = record
-  let { data, error } = await insertRows('vendor_po_records', payload as never)
-    .select()
-    .maybeSingle()
+  const payloads = [
+    record,
+    omitProblemDescriptionFields(record),
+    omitOptionalVendorPoFields(record),
+  ]
 
-  if (error && isMissingProblemDescriptionColumnError(getErrorMessage(error))) {
-    payload = omitProblemDescriptionFields(record)
-    ;({ data, error } = await insertRows('vendor_po_records', payload as never)
+  let lastError: unknown
+  for (const payload of payloads) {
+    const { data, error } = await insertRows('vendor_po_records', payload as never)
       .select()
-      .maybeSingle())
+      .maybeSingle()
+
+    if (!error && data) return normalizeVendorPORecord(data as VendorPORecord)
+
+    lastError = error
+    const message = getErrorMessage(error)
+    if (!isMissingVendorPoColumnError(message)) break
   }
 
-  if (error) {
-    if (/duplicate key|23505|already exists/i.test(getErrorMessage(error))) {
-      throw new VendorPoDuplicateError(record.vendor_po_number)
-    }
-    throw error
+  const message = getErrorMessage(lastError)
+  if (/duplicate key|23505|already exists/i.test(message)) {
+    throw new VendorPoDuplicateError(record.vendor_po_number)
   }
-  if (data) return data as VendorPORecord
-  throw new Error('vendor_po save succeeded but row was not returned')
+  throw lastError
 }
 
 export async function getVendorPOs(companyId: string): Promise<VendorPORecord[]> {
-  const local = loadLocal().filter((row) => row.company_id === companyId)
+  const local = loadLocal()
+    .filter((row) => row.company_id === companyId)
+    .map(normalizeVendorPORecord)
 
   if (!supabase) {
     return local.sort((a, b) => b.created_at.localeCompare(a.created_at))
@@ -227,7 +237,8 @@ export async function getVendorPOs(companyId: string): Promise<VendorPORecord[]>
     return local.sort((a, b) => b.created_at.localeCompare(a.created_at))
   }
 
-  return mergeVendorPOLists((data ?? []) as VendorPORecord[], local, companyId)
+  const remote = ((data ?? []) as VendorPORecord[]).map(normalizeVendorPORecord)
+  return mergeVendorPOLists(remote, local, companyId)
 }
 
 export async function saveVendorPO(input: VendorPOInput): Promise<VendorPORecord> {
@@ -241,17 +252,21 @@ export async function saveVendorPO(input: VendorPOInput): Promise<VendorPORecord
   }
 
   if (!supabase) {
-    return saveLocalVendorPO(record)
+    return normalizeVendorPORecord(saveLocalVendorPO(record))
   }
 
   try {
     const saved = await saveVendorPOToSupabase(record)
-    saveLocalVendorPO(saved)
+    try {
+      saveLocalVendorPO(saved)
+    } catch (localError) {
+      console.warn('Vendor PO local cache after remote save failed:', getErrorMessage(localError))
+    }
     return saved
   } catch (remoteError) {
     if (isVendorPoDuplicateError(remoteError) || isVendorPoDuplicateFileError(remoteError)) throw remoteError
     console.error('Vendor PO Supabase save failed:', getErrorMessage(remoteError))
-    return saveLocalVendorPO(record)
+    return normalizeVendorPORecord(saveLocalVendorPO(record))
   }
 }
 

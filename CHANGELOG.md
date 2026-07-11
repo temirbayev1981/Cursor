@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.10] — 2026-07-11
+
+Fix Vendor PO upload page crash (null DB fields + missing Supabase columns).
+
+### Phase 151c — Upload crash hardening
+- Normalize nullable Supabase fields before table render (`priority`, `work_summary`, etc.)
+- Progressive Supabase insert: retry without `problem_description`, then without `source_file_hash`
+- Duplicate-file lookup falls back when `source_file_hash` column is missing
+- Remote save no longer fails if local cache write fails afterward
+- Migration also adds `source_file_hash` if missing
+
 ## [1.14.9] — 2026-07-11
 
 Fix Vendor PO upload crash / hang when saving problem description.

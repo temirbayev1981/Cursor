@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { requireCompanyId } from '@/hooks/use-company-scope'
 import { exportVendorPOsToExcel, groupVendorPOsByAddress } from '@/lib/export'
 import { getProblemDescriptionEn, getProblemDescriptionRu } from '@/lib/vendor-po-problem'
+import { normalizeVendorPORecord } from '@/lib/vendor-po-record'
 import { translateProblemDescriptionToRussian } from '@/lib/vendor-po-translate'
 import { toast } from 'sonner'
 
@@ -109,8 +110,9 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
         ]}
         className="text-sm"
       >
-        {records.map((row) => {
-          const priority = row.priority ?? ''
+        {records.map((rawRow) => {
+          const row = normalizeVendorPORecord(rawRow)
+          const priority = row.priority
           const isEmergency = priority.includes('EMERGENCY') || priority.startsWith('P1')
           const problemRu = getProblemDescriptionRu(row, problemTranslations[row.id])
           return (
