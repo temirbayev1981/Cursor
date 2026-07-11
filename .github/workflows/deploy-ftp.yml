@@ -109,7 +109,7 @@ jobs:
             echo "set net:timeout 30"
             echo "set net:max-retries 2"
             echo "set net:reconnect-interval-base 5"
-            printf 'open -u %s,%s %s://%s\n' "$FTP_USER" "$FTP_PASSWORD" "$SCHEME" "$FTP_HOST"
+            printf 'open -u %s,%s %s://%s:%s\n' "$FTP_USER" "$FTP_PASSWORD" "$SCHEME" "$FTP_HOST" "$FTP_PORT"
             echo "mkdir -f ${FTP_DIR}"
             echo "cd ${FTP_DIR}"
             echo "lcd dist"
