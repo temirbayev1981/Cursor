@@ -166,6 +166,7 @@ class MockQueryBuilder implements PromiseLike<{ data: unknown; error: { message:
   private orderCol: string | null = null
   private orderAsc = true
   private singleRow = false
+  private maybeSingleRow = false
   private upsertConflict: string | null = null
 
   constructor(table: string) {
@@ -193,6 +194,7 @@ class MockQueryBuilder implements PromiseLike<{ data: unknown; error: { message:
     return this
   }
   single() { this.singleRow = true; return this }
+  maybeSingle() { this.maybeSingleRow = true; this.singleRow = true; return this }
   limit(_n: number) { return this }
 
   then<TResult1 = { data: unknown; error: { message: string } | null }, TResult2 = never>(
@@ -244,7 +246,11 @@ class MockQueryBuilder implements PromiseLike<{ data: unknown; error: { message:
       })
     }
     if (this.singleRow) {
-      return { data: rows[0] ?? null, error: rows[0] ? null : { message: 'Row not found' } }
+      const row = rows[0] ?? null
+      if (!row && !this.maybeSingleRow) {
+        return { data: null, error: { message: 'Row not found' } }
+      }
+      return { data: row, error: null }
     }
     return { data: rows, error: null }
   }
