@@ -20,6 +20,7 @@ import { tryExtractTextFromPdf, isPdfFile, warmUpPdfJs, prefersNoPdfWorker } fro
 import { getCdnPdfJs } from '@/lib/pdf-extract-cdn'
 import { isVendorPOText, parseVendorPOText } from '@/lib/vendor-po-parser'
 import { getErrorMessage, isPdfExtractError, isVendorPOSaveError, isVendorPOStorageError, vendorPoPdfExtractUserMessage } from '@/lib/error-message'
+import { hashPdfFile, isVendorPoDuplicateFileError, normalizeVendorPoFileName } from '@/lib/vendor-po-upload'
 import { isVendorPoDuplicateError } from '@/services/vendor-po-service'
 import { useQueryClient } from '@tanstack/react-query'
 import { useVendorPOs, useSaveVendorPOs, useDeleteVendorPO, useSeedVendorPOs } from '@/hooks/use-vendor-pos'
@@ -106,10 +107,41 @@ export default function WorkOrdersPage() {
     setParsingPdf(true)
     const fileErrors: string[] = []
     const seenInBatch = new Set<string>()
+    const seenFileNames = new Set<string>()
+    const seenFileHashes = new Set<string>()
     const existingNumbers = new Set(vendorPOs.map((po) => po.vendor_po_number))
+    const existingFileNames = new Set(vendorPOs.map((po) => normalizeVendorPoFileName(po.source_file_name)))
+    const existingFileHashes = new Set(
+      vendorPOs.map((po) => po.source_file_hash).filter((hash): hash is string => Boolean(hash)),
+    )
     try {
       const parsed = []
       for (const file of pdfFiles) {
+        const normalizedFileName = normalizeVendorPoFileName(file.name)
+        if (existingFileNames.has(normalizedFileName)) {
+          fileErrors.push(`${file.name}: ${t.vendorPO.duplicateFile.replace('{fileName}', file.name)}`)
+          continue
+        }
+        if (seenFileNames.has(normalizedFileName)) {
+          fileErrors.push(`${file.name}: ${t.vendorPO.duplicateFileInBatch.replace('{fileName}', file.name)}`)
+          continue
+        }
+
+        let fileHash = ''
+        try {
+          fileHash = await hashPdfFile(file)
+        } catch (hashErr) {
+          console.warn('Vendor PO PDF hash failed:', getErrorMessage(hashErr))
+        }
+        if (fileHash && existingFileHashes.has(fileHash)) {
+          fileErrors.push(`${file.name}: ${t.vendorPO.duplicateFileContent}`)
+          continue
+        }
+        if (fileHash && seenFileHashes.has(fileHash)) {
+          fileErrors.push(`${file.name}: ${t.vendorPO.duplicateFileInBatch.replace('{fileName}', file.name)}`)
+          continue
+        }
+
         const { fileName, text, error } = await tryExtractTextFromPdf(file)
         if (error) {
           console.error('Vendor PO PDF extract failed:', fileName, error)
@@ -139,7 +171,9 @@ export default function WorkOrdersPage() {
           continue
         }
         seenInBatch.add(row.vendor_po_number)
-        parsed.push(row)
+        seenFileNames.add(normalizedFileName)
+        if (fileHash) seenFileHashes.add(fileHash)
+        parsed.push({ ...row, source_file_hash: fileHash || undefined })
       }
       if (parsed.length === 0) {
         toast.error(fileErrors.length === 1 ? fileErrors[0] : t.vendorPO.noValidFiles)
@@ -148,7 +182,9 @@ export default function WorkOrdersPage() {
       await saveVendorPOs.mutateAsync(parsed)
       toast.success(`${t.vendorPO.parseSuccess}: ${parsed.length}`)
       if (fileErrors.length > 0) {
-        const duplicateCount = fileErrors.filter((msg) => /уже загружен|already uploaded|повторяется|appears twice/i.test(msg)).length
+        const duplicateCount = fileErrors.filter((msg) =>
+          /уже загружен|already uploaded|повторяется|appears twice|файл|file|pdf уже|pdf already/i.test(msg),
+        ).length
         if (duplicateCount > 0) {
           toast.info(t.vendorPO.duplicatesSkipped.replace('{count}', String(duplicateCount)))
         } else {
@@ -159,6 +195,8 @@ export default function WorkOrdersPage() {
       const message = getErrorMessage(error)
       if (isVendorPoDuplicateError(error)) {
         toast.error(t.vendorPO.duplicate.replace('{poNumber}', error.vendorPoNumber))
+      } else if (isVendorPoDuplicateFileError(error)) {
+        toast.error(t.vendorPO.duplicateFile.replace('{fileName}', error.fileName))
       } else if (isVendorPOSaveError(message) || isVendorPOStorageError(message)) {
         toast.error(t.vendorPO.saveError)
       } else if (isPdfExtractError(message)) {

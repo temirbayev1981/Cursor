@@ -2,6 +2,9 @@ import type { VendorPORecord, VendorPOInput } from '@/types/vendor-po'
 import { supabase } from '@/lib/supabase'
 import { insertRows, upsertRows } from '@/lib/supabase-queries'
 import { getErrorMessage } from '@/lib/error-message'
+import { normalizeVendorPoFileName, VendorPoDuplicateFileError, isVendorPoDuplicateFileError } from '@/lib/vendor-po-upload'
+
+export { VendorPoDuplicateFileError, isVendorPoDuplicateFileError } from '@/lib/vendor-po-upload'
 
 const STORAGE_KEY = 'handymanos_vendor_pos'
 
@@ -65,15 +68,56 @@ function mergeVendorPOLists(remote: VendorPORecord[], local: VendorPORecord[], c
 
 function saveLocalVendorPO(record: VendorPORecord): VendorPORecord {
   const existing = loadLocal()
-  const duplicate = existing.find(
+  const duplicatePo = existing.find(
     (row) => row.vendor_po_number === record.vendor_po_number && row.company_id === record.company_id,
   )
-  if (duplicate) {
+  if (duplicatePo) {
     throw new VendorPoDuplicateError(record.vendor_po_number)
+  }
+  const duplicateFile = existing.find((row) => row.company_id === record.company_id && isSameUploadedPdf(row, record))
+  if (duplicateFile) {
+    throw new VendorPoDuplicateFileError(record.source_file_name)
   }
   const next = [record, ...existing]
   saveLocal(next)
   return record
+}
+
+function isSameUploadedPdf(a: VendorPORecord, b: VendorPORecord): boolean {
+  if (a.source_file_hash && b.source_file_hash && a.source_file_hash === b.source_file_hash) return true
+  return normalizeVendorPoFileName(a.source_file_name) === normalizeVendorPoFileName(b.source_file_name)
+}
+
+export async function vendorPdfFileExists(
+  companyId: string,
+  fileName: string,
+  fileHash?: string,
+): Promise<boolean> {
+  const companyRows = loadLocal().filter((row) => row.company_id === companyId)
+  const normalized = normalizeVendorPoFileName(fileName)
+  if (companyRows.some((row) => normalizeVendorPoFileName(row.source_file_name) === normalized)) {
+    return true
+  }
+  if (fileHash && companyRows.some((row) => row.source_file_hash === fileHash)) {
+    return true
+  }
+  if (!supabase) return false
+
+  const { data, error } = await supabase
+    .from('vendor_po_records')
+    .select('source_file_name, source_file_hash')
+    .eq('company_id', companyId)
+
+  if (error) {
+    console.error('Vendor PO file duplicate lookup failed:', getErrorMessage(error))
+    return false
+  }
+
+  for (const row of (data ?? []) as Array<{ source_file_name: string | null; source_file_hash: string | null }>) {
+    if (row.source_file_name && normalizeVendorPoFileName(row.source_file_name) === normalized) return true
+    if (fileHash && row.source_file_hash === fileHash) return true
+  }
+  return false
 }
 
 export async function vendorPoNumberExists(companyId: string, vendorPoNumber: string): Promise<boolean> {
@@ -171,6 +215,9 @@ export async function saveVendorPO(input: VendorPOInput): Promise<VendorPORecord
   if (await vendorPoNumberExists(record.company_id, record.vendor_po_number)) {
     throw new VendorPoDuplicateError(record.vendor_po_number)
   }
+  if (await vendorPdfFileExists(record.company_id, record.source_file_name, record.source_file_hash)) {
+    throw new VendorPoDuplicateFileError(record.source_file_name)
+  }
 
   if (!supabase) {
     return saveLocalVendorPO(record)
@@ -181,7 +228,7 @@ export async function saveVendorPO(input: VendorPOInput): Promise<VendorPORecord
     saveLocalVendorPO(saved)
     return saved
   } catch (remoteError) {
-    if (isVendorPoDuplicateError(remoteError)) throw remoteError
+    if (isVendorPoDuplicateError(remoteError) || isVendorPoDuplicateFileError(remoteError)) throw remoteError
     console.error('Vendor PO Supabase save failed:', getErrorMessage(remoteError))
     return saveLocalVendorPO(record)
   }

@@ -2,6 +2,15 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.7] — 2026-07-11
+
+Vendor PO table layout + block duplicate PDF files.
+
+### Phase 150 — Table columns & PDF file dedup
+- **Объект** and **Адрес** columns sized for **2-line** text (`line-clamp-2`)
+- Reject duplicate PDF by **file name** and **SHA-256 content hash**
+- `source_file_hash` column in `vendor_po_records`
+
 ## [1.14.6] — 2026-07-11
 
 Block duplicate Vendor PO uploads.

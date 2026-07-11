@@ -712,10 +712,13 @@ CREATE TABLE IF NOT EXISTS vendor_po_records (
   work_summary TEXT,
   special_instructions TEXT,
   source_file_name TEXT,
+  source_file_hash TEXT,
   status TEXT DEFAULT 'parsed',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(company_id, vendor_po_number)
 );
+
+CREATE INDEX IF NOT EXISTS idx_vendor_po_file_hash ON vendor_po_records(company_id, source_file_hash);
 
 CREATE INDEX IF NOT EXISTS idx_vendor_po_company ON vendor_po_records(company_id);
 CREATE INDEX IF NOT EXISTS idx_vendor_po_number ON vendor_po_records(vendor_po_number);

@@ -72,6 +72,18 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
           t.vendorPO.orderType, t.vendorPO.nte, t.vendorPO.location, t.vendorPO.address,
           t.vendorPO.workScope, '', '',
         ]}
+        columnClassNames={[
+          'w-[6.5rem]',
+          'w-[6.5rem]',
+          'w-[5.5rem]',
+          'w-[5rem]',
+          'w-[5.5rem]',
+          'w-[10.5rem]',
+          'w-[11.5rem]',
+          'w-[12rem]',
+          'w-[5.5rem]',
+          'w-[6.5rem]',
+        ]}
         className="text-sm"
       >
         {records.map((row) => {
@@ -93,13 +105,18 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
                 {formatCurrency(row.nte_amount)}
                 {row.nte_amount === 0 && <span className="text-xs text-warning ml-1">NTE↑</span>}
               </DataTableCell>
-              <DataTableCell>
-                <p className="font-medium">{row.service_location_name}</p>
-                {row.location_number && <p className="text-xs text-muted-foreground">Loc #{row.location_number}</p>}
+              <DataTableCell className="align-top w-[10.5rem]">
+                <p className="font-medium line-clamp-2 leading-snug break-words">
+                  {row.service_location_name}
+                  {row.location_number ? (
+                    <span className="text-muted-foreground font-normal">{` — Loc #${row.location_number}`}</span>
+                  ) : null}
+                </p>
               </DataTableCell>
-              <DataTableCell>
-                <p>{row.service_address}</p>
-                <p className="text-xs text-muted-foreground">{row.service_city}, {row.service_state}</p>
+              <DataTableCell className="align-top w-[11.5rem]">
+                <p className="line-clamp-2 leading-snug break-words">
+                  {[row.service_address, row.service_city, row.service_state].filter(Boolean).join(', ') || '—'}
+                </p>
               </DataTableCell>
               <DataTableCell>
                 <button
