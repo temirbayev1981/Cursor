@@ -1,9 +1,17 @@
 import { test, expect, devices } from '@playwright/test'
 import { loginAsOwner } from './helpers/auth'
 
-test.use({ ...devices['iPhone 13'] })
+const iPhone13 = devices['iPhone 13']
 
-test.describe('Mobile smoke (iPhone 13)', () => {
+test.use({
+  viewport: iPhone13.viewport,
+  userAgent: iPhone13.userAgent,
+  deviceScaleFactor: iPhone13.deviceScaleFactor,
+  isMobile: true,
+  hasTouch: true,
+})
+
+test.describe('Mobile smoke (iPhone 13 viewport, Chromium)', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsOwner(page, 'en')
   })
