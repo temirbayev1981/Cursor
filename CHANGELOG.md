@@ -55,6 +55,11 @@ Production bug-fix audit — data integrity, notifications, PWA, security.
 - `ci.yml` smoke job: service role + optional RPC/edge flags
 - `verify:operator` respects `SMOKE_RPC_OPTIONAL` / `SMOKE_EDGE_FUNCTIONS_OPTIONAL`
 
+### Hotfix — Vendor PO PDF on iOS / FTP hosting
+- pdf.js: drop manual `workerPort` (breaks on Safari + `.mjs` on FTP); CDN worker on mobile
+- Standard fonts / cmaps from CDN; retry after worker reset
+- Clearer error mapping: worker failures → `pdfExtractFailed` toast
+
 ### Phase 133 — Audit phase 2
 - English user guide: `INSTRUCTIONS.en.md` + locale-based `/instructions` loading
 - Entity list pagination: `ENTITY_LIST_LIMIT` (500) on Supabase fetches

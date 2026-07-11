@@ -10,6 +10,16 @@ const OCR_RENDER_SCALE = 1.5
 
 let pdfjsReady: Promise<PdfJsModule> | null = null
 
+function isMobileSafari(): boolean {
+  if (typeof navigator === 'undefined') return false
+  const ua = navigator.userAgent
+  return /iPhone|iPad|iPod/i.test(ua) && !/CriOS|FxiOS|EdgiOS/i.test(ua)
+}
+
+function cdnAsset(path: string): string {
+  return `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/${path}`
+}
+
 function resolveWorkerSrc(workerUrl: string): string {
   if (typeof window === 'undefined') return workerUrl
   try {
@@ -20,31 +30,21 @@ function resolveWorkerSrc(workerUrl: string): string {
 }
 
 async function configurePdfWorker(pdfjsLib: PdfJsModule): Promise<void> {
-  if (pdfjsLib.GlobalWorkerOptions.workerPort) return
+  // workerPort breaks on many FTP hosts + iOS Safari (.mjs MIME / module workers).
+  // Let pdf.js load the worker from workerSrc only.
+  pdfjsLib.GlobalWorkerOptions.workerPort = null
 
-  let workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.mjs`
+  const cdnWorker = cdnAsset('build/pdf.worker.min.mjs')
+  if (isMobileSafari()) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = cdnWorker
+    return
+  }
 
   try {
     const workerModule = await import('pdfjs-dist/build/pdf.worker.min.mjs?url')
-    workerSrc = resolveWorkerSrc(workerModule.default)
+    pdfjsLib.GlobalWorkerOptions.workerSrc = resolveWorkerSrc(workerModule.default)
   } catch {
-    // Fall back to CDN worker URL below.
-  }
-
-  pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc
-
-  if (typeof Worker !== 'undefined') {
-    try {
-      pdfjsLib.GlobalWorkerOptions.workerPort = new Worker(workerSrc, { type: 'module' })
-      return
-    } catch {
-      try {
-        pdfjsLib.GlobalWorkerOptions.workerPort = new Worker(workerSrc)
-        return
-      } catch {
-        // pdf.js will use its fake-worker fallback with workerSrc.
-      }
-    }
+    pdfjsLib.GlobalWorkerOptions.workerSrc = cdnWorker
   }
 }
 
@@ -59,6 +59,10 @@ async function getPdfjs(): Promise<PdfJsModule> {
   return pdfjsReady
 }
 
+function resetPdfjs(): void {
+  pdfjsReady = null
+}
+
 export function isPdfFile(file: File): boolean {
   const name = file.name.toLowerCase()
   const type = file.type.toLowerCase()
@@ -68,6 +72,43 @@ export function isPdfFile(file: File): boolean {
     || name.endsWith('.pdf')
     || (type === 'application/octet-stream' && name.endsWith('.pdf'))
   )
+}
+
+function pdfDocumentOptions(data: ArrayBuffer | Uint8Array) {
+  return {
+    data,
+    useSystemFonts: true,
+    useWorkerFetch: false,
+    standardFontDataUrl: cdnAsset('standard_fonts/'),
+    cMapUrl: cdnAsset('cmaps/'),
+    cMapPacked: true,
+  }
+}
+
+async function loadPdfDocument(pdfjsLib: PdfJsModule, buffer: ArrayBuffer): Promise<PdfDocument> {
+  const attempts = [
+    () => pdfjsLib.getDocument(pdfDocumentOptions(buffer)).promise,
+    () => pdfjsLib.getDocument(pdfDocumentOptions(new Uint8Array(buffer))).promise,
+  ]
+
+  let lastError: unknown
+  for (const attempt of attempts) {
+    try {
+      return await attempt()
+    } catch (err) {
+      lastError = err
+    }
+  }
+
+  resetPdfjs()
+  const reloaded = await getPdfjs()
+  try {
+    return await reloaded.getDocument(pdfDocumentOptions(new Uint8Array(buffer))).promise
+  } catch (retryError) {
+    const detail = lastError instanceof Error ? lastError.message : String(lastError)
+    const retryDetail = retryError instanceof Error ? retryError.message : String(retryError)
+    throw new Error(`PDF extract failed: ${detail} (retry: ${retryDetail})`)
+  }
 }
 
 async function renderPageToDataUrl(pdf: PdfDocument, pageNumber: number): Promise<string> {
@@ -96,22 +137,7 @@ async function ocrPdfPages(pdf: PdfDocument): Promise<string> {
 export async function extractTextFromPdf(file: File): Promise<string> {
   const pdfjsLib = await getPdfjs()
   const buffer = await file.arrayBuffer()
-  let pdf
-
-  try {
-    pdf = await pdfjsLib.getDocument({ data: buffer, useSystemFonts: true }).promise
-  } catch (primaryError) {
-    try {
-      pdf = await pdfjsLib.getDocument({
-        data: new Uint8Array(buffer),
-        useSystemFonts: true,
-        useWorkerFetch: false,
-      }).promise
-    } catch {
-      const detail = primaryError instanceof Error ? primaryError.message : String(primaryError)
-      throw new Error(`PDF extract failed: ${detail}`)
-    }
-  }
+  const pdf = await loadPdfDocument(pdfjsLib, buffer)
 
   const pages: string[] = []
 
@@ -140,8 +166,13 @@ export async function extractTextFromPdf(file: File): Promise<string> {
 export async function extractTextFromPdfFiles(files: File[]): Promise<{ fileName: string; text: string }[]> {
   const results: { fileName: string; text: string }[] = []
   for (const file of files) {
-    const text = await extractTextFromPdf(file)
-    results.push({ fileName: file.name, text })
+    try {
+      const text = await extractTextFromPdf(file)
+      results.push({ fileName: file.name, text })
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : String(err)
+      throw new Error(`${file.name}: ${detail}`)
+    }
   }
   return results
 }
