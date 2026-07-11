@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import {
   listEntities,
+  listEntitiesPage,
   saveEntity,
   deleteEntity,
   logAudit,
@@ -67,6 +68,44 @@ describe('entity-service', () => {
     await deleteEntity('jobs', 'job-delete-1')
     const stored = JSON.parse(localStorage.getItem(STORE_KEYS.jobs) || '[]') as Array<{ id: string }>
     expect(stored.some((item) => item.id === 'job-delete-1')).toBe(false)
+  })
+
+  it('listEntitiesPage returns paginated customers from local store', async () => {
+    const page1 = await listEntitiesPage('customers', 'comp-001', { page: 1, pageSize: 5 })
+    expect(page1.items.length).toBeLessThanOrEqual(5)
+    expect(page1.total).toBeGreaterThan(0)
+    expect(page1.page).toBe(1)
+    expect(page1.pageSize).toBe(5)
+  })
+
+  it('listEntitiesPage filters customers by search', async () => {
+    const all = await listEntities('customers', 'comp-001')
+    const target = all[0]
+    const page = await listEntitiesPage('customers', 'comp-001', {
+      page: 1,
+      pageSize: 25,
+      search: target.name.slice(0, 4),
+    })
+    expect(page.items.some((row) => row.id === target.id)).toBe(true)
+    expect(page.total).toBeGreaterThan(0)
+  })
+
+  it('listEntitiesPage filters jobs by status', async () => {
+    const page = await listEntitiesPage('jobs', 'comp-001', {
+      page: 1,
+      pageSize: 25,
+      status: 'completed',
+    })
+    expect(page.items.every((job) => job.status === 'completed')).toBe(true)
+  })
+
+  it('listEntitiesPage paginates invoices by page number', async () => {
+    const page1 = await listEntitiesPage('invoices', 'comp-001', { page: 1, pageSize: 2 })
+    const page2 = await listEntitiesPage('invoices', 'comp-001', { page: 2, pageSize: 2 })
+    if (page1.total > 2) {
+      expect(page2.items[0]?.id).not.toBe(page1.items[0]?.id)
+    }
+    expect(page1.pageSize).toBe(2)
   })
 
   it('trims audit log cache to 500 entries', async () => {

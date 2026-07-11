@@ -13,6 +13,7 @@
     "verify:release": "node scripts/verify-release.mjs",
     "verify:production": "node scripts/verify-production-readiness.mjs",
     "verify:operator": "node scripts/verify-operator-readiness.mjs",
+    "verify:operator:prod": "node scripts/operator-prod-checklist.mjs",
     "smoke:supabase": "node scripts/supabase-smoke.mjs",
     "deploy:edge-functions": "bash scripts/deploy-edge-functions.sh",
     "preview": "vite preview"

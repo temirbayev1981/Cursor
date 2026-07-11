@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useTranslation } from '@/contexts/locale-context'
 
-export const INTEGRATION_KEYS = ['stripe', 'maps', 'openai', 'supabase', 'email', 'sms', 'observability'] as const
+export const INTEGRATION_KEYS = ['stripe', 'maps', 'openai', 'supabase', 'email', 'sms', 'observability', 'quickbooks'] as const
 
 export type IntegrationKey = (typeof INTEGRATION_KEYS)[number]
 

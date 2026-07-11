@@ -54,6 +54,8 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('integration-card-supabase')).toBeVisible()
     await expect(page.getByTestId('integration-card-stripe')).toBeVisible()
     await expect(page.getByTestId('integration-card-observability')).toBeVisible()
+    await expect(page.getByTestId('integration-card-quickbooks')).toBeVisible()
+    await expect(page.getByTestId('integration-status-quickbooks')).toHaveText(/скоро|coming soon/i)
     await expect(page.getByTestId('integration-status-supabase')).toBeVisible()
     await expect(page.getByTestId('integration-probes-summary')).toBeVisible()
     await expect(page.getByTestId('integration-probes-refresh')).toBeVisible()

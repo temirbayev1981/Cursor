@@ -8,7 +8,7 @@ import {
 import { matchCustomerFromVendorPO } from '@/lib/vendor-po-customer-match'
 import { supabase } from '@/lib/supabase'
 import { insertRows, upsertRows, type TableInsert, type TableRow } from '@/lib/supabase-queries'
-import { ENTITY_LIST_LIMIT } from '@/lib/entity-limits'
+import { ENTITY_LIST_LIMIT, ENTITY_PAGE_SIZE_MAX, type EntityListPageParams, type EntityListPageResult } from '@/lib/entity-limits'
 
 type EntityTable =
   | 'jobs'
@@ -133,6 +133,120 @@ export async function listEntities<K extends keyof EntityMap>(entity: K, company
     return loadLocalEntities(entity, companyId)
   } catch {
     return loadLocalEntities(entity, companyId)
+  }
+}
+
+type PageableEntity = 'customers' | 'jobs' | 'invoices'
+
+function filterLocalPageEntities<K extends PageableEntity>(
+  entity: K,
+  items: EntityMap[K][],
+  params: EntityListPageParams,
+): EntityMap[K][] {
+  let filtered = [...items]
+  const search = params.search?.trim().toLowerCase()
+  if (search) {
+    if (entity === 'customers') {
+      filtered = (filtered as Customer[]).filter((row) => row.name.toLowerCase().includes(search)) as EntityMap[K][]
+    } else if (entity === 'jobs') {
+      filtered = (filtered as Job[]).filter((row) => row.title.toLowerCase().includes(search)) as EntityMap[K][]
+    } else {
+      filtered = (filtered as Invoice[]).filter((row) => row.invoice_number.toLowerCase().includes(search)) as EntityMap[K][]
+    }
+  }
+  if (entity === 'jobs' && params.status && params.status !== 'all') {
+    filtered = (filtered as Job[]).filter((row) => row.status === params.status) as EntityMap[K][]
+  }
+  return filtered
+}
+
+async function fetchCompanyEntitiesPage<T>(
+  table: EntityTable,
+  companyId: string,
+  params: EntityListPageParams,
+  options?: { searchColumn?: string; statusColumn?: string },
+): Promise<EntityListPageResult<T>> {
+  const pageSize = Math.min(Math.max(1, params.pageSize), ENTITY_PAGE_SIZE_MAX)
+  const page = Math.max(1, params.page)
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+
+  let query = supabase!
+    .from(table)
+    .select('*', { count: 'exact' })
+    .eq('company_id', companyId)
+
+  if (params.search?.trim() && options?.searchColumn) {
+    query = query.ilike(options.searchColumn, `%${params.search.trim()}%`)
+  }
+  if (params.status && params.status !== 'all' && options?.statusColumn) {
+    query = query.eq(options.statusColumn, params.status)
+  }
+
+  const { data, error, count } = await query
+    .order('created_at', { ascending: false })
+    .range(from, to)
+
+  if (error) throw error
+  return {
+    items: (data ?? []) as T[],
+    total: count ?? 0,
+    page,
+    pageSize,
+  }
+}
+
+function listLocalEntitiesPage<K extends PageableEntity>(
+  entity: K,
+  companyId: string,
+  params: EntityListPageParams,
+): EntityListPageResult<EntityMap[K]> {
+  const pageSize = Math.min(Math.max(1, params.pageSize), ENTITY_PAGE_SIZE_MAX)
+  const page = Math.max(1, params.page)
+  const filtered = filterLocalPageEntities(entity, loadLocalEntities(entity, companyId), {
+    ...params,
+    page,
+    pageSize,
+  })
+  const start = (page - 1) * pageSize
+  return {
+    items: filtered.slice(start, start + pageSize),
+    total: filtered.length,
+    page,
+    pageSize,
+  }
+}
+
+/** Server-side paginated list for customers, jobs, and invoices. */
+export async function listEntitiesPage<K extends PageableEntity>(
+  entity: K,
+  companyId: string,
+  params: EntityListPageParams,
+): Promise<EntityListPageResult<EntityMap[K]>> {
+  const pageSize = Math.min(Math.max(1, params.pageSize), ENTITY_PAGE_SIZE_MAX)
+  const page = Math.max(1, params.page)
+  const normalized: EntityListPageParams = { ...params, page, pageSize }
+
+  if (!supabase) {
+    return listLocalEntitiesPage(entity, companyId, normalized)
+  }
+
+  const searchColumn = entity === 'customers' ? 'name' : entity === 'jobs' ? 'title' : 'invoice_number'
+  const statusColumn = entity === 'jobs' ? 'status' : undefined
+
+  try {
+    const result = await fetchCompanyEntitiesPage<EntityMap[K]>(
+      TABLE_MAP[entity],
+      companyId,
+      normalized,
+      { searchColumn, statusColumn },
+    )
+    if (result.items.length > 0) {
+      mergeStoreById(KEY_MAP[entity], result.items)
+    }
+    return result
+  } catch {
+    return listLocalEntitiesPage(entity, companyId, normalized)
   }
 }
 

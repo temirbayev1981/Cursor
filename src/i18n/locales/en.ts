@@ -628,6 +628,7 @@ export const en: TranslationKeys = {
       email: { name: 'Email', desc: 'Customer email notifications' },
       sms: { name: 'SMS', desc: 'Technician dispatch alerts' },
       observability: { name: 'Observability', desc: 'Sentry or error webhook monitoring' },
+      quickbooks: { name: 'QuickBooks', desc: 'Accounting sync (coming soon)' },
     },
     integrationProbeLive: 'Live',
     integrationProbeUnreachable: 'Unreachable',

@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/contexts/auth-context'
 import { useInvoices, useCustomers, useSaveInvoice, useSendInvoice, usePayInvoice } from '@/hooks/use-entities'
-import { useTablePagination } from '@/hooks/use-table-pagination'
+import { useServerEntityTable } from '@/hooks/use-server-entity-table'
 import { generateInvoiceNumber } from '@/services/payment-service'
 import { notifyInvoiceSentSms, notifyResultMessage } from '@/services/notification-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -34,7 +34,8 @@ export default function InvoicesPage() {
   const [showForm, setShowForm] = useState(false)
   const { company } = useAuth()
   const companyId = company?.id ?? ''
-  const { data: invoices = [], isLoading: invoicesLoading, refetch } = useInvoices()
+  const { isLoading: invoicesLoading, pagination, refetch } = useServerEntityTable('invoices')
+  const { data: allInvoices = [] } = useInvoices()
   const { data: customers = [], isLoading: customersLoading } = useCustomers()
   const saveInvoice = useSaveInvoice()
   const sendInvoice = useSendInvoice()
@@ -43,8 +44,8 @@ export default function InvoicesPage() {
 
   useEffect(() => {
     const paidId = searchParams.get('paid')
-    if (!paidId || invoices.length === 0 || processedPaidRef.current === paidId) return
-    const invoice = invoices.find((i) => i.id === paidId)
+    if (!paidId || allInvoices.length === 0 || processedPaidRef.current === paidId) return
+    const invoice = allInvoices.find((i) => i.id === paidId)
     if (!invoice || invoice.status === 'paid') {
       setSearchParams({}, { replace: true })
       return
@@ -60,13 +61,14 @@ export default function InvoicesPage() {
         },
       }
     )
-  }, [searchParams, invoices, payInvoice, setSearchParams, refetch, t.invoices.paymentReceived])
+  }, [searchParams, allInvoices, payInvoice, setSearchParams, refetch, t.invoices.paymentReceived])
 
-  const outstanding = invoices.filter((i) => i.status !== 'paid').reduce((s, i) => s + (i.total - i.amount_paid), 0)
-  const paidMonth = invoices
+  const outstanding = allInvoices
+    .filter((i) => i.status !== 'paid')
+    .reduce((s, i) => s + (i.total - i.amount_paid), 0)
+  const paidMonth = allInvoices
     .filter((i) => i.status === 'paid' && i.paid_date && isThisMonth(i.paid_date))
     .reduce((s, i) => s + i.amount_paid, 0)
-  const pagination = useTablePagination(invoices)
 
   if (invoicesLoading || customersLoading) return <TableSkeleton cols={8} />
 
@@ -159,7 +161,7 @@ export default function InvoicesPage() {
             <InvoiceForm
               companyId={companyId}
               customers={customers}
-              invoiceNumber={generateInvoiceNumber(invoices)}
+              invoiceNumber={generateInvoiceNumber(allInvoices)}
               onSubmit={handleCreate}
               onCancel={() => setShowForm(false)}
             />
@@ -178,7 +180,7 @@ export default function InvoicesPage() {
         </div>
         <div className="glass-card p-5">
           <p className="text-sm text-muted-foreground">{t.invoices.totalInvoices}</p>
-          <p className="text-2xl font-bold">{invoices.length}</p>
+          <p className="text-2xl font-bold">{pagination.totalItems}</p>
         </div>
       </div>
 

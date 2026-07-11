@@ -80,6 +80,7 @@ export default function SettingsPage() {
     email: hasNotificationConfigured ? 'connected' : 'configure',
     sms: hasSmsConfigured ? 'connected' : 'configure',
     observability: hasObservability ? 'connected' : 'configure',
+    quickbooks: 'comingSoon',
   }
 
   const importSampleData = useImportSampleData()

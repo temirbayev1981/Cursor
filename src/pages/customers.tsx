@@ -9,8 +9,8 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CustomerForm } from '@/components/forms/customer-form'
 import { useAuth } from '@/contexts/auth-context'
-import { useCustomers, useSaveCustomer } from '@/hooks/use-entities'
-import { useTablePagination } from '@/hooks/use-table-pagination'
+import { useSaveCustomer } from '@/hooks/use-entities'
+import { useServerEntityTable } from '@/hooks/use-server-entity-table'
 import { formatCurrency } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
@@ -29,13 +29,8 @@ export default function CustomersPage() {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
   const { company } = useAuth()
   const companyId = company?.id ?? ''
-  const { data: customers = [], isLoading } = useCustomers()
+  const { isLoading, pagination } = useServerEntityTable('customers', { search })
   const saveCustomer = useSaveCustomer()
-
-  const filtered = customers.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  )
-  const pagination = useTablePagination(filtered, { resetDeps: [search] })
 
   if (isLoading) return <TableSkeleton />
 

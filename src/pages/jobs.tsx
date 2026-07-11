@@ -12,8 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/contexts/auth-context'
-import { useJobs, useCustomers, useEmployees, useSaveJob, useBulkUpdateJobStatus, useBulkAssignTechnician, useBulkScheduleJobs, useBulkDeleteJobs } from '@/hooks/use-entities'
-import { useTablePagination } from '@/hooks/use-table-pagination'
+import { useCustomers, useEmployees, useSaveJob, useBulkUpdateJobStatus, useBulkAssignTechnician, useBulkScheduleJobs, useBulkDeleteJobs } from '@/hooks/use-entities'
+import { useServerEntityTable } from '@/hooks/use-server-entity-table'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
@@ -35,7 +35,10 @@ export default function JobsPage() {
   const [bulkDeleteArmed, setBulkDeleteArmed] = useState(false)
   const { company } = useAuth()
   const companyId = company?.id ?? ''
-  const { data: jobs = [], isLoading } = useJobs()
+  const { isLoading, pagination } = useServerEntityTable('jobs', {
+    search,
+    status: statusFilter,
+  })
   const { data: customers = [] } = useCustomers()
   const { data: employees = [] } = useEmployees()
   const saveJob = useSaveJob()
@@ -50,13 +53,7 @@ export default function JobsPage() {
     setBulkDeleteArmed(false)
   }, [selectedIds])
 
-  const filtered = jobs.filter((job) => {
-    const matchesSearch = job.title.toLowerCase().includes(search.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || job.status === statusFilter
-    return matchesSearch && matchesStatus
-  })
-  const pagination = useTablePagination(filtered, { resetDeps: [search, statusFilter] })
-
+  const filtered = pagination.paginatedItems
   const allFilteredSelected = filtered.length > 0 && filtered.every((job) => selectedIds.has(job.id))
 
   const toggleJob = (jobId: string) => {
@@ -81,7 +78,7 @@ export default function JobsPage() {
   }
 
   const handleBulkCancel = () => {
-    const selected = jobs.filter((job) => selectedIds.has(job.id))
+    const selected = filtered.filter((job) => selectedIds.has(job.id))
     if (selected.length === 0) return
     bulkUpdateStatus.mutate(
       { jobs: selected, status: 'cancelled' },
@@ -95,7 +92,7 @@ export default function JobsPage() {
   }
 
   const handleBulkDeleteClick = () => {
-    const selected = jobs.filter((job) => selectedIds.has(job.id))
+    const selected = filtered.filter((job) => selectedIds.has(job.id))
     if (selected.length === 0) return
     if (!bulkDeleteArmed) {
       setBulkDeleteArmed(true)
@@ -111,7 +108,7 @@ export default function JobsPage() {
   }
 
   const handleBulkSchedule = () => {
-    const selected = jobs.filter((job) => selectedIds.has(job.id))
+    const selected = filtered.filter((job) => selectedIds.has(job.id))
     if (selected.length === 0) return
     bulkScheduleJobs.mutate(
       { jobs: selected, technicianId: bulkTechnicianId },
@@ -125,7 +122,7 @@ export default function JobsPage() {
   }
 
   const handleBulkAssign = () => {
-    const selected = jobs.filter((job) => selectedIds.has(job.id))
+    const selected = filtered.filter((job) => selectedIds.has(job.id))
     if (selected.length === 0) return
     bulkAssignTechnician.mutate(
       { jobs: selected, technicianId: bulkTechnicianId },
@@ -139,7 +136,7 @@ export default function JobsPage() {
   }
 
   const handleBulkApply = () => {
-    const selected = jobs.filter((job) => selectedIds.has(job.id))
+    const selected = filtered.filter((job) => selectedIds.has(job.id))
     if (selected.length === 0) return
     bulkUpdateStatus.mutate(
       { jobs: selected, status: bulkStatus },
