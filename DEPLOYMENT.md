@@ -70,7 +70,13 @@ Merge to `main` to redeploy GitHub Pages with `VITE_APP_VERSION` from the releas
 
 ## 2. Stripe Checkout (Edge Function)
 
-### Deploy
+Deploy all functions at once:
+
+```bash
+npm run deploy:edge-functions
+```
+
+### Deploy (individual)
 
 ```bash
 # Install Supabase CLI: https://supabase.com/docs/guides/cli

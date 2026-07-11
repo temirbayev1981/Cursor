@@ -1,4 +1,4 @@
-# Post-release checklist (1.7.4+)
+# Post-release checklist (1.13.5+)
 
 Use this after merging to `main` or cutting a new tag.
 
@@ -10,60 +10,70 @@ In **Settings → Secrets and variables → Actions**, set at minimum:
 |--------|----------|---------|
 | `VITE_SUPABASE_URL` | Yes | Live Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | Yes | Anon key for frontend + smoke |
+| `FTP_HOST`, `FTP_USER`, `FTP_PASSWORD` | For FTP deploy | Production at custom subdomain (e.g. handy.readyfixnc.com) |
 | `VITE_STRIPE_PUBLISHABLE_KEY` | Optional | Stripe Checkout button |
-| `VITE_STRIPE_CHECKOUT_ENDPOINT` | Optional | Edge Function URL |
 | `VITE_GOOGLE_MAPS_API_KEY` | Optional | Dispatch map |
 | `VITE_SENTRY_DSN` | Optional | Error monitoring |
 
-Without Supabase secrets, the **Deploy** workflow still passes (E2E uses mock backend), but the live site shows `SupabaseRequiredScreen`.
+Without Supabase secrets, CI still passes (E2E uses mock backend), but the live site shows `SupabaseRequiredScreen`.
 
 ## 2. Supabase project
 
 1. Create project at [supabase.com](https://supabase.com)
-2. Run full `supabase/schema.sql` in SQL Editor (see [supabase/UPGRADE.md](./supabase/UPGRADE.md) for version paths)
-3. Deploy Edge Functions (see [DEPLOYMENT.md](./DEPLOYMENT.md) §2–8)
-4. Set Edge Function secrets (`OPENAI_API_KEY`, `STRIPE_SECRET_KEY`, `RESEND_API_KEY`, etc.)
+2. Run full `supabase/schema.sql` in SQL Editor (see [supabase/UPGRADE.md](./supabase/UPGRADE.md))
+3. **Auth fix (if login fails):** run `supabase/migrations/20260711000001_auth_provision_owner.sql` (same as `auth-login-fix.sql`)
+4. Deploy Edge Functions:
+
+```bash
+npm run deploy:edge-functions
+# or see DEPLOYMENT.md §2–8
+```
+
+5. Set Edge Function secrets (`OPENAI_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, etc.)
 
 ## 3. Verify locally
 
 ```bash
 npm ci
-cp .env.example .env.local   # fill VITE_SUPABASE_* 
+cp .env.example .env.local   # fill VITE_SUPABASE_*
 npm run verify:production
 npm run verify:operator
+npm run test
 npm run test:e2e
 npm run smoke:supabase       # needs live Supabase in .env.local
 ```
 
-## 4. CI / GitHub Pages
+## 4. CI / deploy
 
-- Push to `main` runs **Deploy** workflow (verify → lint → test → E2E → Pages)
-- **Supabase smoke** runs in CI on `main` and nightly (`supabase-smoke.yml`); fails when secrets are set and smoke fails
+- Push to `main` runs **CI**, **Deploy** (GitHub Pages), and **Deploy FTP** (when FTP secrets are set)
+- **Supabase smoke** runs nightly (`supabase-smoke.yml` at 06:00 UTC)
 - **Live E2E smoke** runs nightly (`nightly-live-e2e.yml` at 07:00 UTC) when Supabase secrets are set
-- Manual smoke: **Actions → Supabase smoke → Run workflow**
 
 ## 5. First login in production
 
-1. Open deployed GitHub Pages URL
+1. Open production URL (e.g. https://handy.readyfixnc.com/)
 2. Sign up or sign in with Supabase Auth
-3. Complete onboarding wizard (owner) or accept team invite
+3. Complete owner onboarding or accept team invite
 4. Optional: **Settings → System → Import sample data**
+5. User guide: **Settings → System → User guide** (`/instructions`) — RU/EN by app locale
 
 ## 6. Platform audit
 
-**Settings → System** — aim for score ≥ 8.5 with live integrations connected. Run `npm run verify:operator` after deploy for the full operator checklist (includes edge function smoke when `SMOKE_EDGE_FUNCTIONS=1` in CI).
+**Settings → System** — aim for score ≥ 8.5 with live integrations connected. Run `npm run verify:operator` after deploy.
 
 ## 7. Tags and rollback
 
-Current release tag: **`v1.13.4`**
+Current release: **1.13.5**
 
 ```bash
-git tag -a v1.13.4 -m "HandymanOS AI 1.13.4"
-git push origin v1.13.4
+git tag -a v1.13.5 -m "HandymanOS AI 1.13.5"
+git push origin v1.13.5
 ```
 
-Rollback: `git checkout v1.13.4` or reset `main` to a prior tag (team policy).
+Rollback: checkout a prior tag per team policy.
 
-## 8. Close stale PRs
+## 8. Documentation
 
-Stacked PRs #63–#71 are merged to `main`. Only unrelated drafts (e.g. #61 INSTRUCTIONS.md) may remain open — close or merge separately.
+- **RU:** `INSTRUCTIONS.md` / `public/INSTRUCTIONS.md`
+- **EN:** `INSTRUCTIONS.en.md` / `public/INSTRUCTIONS.en.md`
+- Operator deploy: [DEPLOY-FTP.md](./DEPLOY-FTP.md), [DEPLOYMENT.md](./DEPLOYMENT.md)
