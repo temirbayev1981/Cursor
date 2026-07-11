@@ -1,13 +1,46 @@
 import type { Company, Profile, UserRole, Employee } from '@/types'
-import type { Json } from '@/types/database'
 import { supabase } from '@/lib/supabase'
-import { insertRows, upsertRows } from '@/lib/supabase-queries'
 import { shouldSkipOnboardingForRole } from '@/lib/permissions'
 import { getTeamInvitePreview, acceptTeamInvite } from '@/services/invite-service'
 import { addCompanyMembership } from '@/services/company-service'
 import { setTechOnboardingPending } from '@/services/tech-onboarding-service'
 import { loadStore, STORE_KEYS } from '@/lib/data-store'
 import { saveEntity } from '@/services/entity-service'
+
+export type AuthErrorMessages = {
+  authError: string
+  emailNotConfirmed: string
+  invalidCredentials: string
+  accountIncomplete: string
+  profileMissing: string
+  companyMissing: string
+  registrationPending: string
+}
+
+export function formatAuthError(error: unknown, messages?: AuthErrorMessages): string {
+  const fallback = messages?.authError ?? 'Authentication error'
+  if (!error) return fallback
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    const message = String((error as { message: string }).message)
+    if (/email not confirmed/i.test(message)) return messages?.emailNotConfirmed ?? message
+    if (/invalid login credentials/i.test(message)) return messages?.invalidCredentials ?? message
+    if (/session not found/i.test(message)) return messages?.accountIncomplete ?? message
+    if (/profile not found/i.test(message)) return messages?.profileMissing ?? message
+    if (/company not found/i.test(message)) return messages?.companyMissing ?? message
+    if (/confirm your email/i.test(message)) return messages?.registrationPending ?? message
+    return message || fallback
+  }
+  if (error instanceof Error) return error.message || fallback
+  return fallback
+}
+
+async function provisionOwnerCompanyIfNeeded(): Promise<boolean> {
+  if (!supabase) return false
+
+  const { data, error } = await supabase.rpc('provision_owner_company')
+  if (error) return false
+  return Boolean(data)
+}
 
 async function ensureEmployeeForInvite(
   profileId: string,
@@ -102,7 +135,7 @@ export async function registerUserWithInvite(
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { full_name: fullName } },
+    options: { data: { full_name: fullName, signup_type: 'invite' } },
   })
   if (authError) throw authError
   if (!authData.user) throw new Error('Registration failed')
@@ -149,49 +182,23 @@ export async function registerUserWithCompany(
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { full_name: fullName } },
+    options: { data: { full_name: fullName, signup_type: 'owner' } },
   })
   if (authError) throw authError
   if (!authData.user) throw new Error('Registration failed')
 
-  const companyId = crypto.randomUUID()
-  const company: Company = {
-    id: companyId,
-    name: `${fullName.split(' ')[0]}'s Handyman Co.`,
-    email,
-    phone: '',
-    address: '',
-    subscription_plan: 'starter',
-    settings: {},
-    created_at: new Date().toISOString(),
+  const session = await loadUserSession()
+  if (session) return session
+
+  if (authData.session) {
+    const repaired = await provisionOwnerCompanyIfNeeded()
+    if (repaired) {
+      const repairedSession = await loadUserSession()
+      if (repairedSession) return repairedSession
+    }
   }
 
-  const { error: companyError } = await insertRows('companies', {
-    ...company,
-    settings: company.settings as Json,
-  })
-  if (companyError) throw companyError
-
-  const profile: Profile = {
-    id: authData.user.id,
-    company_id: companyId,
-    email,
-    full_name: fullName,
-    role: 'owner',
-    created_at: new Date().toISOString(),
-  }
-
-  const { error: profileError } = await upsertRows('profiles', profile)
-  if (profileError) throw profileError
-
-  const { error: memberError } = await insertRows('company_members', {
-    company_id: companyId,
-    profile_id: authData.user.id,
-    role: 'owner',
-  })
-  if (memberError) throw memberError
-
-  return { profile, company }
+  throw new Error('Registration succeeded. Confirm your email if required, then sign in.')
 }
 
 export async function loadUserSession(): Promise<{ profile: Profile; company: Company } | null> {
@@ -209,7 +216,23 @@ export async function loadUserSession(): Promise<{ profile: Profile; company: Co
   if (!profile) return null
 
   const typedProfile = profile as unknown as Profile
-  if (!typedProfile.company_id) return null
+  if (!typedProfile.company_id) {
+    const repaired = await provisionOwnerCompanyIfNeeded()
+    if (!repaired) return null
+
+    const { data: repairedProfile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', session.user.id)
+      .single()
+
+    if (!repairedProfile) return null
+    const refreshedProfile = repairedProfile as unknown as Profile
+    if (!refreshedProfile.company_id) return null
+
+    const company = await fetchCompanyById(refreshedProfile.company_id)
+    return { profile: refreshedProfile, company }
+  }
 
   const company = await fetchCompanyById(typedProfile.company_id)
 

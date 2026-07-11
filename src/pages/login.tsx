@@ -13,6 +13,7 @@ import { useTranslation } from '@/contexts/locale-context'
 import { LanguageSwitcher } from '@/components/shared/language-switcher'
 import { resolvePostAuthRoute } from '@/lib/permissions'
 import { getTeamInvitePreview } from '@/services/invite-service'
+import { formatAuthError } from '@/services/auth-service'
 import { toast } from 'sonner'
 import type { UserRole } from '@/types'
 
@@ -65,8 +66,8 @@ export default function LoginPage() {
       navigate(resolvePostAuthRoute(inviteToken && mode === 'signin'
         ? { role: invitePreview?.role ?? authState.role, onboardingComplete: true }
         : authState))
-    } catch {
-      toast.error(t.auth.authError)
+    } catch (error) {
+      toast.error(formatAuthError(error, t.auth))
     } finally {
       setLoading(false)
     }

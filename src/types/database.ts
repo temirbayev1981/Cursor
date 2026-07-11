@@ -528,6 +528,10 @@ export interface Database {
         Args: Record<string, never>
         Returns: Database['public']['Tables']['companies']['Row'][]
       }
+      provision_owner_company: {
+        Args: Record<string, never>
+        Returns: string
+      }
     }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>

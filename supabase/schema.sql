@@ -1,5 +1,5 @@
 -- HandymanOS AI - Database Schema (idempotent)
--- SCHEMA_VERSION: 2026-07-11c  (verify this line before running)
+-- SCHEMA_VERSION: 2026-07-11d  (verify this line before running)
 -- Safe to re-run: creates missing objects, replaces functions, skips existing tables/types.
 -- Run this ENTIRE file in Supabase SQL Editor (one paste → Run). Do not run only the tail.
 -- Fresh copy: https://raw.githubusercontent.com/temirbayev1981/Cursor/main/supabase/schema.sql
@@ -533,6 +533,10 @@ DROP POLICY IF EXISTS "Users can view company memberships" ON company_members;
 CREATE POLICY "Users can view company memberships" ON company_members
   FOR SELECT USING (company_id = get_user_company_id());
 
+DROP POLICY IF EXISTS "Users can insert own membership" ON company_members;
+CREATE POLICY "Users can insert own membership" ON company_members
+  FOR INSERT WITH CHECK (profile_id = auth.uid());
+
 DROP POLICY IF EXISTS "Company members can view customers" ON customers;
 CREATE POLICY "Company members can view customers" ON customers
   FOR ALL USING (company_id = get_user_company_id());
@@ -722,21 +726,55 @@ DROP POLICY IF EXISTS "Company members can manage vendor PO records" ON vendor_p
 CREATE POLICY "Company members can manage vendor PO records" ON vendor_po_records
   FOR ALL USING (company_id = get_user_company_id());
 
--- Auth: create profile row when user signs up (company linked during onboarding)
+-- Auth: create profile + owner company on signup (invite signups skip company here)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  v_company_id UUID;
+  v_full_name TEXT;
+  v_signup_type TEXT;
 BEGIN
-  INSERT INTO public.profiles (id, email, full_name, role)
+  v_full_name := COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(COALESCE(NEW.email, ''), '@', 1));
+  v_signup_type := COALESCE(NEW.raw_user_meta_data->>'signup_type', 'owner');
+
+  IF v_signup_type <> 'invite' THEN
+    v_company_id := uuid_generate_v4();
+    INSERT INTO public.companies (id, name, email, subscription_plan, settings)
+    VALUES (
+      v_company_id,
+      v_full_name || '''s Handyman Co.',
+      COALESCE(NEW.email, ''),
+      'starter',
+      '{}'::jsonb
+    );
+  END IF;
+
+  INSERT INTO public.profiles (id, email, full_name, role, company_id)
   VALUES (
     NEW.id,
-    NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    'owner'
+    COALESCE(NEW.email, ''),
+    v_full_name,
+    CASE WHEN v_signup_type = 'invite' THEN 'technician'::user_role ELSE 'owner'::user_role END,
+    v_company_id
   )
-  ON CONFLICT (id) DO NOTHING;
+  ON CONFLICT (id) DO UPDATE SET
+    email = EXCLUDED.email,
+    full_name = COALESCE(NULLIF(profiles.full_name, ''), EXCLUDED.full_name),
+    company_id = COALESCE(profiles.company_id, EXCLUDED.company_id),
+    role = CASE
+      WHEN profiles.company_id IS NULL AND EXCLUDED.company_id IS NOT NULL THEN EXCLUDED.role
+      ELSE profiles.role
+    END;
+
+  IF v_company_id IS NOT NULL THEN
+    INSERT INTO public.company_members (company_id, profile_id, role)
+    VALUES (v_company_id, NEW.id, 'owner')
+    ON CONFLICT (company_id, profile_id) DO NOTHING;
+  END IF;
+
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
@@ -1074,6 +1112,65 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION accept_team_invite(TEXT) TO authenticated;
+
+-- Repair owner accounts missing company_id (e.g. legacy trigger or partial signup)
+CREATE OR REPLACE FUNCTION public.provision_owner_company()
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_uid UUID := auth.uid();
+  v_profile profiles%ROWTYPE;
+  v_company_id UUID;
+  v_full_name TEXT;
+BEGIN
+  IF v_uid IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  SELECT * INTO v_profile FROM profiles WHERE id = v_uid;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Profile not found';
+  END IF;
+
+  IF v_profile.company_id IS NOT NULL THEN
+    RETURN v_profile.company_id;
+  END IF;
+
+  v_full_name := NULLIF(v_profile.full_name, '');
+  IF v_full_name IS NULL THEN
+    SELECT COALESCE(raw_user_meta_data->>'full_name', split_part(COALESCE(email, ''), '@', 1))
+    INTO v_full_name
+    FROM auth.users
+    WHERE id = v_uid;
+  END IF;
+
+  v_company_id := uuid_generate_v4();
+  INSERT INTO companies (id, name, email, subscription_plan, settings)
+  VALUES (
+    v_company_id,
+    v_full_name || '''s Handyman Co.',
+    v_profile.email,
+    'starter',
+    '{}'::jsonb
+  );
+
+  UPDATE profiles
+  SET company_id = v_company_id,
+      role = 'owner'
+  WHERE id = v_uid;
+
+  INSERT INTO company_members (company_id, profile_id, role)
+  VALUES (v_company_id, v_uid, 'owner')
+  ON CONFLICT (company_id, profile_id) DO UPDATE SET role = 'owner';
+
+  RETURN v_company_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION provision_owner_company() TO authenticated;
 
 -- Time entries (technician clock in/out)
 CREATE TABLE IF NOT EXISTS time_entries (
