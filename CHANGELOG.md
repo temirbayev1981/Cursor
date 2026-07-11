@@ -2,9 +2,33 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.13.7] — 2026-07-11
+
+iOS Safari PDF read fix — static pdf.js bundle, no worker on touch devices.
+
+### Phase 140 — iOS WebKit PDF extract
+- `pdfjs-dist` static import (no lazy chunk load failures on iOS Safari)
+- Touch devices: `disableWorker` only — never spawn pdf.js module worker
+- Always set `workerSrc` (pdf.js requires it even with `disableWorker: true`)
+- `warmUpPdfJs()` on work-orders mount; `FileReader` fallback when `arrayBuffer()` fails
+- Version badge on work-orders page (verify deploy from Vendor PO tab)
+- **208** unit tests
+
 ## [1.13.6] — 2026-07-11
 
 iOS Vendor PO PDF import hardening + dashboard version badge.
+
+### Phase 139 — iOS PDF import hardening
+- PDF worker URL always resolved from site origin (not current route path)
+- Mobile/iOS: `disableWorker` first, `FileReader` fallback for `arrayBuffer()`
+- Per-file PDF extract errors (no whole-batch failure); clearer extract vs parse toasts
+- Service worker v4: network-first for `/assets/*` hashed bundles (no stale PDF code)
+- Truncate large vendor PO text fields before localStorage save
+- Mobile E2E: iPhone viewport uploads `vendor-po-210072-01.pdf`
+
+### Phase 138 — Dashboard version badge
+- Main dashboard shows app version + UTC build timestamp (`VITE_BUILD_TIME` from CI)
+- Deploy workflows inject build time on FTP and GitHub Pages builds
 
 ## [1.13.5] — 2026-07-11
 
@@ -23,18 +47,6 @@ Production bug-fix audit — data integrity, notifications, PWA, security.
 - Local cache fallback when Supabase save/load fails; merged list in `getVendorPOs`
 - iOS Safari: `disableWorker` PDF fallback when worker load fails
 - **205** unit tests
-
-### Phase 138 — Dashboard version badge
-- Main dashboard shows app version + UTC build timestamp (`VITE_BUILD_TIME` from CI)
-- Deploy workflows inject build time on FTP and GitHub Pages builds
-
-### Phase 139 — iOS PDF import hardening
-- PDF worker URL always resolved from site origin (not current route path)
-- Mobile/iOS: `disableWorker` first, `FileReader` fallback for `arrayBuffer()`
-- Per-file PDF extract errors (no whole-batch failure); clearer extract vs parse toasts
-- Service worker v4: network-first for `/assets/*` hashed bundles (no stale PDF code)
-- Truncate large vendor PO text fields before localStorage save
-- Mobile E2E: iPhone viewport uploads `vendor-po-210072-01.pdf`
 
 ### Phase 131 — Audit bug fixes
 - Entity cache: `mergeStoreById` preserves multi-tenant offline data on sync

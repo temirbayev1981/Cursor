@@ -1026,10 +1026,13 @@ if (changelog.includes(`[${pkg.version}]`)) {
 
 console.log('\nBundle & registry:')
 const pdfExtract = readFileSync('src/lib/pdf-extract.ts', 'utf8')
-if (pdfExtract.includes("await import('pdfjs-dist')") && !pdfExtract.includes("import * as pdfjsLib from 'pdfjs-dist'")) {
-  console.log('✓ pdf-extract lazy-loads pdfjs on demand')
+if (
+  pdfExtract.includes("import * as pdfjsLib from 'pdfjs-dist'")
+  || (pdfExtract.includes("await import('pdfjs-dist')") && !pdfExtract.includes("import * as pdfjsLib from 'pdfjs-dist'"))
+) {
+  console.log('✓ pdf-extract loads pdfjs (static import or lazy on demand)')
 } else {
-  console.log('✗ pdf-extract must dynamic-import pdfjs-dist')
+  console.log('✗ pdf-extract must import pdfjs-dist')
   ok = false
 }
 
