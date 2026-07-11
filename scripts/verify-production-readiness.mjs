@@ -1062,10 +1062,24 @@ if (openaiProxy.includes('images')) {
   ok = false
 }
 
-if (pdfExtract.includes('extractTextFromPdfServer') && pdfExtract.includes('canExtractPdfOnServer')) {
-  console.log('✓ pdf-extract server fallback wired for touch devices')
+if (pdfExtract.includes('extractTextFromPdfCdn') && pdfExtract.includes('isServerPdfExtractAvailable')) {
+  console.log('✓ pdf-extract mobile fallback chain (server probe → CDN → bundled)')
 } else {
-  console.log('✗ pdf-extract must call server fallback on mobile')
+  console.log('✗ pdf-extract must probe server and use CDN fallback on mobile')
+  ok = false
+}
+
+if (existsSync('src/lib/pdf-extract-cdn.ts')) {
+  console.log('✓ pdf-extract-cdn.ts for iOS Safari CDN pdf.js fallback')
+} else {
+  console.log('✗ pdf-extract-cdn.ts required for iOS CDN fallback')
+  ok = false
+}
+
+if (existsSync('.github/workflows/deploy-edge-functions.yml')) {
+  console.log('✓ deploy-edge-functions workflow for Supabase functions')
+} else {
+  console.log('✗ deploy-edge-functions.yml workflow required')
   ok = false
 }
 

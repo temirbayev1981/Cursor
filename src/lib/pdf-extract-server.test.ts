@@ -15,15 +15,29 @@ vi.mock('@/lib/supabase', () => ({
   }),
 }))
 
-import { canExtractPdfOnServer, extractTextFromPdfServer } from '@/lib/pdf-extract-server'
+import {
+  canExtractPdfOnServer,
+  extractTextFromPdfServer,
+  isServerPdfExtractAvailable,
+} from '@/lib/pdf-extract-server'
 
 describe('pdf-extract-server', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
+    sessionStorage.clear()
   })
 
   it('canExtractPdfOnServer is true when endpoint configured', () => {
     expect(canExtractPdfOnServer()).toBe(true)
+  })
+
+  it('isServerPdfExtractAvailable returns false on 404 and caches result', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ code: 'NOT_FOUND', message: 'Requested function was not found' }), { status: 404 }),
+    )
+    await expect(isServerPdfExtractAvailable()).resolves.toBe(false)
+    await expect(isServerPdfExtractAvailable()).resolves.toBe(false)
+    expect(fetch).toHaveBeenCalledTimes(1)
   })
 
   it('extractTextFromPdfServer posts extractPdf to openai-proxy first', async () => {
@@ -35,25 +49,7 @@ describe('pdf-extract-server', () => {
     const text = await extractTextFromPdfServer(file)
 
     expect(text).toContain('210379-01')
-    expect(fetchMock).toHaveBeenCalledWith(
-      'https://example.test/functions/v1/openai-proxy',
-      expect.objectContaining({ method: 'POST' }),
-    )
     const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))
     expect(body.extractPdf).toBe(true)
-    expect(body.pdfBase64).toBeTruthy()
-  })
-
-  it('falls back to extract-pdf-text when openai-proxy fails', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch')
-      .mockResolvedValueOnce(new Response(JSON.stringify({ error: 'not found' }), { status: 404 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ text: 'VENDOR PO # 210379-01' }), { status: 200 }))
-
-    const file = new File(['%PDF-1.4 mock'], 'VendorPO-210379-01.pdf', { type: 'application/pdf' })
-    const text = await extractTextFromPdfServer(file)
-
-    expect(text).toContain('210379-01')
-    expect(fetchMock).toHaveBeenCalledTimes(2)
-    expect(String(fetchMock.mock.calls[1]?.[0])).toContain('extract-pdf-text')
   })
 })

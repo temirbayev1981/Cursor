@@ -16,7 +16,8 @@ import { useWorkOrders } from '@/hooks/use-entities'
 import { saveWorkOrderFromAI } from '@/services/entity-service'
 import { useAuth } from '@/contexts/auth-context'
 import { analyzeWorkOrderPDF, analyzeEmailWorkOrder, analyzePhoto } from '@/lib/ai'
-import { tryExtractTextFromPdf, isPdfFile, warmUpPdfJs } from '@/lib/pdf-extract'
+import { tryExtractTextFromPdf, isPdfFile, warmUpPdfJs, prefersNoPdfWorker } from '@/lib/pdf-extract'
+import { getCdnPdfJs } from '@/lib/pdf-extract-cdn'
 import { isVendorPOText, parseVendorPOText } from '@/lib/vendor-po-parser'
 import { getErrorMessage, isPdfExtractError, isVendorPOSaveError, isVendorPOStorageError, vendorPoPdfExtractUserMessage } from '@/lib/error-message'
 import { useQueryClient } from '@tanstack/react-query'
@@ -51,6 +52,9 @@ export default function WorkOrdersPage() {
 
   useEffect(() => {
     warmUpPdfJs()
+    if (prefersNoPdfWorker()) {
+      void getCdnPdfJs().catch(() => undefined)
+    }
   }, [])
 
   useEffect(() => {

@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.0] — 2026-07-11
+
+iOS Vendor PO PDF — CDN pdf.js fallback when Supabase Edge Functions missing.
+
+### Phase 143 — iOS PDF CDN fallback
+- Production Supabase had **no Edge Functions deployed** (404 on openai-proxy)
+- iPhone: probe server availability, then **CDN pdf.js 3.11** (cdnjs), then bundled legacy
+- Prefetch CDN pdf.js on work-orders mount for touch devices
+- Parse Supabase `NOT_FOUND` JSON errors; clearer server-not-deployed toast
+- New workflow `deploy-edge-functions.yml` (needs `SUPABASE_ACCESS_TOKEN` + `SUPABASE_PROJECT_REF`)
+- **211** unit tests
+
 ## [1.13.9] — 2026-07-11
 
 iOS Vendor PO PDF — route mobile extract through deployed openai-proxy.
