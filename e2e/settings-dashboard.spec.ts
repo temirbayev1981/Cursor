@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, clearNotificationQueue, seedDraftJob, seedDraftInvoice } from './helpers/auth'
-import { visibleTestId } from './helpers/visibility'
+import { visibleTestId, visibleText } from './helpers/visibility'
 
 test.describe('Settings billing & team', () => {
   test.beforeEach(async ({ page, context }) => {
@@ -539,8 +539,8 @@ test.describe('Dashboard analytics', () => {
     await page.goto('/dashboard')
     const recent = page.getByTestId('dashboard-recent-jobs')
     await expect(recent.getByText(/последние заказы|recent jobs/i).first()).toBeVisible()
-    await expect(recent.getByText(/Drywall Repair|Bathroom Faucet/i).first()).toBeVisible({ timeout: 10000 })
-    await expect(recent.getByText(/ABC Property Management/i).first()).toBeVisible()
+    await expect(recent.locator('visible=true').getByText(/Drywall Repair|Bathroom Faucet/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(recent.locator('visible=true').getByText(/ABC Property Management/i).first()).toBeVisible()
     await expect(recent.getByText(/в работе|in progress|запланирован|scheduled/i).first()).toBeVisible()
   })
 

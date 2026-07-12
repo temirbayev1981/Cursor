@@ -1306,6 +1306,19 @@ if (existsSync('src/lib/pdf-utils.ts')) {
   ok = false
 }
 
+const estimatesPage = existsSync('src/pages/estimates.tsx')
+  ? readFileSync('src/pages/estimates.tsx', 'utf8')
+  : ''
+if (estimatesPage.includes("from '@/lib/ai'") || estimatesPage.includes('from "@/lib/ai"')) {
+  console.log('✗ estimates.tsx must not statically import ai (use dynamic import for smart engine)')
+  ok = false
+} else if (estimatesPage.includes("import('@/lib/ai')")) {
+  console.log('✓ estimates.tsx uses dynamic import for smart engine')
+} else {
+  console.log('✗ estimates.tsx must dynamically import ai for smart engine')
+  ok = false
+}
+
 const mobileLayoutSpecs = [
   'e2e/jobs-mobile-layout.spec.ts',
   'e2e/customers-mobile-layout.spec.ts',
@@ -1319,6 +1332,8 @@ const mobileLayoutSpecs = [
   'e2e/scheduling-mobile-layout.spec.ts',
   'e2e/properties-mobile-layout.spec.ts',
   'e2e/technicians-mobile-layout.spec.ts',
+  'e2e/dispatch-mobile-layout.spec.ts',
+  'e2e/dashboard-mobile-layout.spec.ts',
 ]
 console.log('\nMobile layout E2E:')
 for (const file of mobileLayoutSpecs) {

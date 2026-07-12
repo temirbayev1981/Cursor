@@ -1,5 +1,5 @@
 import { Plus, Sparkles, FileSpreadsheet, Send, X, Download } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
 import { TablePagination } from '@/components/shared/table-pagination'
@@ -15,7 +15,6 @@ import { generateInvoiceNumber } from '@/services/payment-service'
 import { notifyEstimateSent, notifyEstimateSentSms, notifyResultMessage } from '@/services/notification-service'
 import { logAudit } from '@/services/entity-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import { generateSmartEstimate } from '@/lib/ai'
 import { exportEstimatePdf } from '@/lib/export'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
@@ -38,15 +37,32 @@ export default function EstimatesPage() {
   const convertToInvoice = useConvertEstimateToInvoice()
   const pagination = useTablePagination(estimates)
 
-  const smartEstimate = generateSmartEstimate(
-    'Drywall Repair',
-    jobs.filter((j) => j.title.toLowerCase().includes('drywall')).map((j) => ({
-      estimated_hours: j.estimated_hours,
-      actual_hours: j.actual_hours,
-      revenue: j.revenue,
-      profit_margin: j.profit_margin,
-    }))
+  const drywallJobStats = useMemo(
+    () =>
+      jobs
+        .filter((j) => j.title.toLowerCase().includes('drywall'))
+        .map((j) => ({
+          estimated_hours: j.estimated_hours,
+          actual_hours: j.actual_hours,
+          revenue: j.revenue,
+          profit_margin: j.profit_margin,
+        })),
+    [jobs],
   )
+
+  const [smartEstimate, setSmartEstimate] = useState({ hours: 4, price: 450, confidence: 0.5 })
+
+  useEffect(() => {
+    if (!showEngine) return
+    let cancelled = false
+    void import('@/lib/ai').then(({ generateSmartEstimate }) => {
+      if (cancelled) return
+      setSmartEstimate(generateSmartEstimate('Drywall Repair', drywallJobStats))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [showEngine, drywallJobStats])
 
   const pricingOptions = [
     { label: t.estimates.hourlyBilling, rate: '$75/' + t.common.hr },

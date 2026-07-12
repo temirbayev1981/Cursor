@@ -2,6 +2,19 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.34] — 2026-07-12
+
+Audit P4: lazy AI in estimates, dispatch/dashboard mobile E2E.
+
+### Bundle
+- `estimates.tsx` — dynamic import of `generateSmartEstimate` when smart engine opens
+- `verify-production-readiness` gate for estimates dynamic ai import
+
+### E2E
+- `dispatch-mobile-layout.spec.ts`, `dashboard-mobile-layout.spec.ts`
+- Visible locators in dispatch-map-i18n-pdf, dispatch-ai-pdf, settings-dashboard
+- 14 mobile-layout E2E specs gated in verify-production
+
 ## [1.14.33] — 2026-07-12
 
 Audit P4: lazy AI in work-orders, properties/technicians mobile E2E.

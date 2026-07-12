@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, seedScheduledRouteJob } from './helpers/auth'
+import { visibleTestId, visibleText } from './helpers/visibility'
 
 test.describe('Dispatch job map', () => {
   test.beforeEach(async ({ page }) => {
@@ -34,8 +35,8 @@ test.describe('Dispatch job map', () => {
     await page.goto('/dispatch')
 
     const panel = page.getByTestId('route-optimizer-panel')
-    await expect(panel.getByText('Route Optimization').first()).toBeVisible()
-    await expect(panel.getByText('E2E Scheduled Route Job').first()).toBeVisible()
+    await expect(panel.locator('visible=true').getByText('Route Optimization').first()).toBeVisible()
+    await expect(visibleText(page, 'E2E Scheduled Route Job', true).first()).toBeVisible()
     await expect(panel.getByText(/stops/i).first()).toBeVisible()
     await expect(page.getByTestId('route-optimizer-open-maps')).toHaveText('Open in Google Maps')
     await expect(page.getByTestId('route-optimizer-open-maps')).toHaveAttribute('href', /google\.com\/maps/)
@@ -48,7 +49,7 @@ test.describe('Invoice PDF i18n', () => {
     await page.goto('/invoices')
 
     const popupPromise = page.waitForEvent('popup')
-    await page.getByTestId('invoice-export-pdf-inv-002').click()
+    await visibleTestId(page, 'invoice-export-pdf-inv-002').click()
     const popup = await popupPromise
 
     await expect(popup.locator('h1')).toContainText(/счёт/i)
@@ -63,7 +64,7 @@ test.describe('Invoice PDF i18n', () => {
     await page.goto('/invoices')
 
     const popupPromise = page.waitForEvent('popup')
-    await page.getByTestId('invoice-export-pdf-inv-002').click()
+    await visibleTestId(page, 'invoice-export-pdf-inv-002').click()
     const popup = await popupPromise
 
     await expect(popup.locator('h1')).toContainText(/Invoice/i)

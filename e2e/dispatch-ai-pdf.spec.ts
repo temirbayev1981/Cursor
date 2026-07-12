@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 import { loginAsOwner, seedDraftJob, seedScheduledRouteJob } from './helpers/auth'
+import { visibleText } from './helpers/visibility'
 
 async function dragDispatchCard(page: Page, cardTestId: string, targetColumnTestId: string) {
   const card = page.getByTestId(cardTestId)
@@ -47,7 +48,7 @@ test.describe('Dispatch route optimizer', () => {
     const panel = page.getByTestId('route-optimizer-panel')
     await expect(panel).toBeVisible()
     await expect(panel.getByText(/оптимизация маршрута|route optimization/i).first()).toBeVisible()
-    await expect(panel.getByText('E2E Scheduled Route Job').first()).toBeVisible()
+    await expect(visibleText(page, 'E2E Scheduled Route Job', true).first()).toBeVisible()
     await expect(panel.getByRole('link', { name: /google maps/i })).toBeVisible()
     await expect(panel.locator('a[href*="google"]').first()).toHaveAttribute('href', /google\.com\/maps/)
   })
