@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner } from './helpers/auth'
+import { visibleTestId } from './helpers/visibility'
 
 test.describe('Properties & job inventory', () => {
   test.beforeEach(async ({ page }) => {
@@ -35,7 +36,7 @@ test.describe('Properties & job inventory', () => {
     const qtyBefore = await materialRow.locator('td').nth(3).textContent()
 
     await page.goto('/jobs')
-    await page.getByTestId('job-material-usage-job-001').click()
+    await visibleTestId(page, 'job-material-usage-job-001').click()
     await expect(page.getByTestId('job-material-dialog')).toBeVisible()
     await page.getByTestId('job-material-dialog').getByRole('combobox').click()
     await page.getByRole('option', { name: /Joint Compound/i }).click()

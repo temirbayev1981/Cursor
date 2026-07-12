@@ -110,7 +110,7 @@ test.describe('Expanded audit log E2E', () => {
 
   test('inventory apply appears in audit log', async ({ page }) => {
     await page.goto('/jobs')
-    await page.getByTestId('job-material-usage-job-001').click()
+    await visibleTestId(page, 'job-material-usage-job-001').click()
     await page.getByTestId('job-material-dialog').getByRole('combobox').click()
     await page.getByRole('option', { name: /Joint Compound/i }).click()
     await page.getByTestId('job-material-submit').click()
