@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner } from './helpers/auth'
-import { visibleText } from './helpers/visibility'
 
 test.describe('Dashboard mobile layout', () => {
   test.beforeEach(async ({ page }) => {

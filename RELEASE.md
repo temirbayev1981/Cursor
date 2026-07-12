@@ -1,10 +1,22 @@
-# HandymanOS AI — Release 1.14.37
+# HandymanOS AI — Release 1.14.39
 
-**Status:** merging to `main` — production deploy **v1.14.37**.
+**Status:** PR [#183](https://github.com/temirbayev1981/Cursor/pull/183) — Audit P5/P5+.
 
-Audit P4 milestone: mobile-first list layouts, bundle splitting, E2E visibility stability.
+## 1.14.39 — Audit P5+
 
-## 1.14.25–1.14.36 — Audit P4 (bundle + mobile + E2E)
+- **E2E** — all specs use `visibleText` instead of raw `page.getByText`
+- **portal-service** — authoritative empty portal token list from Supabase
+
+## 1.14.38 — Audit P5
+
+- **entity-service** — authoritative empty Supabase responses replace stale localStorage (no ghost rows)
+- **E2E** — `audit-expanded` + `settings-dashboard` use `visibleText` helpers throughout
+- **chart-prefetch** — recharts warmed only on `/dashboard` and `/reports`
+- **pdf-extract** — dynamic `import('pdfjs-dist')` inside module
+- **Tests** — `ai.test.ts`, export PDF tests, entity empty-cache test
+- **Docs** — `DEPLOYMENT.md` test counts synced (259 unit / 275 E2E / 56 specs)
+
+## 1.14.25–1.14.37 — Audit P4 (bundle + mobile + E2E)
 
 ### Bundle splitting (lazy chunks)
 - **v1.14.25** — Dynamic `e2e-mock-supabase`; async bootstrap in `main.tsx`
@@ -17,7 +29,7 @@ Audit P4 milestone: mobile-first list layouts, bundle splitting, E2E visibility 
 - **v1.14.36** — Vendor PO lazy export; AI assistant lazy `@/lib/ai` on send; `vendor-po-groups.ts` + `ai-context.ts`
 
 ### Mobile cards (dual layout)
-Jobs, customers, vendor PO, invoices, estimates, materials, expenses, vehicles (fuel logs), reports (profit + customers tabs) — `md:hidden` cards + `hidden md:block` tables.
+Jobs, customers, vendor PO, invoices, estimates, materials, expenses, vehicles — `md:hidden` cards + `hidden md:block` tables. Reports profit/customers tabs use **responsive cards only** (no desktop table).
 
 ### E2E stability
 - `e2e/helpers/visibility.ts` — visible locators (`visibleText`, `visibleTestId`, `visibleRow`, etc.)
@@ -34,7 +46,7 @@ Jobs, customers, vendor PO, invoices, estimates, materials, expenses, vehicles (
 
 # HandymanOS AI — Release 1.13.5
 
-**Status:** merged to `main` (current package **1.13.5**).
+**Status:** merged to `main` (historical milestone **1.13.5**; current production **1.14.37+**).
 
 Consolidated **1.7.x** production release + **1.8.0** audit milestone.
 

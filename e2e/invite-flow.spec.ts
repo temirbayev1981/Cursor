@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { visibleText } from './helpers/visibility'
 
 const INVITE_TOKEN = 'test-invite-token-phase19'
 
@@ -21,8 +22,8 @@ test.describe('Team invite flow', () => {
 
   test('technician invite signup completes lite onboarding', async ({ page }) => {
     await page.goto(`/login?invite=${INVITE_TOKEN}`)
-    await expect(page.getByText(/пригласили|invited/i).first()).toBeVisible()
-    await expect(page.getByText('technician')).toBeVisible()
+    await expect(visibleText(page, /пригласили|invited/i).first()).toBeVisible()
+    await expect(visibleText(page, 'technician')).toBeVisible()
 
     await page.locator('input[type="email"]').fill('tech-invite@test.com')
     await page.locator('input[type="password"]').fill('demo1234')
@@ -33,12 +34,12 @@ test.describe('Team invite flow', () => {
 
     await page.getByRole('button', { name: /зарегистрироваться|sign up/i }).click()
     await expect(page).toHaveURL(/\/tech-onboarding/, { timeout: 10000 })
-    await expect(page.getByText(/technician setup|настройка мастера/i).first()).toBeVisible()
+    await expect(visibleText(page, /technician setup|настройка мастера/i).first()).toBeVisible()
 
     await page.locator('input').first().fill('Test Technician')
     await page.getByPlaceholder('(555)').fill('(555) 999-0000')
     await page.getByRole('button', { name: /далее|next/i }).click()
-    await page.getByText('Plumbing').click()
+    await visibleText(page, 'Plumbing').click()
     await page.getByRole('button', { name: /start working|начать работу/i }).click()
 
     await expect(page).toHaveURL(/\/tech/, { timeout: 10000 })
@@ -63,7 +64,7 @@ test.describe('Team invite flow', () => {
     }, inviteToken)
 
     await page.goto(`/login?invite=${inviteToken}`)
-    await expect(page.getByText(/пригласили|invited/i).first()).toBeVisible()
+    await expect(visibleText(page, /пригласили|invited/i).first()).toBeVisible()
 
     await page.getByRole('tab', { name: /вход|sign in/i }).click()
     await page.locator('input[type="email"]').fill('owner@profixhandyman.com')

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { visibleText } from './helpers/visibility'
 import { loginAsOwner } from './helpers/auth'
 
 test.describe('Stripe billing smoke', () => {
@@ -24,7 +25,7 @@ test.describe('Stripe billing smoke', () => {
     await page.getByRole('tab', { name: /оплата|billing/i }).click()
 
     await page.getByTestId('billing-upgrade-enterprise').click()
-    await expect(page.getByText(/план обновлён|plan upgraded/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /план обновлён|plan upgraded/i).first()).toBeVisible({ timeout: 10000 })
     await expect(page.getByTestId('billing-plan-enterprise').getByText(/текущий|current/i)).toBeVisible()
   })
 })

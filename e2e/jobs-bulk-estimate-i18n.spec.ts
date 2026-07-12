@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, seedBulkDraftJobs } from './helpers/auth'
-import { expectJobTitleVisible, visibleTestId } from './helpers/visibility'
+import { expectJobTitleVisible, visibleTestId, visibleText } from './helpers/visibility'
 
 test.describe('Estimate PDF i18n', () => {
   test('Russian locale uses Russian PDF labels', async ({ page }) => {
@@ -53,7 +53,7 @@ test.describe('Jobs bulk actions', () => {
     await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
     await page.getByTestId('jobs-bulk-apply').click()
 
-    await expect(page.getByText(/обновлено заказов:\s*2|updated 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /обновлено заказов:\s*2|updated 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
     await page.getByRole('tab', { name: /запланирован|scheduled/i }).click()
     await expectJobTitleVisible(page, 'E2E Bulk Draft A')
     await expectJobTitleVisible(page, 'E2E Bulk Draft B')
@@ -79,7 +79,7 @@ test.describe('Jobs bulk actions', () => {
     await visibleTestId(page, 'job-select-job-bulk-002').check()
     await page.getByTestId('jobs-bulk-schedule').click()
 
-    await expect(page.getByText(/запланировано заказов:\s*2|scheduled 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /запланировано заказов:\s*2|scheduled 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
     await page.getByRole('tab', { name: /запланирован|scheduled/i }).click()
     await expectJobTitleVisible(page, 'E2E Bulk Draft A')
     await expectJobTitleVisible(page, 'E2E Bulk Draft B')

@@ -1030,7 +1030,7 @@ const pdfExtract = readFileSync('src/lib/pdf-extract.ts', 'utf8')
 if (
   pdfExtract.includes("import * as pdfjsLib from 'pdfjs-dist'")
   || pdfExtract.includes("import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'")
-  || (pdfExtract.includes("await import('pdfjs-dist')") && !pdfExtract.includes("import * as pdfjsLib from 'pdfjs-dist'"))
+  || (pdfExtract.includes("import('pdfjs-dist/legacy/build/pdf.mjs')") && !pdfExtract.includes("import * as pdfjsLib"))
 ) {
   console.log('✓ pdf-extract loads pdfjs (static import or lazy on demand)')
 } else {
@@ -1133,11 +1133,12 @@ const lazyReportsCharts = existsSync('src/components/charts/lazy-reports-charts.
 if (
   chartPrefetch.includes("import('@/components/charts/dashboard-charts')")
   && chartPrefetch.includes("import('@/components/charts/reports-recharts')")
-  && appLayout.includes('prefetchChartBundles')
+  && chartPrefetch.includes('pathname')
+  && appLayout.includes('prefetchChartBundles(location.pathname)')
 ) {
-  console.log('✓ chart bundles prefetch on app shell load')
+  console.log('✓ chart bundles prefetch on dashboard/reports routes')
 } else {
-  console.log('✗ app layout must prefetch lazy chart chunks')
+  console.log('✗ app layout must prefetch lazy chart chunks on dashboard/reports')
   ok = false
 }
 
@@ -1276,6 +1277,17 @@ if (entityServiceModule.includes("from '@/data/mock-data'") || entityServiceModu
   ok = false
 }
 
+if (
+  entityServiceModule.includes('replaceCompanyInStore')
+  && entityServiceModule.includes('replaceScopedInStore')
+  && entityServiceModule.includes('replaceCompanyInStore(KEY_MAP[entity], companyId, items)')
+) {
+  console.log('✓ entity-service uses authoritative server cache sync')
+} else {
+  console.log('✗ entity-service must replace company cache on empty Supabase responses')
+  ok = false
+}
+
 const workOrdersPage = existsSync('src/pages/work-orders.tsx')
   ? readFileSync('src/pages/work-orders.tsx', 'utf8')
   : ''
@@ -1361,6 +1373,38 @@ if (existsSync('src/lib/ai-context.ts')) {
   console.log('✓ ai-context.ts (lightweight business context)')
 } else {
   console.log('✗ missing src/lib/ai-context.ts')
+  ok = false
+}
+
+const e2eVisibleSpecs = [
+  'e2e/audit-expanded.spec.ts',
+  'e2e/settings-dashboard.spec.ts',
+  'e2e/tech-offline.spec.ts',
+  'e2e/notifications.spec.ts',
+  'e2e/dispatch-notifications.spec.ts',
+  'e2e/portals.spec.ts',
+]
+console.log('\nE2E visibleText coverage (key specs):')
+for (const file of e2eVisibleSpecs) {
+  const source = existsSync(file) ? readFileSync(file, 'utf8') : ''
+  if (!source.includes("from './helpers/visibility'") || !source.includes('visibleText(page,')) {
+    console.log(`✗ ${file} must use visibleText helper`)
+    ok = false
+  } else if (source.includes('page.getByText(')) {
+    console.log(`✗ ${file} must not use raw page.getByText`)
+    ok = false
+  } else {
+    console.log(`✓ ${file}`)
+  }
+}
+
+const portalService = existsSync('src/services/portal-service.ts')
+  ? readFileSync('src/services/portal-service.ts', 'utf8')
+  : ''
+if (portalService.includes('replaceScopedInStore') && portalService.includes('listPortalTokens')) {
+  console.log('✓ portal-service authoritative portal token cache sync')
+} else {
+  console.log('✗ portal-service must replace scoped portal tokens on empty remote')
   ok = false
 }
 

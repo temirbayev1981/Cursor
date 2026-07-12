@@ -26,7 +26,7 @@ test.describe('Properties & job inventory', () => {
     await form.locator('input').nth(1).fill('200 E2E Street, Austin, TX')
     await page.getByTestId('property-form-submit').click()
 
-    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
     await expect(visibleText(page, 'E2E Test Property', true).first()).toBeVisible()
   })
 
@@ -42,7 +42,7 @@ test.describe('Properties & job inventory', () => {
     await page.getByRole('option', { name: /Joint Compound/i }).click()
     await page.getByTestId('job-material-submit').click()
 
-    await expect(page.getByText(/материалы списаны|materials deducted/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /материалы списаны|materials deducted/i).first()).toBeVisible({ timeout: 10000 })
 
     await page.goto('/materials')
     const qtyAfter = await visibleRow(page, 'Joint Compound (5 gal)').locator('td').nth(3).textContent()

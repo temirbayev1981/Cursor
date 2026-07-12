@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { visibleText } from './helpers/visibility'
 import { loginAsOwner } from './helpers/auth'
 
 test.describe('Multi-company', () => {
@@ -12,9 +13,9 @@ test.describe('Multi-company', () => {
     await expect(switcher).toBeVisible({ timeout: 10000 })
     await switcher.click()
     await page.getByRole('option', { name: /Sunrise Property Services/i }).click()
-    await expect(page.getByText(/компания переключена|company switched/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /компания переключена|company switched/i).first()).toBeVisible({ timeout: 5000 })
     await page.getByRole('combobox').click()
     await page.getByRole('option', { name: /ProFix Handyman/i }).click()
-    await expect(page.getByText(/компания переключена|company switched/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /компания переключена|company switched/i).first()).toBeVisible({ timeout: 5000 })
   })
 })

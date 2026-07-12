@@ -28,7 +28,7 @@ test.describe('Mobile vendor PO PDF', () => {
     const dropzone = page.getByTestId('work-orders-vendor-po-dropzone')
     await dropzone.locator('input[type="file"]').setInputFiles('e2e/fixtures/vendor-po-210072-01.pdf')
 
-    await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 30000 })
+    await expect(visibleText(page, /pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 30000 })
     await expect(visibleText(page, '210072-01', true).first()).toBeVisible()
     await expect(visibleText(page, '355708360', true).first()).toBeVisible()
   })

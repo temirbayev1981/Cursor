@@ -13,8 +13,8 @@ test.describe('Technicians', () => {
     await expect(visibleText(page, 'James Rodriguez', true).first()).toBeVisible()
     await expect(visibleText(page, 'Marcus Thompson', true).first()).toBeVisible()
     await expect(visibleText(page, 'Plumbing', true).first()).toBeVisible()
-    await expect(page.getByText(/ставка|billing rate/i).first()).toBeVisible()
-    await expect(page.getByText(/маржа|margin/i).first()).toBeVisible()
+    await expect(visibleText(page, /ставка|billing rate/i).first()).toBeVisible()
+    await expect(visibleText(page, /маржа|margin/i).first()).toBeVisible()
   })
 
   test('create technician via form adds team card', async ({ page }) => {
@@ -31,7 +31,7 @@ test.describe('Technicians', () => {
     await form.locator('input').last().fill('Tile, Grout')
     await page.getByTestId('employee-form-submit').click()
 
-    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
     await expect(visibleText(page, 'E2E Test Technician', true).first()).toBeVisible()
     await expect(visibleText(page, 'Tile', true).first()).toBeVisible()
   })
@@ -69,7 +69,7 @@ test.describe('Theme & reports export', () => {
   test('reports technicians tab shows performance chart', async ({ page }) => {
     await page.goto('/reports')
     await page.getByRole('tab', { name: /мастера|technicians/i }).click()
-    await expect(page.getByText(/эффективность мастеров|technician performance/i).first()).toBeVisible()
+    await expect(visibleText(page, /эффективность мастеров|technician performance/i).first()).toBeVisible()
     await expect(page.getByRole('img').filter({ hasText: /J R\.|M T\./ })).toBeVisible({ timeout: 10000 })
   })
 

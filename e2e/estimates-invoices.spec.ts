@@ -28,7 +28,7 @@ test.describe('Estimates & invoices', () => {
     await page.getByRole('option', { name: /ABC Property Management/i }).click()
     await page.getByTestId('estimate-form-submit').click()
 
-    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
     await expect(visibleText(page, 'E2E Test Estimate').first()).toBeVisible()
   })
 
@@ -37,7 +37,7 @@ test.describe('Estimates & invoices', () => {
     await expect(visibleText(page, 'Deck Repair & Staining').first()).toBeVisible()
     await visibleTestId(page, 'estimate-send-est-003').click()
 
-    await expect(page.getByText(/смета отправлена.*chen\.family@email\.com/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /смета отправлена.*chen\.family@email\.com/i).first()).toBeVisible({ timeout: 10000 })
   })
 
   test('send draft estimate skips email when customer opted out', async ({ page }) => {
@@ -46,15 +46,15 @@ test.describe('Estimates & invoices', () => {
     })
     await page.goto('/estimates')
     await visibleTestId(page, 'estimate-send-est-003').click()
-    await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
   })
 
   test('send draft estimate skips customer SMS when opted out', async ({ page }) => {
     await page.goto('/estimates')
     await visibleTestId(page, 'estimate-send-est-003').click()
-    await expect(page.getByText(/смета отправлена|estimate sent/i).first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText(/SMS.*отключён|SMS disabled/i).first()).toBeVisible({ timeout: 5000 })
-    await expect(page.getByText(/567.*8901|\(555\) 567-8901/).first()).toBeVisible()
+    await expect(visibleText(page, /смета отправлена|estimate sent/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /SMS.*отключён|SMS disabled/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /567.*8901|\(555\) 567-8901/).first()).toBeVisible()
   })
 
   test('send draft estimate queues customer SMS when enabled', async ({ page }) => {
@@ -65,12 +65,12 @@ test.describe('Estimates & invoices', () => {
       await smsToggle.click()
     }
     await page.getByTestId('customer-form-submit').click()
-    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
 
     await page.goto('/estimates')
     await visibleTestId(page, 'estimate-send-est-003').click()
-    await expect(page.getByText(/SMS.*очереди|SMS queued/i).first()).toBeVisible({ timeout: 5000 })
-    await expect(page.getByText(/567.*8901|\(555\) 567-8901/).first()).toBeVisible()
+    await expect(visibleText(page, /SMS.*очереди|SMS queued/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /567.*8901|\(555\) 567-8901/).first()).toBeVisible()
   })
 
   test('convert sent estimate to invoice', async ({ page }) => {
@@ -78,17 +78,17 @@ test.describe('Estimates & invoices', () => {
     await expect(visibleText(page, 'Leaking Faucet Repair').first()).toBeVisible()
     await visibleTestId(page, 'estimate-convert-est-002').click()
 
-    await expect(page.getByText(/счёт создан из сметы|invoice created from estimate/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /счёт создан из сметы|invoice created from estimate/i).first()).toBeVisible({ timeout: 10000 })
   })
 
   test('manual payment marks sent invoice as paid without Stripe', async ({ page }) => {
     await page.goto('/invoices')
-    await expect(page.getByText(/к оплате|outstanding/i).first()).toBeVisible()
+    await expect(visibleText(page, /к оплате|outstanding/i).first()).toBeVisible()
     await expect(visibleText(page, 'INV-2026-0141').first()).toBeVisible()
 
     await visibleTestId(page, 'invoice-pay-inv-002').click()
 
-    await expect(page.getByText(/оплачено|paid/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /оплачено|paid/i).first()).toBeVisible({ timeout: 10000 })
     await expect(visibleText(page, 'INV-2026-0141').first()).toBeVisible()
   })
 })

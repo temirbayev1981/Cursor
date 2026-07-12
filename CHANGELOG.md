@@ -2,6 +2,41 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.39] — 2026-07-12
+
+Audit P5+: full E2E visibleText migration, portal token cache fix.
+
+### E2E
+- All remaining specs — `page.getByText` → `visibleText` (dual-layout safe)
+- `verify-production` gates for key visibleText specs
+
+### Data integrity
+- `portal-service.listPortalTokens` — empty remote list clears company-scoped token cache
+
+## [1.14.38] — 2026-07-12
+
+Audit P5: entity cache fix, E2E visibility, scoped chart prefetch, pdfjs lazy, tests, docs.
+
+### Data integrity
+- `entity-service` — empty Supabase list responses clear company-scoped cache (no stale ghost rows)
+- `data-store` — `replaceCompanyInStore`, `replaceScopedInStore` helpers
+
+### Bundle
+- `chart-prefetch` — recharts only on `/dashboard` and `/reports`
+- `pdf-extract` — dynamic import of `pdfjs-dist`
+
+### E2E
+- `audit-expanded.spec.ts`, `settings-dashboard.spec.ts` — `visibleText` throughout
+
+### Tests
+- `ai.test.ts` — fallback analyzers and smart estimate
+- `export.test.ts` — estimate/invoice PDF HTML
+- `entity-service.test.ts` — empty server list clears cache
+
+### Docs
+- `DEPLOYMENT.md` — 259 unit / 275 E2E / 56 specs
+- `RELEASE.md` — reports cards-only correction
+
 ## [1.14.37] — 2026-07-12
 
 Pre-merge E2E fixes for dual mobile/desktop layouts and portal invoice seeding.

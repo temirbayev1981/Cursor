@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import { upsertRows } from '@/lib/supabase-queries'
 import { callRpc } from '@/lib/supabase-rpc'
-import { loadStore, saveStore, upsertStore } from '@/lib/data-store'
+import { loadStore, upsertStore, replaceScopedInStore } from '@/lib/data-store'
 
 export type PortalType = 'customer' | 'property'
 
@@ -127,9 +127,9 @@ export async function validatePortalToken(token: string): Promise<PortalSession 
 }
 
 export async function listPortalTokens(companyId: string): Promise<PortalToken[]> {
-  const items = loadStore<PortalToken>(TOKENS_KEY).filter((t) => t.company_id === companyId)
+  const local = loadStore<PortalToken>(TOKENS_KEY).filter((t) => t.company_id === companyId)
 
-  if (!supabase) return items
+  if (!supabase) return local
 
   try {
     const { data, error } = await supabase
@@ -140,12 +140,9 @@ export async function listPortalTokens(companyId: string): Promise<PortalToken[]
 
     if (error) throw error
     const remote = (data ?? []) as PortalToken[]
-    if (remote.length > 0) {
-      saveStore(TOKENS_KEY, remote)
-      return remote
-    }
-    return items
+    replaceScopedInStore(TOKENS_KEY, (t) => t.company_id === companyId, remote)
+    return remote
   } catch {
-    return items
+    return local
   }
 }

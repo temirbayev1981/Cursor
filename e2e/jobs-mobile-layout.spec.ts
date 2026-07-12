@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner } from './helpers/auth'
-import { expectJobTitleVisible } from './helpers/visibility'
+import { expectJobTitleVisible, visibleText } from './helpers/visibility'
 
 test.describe('Jobs mobile layout', () => {
   test.beforeEach(async ({ page }) => {
@@ -22,7 +22,7 @@ test.describe('Jobs mobile layout', () => {
     await page.getByRole('option', { name: /ABC Property Management/i }).click()
     await page.getByTestId('job-form-submit').click()
 
-    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
     await expectJobTitleVisible(page, 'E2E Mobile Card Job')
     await expect(page.getByTestId(/^job-card-/).filter({ hasText: 'E2E Mobile Card Job' }).first()).toBeVisible()
   })

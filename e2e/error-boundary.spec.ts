@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { visibleText } from './helpers/visibility'
 
 test.describe('Error boundary', () => {
   test('shows localized error UI and records report (RU)', async ({ page }) => {
@@ -8,7 +9,7 @@ test.describe('Error boundary', () => {
     })
     await page.goto('/e2e/crash')
     await expect(page.getByRole('alert')).toContainText(/что-то пошло не так/i)
-    await expect(page.getByText(/E2E crash test/i)).toBeVisible()
+    await expect(visibleText(page, /E2E crash test/i)).toBeVisible()
     await expect(page.getByRole('button', { name: /перезагрузить|reload/i })).toBeVisible()
 
     const reportCount = await page.evaluate(() => {

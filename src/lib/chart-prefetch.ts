@@ -1,9 +1,16 @@
-let chartBundlesPrefetched = false
+const prefetched = new Set<'dashboard' | 'reports'>()
 
-/** Warm recharts and chart-heavy routes after staff app shell loads. */
-export function prefetchChartBundles(): void {
-  if (chartBundlesPrefetched || typeof window === 'undefined') return
-  chartBundlesPrefetched = true
-  void import('@/components/charts/dashboard-charts')
-  void import('@/components/charts/reports-recharts')
+/** Warm recharts chunks only on chart-heavy routes. */
+export function prefetchChartBundles(pathname: string): void {
+  if (typeof window === 'undefined') return
+
+  if ((pathname === '/dashboard' || pathname === '/') && !prefetched.has('dashboard')) {
+    prefetched.add('dashboard')
+    void import('@/components/charts/dashboard-charts')
+  }
+
+  if (pathname.startsWith('/reports') && !prefetched.has('reports')) {
+    prefetched.add('reports')
+    void import('@/components/charts/reports-recharts')
+  }
 }

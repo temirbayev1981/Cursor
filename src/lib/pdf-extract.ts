@@ -1,4 +1,3 @@
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { hasOpenAI } from '@/lib/env'
 import { getErrorMessage } from '@/lib/error-message'
 import { prefersNoPdfWorker } from '@/lib/pdf-utils'
@@ -12,13 +11,20 @@ import {
 import { ensureSupabaseSession } from '@/lib/supabase-session'
 import { withTimeout } from '@/lib/with-timeout'
 
-type PdfDocument = Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>
+type PdfJsModule = typeof import('pdfjs-dist/legacy/build/pdf.mjs')
+type PdfDocument = Awaited<ReturnType<PdfJsModule['getDocument']>['promise']>
 
 const OCR_MAX_PAGES = 2
 const OCR_RENDER_SCALE = 1.5
 const CDN_PDF_TIMEOUT_MS = 45_000
 
+let pdfjsReady: Promise<PdfJsModule> | null = null
 let pdfjsConfigured = false
+
+async function getPdfjs(): Promise<PdfJsModule> {
+  pdfjsReady ??= import('pdfjs-dist/legacy/build/pdf.mjs')
+  return pdfjsReady
+}
 
 function normalizeBasePath(): string {
   const base = import.meta.env.BASE_URL || '/'
@@ -31,15 +37,18 @@ export function bundledWorkerSrc(): string {
   return new URL(workerPath, window.location.origin).href
 }
 
-function ensurePdfjsConfigured(): void {
-  if (pdfjsConfigured) return
-  pdfjsLib.GlobalWorkerOptions.workerPort = null
-  pdfjsLib.GlobalWorkerOptions.workerSrc = bundledWorkerSrc()
-  pdfjsConfigured = true
+async function ensurePdfjsConfigured(): Promise<PdfJsModule> {
+  const pdfjsLib = await getPdfjs()
+  if (!pdfjsConfigured) {
+    pdfjsLib.GlobalWorkerOptions.workerPort = null
+    pdfjsLib.GlobalWorkerOptions.workerSrc = bundledWorkerSrc()
+    pdfjsConfigured = true
+  }
+  return pdfjsLib
 }
 
 export function warmUpPdfJs(): void {
-  ensurePdfjsConfigured()
+  void ensurePdfjsConfigured()
 }
 
 export { isPdfFile, prefersNoPdfWorker } from '@/lib/pdf-utils'
@@ -83,7 +92,7 @@ async function loadPdfDocument(buffer: ArrayBuffer): Promise<PdfDocument> {
 }
 
 async function loadPdfDocumentInner(buffer: ArrayBuffer): Promise<PdfDocument> {
-  ensurePdfjsConfigured()
+  const pdfjsLib = await ensurePdfjsConfigured()
 
   const noWorker = prefersNoPdfWorker()
   const variants = noWorker

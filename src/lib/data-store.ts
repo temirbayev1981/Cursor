@@ -38,6 +38,30 @@ export function mergeStoreById<T extends { id: string }>(key: string, incoming: 
   return merged
 }
 
+/** Replace cached rows for one company with authoritative server data (including empty). */
+export function replaceCompanyInStore<T extends { id: string; company_id: string }>(
+  key: string,
+  companyId: string,
+  incoming: T[],
+): T[] {
+  const others = loadStore<T>(key).filter((item) => item.company_id !== companyId)
+  const next = [...others, ...incoming]
+  saveStore(key, next)
+  return incoming
+}
+
+/** Replace cached rows matching a predicate with authoritative server data (including empty). */
+export function replaceScopedInStore<T extends { id: string }>(
+  key: string,
+  inScope: (item: T) => boolean,
+  incoming: T[],
+): T[] {
+  const others = loadStore<T>(key).filter((item) => !inScope(item))
+  const next = [...others, ...incoming]
+  saveStore(key, next)
+  return incoming
+}
+
 export function filterByCompany<T extends { company_id: string }>(items: T[], companyId: string): T[] {
   return items.filter((i) => i.company_id === companyId)
 }

@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test'
+import { visibleText } from './helpers/visibility'
 import { loginAsOwner, loginForOnboarding } from './helpers/auth'
 
 test.describe('Owner onboarding wizard', () => {
   test('completes six-step setup and reaches dashboard', async ({ page }) => {
     await loginForOnboarding(page, 'ru')
 
-    await expect(page.getByText(/информация о компании|company info/i).first()).toBeVisible()
+    await expect(visibleText(page, /информация о компании|company info/i).first()).toBeVisible()
     await page.getByTestId('onboarding-company-name').fill('E2E Onboarding Co')
 
     await page.getByTestId('onboarding-next').click()
@@ -16,7 +17,7 @@ test.describe('Owner onboarding wizard', () => {
     await page.getByTestId('onboarding-next').click()
     await page.getByTestId('onboarding-next').click()
 
-    await expect(page.getByText(/распространённые материалы|common materials/i).first()).toBeVisible()
+    await expect(visibleText(page, /распространённые материалы|common materials/i).first()).toBeVisible()
     await page.getByTestId('onboarding-complete').click()
 
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
@@ -52,14 +53,14 @@ test.describe('Invite link errors', () => {
     })
     await page.goto('/login?invite=expired-invite-token-e2e')
     await expect(page.getByTestId('invite-error')).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText(/недействительна|истекла|invalid|expired/i).first()).toBeVisible()
-    await expect(page.getByText(/вас пригласили|you have been invited/i)).not.toBeVisible()
+    await expect(visibleText(page, /недействительна|истекла|invalid|expired/i).first()).toBeVisible()
+    await expect(visibleText(page, /вас пригласили|you have been invited/i)).not.toBeVisible()
   })
 
   test('unknown invite token shows error alert', async ({ page }) => {
     await page.goto('/login?invite=unknown-invite-token-e2e')
     await expect(page.getByTestId('invite-error')).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText(/недействительна|истекла|invalid|expired/i).first()).toBeVisible()
+    await expect(visibleText(page, /недействительна|истекла|invalid|expired/i).first()).toBeVisible()
   })
 })
 
@@ -70,7 +71,7 @@ test.describe('Vendor PO export', () => {
 
   test('export excel downloads vendor PO spreadsheet', async ({ page }) => {
     await page.goto('/work-orders')
-    await expect(page.getByText(/Vendor PO/i).first()).toBeVisible({ timeout: 15000 })
+    await expect(visibleText(page, /Vendor PO/i).first()).toBeVisible({ timeout: 15000 })
     await page.getByRole('tab', { name: /vendor po/i }).click()
 
     const downloadPromise = page.waitForEvent('download')

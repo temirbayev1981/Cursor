@@ -36,7 +36,7 @@ test.describe('Invoice PDF export', () => {
   test('invoices summary shows outstanding total stat', async ({ page }) => {
     await page.goto('/invoices')
     await expect(page.getByTestId('invoices-summary-stats')).toBeVisible()
-    await expect(page.getByText(/к оплате|outstanding/i).first()).toBeVisible()
+    await expect(visibleText(page, /к оплате|outstanding/i).first()).toBeVisible()
     const outstanding = page.getByTestId('invoices-outstanding-total')
     await expect(outstanding).toBeVisible()
     await expect(outstanding).not.toHaveText('$0.00')

@@ -12,7 +12,7 @@ test.describe('Scheduling', () => {
     await page.goto('/scheduling')
     await expect(page.getByRole('heading', { name: /расписание|scheduling/i })).toBeVisible()
     await expect(page.getByRole('tab', { name: /неделя|week/i })).toBeVisible()
-    await expect(page.getByText(/доступность мастеров|technician availability/i).first()).toBeVisible()
+    await expect(visibleText(page, /доступность мастеров|technician availability/i).first()).toBeVisible()
     await expect(visibleText(page, /James Rodriguez|Marcus Thompson/i).first()).toBeVisible()
   })
 
@@ -27,7 +27,7 @@ test.describe('Scheduling', () => {
     await page.getByRole('option', { name: /Marcus Thompson/i }).click()
     await page.getByTestId('schedule-form-submit').click()
 
-    await expect(page.getByText(/заказ добавлен в расписание|added to schedule/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /заказ добавлен в расписание|added to schedule/i).first()).toBeVisible({ timeout: 10000 })
     await expect(visibleText(page, 'E2E Draft Job for Scheduling', true).first()).toBeVisible()
     await expect(visibleText(page, 'Marcus Thompson', true).first()).toBeVisible()
   })
@@ -39,7 +39,7 @@ test.describe('Scheduling', () => {
 
     await expect(page.getByRole('heading', { name: 'Scheduling' })).toBeVisible()
     await expect(page.getByRole('tab', { name: 'Week' })).toBeVisible()
-    await expect(page.getByText(/technician availability/i).first()).toBeVisible()
+    await expect(visibleText(page, /technician availability/i).first()).toBeVisible()
     await page.getByRole('button', { name: /schedule job/i }).first().click()
     await expect(page.getByTestId('schedule-form')).toBeVisible()
   })

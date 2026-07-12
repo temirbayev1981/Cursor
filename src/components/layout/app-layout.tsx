@@ -17,8 +17,8 @@ export function AppLayout() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   useEffect(() => {
-    prefetchChartBundles()
-  }, [])
+    prefetchChartBundles(location.pathname)
+  }, [location.pathname])
 
   useEffect(() => {
     setMobileNavOpen(false)

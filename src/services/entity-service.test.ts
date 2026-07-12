@@ -194,4 +194,33 @@ describe('entity-service', () => {
     const logs = JSON.parse(localStorage.getItem(STORE_KEYS.auditLogs) || '[]') as unknown[]
     expect(logs.length).toBeLessThanOrEqual(500)
   })
+
+  it('listEntities returns empty when server has no rows (no stale cache)', async () => {
+    const staleJob = {
+      id: 'job-stale-cache',
+      company_id: 'comp-empty-list',
+      customer_id: 'cust-001',
+      title: 'Stale cached job',
+      description: '',
+      status: 'draft' as const,
+      priority: 'low' as const,
+      estimated_hours: 1,
+      actual_hours: 0,
+      revenue: 0,
+      labor_cost: 0,
+      material_cost: 0,
+      fuel_cost: 0,
+      overhead_cost: 0,
+      profit: 0,
+      profit_margin: 0,
+      created_at: new Date().toISOString(),
+    }
+    localStorage.setItem(STORE_KEYS.jobs, JSON.stringify([staleJob]))
+
+    const jobs = await listEntities('jobs', 'comp-empty-list')
+    expect(jobs).toEqual([])
+
+    const cached = JSON.parse(localStorage.getItem(STORE_KEYS.jobs) || '[]') as Array<{ company_id: string }>
+    expect(cached.filter((j) => j.company_id === 'comp-empty-list')).toHaveLength(0)
+  })
 })

@@ -13,7 +13,7 @@ test.describe('Property portal English', () => {
   test('property portal shows English heading and submit request form', async ({ page }) => {
     await page.goto('/portal/property')
     await expect(page.getByRole('heading', { name: 'Property manager portal' })).toBeVisible()
-    await expect(page.getByText('ABC Property Management')).toBeVisible()
+    await expect(visibleText(page, 'ABC Property Management')).toBeVisible()
 
     await page.getByTestId('property-portal-submit-request').click()
     await expect(page.getByTestId('property-portal-request-form')).toBeVisible()
@@ -21,8 +21,8 @@ test.describe('Property portal English', () => {
     await page.getByTestId('property-portal-request-form').locator('textarea').first().fill('Annual roof inspection and minor repair assessment')
     await page.getByTestId('property-portal-request-submit').click()
 
-    await expect(page.getByText(/request submitted/i).first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText('Roof inspection - building B')).toBeVisible()
+    await expect(visibleText(page, /request submitted/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, 'Roof inspection - building B')).toBeVisible()
   })
 })
 
@@ -70,7 +70,7 @@ test.describe('Jobs bulk cancel', () => {
     await visibleTestId(page, 'job-select-job-bulk-002').check()
     await page.getByTestId('jobs-bulk-cancel').click()
 
-    await expect(page.getByText(/отменено заказов:\s*2|cancelled 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /отменено заказов:\s*2|cancelled 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
     await page.getByTestId('jobs-tab-cancelled').click()
     await expectJobTitleVisible(page, 'E2E Bulk Draft A')
     await expectJobTitleVisible(page, 'E2E Bulk Draft B')
@@ -89,14 +89,14 @@ test.describe('Customer portal English', () => {
     await page.goto('/portal/customer')
     await expect(page.getByTestId('customer-portal-title')).toHaveText('Customer Portal')
     await expect(page.getByTestId('customer-portal-estimates-heading')).toHaveText('Your Estimates')
-    await expect(page.getByText(/Bathroom Fixture/i).first()).toBeVisible()
+    await expect(visibleText(page, /Bathroom Fixture/i).first()).toBeVisible()
     await expect(page.getByTestId('customer-portal-notification-prefs')).toBeVisible()
   })
 
   test('customer portal toggles notification preferences', async ({ page }) => {
     await page.goto('/portal/customer')
     await page.getByTestId('customer-portal-notify-email').click()
-    await expect(page.getByText(/notification preferences saved|настройки уведомлений сохранены/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /notification preferences saved|настройки уведомлений сохранены/i).first()).toBeVisible({ timeout: 5000 })
   })
 
   test('customer portal approves estimate in English', async ({ page }) => {
@@ -104,8 +104,8 @@ test.describe('Customer portal English', () => {
     await resetEstimateStatus(page, 'est-004', 'sent')
     await page.reload()
     await page.getByTestId('portal-estimate-approve-est-004').click()
-    await expect(page.getByText('Estimate approved').first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText(/approved/i).first()).toBeVisible()
+    await expect(visibleText(page, 'Estimate approved').first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /approved/i).first()).toBeVisible()
   })
 
   test('customer portal declines estimate in English', async ({ page }) => {
@@ -113,8 +113,8 @@ test.describe('Customer portal English', () => {
     await resetEstimateStatus(page, 'est-004', 'sent')
     await page.reload()
     await page.getByTestId('portal-estimate-decline-est-004').click()
-    await expect(page.getByText('Estimate declined').first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText(/declined|rejected/i).first()).toBeVisible()
+    await expect(visibleText(page, 'Estimate declined').first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /declined|rejected/i).first()).toBeVisible()
   })
 
   test('customer portal shows English invoices section and pays invoice', async ({ page }) => {
@@ -135,8 +135,8 @@ test.describe('Customer portal English', () => {
     await page.getByRole('button', { name: '5' }).click()
     await page.locator('#portal-review-comment').fill('Great work, very responsive team.')
     await page.getByTestId('portal-review-submit').click()
-    await expect(page.getByText('Thank you for your review!').first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText('Thanks — you already left a review')).toBeVisible()
+    await expect(visibleText(page, 'Thank you for your review!').first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, 'Thanks — you already left a review')).toBeVisible()
   })
 })
 
@@ -320,7 +320,7 @@ test.describe('Jobs bulk delete', () => {
     await expect(page.getByTestId('jobs-bulk-delete')).toContainText(/подтвердить удаление|confirm delete/i)
     await page.getByTestId('jobs-bulk-delete').click()
 
-    await expect(page.getByText(/удалено заказов:\s*2|deleted 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /удалено заказов:\s*2|deleted 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
     await expect(visibleText(page, 'E2E Bulk Draft A')).toHaveCount(0)
     await expect(visibleText(page, 'E2E Bulk Draft B')).toHaveCount(0)
   })
@@ -341,7 +341,7 @@ test.describe('Jobs bulk on-hold', () => {
     await page.getByRole('option', { name: /приостановлен|on hold/i }).click()
     await page.getByTestId('jobs-bulk-apply').click()
 
-    await expect(page.getByText(/обновлено заказов:\s*1|updated 1 jobs/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /обновлено заказов:\s*1|updated 1 jobs/i).first()).toBeVisible({ timeout: 10000 })
     await page.getByTestId('jobs-tab-on-hold').click()
     await expectJobTitleVisible(page, 'E2E Bulk Draft A')
     await expect(visibleText(page, 'E2E Bulk Draft B')).toHaveCount(0)
