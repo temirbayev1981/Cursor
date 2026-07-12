@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, seedBulkDraftJobs } from './helpers/auth'
+import { expectJobTitleVisible, visibleTestId } from './helpers/visibility'
 
 test.describe('Estimate PDF i18n', () => {
   test('Russian locale uses Russian PDF labels', async ({ page }) => {
@@ -43,8 +44,8 @@ test.describe('Jobs bulk actions', () => {
     await page.goto('/jobs')
     await page.getByRole('tab', { name: /черновик|draft/i }).click()
 
-    await page.getByTestId('job-select-job-bulk-001').check()
-    await page.getByTestId('job-select-job-bulk-002').check()
+    await visibleTestId(page, 'job-select-job-bulk-001').check()
+    await visibleTestId(page, 'job-select-job-bulk-002').check()
     await expect(page.getByTestId('jobs-bulk-bar')).toBeVisible()
     await expect(page.getByTestId('jobs-bulk-bar')).toContainText(/выбрано:\s*2|selected:\s*2/i)
 
@@ -54,14 +55,14 @@ test.describe('Jobs bulk actions', () => {
 
     await expect(page.getByText(/обновлено заказов:\s*2|updated 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
     await page.getByRole('tab', { name: /запланирован|scheduled/i }).click()
-    await expect(page.getByText('E2E Bulk Draft A').first()).toBeVisible()
-    await expect(page.getByText('E2E Bulk Draft B').first()).toBeVisible()
+    await expectJobTitleVisible(page, 'E2E Bulk Draft A')
+    await expectJobTitleVisible(page, 'E2E Bulk Draft B')
   })
 
   test('select all checkbox selects visible filtered jobs', async ({ page }) => {
     await page.goto('/jobs')
     await page.getByRole('tab', { name: /черновик|draft/i }).click()
-    await expect(page.getByText('E2E Bulk Draft A').first()).toBeVisible()
+    await expectJobTitleVisible(page, 'E2E Bulk Draft A')
 
     await page.getByTestId('jobs-select-all').check()
     await expect(page.getByTestId('jobs-bulk-bar')).toContainText(/выбрано:\s*2|selected:\s*2/i)
@@ -74,15 +75,15 @@ test.describe('Jobs bulk actions', () => {
     await page.goto('/jobs')
     await page.getByRole('tab', { name: /черновик|draft/i }).click()
 
-    await page.getByTestId('job-select-job-bulk-001').check()
-    await page.getByTestId('job-select-job-bulk-002').check()
+    await visibleTestId(page, 'job-select-job-bulk-001').check()
+    await visibleTestId(page, 'job-select-job-bulk-002').check()
     await page.getByTestId('jobs-bulk-schedule').click()
 
     await expect(page.getByText(/запланировано заказов:\s*2|scheduled 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
     await page.getByRole('tab', { name: /запланирован|scheduled/i }).click()
-    await expect(page.getByText('E2E Bulk Draft A').first()).toBeVisible()
-    await expect(page.getByText('E2E Bulk Draft B').first()).toBeVisible()
-    await expect(page.getByTestId('job-technician-job-bulk-001')).toContainText('Marcus Thompson')
-    await expect(page.getByTestId('job-technician-job-bulk-002')).toContainText('Marcus Thompson')
+    await expectJobTitleVisible(page, 'E2E Bulk Draft A')
+    await expectJobTitleVisible(page, 'E2E Bulk Draft B')
+    await expect(page.getByTestId('job-technician-job-bulk-001').locator('visible=true')).toContainText('Marcus Thompson')
+    await expect(page.getByTestId('job-technician-job-bulk-002').locator('visible=true')).toContainText('Marcus Thompson')
   })
 })

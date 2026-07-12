@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, clearPortalReview, resetEstimateStatus, seedBulkDraftJobs, seedOnHoldJob, seedPortalCustomerInvoice, setPropertyPortalSession, setCustomerPortalSession } from './helpers/auth'
+import { expectJobTitleVisible, visibleText, visibleTestId } from './helpers/visibility'
 
 test.describe('Property portal English', () => {
   test.beforeEach(async ({ page }) => {
@@ -65,14 +66,14 @@ test.describe('Jobs bulk cancel', () => {
     await page.goto('/jobs')
     await page.getByRole('tab', { name: /черновик|draft/i }).click()
 
-    await page.getByTestId('job-select-job-bulk-001').check()
-    await page.getByTestId('job-select-job-bulk-002').check()
+    await visibleTestId(page, 'job-select-job-bulk-001').check()
+    await visibleTestId(page, 'job-select-job-bulk-002').check()
     await page.getByTestId('jobs-bulk-cancel').click()
 
     await expect(page.getByText(/отменено заказов:\s*2|cancelled 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
     await page.getByTestId('jobs-tab-cancelled').click()
-    await expect(page.getByText('E2E Bulk Draft A').first()).toBeVisible()
-    await expect(page.getByText('E2E Bulk Draft B').first()).toBeVisible()
+    await expectJobTitleVisible(page, 'E2E Bulk Draft A')
+    await expectJobTitleVisible(page, 'E2E Bulk Draft B')
   })
 })
 
@@ -207,8 +208,8 @@ test.describe('Jobs on-hold tab', () => {
   test('on-hold tab filters to paused jobs only', async ({ page }) => {
     await page.goto('/jobs')
     await page.getByTestId('jobs-tab-on-hold').click()
-    await expect(page.getByText('E2E On Hold Job').first()).toBeVisible()
-    await expect(page.getByText('E2E Bulk Draft A')).toHaveCount(0)
+    await expectJobTitleVisible(page, 'E2E On Hold Job')
+    await expect(visibleText(page, 'E2E Bulk Draft A')).toHaveCount(0)
   })
 })
 
@@ -312,15 +313,15 @@ test.describe('Jobs bulk delete', () => {
     await page.goto('/jobs')
     await page.getByRole('tab', { name: /черновик|draft/i }).click()
 
-    await page.getByTestId('job-select-job-bulk-001').check()
-    await page.getByTestId('job-select-job-bulk-002').check()
+    await visibleTestId(page, 'job-select-job-bulk-001').check()
+    await visibleTestId(page, 'job-select-job-bulk-002').check()
     await page.getByTestId('jobs-bulk-delete').click()
     await expect(page.getByTestId('jobs-bulk-delete')).toContainText(/подтвердить удаление|confirm delete/i)
     await page.getByTestId('jobs-bulk-delete').click()
 
     await expect(page.getByText(/удалено заказов:\s*2|deleted 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText('E2E Bulk Draft A')).toHaveCount(0)
-    await expect(page.getByText('E2E Bulk Draft B')).toHaveCount(0)
+    await expect(visibleText(page, 'E2E Bulk Draft A')).toHaveCount(0)
+    await expect(visibleText(page, 'E2E Bulk Draft B')).toHaveCount(0)
   })
 })
 
@@ -334,14 +335,14 @@ test.describe('Jobs bulk on-hold', () => {
     await page.goto('/jobs')
     await page.getByRole('tab', { name: /черновик|draft/i }).click()
 
-    await page.getByTestId('job-select-job-bulk-001').check()
+    await visibleTestId(page, 'job-select-job-bulk-001').check()
     await page.getByTestId('jobs-bulk-status').click()
     await page.getByRole('option', { name: /приостановлен|on hold/i }).click()
     await page.getByTestId('jobs-bulk-apply').click()
 
     await expect(page.getByText(/обновлено заказов:\s*1|updated 1 jobs/i).first()).toBeVisible({ timeout: 10000 })
     await page.getByTestId('jobs-tab-on-hold').click()
-    await expect(page.getByText('E2E Bulk Draft A').first()).toBeVisible()
-    await expect(page.getByText('E2E Bulk Draft B')).toHaveCount(0)
+    await expectJobTitleVisible(page, 'E2E Bulk Draft A')
+    await expect(visibleText(page, 'E2E Bulk Draft B')).toHaveCount(0)
   })
 })

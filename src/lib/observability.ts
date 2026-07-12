@@ -46,8 +46,17 @@ async function initSentry(dsn: string) {
       dsn,
       environment: import.meta.env.MODE,
       release: `handymanos-ai@${import.meta.env.VITE_APP_VERSION ?? 'dev'}`,
-      integrations: [Sentry.browserTracingIntegration()],
+      integrations: [
+        Sentry.browserTracingIntegration(),
+        Sentry.replayIntegration({
+          maskAllText: true,
+          maskAllInputs: true,
+          blockAllMedia: true,
+        }),
+      ],
       tracesSampleRate: import.meta.env.PROD ? 0.1 : 0,
+      replaysSessionSampleRate: import.meta.env.PROD ? 0.05 : 0,
+      replaysOnErrorSampleRate: import.meta.env.PROD ? 1 : 0,
     })
     sentryReady = true
   } catch {
