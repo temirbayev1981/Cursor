@@ -64,6 +64,7 @@ export default function SettingsPage() {
   const [probeHistory, setProbeHistory] = useState<IntegrationProbeHistoryEntry[]>([])
   const [serviceWorkerReady, setServiceWorkerReady] = useState(isServiceWorkerRegistered)
   const [metricsRevision, setMetricsRevision] = useState(0)
+  const [activeTab, setActiveTab] = useState('company')
 
   const [companyForm, setCompanyForm] = useState({
     name: base?.name ?? '',
@@ -236,6 +237,13 @@ export default function SettingsPage() {
 
   const refreshSystemMetrics = () => setMetricsRevision((n) => n + 1)
 
+  const openIntegration = useCallback((key: IntegrationKey) => {
+    setActiveTab('integrations')
+    requestAnimationFrame(() => {
+      document.querySelector(`[data-testid="integration-card-${key}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+  }, [])
+
   const systemStatusLabel = {
     healthy: t.settings.systemHealthy,
     degraded: t.settings.systemDegraded,
@@ -246,7 +254,7 @@ export default function SettingsPage() {
     <div>
       <PageHeader title={t.settings.title} description={t.settings.description} />
 
-      <Tabs defaultValue="company">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="company">{t.settings.company}</TabsTrigger>
           <TabsTrigger value="billing">{t.settings.billing}</TabsTrigger>
@@ -422,6 +430,7 @@ export default function SettingsPage() {
             importSampleData={importSampleData}
             onRefreshAuditLogs={refreshAuditLogs}
             onRefreshSystemMetrics={refreshSystemMetrics}
+            onOpenIntegration={openIntegration}
           />
         </TabsContent>
       </Tabs>

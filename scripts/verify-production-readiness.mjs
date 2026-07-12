@@ -1504,6 +1504,117 @@ if (entityService.includes('listEntitiesPage')) {
   ok = false
 }
 
+const serverPaginationPages = [
+  ['customers.tsx', 'src/pages/customers.tsx', 'useServerEntityTable'],
+  ['jobs.tsx', 'src/pages/jobs.tsx', 'useServerEntityTable'],
+  ['invoices.tsx', 'src/pages/invoices.tsx', 'useServerEntityTable'],
+  ['estimates.tsx', 'src/pages/estimates.tsx', 'useServerEntityTable'],
+  ['expenses.tsx', 'src/pages/expenses.tsx', 'useServerEntityTable'],
+  ['materials.tsx', 'src/pages/materials.tsx', 'useServerEntityTable'],
+]
+console.log('\nServer pagination coverage (Phase 135 P6):')
+for (const [label, file, hook] of serverPaginationPages) {
+  const source = existsSync(file) ? readFileSync(file, 'utf8') : ''
+  if (source.includes(hook) && !source.includes('useTablePagination(')) {
+    console.log(`✓ ${label} uses ${hook}`)
+  } else {
+    console.log(`✗ ${label} must use ${hook} instead of client-side useTablePagination`)
+    ok = false
+  }
+}
+
+if (
+  entityService.includes("'estimates' | 'expenses' | 'materials'")
+  && entityService.includes('replaceCompanyInStore(KEY_MAP[entity], companyId, [])')
+) {
+  console.log('✓ listEntitiesPage clears company cache on empty unfiltered first page')
+} else {
+  console.log('✗ listEntitiesPage must replace company cache when remote page total is zero')
+  ok = false
+}
+
+const vehiclesPage = existsSync('src/pages/vehicles.tsx')
+  ? readFileSync('src/pages/vehicles.tsx', 'utf8')
+  : ''
+if (
+  vehiclesPage.includes('useServerFuelLogsTable')
+  && !vehiclesPage.includes('useTablePagination(')
+  && entityService.includes('listFuelLogsPage')
+) {
+  console.log('✓ vehicles.tsx uses server-side fuel log pagination')
+} else {
+  console.log('✗ vehicles.tsx must use useServerFuelLogsTable and listFuelLogsPage')
+  ok = false
+}
+
+if (existsSync('src/hooks/use-server-fuel-logs-table.ts')) {
+  console.log('✓ use-server-fuel-logs-table hook present')
+} else {
+  console.log('✗ missing src/hooks/use-server-fuel-logs-table.ts')
+  ok = false
+}
+
+const clientPaginationInPages = [
+  'src/pages/customers.tsx',
+  'src/pages/jobs.tsx',
+  'src/pages/invoices.tsx',
+  'src/pages/estimates.tsx',
+  'src/pages/expenses.tsx',
+  'src/pages/materials.tsx',
+  'src/pages/vehicles.tsx',
+].filter((file) => {
+  const source = existsSync(file) ? readFileSync(file, 'utf8') : ''
+  return source.includes('useTablePagination(')
+})
+if (clientPaginationInPages.length === 0) {
+  console.log('✓ no entity pages use client-side useTablePagination')
+} else {
+  console.log(`✗ pages must not use client-side useTablePagination: ${clientPaginationInPages.join(', ')}`)
+  ok = false
+}
+
+const auditLabelsModule = readFileSync('src/lib/audit-labels.ts', 'utf8')
+if (auditLabelsModule.includes('SERVER_PAGINATION_AUDIT = true')) {
+  console.log('✓ SERVER_PAGINATION_AUDIT gate enabled')
+} else {
+  console.log('✗ SERVER_PAGINATION_AUDIT must be true')
+  ok = false
+}
+
+const platformAuditModule = existsSync('src/lib/platform-audit.ts')
+  ? readFileSync('src/lib/platform-audit.ts', 'utf8')
+  : ''
+if (platformAuditModule.includes('server_pagination_audit') && platformAuditModule.includes('SERVER_PAGINATION_AUDIT')) {
+  console.log('✓ platform-audit includes server pagination quality check')
+} else {
+  console.log('✗ platform-audit must include server_pagination_audit check')
+  ok = false
+}
+
+if (existsSync('src/lib/audit-recommendation-links.ts')) {
+  console.log('✓ audit recommendation → integration card links')
+} else {
+  console.log('✗ missing src/lib/audit-recommendation-links.ts')
+  ok = false
+}
+
+const settingsSystemPanel = existsSync('src/components/settings/settings-system-panel.tsx')
+  ? readFileSync('src/components/settings/settings-system-panel.tsx', 'utf8')
+  : ''
+if (settingsSystemPanel.includes('audit-recommendation-link-') && settingsSystemPanel.includes('onOpenIntegration')) {
+  console.log('✓ settings system panel links audit recommendations to integrations')
+} else {
+  console.log('✗ settings-system-panel must link audit recommendations to integrations tab')
+  ok = false
+}
+
+if (entityService.includes('getFuelLogsSummary') && entityService.includes('getExpensesSummary')) {
+  console.log('✓ entity-service lightweight KPI summary queries')
+} else {
+  console.log('✗ entity-service must export getFuelLogsSummary and getExpensesSummary')
+  ok = false
+}
+
 const pkgJson = JSON.parse(readFileSync('package.json', 'utf8'))
 if (pkgJson.scripts?.['verify:operator:prod']) {
   console.log('✓ verify:operator:prod npm script')

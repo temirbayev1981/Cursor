@@ -1,49 +1,32 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { useCompanyQueryScope } from '@/hooks/use-company-scope'
-import { listEntitiesPage } from '@/services/entity-service'
+import { listFuelLogsPage } from '@/services/entity-service'
 import { DEFAULT_PAGE_SIZE, type PageSizeOption, type TablePaginationResult } from '@/hooks/use-table-pagination'
-import type { Customer, Job, Invoice, Estimate, Expense, Material } from '@/types'
+import type { FuelLog } from '@/types'
 
-type PageableEntityMap = {
-  customers: Customer
-  jobs: Job
-  invoices: Invoice
-  estimates: Estimate
-  expenses: Expense
-  materials: Material
-}
-
-export interface ServerEntityTableOptions {
-  search?: string
-  status?: string
+export interface ServerFuelLogsTableOptions {
   pageSize?: PageSizeOption
 }
 
-export function useServerEntityTable<K extends keyof PageableEntityMap>(
-  entity: K,
-  options: ServerEntityTableOptions = {},
-) {
+export function useServerFuelLogsTable(options: ServerFuelLogsTableOptions = {}) {
   const { companyId, enabled, queryKey } = useCompanyQueryScope()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState<PageSizeOption>(options.pageSize ?? DEFAULT_PAGE_SIZE)
-  const search = options.search ?? ''
-  const status = options.status ?? 'all'
 
-  const resetSignature = JSON.stringify([search, status, pageSize])
   useEffect(() => {
     setPage(1)
-  }, [resetSignature])
+  }, [pageSize])
 
   const query = useQuery({
-    queryKey: [entity, queryKey, 'page', page, pageSize, search, status],
-    queryFn: () => listEntitiesPage(entity, companyId, { page, pageSize, search, status }),
+    queryKey: ['fuelLogs', queryKey, 'page', page, pageSize],
+    queryFn: () => listFuelLogsPage(companyId, { page, pageSize }),
     enabled: enabled && Boolean(companyId),
     placeholderData: keepPreviousData,
     staleTime: 30_000,
   })
 
-  const pagination = useMemo((): TablePaginationResult<PageableEntityMap[K]> => {
+  const pagination = useMemo((): TablePaginationResult<FuelLog> => {
     const totalItems = query.data?.total ?? 0
     const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
     const safePage = Math.min(page, totalPages)

@@ -10,8 +10,8 @@ import { TableSkeleton } from '@/components/shared/skeleton'
 import { VehicleForm } from '@/components/forms/vehicle-form'
 import { FuelLogForm } from '@/components/forms/fuel-log-form'
 import { useAuth } from '@/contexts/auth-context'
-import { useVehicles, useFuelLogs, useSaveVehicle, useSaveFuelLog } from '@/hooks/use-entities'
-import { useTablePagination } from '@/hooks/use-table-pagination'
+import { useVehicles, useFuelLogsSummary, useSaveVehicle, useSaveFuelLog } from '@/hooks/use-entities'
+import { useServerFuelLogsTable } from '@/hooks/use-server-fuel-logs-table'
 import { formatCurrencyPrecise, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
@@ -28,12 +28,12 @@ export default function VehiclesPage() {
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null)
   const [editingFuelLog, setEditingFuelLog] = useState<FuelLog | null>(null)
   const { data: vehicles = [], isLoading: vehLoading } = useVehicles()
-  const { data: fuelLogs = [], isLoading: fuelLoading } = useFuelLogs()
+  const { isLoading: fuelTableLoading, pagination: fuelPagination } = useServerFuelLogsTable()
+  const { data: fuelSummary, isLoading: fuelSummaryLoading } = useFuelLogsSummary()
   const saveVehicle = useSaveVehicle()
   const saveFuelLog = useSaveFuelLog()
-  const totalFuelCost = fuelLogs.reduce((s, l) => s + l.total_cost, 0)
-  const totalMiles = fuelLogs.reduce((s, l) => s + l.miles, 0)
-  const fuelPagination = useTablePagination(fuelLogs)
+  const totalFuelCost = fuelSummary?.totalCost ?? 0
+  const totalMiles = fuelSummary?.totalMiles ?? 0
 
   const handleSaveVehicle = (vehicle: Vehicle) => {
     saveVehicle.mutate(vehicle, {
@@ -55,7 +55,7 @@ export default function VehiclesPage() {
     })
   }
 
-  if (vehLoading || fuelLoading) return <TableSkeleton />
+  if (vehLoading || fuelTableLoading || fuelSummaryLoading) return <TableSkeleton />
 
   return (
     <div>

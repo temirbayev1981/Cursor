@@ -1,6 +1,24 @@
-# HandymanOS AI — Release 1.14.39
+# HandymanOS AI — Release 1.14.42
 
-**Status:** PR [#183](https://github.com/temirbayev1981/Cursor/pull/183) — Audit P5/P5+.
+**Status:** Audit P6–P8 — server pagination + operator UX.
+
+## 1.14.42 — Audit P8
+
+- **KPI summaries** — `getFuelLogsSummary`, `getExpensesSummary` (no full-list fetch for dashboard cards)
+- **Settings UX** — audit recommendations link to Integrations tab
+- **Platform audit** — `server_pagination_audit` quality check
+
+## 1.14.41 — Audit P7
+
+- **Fuel logs** — `listFuelLogsPage` + `useServerFuelLogsTable` on vehicles page
+- **Phase 135 complete** — all entity tables use server-side pagination (no `useTablePagination` in pages)
+- Scoped fuel log cache cleared when remote total is zero
+
+## 1.14.40 — Audit P6
+
+- **Server pagination** — estimates, expenses, materials use `useServerEntityTable` (same as customers/jobs/invoices)
+- **Cache integrity** — `listEntitiesPage` clears company cache when remote total is zero on unfiltered page 1
+- **Tests** — entity-service pagination tests; a11y-axe server pagination gates
 
 ## 1.14.39 — Audit P5+
 

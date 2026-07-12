@@ -9,6 +9,8 @@ import { formatAuditAction, countUniqueAuditActions, AUDIT_ACTION_COUNT } from '
 import { INTEGRATION_PROBE_IDS } from '@/lib/integration-probe-ui'
 import { toast } from 'sonner'
 import type { PlatformAuditReport } from '@/lib/platform-audit'
+import type { IntegrationKey } from '@/components/settings/settings-integrations-panel'
+import { integrationKeyForRecommendation } from '@/lib/audit-recommendation-links'
 import type { PlatformHealthReport } from '@/lib/platform-health'
 import type { SystemMetrics } from '@/lib/system-metrics'
 import type { IntegrationProbeHistoryEntry } from '@/lib/integration-probe-history'
@@ -35,6 +37,7 @@ interface SettingsSystemPanelProps {
   importSampleData: UseMutationResult<{ imported: number }, Error, void>
   onRefreshAuditLogs: () => void
   onRefreshSystemMetrics: () => void
+  onOpenIntegration?: (key: IntegrationKey) => void
 }
 
 export function SettingsSystemPanel({
@@ -51,6 +54,7 @@ export function SettingsSystemPanel({
   importSampleData,
   onRefreshAuditLogs,
   onRefreshSystemMetrics,
+  onOpenIntegration,
 }: SettingsSystemPanelProps) {
   const { t } = useTranslation()
 
@@ -93,10 +97,26 @@ export function SettingsSystemPanel({
               <p className="text-sm text-muted-foreground mt-1">{t.settings.auditSummary[platformAudit.summaryKey]}</p>
             </div>
           </div>
-          <ul className="text-sm space-y-1 text-muted-foreground">
-            {platformAudit.recommendationIds.map((id) => (
-              <li key={id}>• {t.settings.auditRecommendations[id]}</li>
-            ))}
+          <ul className="text-sm space-y-1 text-muted-foreground" data-testid="platform-audit-recommendations">
+            {platformAudit.recommendationIds.map((id) => {
+              const integrationKey = integrationKeyForRecommendation(id)
+              const label = t.settings.auditRecommendations[id]
+              if (integrationKey && onOpenIntegration && id !== 'all_ready') {
+                return (
+                  <li key={id}>
+                    <button
+                      type="button"
+                      className="text-left underline-offset-2 hover:underline hover:text-foreground"
+                      data-testid={`audit-recommendation-link-${id}`}
+                      onClick={() => onOpenIntegration(integrationKey)}
+                    >
+                      • {label}
+                    </button>
+                  </li>
+                )
+              }
+              return <li key={id}>• {label}</li>
+            })}
           </ul>
           <div className="flex flex-wrap gap-2 pt-2" data-testid="platform-audit-checklist">
             {platformAudit.checks.map((check) => (

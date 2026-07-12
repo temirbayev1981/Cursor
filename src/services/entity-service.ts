@@ -121,7 +121,19 @@ export async function listEntities<K extends keyof EntityMap>(entity: K, company
   }
 }
 
-type PageableEntity = 'customers' | 'jobs' | 'invoices'
+type PageableEntity = 'customers' | 'jobs' | 'invoices' | 'estimates' | 'expenses' | 'materials'
+
+const PAGE_ENTITY_CONFIG: Record<
+  PageableEntity,
+  { searchColumn: string; statusColumn?: string; localSearch: (row: EntityMap[PageableEntity]) => string }
+> = {
+  customers: { searchColumn: 'name', localSearch: (row) => (row as Customer).name },
+  jobs: { searchColumn: 'title', statusColumn: 'status', localSearch: (row) => (row as Job).title },
+  invoices: { searchColumn: 'invoice_number', localSearch: (row) => (row as Invoice).invoice_number },
+  estimates: { searchColumn: 'title', statusColumn: 'status', localSearch: (row) => (row as Estimate).title },
+  expenses: { searchColumn: 'description', localSearch: (row) => (row as Expense).description },
+  materials: { searchColumn: 'name', localSearch: (row) => (row as Material).name },
+}
 
 function filterLocalPageEntities<K extends PageableEntity>(
   entity: K,
@@ -130,17 +142,12 @@ function filterLocalPageEntities<K extends PageableEntity>(
 ): EntityMap[K][] {
   let filtered = [...items]
   const search = params.search?.trim().toLowerCase()
+  const config = PAGE_ENTITY_CONFIG[entity]
   if (search) {
-    if (entity === 'customers') {
-      filtered = (filtered as Customer[]).filter((row) => row.name.toLowerCase().includes(search)) as EntityMap[K][]
-    } else if (entity === 'jobs') {
-      filtered = (filtered as Job[]).filter((row) => row.title.toLowerCase().includes(search)) as EntityMap[K][]
-    } else {
-      filtered = (filtered as Invoice[]).filter((row) => row.invoice_number.toLowerCase().includes(search)) as EntityMap[K][]
-    }
+    filtered = filtered.filter((row) => config.localSearch(row).toLowerCase().includes(search))
   }
-  if (entity === 'jobs' && params.status && params.status !== 'all') {
-    filtered = (filtered as Job[]).filter((row) => row.status === params.status) as EntityMap[K][]
+  if (config.statusColumn && params.status && params.status !== 'all') {
+    filtered = filtered.filter((row) => (row as { status: string }).status === params.status)
   }
   return filtered
 }
@@ -202,7 +209,7 @@ function listLocalEntitiesPage<K extends PageableEntity>(
   }
 }
 
-/** Server-side paginated list for customers, jobs, and invoices. */
+/** Server-side paginated list for customers, jobs, invoices, estimates, expenses, and materials. */
 export async function listEntitiesPage<K extends PageableEntity>(
   entity: K,
   companyId: string,
@@ -216,8 +223,7 @@ export async function listEntitiesPage<K extends PageableEntity>(
     return listLocalEntitiesPage(entity, companyId, normalized)
   }
 
-  const searchColumn = entity === 'customers' ? 'name' : entity === 'jobs' ? 'title' : 'invoice_number'
-  const statusColumn = entity === 'jobs' ? 'status' : undefined
+  const { searchColumn, statusColumn } = PAGE_ENTITY_CONFIG[entity]
 
   try {
     const result = await fetchCompanyEntitiesPage<EntityMap[K]>(
@@ -226,7 +232,13 @@ export async function listEntitiesPage<K extends PageableEntity>(
       normalized,
       { searchColumn, statusColumn },
     )
-    if (result.items.length > 0) {
+    const isUnfilteredFirstPage =
+      page === 1
+      && !normalized.search?.trim()
+      && (!normalized.status || normalized.status === 'all')
+    if (result.total === 0 && isUnfilteredFirstPage) {
+      replaceCompanyInStore(KEY_MAP[entity], companyId, [])
+    } else if (result.items.length > 0) {
       mergeStoreById(KEY_MAP[entity], result.items)
     }
     return result
@@ -643,6 +655,138 @@ export async function listFuelLogs(companyId: string): Promise<FuelLog[]> {
   } catch (err) {
     warnSupabaseFallback('listFuelLogs', err)
     return filterByVehicles(loadStore<FuelLog>(STORE_KEYS.fuelLogs))
+  }
+}
+
+function listLocalFuelLogsPage(vehicleIds: string[], params: EntityListPageParams): EntityListPageResult<FuelLog> {
+  const pageSize = Math.min(Math.max(1, params.pageSize), ENTITY_PAGE_SIZE_MAX)
+  const page = Math.max(1, params.page)
+  const filtered = loadStore<FuelLog>(STORE_KEYS.fuelLogs).filter((f) => vehicleIds.includes(f.vehicle_id))
+  const start = (page - 1) * pageSize
+  return {
+    items: filtered.slice(start, start + pageSize),
+    total: filtered.length,
+    page,
+    pageSize,
+  }
+}
+
+/** Server-side paginated fuel log list scoped to company vehicles. */
+export async function listFuelLogsPage(
+  companyId: string,
+  params: EntityListPageParams,
+): Promise<EntityListPageResult<FuelLog>> {
+  const pageSize = Math.min(Math.max(1, params.pageSize), ENTITY_PAGE_SIZE_MAX)
+  const page = Math.max(1, params.page)
+  const normalized: EntityListPageParams = { ...params, page, pageSize }
+
+  const vehicles = await listEntities('vehicles', companyId)
+  const vehicleIds = vehicles.map((v) => v.id)
+
+  if (vehicleIds.length === 0) {
+    return { items: [], total: 0, page, pageSize }
+  }
+
+  if (!supabase) {
+    return listLocalFuelLogsPage(vehicleIds, normalized)
+  }
+
+  try {
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
+
+    const { data, error, count } = await supabase
+      .from('fuel_logs')
+      .select('*', { count: 'exact' })
+      .in('vehicle_id', vehicleIds)
+      .order('date', { ascending: false })
+      .range(from, to)
+
+    if (error) throw error
+
+    const items = (data ?? []) as FuelLog[]
+    const isUnfilteredFirstPage = page === 1 && !normalized.search?.trim()
+    if ((count ?? 0) === 0 && isUnfilteredFirstPage) {
+      replaceScopedInStore<FuelLog>(STORE_KEYS.fuelLogs, (f) => vehicleIds.includes(f.vehicle_id), [])
+    } else if (items.length > 0) {
+      mergeStoreById(STORE_KEYS.fuelLogs, items)
+    }
+
+    return { items, total: count ?? 0, page, pageSize }
+  } catch (err) {
+    warnSupabaseFallback('listFuelLogsPage', err)
+    return listLocalFuelLogsPage(vehicleIds, normalized)
+  }
+}
+
+export interface FuelLogsSummary {
+  totalCost: number
+  totalMiles: number
+}
+
+export interface ExpensesSummary {
+  totalAmount: number
+  count: number
+}
+
+function sumFuelLogTotals(logs: Pick<FuelLog, 'total_cost' | 'miles'>[]): FuelLogsSummary {
+  return logs.reduce(
+    (acc, log) => ({
+      totalCost: acc.totalCost + log.total_cost,
+      totalMiles: acc.totalMiles + log.miles,
+    }),
+    { totalCost: 0, totalMiles: 0 },
+  )
+}
+
+/** Lightweight fuel KPI totals (table uses listFuelLogsPage). */
+export async function getFuelLogsSummary(companyId: string): Promise<FuelLogsSummary> {
+  const vehicles = await listEntities('vehicles', companyId)
+  const vehicleIds = vehicles.map((v) => v.id)
+  if (vehicleIds.length === 0) return { totalCost: 0, totalMiles: 0 }
+
+  const local = loadStore<FuelLog>(STORE_KEYS.fuelLogs).filter((f) => vehicleIds.includes(f.vehicle_id))
+  if (!supabase) return sumFuelLogTotals(local)
+
+  try {
+    const { data, error } = await supabase
+      .from('fuel_logs')
+      .select('total_cost, miles')
+      .in('vehicle_id', vehicleIds)
+
+    if (error) throw error
+    return sumFuelLogTotals((data ?? []) as Pick<FuelLog, 'total_cost' | 'miles'>[])
+  } catch (err) {
+    warnSupabaseFallback('getFuelLogsSummary', err)
+    return sumFuelLogTotals(local)
+  }
+}
+
+/** Lightweight expense KPI total (table uses listEntitiesPage). */
+export async function getExpensesSummary(companyId: string): Promise<ExpensesSummary> {
+  const local = loadLocalEntities('expenses', companyId)
+  const sumLocal = (rows: Expense[]) => ({
+    totalAmount: rows.reduce((sum, row) => sum + row.amount, 0),
+    count: rows.length,
+  })
+
+  if (!supabase) return sumLocal(local)
+
+  try {
+    const { data, error } = await supabase
+      .from('expenses')
+      .select('amount')
+      .eq('company_id', companyId)
+
+    if (error) throw error
+    const amounts = (data ?? []) as Pick<Expense, 'amount'>[]
+    return {
+      totalAmount: amounts.reduce((sum, row) => sum + row.amount, 0),
+      count: amounts.length,
+    }
+  } catch (err) {
+    warnSupabaseFallback('getExpensesSummary', err)
+    return sumLocal(local)
   }
 }
 

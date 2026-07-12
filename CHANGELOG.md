@@ -2,6 +2,44 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.42] — 2026-07-12
+
+Audit P8: KPI summary queries, platform audit links, server pagination gate.
+
+### Performance
+- `getFuelLogsSummary` / `getExpensesSummary` — lightweight KPI queries (tables stay paginated)
+- `useFuelLogsSummary` / `useExpensesSummary` on vehicles and expenses pages
+
+### Operator UX
+- Platform audit recommendations link to Settings → Integrations cards
+- `SERVER_PAGINATION_AUDIT` quality gate in platform audit checklist
+
+## [1.14.41] — 2026-07-12
+
+Audit P7: server-side fuel log pagination — completes Phase 135 table pagination.
+
+### Performance
+- `listFuelLogsPage` — paginated fuel logs scoped to company vehicles
+- `useServerFuelLogsTable` — vehicles page fuel log table
+- No entity pages use client-side `useTablePagination`
+
+### Tests
+- `entity-service.test.ts` — fuel log pagination + scoped cache tests
+- `a11y-axe.spec.ts` — fuel logs server pagination gate
+
+## [1.14.40] — 2026-07-12
+
+Audit P6: server-side pagination for estimates, expenses, materials (Phase 135 completion).
+
+### Performance
+- `listEntitiesPage` — extends to estimates, expenses, materials
+- `useServerEntityTable` — estimates, expenses, materials pages
+- Empty unfiltered first page clears company-scoped cache (no ghost rows)
+
+### Tests
+- `entity-service.test.ts` — pagination + empty-page cache tests
+- `a11y-axe.spec.ts` — server pagination on estimates/expenses/materials
+
 ## [1.14.39] — 2026-07-12
 
 Audit P5+: full E2E visibleText migration, portal token cache fix.

@@ -771,6 +771,7 @@ export const en: TranslationKeys = {
       notification_hub_skip_channel_filter_audit: 'Hub skip channel filter',
       notification_hub_email_skip_csv_audit: 'Hub email skip CSV export',
       multi_tenant: 'Multi-tenant',
+      server_pagination_audit: 'Server-side pagination',
     },
     auditActions: {
       'jobs.bulk_cancel': 'Bulk cancelled jobs',
