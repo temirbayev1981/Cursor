@@ -15,7 +15,7 @@ import { getErrorMessage } from '@/lib/error-message'
 import { isJobCreateCustomerError } from '@/lib/job-create-errors'
 import { useAuth } from '@/contexts/auth-context'
 import { requireCompanyId } from '@/hooks/use-company-scope'
-import { exportVendorPOsToExcel, groupVendorPOsByAddress } from '@/lib/export'
+import { groupVendorPOsByAddress } from '@/lib/vendor-po-groups'
 import {
   getProblemDescriptionCell,
   getProblemDescriptionEn,
@@ -147,7 +147,14 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
   return (
     <>
       <div className="flex flex-wrap gap-3 mb-4">
-        <Button variant="outline" size="sm" data-testid="vendor-po-export-excel" onClick={() => void exportVendorPOsToExcel(records)}>
+        <Button
+          variant="outline"
+          size="sm"
+          data-testid="vendor-po-export-excel"
+          onClick={() => {
+            void import('@/lib/export').then(({ exportVendorPOsToExcel }) => exportVendorPOsToExcel(records))
+          }}
+        >
           <Download className="h-4 w-4" />{t.common.exportCsv}
         </Button>
         {multiSiteAddresses.length > 0 && (

@@ -1323,6 +1323,7 @@ for (const [label, file] of [
   ['invoices.tsx', 'src/pages/invoices.tsx'],
   ['estimates.tsx', 'src/pages/estimates.tsx'],
   ['reports.tsx', 'src/pages/reports.tsx'],
+  ['vendor-po-table.tsx', 'src/components/vendor-po/vendor-po-table.tsx'],
 ]) {
   const source = existsSync(file) ? readFileSync(file, 'utf8') : ''
   if (source.includes("from '@/lib/export'") || source.includes('from "@/lib/export"')) {
@@ -1334,6 +1335,33 @@ for (const [label, file] of [
     console.log(`✗ ${label} must dynamically import export`)
     ok = false
   }
+}
+
+const aiAssistantPage = existsSync('src/pages/ai-assistant.tsx')
+  ? readFileSync('src/pages/ai-assistant.tsx', 'utf8')
+  : ''
+if (aiAssistantPage.includes("from '@/lib/ai'") || aiAssistantPage.includes('from "@/lib/ai"')) {
+  console.log('✗ ai-assistant.tsx must not statically import ai (use dynamic import on send)')
+  ok = false
+} else if (aiAssistantPage.includes("import('@/lib/ai')")) {
+  console.log('✓ ai-assistant.tsx uses dynamic import for AI chat')
+} else {
+  console.log('✗ ai-assistant.tsx must dynamically import ai for chat')
+  ok = false
+}
+
+if (existsSync('src/lib/vendor-po-groups.ts')) {
+  console.log('✓ vendor-po-groups.ts (lightweight address grouping)')
+} else {
+  console.log('✗ missing src/lib/vendor-po-groups.ts')
+  ok = false
+}
+
+if (existsSync('src/lib/ai-context.ts')) {
+  console.log('✓ ai-context.ts (lightweight business context)')
+} else {
+  console.log('✗ missing src/lib/ai-context.ts')
+  ok = false
 }
 
 const mobileLayoutSpecs = [

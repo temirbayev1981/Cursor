@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.36] — 2026-07-12
+
+Audit P4: lazy export in vendor PO, lazy AI in assistant, RELEASE sync.
+
+### Bundle
+- `vendor-po-table.tsx` — dynamic import of `@/lib/export` on Excel export; `vendor-po-groups.ts` for address grouping
+- `ai-assistant.tsx` — dynamic import of `@/lib/ai` on send; `ai-context.ts` for lightweight business context
+- `verify-production-readiness` gates for vendor-po export + ai-assistant lazy imports
+
+### Docs
+- `RELEASE.md` — Audit P4 summary (1.14.25–1.14.36)
+
 ## [1.14.35] — 2026-07-12
 
 Audit P4: lazy export in billing/reports, mobile-smoke refresh.
