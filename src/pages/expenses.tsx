@@ -3,6 +3,7 @@ import { Plus, X, Pencil } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
+import { TablePagination } from '@/components/shared/table-pagination'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -70,6 +71,40 @@ export default function ExpensesPage() {
         <p className="text-3xl font-bold">{formatCurrency(total)}</p>
       </div>
 
+      <div className="md:hidden space-y-3">
+        {pagination.paginatedItems.map((exp) => (
+          <Card key={exp.id} className="p-4" data-testid={`expense-card-${exp.id}`}>
+            <div className="space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-medium line-clamp-2">{exp.description}</p>
+                <Badge variant="outline">{exp.category}</Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
+                <span className="text-muted-foreground">{t.vehicles.date}</span>
+                <span>{formatDate(exp.date, dateLocale)}</span>
+                <span className="text-muted-foreground">{t.expenses.amount}</span>
+                <span className="font-medium">{formatCurrency(exp.amount)}</span>
+                <span className="text-muted-foreground">{t.expenses.linked}</span>
+                <span className="text-muted-foreground">
+                  {exp.job_id ? t.expenses.job : exp.vehicle_id ? t.expenses.vehicle : '—'}
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                title={t.common.edit}
+                data-testid={`expense-edit-${exp.id}`}
+                onClick={() => { setEditingExpense(exp); setShowForm(true) }}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+            </div>
+          </Card>
+        ))}
+        <TablePagination pagination={pagination} testId="expenses-pagination-mobile" />
+      </div>
+
+      <div className="hidden md:block">
       <DataTable
         headers={[t.vehicles.date, t.expenses.category, t.expenses.descriptionCol, t.expenses.amount, t.expenses.linked, '']}
         pagination={pagination}
@@ -98,6 +133,7 @@ export default function ExpensesPage() {
           </DataTableRow>
         ))}
       </DataTable>
+      </div>
     </div>
   )
 }

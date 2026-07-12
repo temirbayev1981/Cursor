@@ -2,6 +2,19 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.27] — 2026-07-12
+
+Audit P4: mobile cards for materials and expenses, docs sync.
+
+### UI — Mobile cards
+- **Materials** (`materials.tsx`) — card layout + `materials-pagination-mobile`; transactions panel unchanged
+- **Expenses** (`expenses.tsx`) — card layout + `expenses-pagination-mobile`
+
+### E2E & docs
+- `e2e/materials-mobile-layout.spec.ts`, `e2e/expenses-mobile-layout.spec.ts`
+- Visible locators in materials, fleet-expenses, audit-expanded specs
+- `POST_RELEASE.md` updated to 1.14.26+ with migration list
+
 ## [1.14.26] — 2026-07-12
 
 Audit P4 continued: mobile cards for invoices and estimates, a11y scope fix.

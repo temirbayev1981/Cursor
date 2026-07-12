@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, openCommandPalette } from './helpers/auth'
+import { visibleText } from './helpers/visibility'
 
 test.describe('Fleet & expenses', () => {
   test.beforeEach(async ({ page }) => {
@@ -44,7 +45,7 @@ test.describe('Fleet & expenses', () => {
     await page.getByTestId('expense-form-submit').click()
 
     await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText('E2E drill purchase').first()).toBeVisible()
+    await expect(visibleText(page, 'E2E drill purchase').first()).toBeVisible()
     await expect(page.getByTestId('expenses-monthly-total')).not.toHaveText(totalBefore ?? '')
   })
 })

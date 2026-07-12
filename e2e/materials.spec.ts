@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner } from './helpers/auth'
+import { visibleTestId, visibleText } from './helpers/visibility'
 
 test.describe('Materials inventory', () => {
   test.beforeEach(async ({ page }) => {
@@ -9,8 +10,8 @@ test.describe('Materials inventory', () => {
   test('shows low stock alert for materials below reorder level', async ({ page }) => {
     await page.goto('/materials')
     await expect(page.getByText(/предупреждение о низком запасе|low stock alert/i).first()).toBeVisible()
-    await expect(page.getByText(/Door Trim/i).first()).toBeVisible()
-    await expect(page.getByText(/мало на складе|low stock/i).first()).toBeVisible()
+    await expect(visibleText(page, /Door Trim/i).first()).toBeVisible()
+    await expect(page.getByText(/мало на складе|low stock/i).locator('visible=true').first()).toBeVisible()
   })
 
   test('receive stock dialog increases material quantity', async ({ page }) => {
@@ -18,7 +19,7 @@ test.describe('Materials inventory', () => {
     const row = page.getByRole('row').filter({ hasText: 'Door Trim (8ft)' })
     await expect(row).toContainText('3')
 
-    await page.getByTestId('material-receive-mat-003').click()
+    await visibleTestId(page, 'material-receive-mat-003').click()
     await expect(page.getByTestId('materials-receive-dialog')).toBeVisible()
     await page.getByTestId('materials-receive-dialog').locator('input[type="number"]').fill('7')
     await page.getByTestId('materials-receive-submit').click()
@@ -40,6 +41,6 @@ test.describe('Materials inventory', () => {
     await page.getByTestId('material-form-submit').click()
 
     await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText('E2E Copper Pipe').first()).toBeVisible()
+    await expect(visibleText(page, 'E2E Copper Pipe').first()).toBeVisible()
   })
 })

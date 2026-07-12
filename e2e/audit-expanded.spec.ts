@@ -99,7 +99,7 @@ test.describe('Expanded audit log E2E', () => {
 
   test('inventory receive appears in audit log', async ({ page }) => {
     await page.goto('/materials')
-    await page.getByTestId('material-receive-mat-003').click()
+    await visibleTestId(page, 'material-receive-mat-003').click()
     await page.getByTestId('materials-receive-dialog').locator('input[type="number"]').fill('2')
     await page.getByTestId('materials-receive-submit').click()
     await expect(page.getByText(/приход на склад|receive stock/i).first()).toBeVisible({ timeout: 10000 })
@@ -641,7 +641,7 @@ test.describe('Entity update audit E2E', () => {
 
   test('material update appears in audit log', async ({ page }) => {
     await page.goto('/materials')
-    await page.getByTestId('material-edit-mat-001').click()
+    await visibleTestId(page, 'material-edit-mat-001').click()
     const form = page.getByTestId('material-form')
     await form.locator('input').first().fill('Joint Compound E2E Audit')
     await page.getByTestId('material-form-submit').click()
@@ -693,7 +693,7 @@ test.describe('Entity update audit E2E', () => {
 
   test('expense update appears in audit log', async ({ page }) => {
     await page.goto('/expenses')
-    await page.getByTestId('expense-edit-exp-003').click()
+    await visibleTestId(page, 'expense-edit-exp-003').click()
     const form = page.getByTestId('expense-form')
     await form.locator('input').nth(2).fill('Drywall saw E2E audit')
     await page.getByTestId('expense-form-submit').click()
