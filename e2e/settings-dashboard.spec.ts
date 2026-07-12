@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, clearNotificationQueue, seedDraftJob, seedDraftInvoice } from './helpers/auth'
+import { visibleTestId } from './helpers/visibility'
 
 test.describe('Settings billing & team', () => {
   test.beforeEach(async ({ page, context }) => {
@@ -234,7 +235,7 @@ test.describe('Settings billing & team', () => {
       localStorage.setItem('handymanos_customer_notify_prefs_cust-004', JSON.stringify({ email: false, sms: false }))
     })
     await page.goto('/estimates')
-    await page.getByTestId('estimate-send-est-003').click()
+    await visibleTestId(page, 'estimate-send-est-003').click()
     await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
@@ -265,7 +266,7 @@ test.describe('Settings billing & team', () => {
     await loginAsOwner(page, 'ru')
     await clearNotificationQueue(page)
     await page.goto('/estimates')
-    await page.getByTestId('estimate-send-est-003').click()
+    await visibleTestId(page, 'estimate-send-est-003').click()
     await expect(page.getByText(/SMS.*отключён|SMS disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
@@ -280,7 +281,7 @@ test.describe('Settings billing & team', () => {
     await clearNotificationQueue(page)
     await seedDraftInvoice(page)
     await page.goto('/invoices')
-    await page.getByTestId('invoice-send-inv-e2e-draft').click()
+    await visibleTestId(page, 'invoice-send-inv-e2e-draft').click()
     await expect(page.getByText(/SMS.*отключён|SMS disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
@@ -403,7 +404,7 @@ test.describe('Settings billing & team', () => {
     })
     await seedDraftInvoice(page)
     await page.goto('/invoices')
-    await page.getByTestId('invoice-send-inv-e2e-draft').click()
+    await visibleTestId(page, 'invoice-send-inv-e2e-draft').click()
     await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
@@ -419,7 +420,7 @@ test.describe('Settings billing & team', () => {
       localStorage.setItem('handymanos_customer_notify_prefs_cust-004', JSON.stringify({ email: false, sms: false }))
     })
     await page.goto('/estimates')
-    await page.getByTestId('estimate-send-est-003').click()
+    await visibleTestId(page, 'estimate-send-est-003').click()
     await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
@@ -445,7 +446,7 @@ test.describe('Settings billing & team', () => {
       localStorage.setItem('handymanos_customer_notify_prefs_cust-001', JSON.stringify({ email: true, sms: false }))
     })
     await page.goto('/estimates')
-    await page.getByTestId('estimate-send-est-003').click()
+    await visibleTestId(page, 'estimate-send-est-003').click()
     await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await seedDraftJob(page, true)
@@ -495,7 +496,7 @@ test.describe('Settings billing & team', () => {
       localStorage.setItem('handymanos_customer_notify_prefs_cust-004', JSON.stringify({ email: false, sms: true }))
     })
     await page.goto('/estimates')
-    await page.getByTestId('estimate-send-est-003').click()
+    await visibleTestId(page, 'estimate-send-est-003').click()
     await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')

@@ -11,7 +11,7 @@ import {
   seedDraftInvoice,
   clearPortalReview,
 } from './helpers/auth'
-import { visibleTestId } from './helpers/visibility'
+import { visibleTestId, visibleText } from './helpers/visibility'
 
 test.describe('Expanded audit log E2E', () => {
   test.beforeEach(async ({ page }) => {
@@ -39,7 +39,7 @@ test.describe('Expanded audit log E2E', () => {
   test('estimate to invoice conversion appears in audit log', async ({ page }) => {
     await page.goto('/estimates')
     await expect(page.getByText('Leaking Faucet Repair').first()).toBeVisible()
-    await page.getByTestId('estimate-convert-est-002').click()
+    await visibleTestId(page, 'estimate-convert-est-002').click()
     await expect(page.getByText(/счёт создан из сметы|invoice created from estimate/i).first()).toBeVisible({ timeout: 10000 })
 
     await openSettingsAuditTab(page)
@@ -75,7 +75,7 @@ test.describe('Expanded audit log E2E', () => {
   test('estimate send appears in audit log', async ({ page }) => {
     await page.goto('/estimates')
     await expect(page.getByText('Deck Repair & Staining').first()).toBeVisible()
-    await page.getByTestId('estimate-send-est-003').click()
+    await visibleTestId(page, 'estimate-send-est-003').click()
     await expect(page.getByText(/смета отправлена/i).first()).toBeVisible({ timeout: 10000 })
 
     await openSettingsAuditTab(page)
@@ -484,8 +484,8 @@ test.describe('Invoice & sample audit E2E', () => {
 
   test('invoice payment appears in audit log', async ({ page }) => {
     await page.goto('/invoices')
-    await expect(page.getByText('INV-2026-0141').first()).toBeVisible()
-    await page.getByTestId('invoice-pay-inv-002').click()
+    await expect(visibleText(page, 'INV-2026-0141').first()).toBeVisible()
+    await visibleTestId(page, 'invoice-pay-inv-002').click()
     await expect(page.getByText(/оплачено|paid/i).first()).toBeVisible({ timeout: 10000 })
 
     await openSettingsAuditTab(page)
@@ -496,8 +496,8 @@ test.describe('Invoice & sample audit E2E', () => {
   test('invoice sent appears in audit log', async ({ page }) => {
     await seedDraftInvoice(page)
     await page.goto('/invoices')
-    await expect(page.getByText('INV-E2E-DRAFT').first()).toBeVisible()
-    await page.getByTestId('invoice-send-inv-e2e-draft').click()
+    await expect(visibleText(page, 'INV-E2E-DRAFT').first()).toBeVisible()
+    await visibleTestId(page, 'invoice-send-inv-e2e-draft').click()
     await expect(page.getByText(/счёт отправлен|invoice sent/i).first()).toBeVisible({ timeout: 10000 })
 
     await openSettingsAuditTab(page)

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, seedDraftInvoice, clearNotificationQueue } from './helpers/auth'
-import { visibleTestId } from './helpers/visibility'
+import { visibleTestId, visibleText } from './helpers/visibility'
 
 test.describe('Vendor PO multi-site', () => {
   test.beforeEach(async ({ page }) => {
@@ -61,8 +61,8 @@ test.describe('Global search & invoice send', () => {
   test('send draft invoice queues customer email without webhook', async ({ page }) => {
     await seedDraftInvoice(page)
     await page.goto('/invoices')
-    await expect(page.getByText('INV-E2E-DRAFT').first()).toBeVisible()
-    await page.getByTestId('invoice-send-inv-e2e-draft').click()
+    await expect(visibleText(page, 'INV-E2E-DRAFT').first()).toBeVisible()
+    await visibleTestId(page, 'invoice-send-inv-e2e-draft').click()
     await expect(page.getByText(/счёт отправлен.*workorders@abcprop\.com/i).first()).toBeVisible({ timeout: 10000 })
   })
 
@@ -72,7 +72,7 @@ test.describe('Global search & invoice send', () => {
       localStorage.setItem('handymanos_customer_notify_prefs_cust-001', JSON.stringify({ email: false, sms: false }))
     })
     await page.goto('/invoices')
-    await page.getByTestId('invoice-send-inv-e2e-draft').click()
+    await visibleTestId(page, 'invoice-send-inv-e2e-draft').click()
     await expect(page.getByText(/email disabled|email отключён/i).first()).toBeVisible({ timeout: 5000 })
   })
 
@@ -80,7 +80,7 @@ test.describe('Global search & invoice send', () => {
     await clearNotificationQueue(page)
     await seedDraftInvoice(page)
     await page.goto('/invoices')
-    await page.getByTestId('invoice-send-inv-e2e-draft').click()
+    await visibleTestId(page, 'invoice-send-inv-e2e-draft').click()
     await expect(page.getByText(/счёт отправлен|invoice sent/i).first()).toBeVisible({ timeout: 10000 })
     await expect(page.getByText(/SMS.*отключён|SMS disabled/i).first()).toBeVisible({ timeout: 5000 })
     await expect(page.getByText(/555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
@@ -99,7 +99,7 @@ test.describe('Global search & invoice send', () => {
     await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
 
     await page.goto('/invoices')
-    await page.getByTestId('invoice-send-inv-e2e-draft').click()
+    await visibleTestId(page, 'invoice-send-inv-e2e-draft').click()
     await expect(page.getByText(/SMS.*очереди|SMS queued/i).first()).toBeVisible({ timeout: 5000 })
     await expect(page.getByText(/555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
   })

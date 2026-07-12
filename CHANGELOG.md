@@ -2,6 +2,19 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.26] — 2026-07-12
+
+Audit P4 continued: mobile cards for invoices and estimates, a11y scope fix.
+
+### UI — Mobile cards
+- **Invoices** (`invoices.tsx`) — card layout + `invoices-pagination-mobile`
+- **Estimates** (`estimates.tsx`) — card layout + `estimates-pagination-mobile`
+
+### E2E & a11y
+- `e2e/invoices-mobile-layout.spec.ts`, `e2e/estimates-mobile-layout.spec.ts`
+- Visible locators for billing actions across estimates/invoices specs
+- Axe on `/instructions` scoped to `.instructions-doc`
+
 ## [1.14.25] — 2026-07-12
 
 Audit P4: production bundle trim, mobile cards for vendor PO and customers.

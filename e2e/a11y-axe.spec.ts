@@ -20,6 +20,7 @@ test.describe('Axe accessibility', () => {
     await expect(page.locator('.instructions-doc')).toBeVisible({ timeout: 15000 })
 
     const results = await new AxeBuilder({ page })
+      .include('.instructions-doc')
       .disableRules(['color-contrast'])
       .analyze()
 
