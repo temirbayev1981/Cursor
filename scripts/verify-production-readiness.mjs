@@ -1826,6 +1826,38 @@ if (
   ok = false
 }
 
+const dashboardPageAnalytics = existsSync('src/pages/dashboard.tsx') ? readFileSync('src/pages/dashboard.tsx', 'utf8') : dashboardPage
+const reportsPageAnalytics = existsSync('src/pages/reports.tsx') ? readFileSync('src/pages/reports.tsx', 'utf8') : reportsPage
+
+if (auditLabelsModule.includes('ANALYTICS_FIELD_JOBS_LIGHTWEIGHT_AUDIT = true')) {
+  console.log('✓ ANALYTICS_FIELD_JOBS_LIGHTWEIGHT_AUDIT gate enabled')
+} else {
+  console.log('✗ ANALYTICS_FIELD_JOBS_LIGHTWEIGHT_AUDIT must be true')
+  ok = false
+}
+
+if (platformAuditModule.includes('analytics_field_jobs_lightweight_audit') && platformAuditModule.includes('ANALYTICS_FIELD_JOBS_LIGHTWEIGHT_AUDIT')) {
+  console.log('✓ platform-audit includes analytics/field jobs lightweight quality check')
+} else {
+  console.log('✗ platform-audit must include analytics_field_jobs_lightweight_audit check')
+  ok = false
+}
+
+if (
+  dashboardPageAnalytics.includes('useAnalyticsJobs')
+  && !dashboardPageAnalytics.includes('useJobs()')
+  && reportsPageAnalytics.includes('useAnalyticsJobs')
+  && !reportsPageAnalytics.includes('useJobs()')
+  && technicianMobilePage.includes('useTechnicianAssignedJobs')
+  && technicianMobilePage.includes('fetchJobById')
+  && !technicianMobilePage.includes('useJobs()')
+) {
+  console.log('✓ dashboard, reports, technician-mobile use scoped job queries')
+} else {
+  console.log('✗ dashboard/reports must use useAnalyticsJobs; technician-mobile must use useTechnicianAssignedJobs without useJobs')
+  ok = false
+}
+
 const pkgJson = JSON.parse(readFileSync('package.json', 'utf8'))
 if (pkgJson.scripts?.['verify:operator:prod']) {
   console.log('✓ verify:operator:prod npm script')

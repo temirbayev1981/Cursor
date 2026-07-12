@@ -13,6 +13,8 @@ import {
   listCustomerReportSummaries,
   listUnscheduledJobOptions,
   listDispatchBoardJobs,
+  listAnalyticsJobs,
+  listTechnicianAssignedJobs,
   getEstimatesPendingSummary,
   getAiBusinessContextStats,
   getSmartEngineJobContext,
@@ -227,6 +229,22 @@ describe('entity-service', () => {
     const job = await fetchJobById('comp-001', all[0]!.id)
     expect(job?.id).toBe(all[0]!.id)
     expect(job).toHaveProperty('description')
+  })
+
+  it('listAnalyticsJobs returns chart fields without description', async () => {
+    const jobs = await listAnalyticsJobs('comp-001')
+    expect(jobs.length).toBeGreaterThan(0)
+    expect(jobs[0]).toHaveProperty('revenue')
+    expect(jobs[0]).toHaveProperty('profit_margin')
+    expect(jobs[0]).not.toHaveProperty('description')
+  })
+
+  it('listTechnicianAssignedJobs returns active assigned rows', async () => {
+    const jobs = await listTechnicianAssignedJobs('comp-001', 'emp-001')
+    expect(jobs.every((job) => ['scheduled', 'in_progress'].includes(job.status))).toBe(true)
+    if (jobs.length > 0) {
+      expect(jobs[0]).not.toHaveProperty('labor_cost')
+    }
   })
 
   it('getSmartEngineJobContext returns drywall stats and job count', async () => {

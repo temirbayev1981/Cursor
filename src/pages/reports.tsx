@@ -24,7 +24,7 @@ import {
   LazyReportsServicesChart,
   LazyReportsTechniciansChart,
 } from '@/components/charts/lazy-reports-charts'
-import { useJobs, useCustomerContacts, useCustomerReportSummaries, useEmployees, useExpenses, useFuelLogs } from '@/hooks/use-entities'
+import { useAnalyticsJobs, useCustomerContacts, useCustomerReportSummaries, useEmployees, useExpenses, useFuelLogs } from '@/hooks/use-entities'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { formatCurrency } from '@/lib/utils'
 import { ProfitIndicator } from '@/components/shared/status-badge'
@@ -49,7 +49,7 @@ export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState<ReportTab>('financial')
   const [startDate, setStartDate] = useState(defaultStartDate)
   const [endDate, setEndDate] = useState(defaultEndDate)
-  const { data: jobs = [], isLoading: jobsLoading } = useJobs()
+  const { data: jobs = [], isLoading: jobsLoading } = useAnalyticsJobs()
   const { data: customers = [], isLoading: contactsLoading } = useCustomerContacts()
   const { data: customerSummaries = [], isLoading: summariesLoading } = useCustomerReportSummaries(
     activeTab === 'customers',

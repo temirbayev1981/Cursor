@@ -4,7 +4,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { JobStatusBadge, PriorityBadge } from '@/components/shared/status-badge'
-import { useJobs, useEmployees, useCustomerContacts, useProperties, useUpdateJobStatus, useSaveJob } from '@/hooks/use-entities'
+import { useEmployees, useCustomerContacts, useProperties, useTechnicianAssignedJobs, useUpdateJobStatus, useSaveJob } from '@/hooks/use-entities'
+import { fetchJobById } from '@/services/entity-service'
 import { useAuth } from '@/contexts/auth-context'
 import { useTranslation } from '@/contexts/locale-context'
 import { useOnlineStatus } from '@/hooks/use-online-status'
@@ -20,7 +21,8 @@ import { buildGoogleMapsDirectionsUrl, geocodeAddressForRouting } from '@/lib/ro
 import { fileToBase64 } from '@/lib/file-utils'
 import { JobNotesDialog } from '@/components/jobs/job-notes-dialog'
 import { toast } from 'sonner'
-import type { Job, JobStatus } from '@/types'
+import type { JobStatus } from '@/types'
+import type { TechnicianMobileJob } from '@/services/entity-service'
 
 interface LocalTimeEntry {
   id: string
@@ -37,8 +39,14 @@ export default function TechnicianMobilePage() {
   const online = useOnlineStatus()
   const qc = useQueryClient()
   const companyId = company?.id ?? ''
-  const { data: jobs = [] } = useJobs()
   const { data: employees = [] } = useEmployees()
+  const myEmployee = useMemo(
+    () =>
+      employees.find((e) => e.profile_id === user?.id) ??
+      employees.find((e) => e.is_active && e.billing_rate > 0 && /technician/i.test(e.role)),
+    [employees, user?.id],
+  )
+  const { data: jobs = [] } = useTechnicianAssignedJobs(myEmployee?.id)
   const { data: customers = [] } = useCustomerContacts()
   const { data: properties = [] } = useProperties()
   const updateStatus = useUpdateJobStatus()
@@ -51,10 +59,6 @@ export default function TechnicianMobilePage() {
   const photoInputRef = useRef<HTMLInputElement>(null)
   const photoJobRef = useRef<string | null>(null)
 
-  const myEmployee =
-    employees.find((e) => e.profile_id === user?.id) ??
-    employees.find((e) => e.is_active && e.billing_rate > 0 && /technician/i.test(e.role))
-
   const syncContext = useMemo(
     () => ({
       companyId,
@@ -64,12 +68,7 @@ export default function TechnicianMobilePage() {
     [companyId, myEmployee?.id, user?.id],
   )
 
-  const myJobs = jobs
-    .filter((j) => {
-      const assigned = !myEmployee || j.assigned_technician_id === myEmployee.id
-      return assigned && (j.status === 'scheduled' || j.status === 'in_progress')
-    })
-    .slice(0, 10)
+  const myJobs = jobs.slice(0, 10)
 
   const activeEntry = activeJobId
     ? timeEntries.find((e) => e.job_id === activeJobId && !e.end)
@@ -140,15 +139,15 @@ export default function TechnicianMobilePage() {
     })()
   }, [online, t.techMobile.synced, syncContext, qc, companyId])
 
-  const getJobPhone = (job: Job) => customers.find((c) => c.id === job.customer_id)?.phone
+  const getJobPhone = (job: TechnicianMobileJob) => customers.find((c) => c.id === job.customer_id)?.phone
 
-  const openNavigate = (job: Job) => {
+  const openNavigate = (job: TechnicianMobileJob) => {
     const address = resolveJobAddress(job, customers, properties)
     const stop = { id: job.id, label: job.title, address, ...geocodeAddressForRouting(address) }
     window.open(buildGoogleMapsDirectionsUrl([stop]), '_blank', 'noopener,noreferrer')
   }
 
-  const persistJobUpdate = (updated: Job, successMessage: string, offlineActionType: 'update_job' | 'update_job_status' = 'update_job') => {
+  const persistJobUpdate = (updated: import('@/types').Job, successMessage: string, offlineActionType: 'update_job' | 'update_job_status' = 'update_job') => {
     upsertStore(STORE_KEYS.jobs, updated)
     void qc.invalidateQueries({ queryKey: ['jobs', companyId] })
 
@@ -162,9 +161,12 @@ export default function TechnicianMobilePage() {
     saveJob.mutate(updated, { onSuccess: () => toast.success(successMessage) })
   }
 
-  const changeJobStatus = (job: Job, status: JobStatus) => {
-    const updated: Job = {
-      ...job,
+  const changeJobStatus = async (job: TechnicianMobileJob, status: JobStatus) => {
+    const fullJob = await fetchJobById(companyId, job.id)
+    if (!fullJob) return
+
+    const updated: import('@/types').Job = {
+      ...fullJob,
       status,
       ...(status === 'completed' ? { completed_date: new Date().toISOString() } : {}),
     }
@@ -180,8 +182,10 @@ export default function TechnicianMobilePage() {
     )
   }
 
-  const saveJobNotes = (job: Job, notes: string) => {
-    persistJobUpdate({ ...job, description: notes }, t.techMobile.notesSaved)
+  const saveJobNotes = async (job: Pick<import('@/types').Job, 'id' | 'title' | 'description'>, notes: string) => {
+    const fullJob = await fetchJobById(companyId, job.id)
+    if (!fullJob) return
+    persistJobUpdate({ ...fullJob, description: notes }, t.techMobile.notesSaved)
   }
 
   const queuePhotoUpload = async (file: File, jobId: string) => {
@@ -377,12 +381,12 @@ export default function TechnicianMobilePage() {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {job.status === 'scheduled' && (
-                    <Button size="sm" variant="secondary" onClick={() => changeJobStatus(job, 'in_progress')}>
+                    <Button size="sm" variant="secondary" onClick={() => void changeJobStatus(job, 'in_progress')}>
                       {t.techMobile.startJob}
                     </Button>
                   )}
                   {job.status === 'in_progress' && (
-                    <Button size="sm" variant="secondary" onClick={() => changeJobStatus(job, 'completed')}>
+                    <Button size="sm" variant="secondary" onClick={() => void changeJobStatus(job, 'completed')}>
                       {t.techMobile.completeJob}
                     </Button>
                   )}
