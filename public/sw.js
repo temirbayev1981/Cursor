@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = 'handymanos-v4'
-const SHELL = ['/', '/index.html', '/manifest.json', '/favicon.svg']
+const CACHE_NAME = 'handymanos-v5'
+const SHELL = ['/manifest.json', '/favicon.svg']
 
 function isNavigationRequest(request) {
   return request.mode === 'navigate' || SHELL.includes(new URL(request.url).pathname)
@@ -21,7 +21,13 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    ).then(() => self.clients.claim()).then(() => {
+      return self.clients.matchAll({ type: 'window' }).then((clients) => {
+        for (const client of clients) {
+          client.navigate(client.url)
+        }
+      })
+    })
   )
 })
 
@@ -30,34 +36,29 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
   if (url.origin !== self.location.origin) return
 
-  // HTML/navigation: network-first so deploys are visible immediately
+  // HTML/navigation: always network — stale index.html breaks hashed chunk URLs after deploy
   if (isNavigationRequest(event.request)) {
     event.respondWith(
-      fetch(event.request)
-        .then((res) => {
-          if (res.ok) {
-            const clone = res.clone()
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
-          }
-          return res
-        })
+      fetch(event.request, { cache: 'no-store' })
+        .then((res) => res)
         .catch(() => caches.match('/index.html'))
     )
     return
   }
 
-  // Hashed bundles: network-first — stale chunk cache caused old PDF logic on mobile
+  // Hashed bundles: network-only — never serve cached HTML fallback as JS/CSS
   if (isHashedAsset(url.pathname)) {
     event.respondWith(
-      fetch(event.request)
+      fetch(event.request, { cache: 'no-cache' })
         .then((res) => {
-          if (res.ok) {
+          const type = res.headers.get('content-type') || ''
+          if (res.ok && !type.includes('text/html')) {
             const clone = res.clone()
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
           }
           return res
         })
-        .catch(() => caches.match(event.request))
+        .catch(() => fetch(event.request, { cache: 'reload' }))
     )
     return
   }

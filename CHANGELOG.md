@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.20] — 2026-07-12
+
+Fix blank page after deploy (stale cached `index.html` / JS chunks).
+
+### Hotfix — PWA cache after deploy
+- Service worker v5: do not cache `index.html`; network-only navigation and hashed assets
+- Auto-reload once when a lazy chunk fails to load after a new deploy
+- `Cache-Control: no-cache` for `index.html` and `sw.js` via `.htaccess`
+- Jobs table uses `tableClassName` instead of fragile parent selector
+
 ## [1.14.19] — 2026-07-12
 
 Wider jobs table columns with two-line text wrapping.

@@ -285,7 +285,7 @@ export default function JobsPage() {
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <DataTable
-          className="[&_table]:min-w-[1120px]"
+          tableClassName="min-w-[1120px]"
           headers={['', t.jobs.job, t.jobs.customer, t.jobs.technician, t.jobs.status, t.jobs.priority, t.jobs.revenue, t.jobs.profit, t.jobs.scheduledDate, '']}
           columnClassNames={[
             'w-10',

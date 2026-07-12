@@ -4,8 +4,10 @@ import './index.css'
 import App from './App.tsx'
 import { initObservability } from '@/lib/observability'
 import { registerServiceWorker } from '@/lib/pwa'
+import { installChunkLoadRecovery } from '@/lib/chunk-reload'
 
 initObservability()
+installChunkLoadRecovery()
 registerServiceWorker()
 
 createRoot(document.getElementById('root')!).render(
