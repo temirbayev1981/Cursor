@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { JobStatusBadge, PriorityBadge } from '@/components/shared/status-badge'
-import { useJobs, useEmployees, useCustomers, useProperties, useUpdateJobStatus, useSaveJob } from '@/hooks/use-entities'
+import { useJobs, useEmployees, useCustomerContacts, useProperties, useUpdateJobStatus, useSaveJob } from '@/hooks/use-entities'
 import { useAuth } from '@/contexts/auth-context'
 import { useTranslation } from '@/contexts/locale-context'
 import { useOnlineStatus } from '@/hooks/use-online-status'
@@ -39,7 +39,7 @@ export default function TechnicianMobilePage() {
   const companyId = company?.id ?? ''
   const { data: jobs = [] } = useJobs()
   const { data: employees = [] } = useEmployees()
-  const { data: customers = [] } = useCustomers()
+  const { data: customers = [] } = useCustomerContacts()
   const { data: properties = [] } = useProperties()
   const updateStatus = useUpdateJobStatus()
   const saveJob = useSaveJob()

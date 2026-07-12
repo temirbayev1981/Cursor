@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { PropertyForm } from '@/components/forms/property-form'
-import { useProperties, useCustomers, useSaveProperty } from '@/hooks/use-entities'
+import { useProperties, useCustomerContacts, useSaveProperty } from '@/hooks/use-entities'
 import { useAuth } from '@/contexts/auth-context'
 import { useTranslation } from '@/contexts/locale-context'
 import { toast } from 'sonner'
@@ -19,7 +19,7 @@ export default function PropertiesPage() {
   const { company } = useAuth()
   const companyId = company?.id ?? ''
   const { data: properties = [], isLoading: propsLoading } = useProperties()
-  const { data: customers = [], isLoading: custLoading } = useCustomers()
+  const { data: customers = [], isLoading: custLoading } = useCustomerContacts()
   const saveProperty = useSaveProperty()
 
   const handleSave = (property: Property) => {

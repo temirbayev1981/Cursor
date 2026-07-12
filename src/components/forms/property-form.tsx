@@ -7,11 +7,12 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useTranslation } from '@/contexts/locale-context'
-import type { Customer, Property } from '@/types'
+import type { Property } from '@/types'
+import type { CustomerContact } from '@/services/entity-service'
 
 interface PropertyFormProps {
   companyId: string
-  customers: Customer[]
+  customers: CustomerContact[]
   initial?: Property
   onSubmit: (property: Property) => void
   onCancel?: () => void

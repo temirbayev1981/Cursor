@@ -1,4 +1,4 @@
-import type { Job, Estimate, Expense, Employee, FuelLog, DashboardMetrics } from '@/types'
+import type { Job, Expense, Employee, FuelLog, DashboardMetrics } from '@/types'
 
 export interface ChartDataPoint {
   name: string
@@ -154,11 +154,10 @@ function isThisMonth(dateStr: string): boolean {
 
 export function computeDashboardMetrics(
   jobs: Job[],
-  estimates: Estimate[],
   expenses: Expense[],
-  fuelLogs: FuelLog[]
+  fuelLogs: FuelLog[],
+  pendingEstimates = 0,
 ): DashboardMetrics {
-  void expenses
   const monthJobs = jobs.filter((j) => isThisMonth(j.created_at))
   const completedMonth = monthJobs.filter((j) => j.status === 'completed')
   const openJobs = jobs.filter((j) => ['draft', 'scheduled', 'in_progress'].includes(j.status)).length
@@ -179,7 +178,7 @@ export function computeDashboardMetrics(
     revenueMonth,
     openJobs,
     completedJobs: completedMonth.length,
-    pendingEstimates: estimates.filter((e) => ['draft', 'sent'].includes(e.status)).length,
+    pendingEstimates,
     laborCost,
     materialCost,
     fuelExpenses,

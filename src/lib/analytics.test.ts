@@ -37,14 +37,14 @@ const job: Job = {
 
 describe('analytics', () => {
   it('computes dashboard metrics from jobs', () => {
-    const metrics = computeDashboardMetrics([job], [], [], [])
+    const metrics = computeDashboardMetrics([job], [], [], 0)
     expect(metrics.revenueMonth).toBe(500)
     expect(metrics.completedJobs).toBe(1)
   })
 
   it('reduces profit margin when overhead expenses exist', () => {
-    const without = computeDashboardMetrics([job], [], [], [])
-    const withExpense = computeDashboardMetrics([job], [], [{
+    const without = computeDashboardMetrics([job], [], [], 0)
+    const withExpense = computeDashboardMetrics([job], [{
       id: 'exp-1',
       company_id: 'c1',
       category: 'Overhead',
@@ -52,7 +52,7 @@ describe('analytics', () => {
       amount: 100,
       date: new Date().toISOString(),
       created_at: new Date().toISOString(),
-    }], [])
+    }], [], 0)
     expect(withExpense.profitMargin).toBeLessThan(without.profitMargin)
   })
 

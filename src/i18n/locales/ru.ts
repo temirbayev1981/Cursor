@@ -773,6 +773,7 @@ export const ru = {
       kpi_summary_audit: 'Лёгкие KPI-сводки',
       estimates_lightweight_audit: 'Лёгкий контекст смет',
       customer_contacts_audit: 'Лёгкие контакты клиентов',
+      dashboard_reports_lightweight_audit: 'Лёгкие запросы дашборда и отчётов',
     },
     auditActions: {
       'jobs.bulk_cancel': 'Массовая отмена заказов',

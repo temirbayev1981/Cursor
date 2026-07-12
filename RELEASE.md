@@ -1,6 +1,13 @@
-# HandymanOS AI — Release 1.14.45
+# HandymanOS AI — Release 1.14.46
 
-**Status:** Audit P11 — customer contacts on ops pages.
+**Status:** Audit P12 — dashboard/reports lightweight queries.
+
+## 1.14.46 — Audit P12
+
+- **Dashboard** — `useEstimatesPendingSummary` + `useCustomerContacts` (no full estimates/customers lists)
+- **Reports** — `useCustomerReportSummaries` for customers tab; contacts for profit tab name lookup
+- **Properties / tech mobile** — `useCustomerContacts` instead of `useCustomers()`
+- **Platform audit** — `dashboard_reports_lightweight_audit` quality check
 
 ## 1.14.45 — Audit P11
 

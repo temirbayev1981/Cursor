@@ -9,6 +9,8 @@ import {
   fetchInvoiceById,
   getMaterialsSummary,
   listCustomerContacts,
+  listCustomerReportSummaries,
+  getEstimatesPendingSummary,
   getSmartEngineJobContext,
   saveEntity,
   deleteEntity,
@@ -175,6 +177,19 @@ describe('entity-service', () => {
     expect(contacts[0]).toHaveProperty('name')
     expect(contacts[0]).toHaveProperty('email')
     expect(contacts[0]).not.toHaveProperty('total_revenue')
+  })
+
+  it('listCustomerReportSummaries returns revenue tab fields without full CRM rows', async () => {
+    const summaries = await listCustomerReportSummaries('comp-001')
+    expect(summaries.length).toBeGreaterThan(0)
+    expect(summaries[0]).toHaveProperty('name')
+    expect(summaries[0]).toHaveProperty('total_revenue')
+    expect(summaries[0]).not.toHaveProperty('email')
+  })
+
+  it('getEstimatesPendingSummary returns draft and sent count', async () => {
+    const summary = await getEstimatesPendingSummary('comp-001')
+    expect(summary.pendingCount).toBeGreaterThanOrEqual(0)
   })
 
   it('getSmartEngineJobContext returns drywall stats and job count', async () => {

@@ -22,7 +22,7 @@ import {
   computePeriodComparison,
 } from '@/lib/analytics'
 import { LazyDashboardCharts } from '@/components/charts/lazy-dashboard-charts'
-import { useJobs, useCustomers, useEstimates, useExpenses, useEmployees, useFuelLogs } from '@/hooks/use-entities'
+import { useJobs, useCustomerContacts, useEstimatesPendingSummary, useExpenses, useEmployees, useFuelLogs } from '@/hooks/use-entities'
 import { Skeleton } from '@/components/shared/skeleton'
 import { formatCurrency } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
@@ -31,13 +31,13 @@ import { AppVersionBadge } from '@/components/shared/app-version-badge'
 export default function DashboardPage() {
   const { t } = useTranslation()
   const { data: jobs = [], isLoading: jobsLoading } = useJobs()
-  const { data: customers = [], isLoading: customersLoading } = useCustomers()
-  const { data: estimates = [] } = useEstimates()
+  const { data: customers = [], isLoading: customersLoading } = useCustomerContacts()
+  const { data: pendingSummary } = useEstimatesPendingSummary()
   const { data: expenses = [] } = useExpenses()
   const { data: employees = [] } = useEmployees()
   const { data: fuelLogs = [] } = useFuelLogs()
 
-  const metrics = computeDashboardMetrics(jobs, estimates, expenses, fuelLogs)
+  const metrics = computeDashboardMetrics(jobs, expenses, fuelLogs, pendingSummary?.pendingCount ?? 0)
   const comparison = computePeriodComparison(jobs)
   const revenueChart = computeRevenueChart(jobs)
   const expenseChart = localizeExpenseChart(
