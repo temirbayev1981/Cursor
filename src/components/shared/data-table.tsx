@@ -6,6 +6,7 @@ interface DataTableProps<T = unknown> {
   headers: string[]
   children: React.ReactNode
   className?: string
+  tableClassName?: string
   columnClassNames?: string[]
   pagination?: TablePaginationResult<T>
   paginationTestId?: string
@@ -15,6 +16,7 @@ export function DataTable<T = unknown>({
   headers,
   children,
   className,
+  tableClassName,
   columnClassNames,
   pagination,
   paginationTestId,
@@ -22,7 +24,7 @@ export function DataTable<T = unknown>({
   return (
     <div className={cn('glass-card overflow-hidden', className)}>
       <div className="overflow-x-auto">
-        <table className="w-full table-fixed min-w-[960px]">
+        <table className={cn('w-full table-fixed min-w-[960px]', tableClassName)}>
           <thead>
             <tr className="border-b border-border">
               {headers.map((header, index) => (
