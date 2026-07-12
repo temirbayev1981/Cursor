@@ -7,6 +7,8 @@ import { type PostAuthState } from '@/lib/permissions'
 import { setActiveCompany, registerCompany, fetchAccessibleCompanies, syncActiveCompanyToProfile, updateCompanyProfile, type CompanyProfilePatch } from '@/services/company-service'
 import { logAudit } from '@/services/entity-service'
 import { setTechOnboardingPending } from '@/services/tech-onboarding-service'
+import { clearTenantEntityCache } from '@/lib/tenant-cache'
+import { setObservabilityContext } from '@/lib/observability'
 
 interface AuthContextType {
   user: Profile | null
@@ -50,6 +52,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => { void restoreSession() }, [restoreSession])
+
+  useEffect(() => {
+    if (user) {
+      setObservabilityContext({
+        userId: user.id,
+        email: user.email,
+        companyId: company?.id ?? user.company_id,
+      })
+    } else {
+      setObservabilityContext(null)
+    }
+  }, [user, company?.id])
 
   useEffect(() => {
     if (!supabase) return
@@ -108,7 +122,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     localStorage.removeItem('handymanos_auth')
+    clearTenantEntityCache()
     setTechOnboardingPending(false)
+    setObservabilityContext(null)
     if (supabase) await supabase.auth.signOut()
     setUser(null)
     setCompany(null)
@@ -167,6 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const nextCompany = accessible.find((item) => item.id === companyId)
     if (!nextCompany) return
 
+    clearTenantEntityCache()
     setActiveCompany(nextCompany)
     setCompany(nextCompany)
     setUser({ ...user, company_id: companyId })
