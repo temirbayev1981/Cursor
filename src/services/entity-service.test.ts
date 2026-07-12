@@ -3,6 +3,8 @@ import {
   listEntities,
   listEntitiesPage,
   listFuelLogsPage,
+  getFuelLogsSummary,
+  getExpensesSummary,
   saveEntity,
   deleteEntity,
   logAudit,
@@ -131,6 +133,16 @@ describe('entity-service', () => {
     expect(page.total).toBeGreaterThan(0)
     expect(page.items.length).toBeLessThanOrEqual(5)
     expect(page.items.every((log) => typeof log.vehicle_id === 'string')).toBe(true)
+  })
+
+  it('getFuelLogsSummary and getExpensesSummary return KPI totals', async () => {
+    const fuel = await getFuelLogsSummary('comp-001')
+    expect(fuel.totalCost).toBeGreaterThan(0)
+    expect(fuel.totalMiles).toBeGreaterThan(0)
+
+    const expenses = await getExpensesSummary('comp-001')
+    expect(expenses.totalAmount).toBeGreaterThan(0)
+    expect(expenses.count).toBeGreaterThan(0)
   })
 
   it('listFuelLogsPage clears stale scoped cache when remote total is zero', async () => {

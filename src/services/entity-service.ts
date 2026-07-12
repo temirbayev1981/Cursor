@@ -719,6 +719,77 @@ export async function listFuelLogsPage(
   }
 }
 
+export interface FuelLogsSummary {
+  totalCost: number
+  totalMiles: number
+}
+
+export interface ExpensesSummary {
+  totalAmount: number
+  count: number
+}
+
+function sumFuelLogTotals(logs: Pick<FuelLog, 'total_cost' | 'miles'>[]): FuelLogsSummary {
+  return logs.reduce(
+    (acc, log) => ({
+      totalCost: acc.totalCost + log.total_cost,
+      totalMiles: acc.totalMiles + log.miles,
+    }),
+    { totalCost: 0, totalMiles: 0 },
+  )
+}
+
+/** Lightweight fuel KPI totals (table uses listFuelLogsPage). */
+export async function getFuelLogsSummary(companyId: string): Promise<FuelLogsSummary> {
+  const vehicles = await listEntities('vehicles', companyId)
+  const vehicleIds = vehicles.map((v) => v.id)
+  if (vehicleIds.length === 0) return { totalCost: 0, totalMiles: 0 }
+
+  const local = loadStore<FuelLog>(STORE_KEYS.fuelLogs).filter((f) => vehicleIds.includes(f.vehicle_id))
+  if (!supabase) return sumFuelLogTotals(local)
+
+  try {
+    const { data, error } = await supabase
+      .from('fuel_logs')
+      .select('total_cost, miles')
+      .in('vehicle_id', vehicleIds)
+
+    if (error) throw error
+    return sumFuelLogTotals((data ?? []) as Pick<FuelLog, 'total_cost' | 'miles'>[])
+  } catch (err) {
+    warnSupabaseFallback('getFuelLogsSummary', err)
+    return sumFuelLogTotals(local)
+  }
+}
+
+/** Lightweight expense KPI total (table uses listEntitiesPage). */
+export async function getExpensesSummary(companyId: string): Promise<ExpensesSummary> {
+  const local = loadLocalEntities('expenses', companyId)
+  const sumLocal = (rows: Expense[]) => ({
+    totalAmount: rows.reduce((sum, row) => sum + row.amount, 0),
+    count: rows.length,
+  })
+
+  if (!supabase) return sumLocal(local)
+
+  try {
+    const { data, error } = await supabase
+      .from('expenses')
+      .select('amount')
+      .eq('company_id', companyId)
+
+    if (error) throw error
+    const amounts = (data ?? []) as Pick<Expense, 'amount'>[]
+    return {
+      totalAmount: amounts.reduce((sum, row) => sum + row.amount, 0),
+      count: amounts.length,
+    }
+  } catch (err) {
+    warnSupabaseFallback('getExpensesSummary', err)
+    return sumLocal(local)
+  }
+}
+
 export async function saveTimeEntry(entry: TimeEntry): Promise<TimeEntry> {
   const previous = loadStore<TimeEntry>(STORE_KEYS.timeEntries).find((e) => e.id === entry.id)
   upsertStore(STORE_KEYS.timeEntries, entry)

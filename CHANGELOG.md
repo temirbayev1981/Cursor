@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.42] — 2026-07-12
+
+Audit P8: KPI summary queries, platform audit links, server pagination gate.
+
+### Performance
+- `getFuelLogsSummary` / `getExpensesSummary` — lightweight KPI queries (tables stay paginated)
+- `useFuelLogsSummary` / `useExpensesSummary` on vehicles and expenses pages
+
+### Operator UX
+- Platform audit recommendations link to Settings → Integrations cards
+- `SERVER_PAGINATION_AUDIT` quality gate in platform audit checklist
+
 ## [1.14.41] — 2026-07-12
 
 Audit P7: server-side fuel log pagination — completes Phase 135 table pagination.

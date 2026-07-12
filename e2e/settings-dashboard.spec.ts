@@ -124,6 +124,7 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('platform-audit-check-notification_milestone_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-notification_hub_skip_channel_filter_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-notification_hub_email_skip_csv_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-server_pagination_audit')).toBeVisible()
     await expect(page.getByTestId('notification-hub')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history-entry-0')).toBeVisible()

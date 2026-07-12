@@ -302,7 +302,7 @@ Set all `VITE_*` env vars in your hosting provider.
 npm run test:e2e
 ```
 
-Playwright builds the app, runs **277 tests** across **56** spec files against `http://127.0.0.1:4173` (in-memory Supabase mock). Default `playwright.config.ts` runs **269** tests (excludes live-only `stripe-live` and `live-backend-smoke` specs). Unit tests: **272** (`npm test`).
+Playwright builds the app, runs **277 tests** across **56** spec files against `http://127.0.0.1:4173` (in-memory Supabase mock). Default `playwright.config.ts` runs **269** tests (excludes live-only `stripe-live` and `live-backend-smoke` specs). Unit tests: **275** (`npm test`).
 
 ### Optional: live Supabase smoke
 

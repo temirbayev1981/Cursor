@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ExpenseForm } from '@/components/forms/expense-form'
 import { useAuth } from '@/contexts/auth-context'
-import { useExpenses, useSaveExpense } from '@/hooks/use-entities'
+import { useExpensesSummary, useSaveExpense } from '@/hooks/use-entities'
 import { useServerEntityTable } from '@/hooks/use-server-entity-table'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
@@ -25,9 +25,9 @@ export default function ExpensesPage() {
   const [showForm, setShowForm] = useState(false)
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
   const { isLoading: tableLoading, pagination } = useServerEntityTable('expenses')
-  const { data: expenses = [], isLoading: summaryLoading } = useExpenses()
+  const { data: expenseSummary, isLoading: summaryLoading } = useExpensesSummary()
   const saveExpense = useSaveExpense()
-  const total = expenses.reduce((s, e) => s + e.amount, 0)
+  const total = expenseSummary?.totalAmount ?? 0
 
   const handleSave = (expense: Expense) => {
     saveExpense.mutate(expense, {

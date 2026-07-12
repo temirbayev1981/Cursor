@@ -1,6 +1,12 @@
-# HandymanOS AI — Release 1.14.41
+# HandymanOS AI — Release 1.14.42
 
-**Status:** Audit P6/P7 — server pagination (Phase 135 complete).
+**Status:** Audit P6–P8 — server pagination + operator UX.
+
+## 1.14.42 — Audit P8
+
+- **KPI summaries** — `getFuelLogsSummary`, `getExpensesSummary` (no full-list fetch for dashboard cards)
+- **Settings UX** — audit recommendations link to Integrations tab
+- **Platform audit** — `server_pagination_audit` quality check
 
 ## 1.14.41 — Audit P7
 

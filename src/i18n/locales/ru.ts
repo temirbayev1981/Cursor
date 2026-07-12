@@ -769,6 +769,7 @@ export const ru = {
       notification_hub_skip_channel_filter_audit: 'Hub: фильтр skip по каналу',
       notification_hub_email_skip_csv_audit: 'Экспорт CSV email skip в hub',
       multi_tenant: 'Мульти-тенант',
+      server_pagination_audit: 'Серверная пагинация таблиц',
     },
     auditActions: {
       'jobs.bulk_cancel': 'Массовая отмена заказов',

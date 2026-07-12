@@ -1573,6 +1573,48 @@ if (clientPaginationInPages.length === 0) {
   ok = false
 }
 
+const auditLabelsModule = readFileSync('src/lib/audit-labels.ts', 'utf8')
+if (auditLabelsModule.includes('SERVER_PAGINATION_AUDIT = true')) {
+  console.log('✓ SERVER_PAGINATION_AUDIT gate enabled')
+} else {
+  console.log('✗ SERVER_PAGINATION_AUDIT must be true')
+  ok = false
+}
+
+const platformAuditModule = existsSync('src/lib/platform-audit.ts')
+  ? readFileSync('src/lib/platform-audit.ts', 'utf8')
+  : ''
+if (platformAuditModule.includes('server_pagination_audit') && platformAuditModule.includes('SERVER_PAGINATION_AUDIT')) {
+  console.log('✓ platform-audit includes server pagination quality check')
+} else {
+  console.log('✗ platform-audit must include server_pagination_audit check')
+  ok = false
+}
+
+if (existsSync('src/lib/audit-recommendation-links.ts')) {
+  console.log('✓ audit recommendation → integration card links')
+} else {
+  console.log('✗ missing src/lib/audit-recommendation-links.ts')
+  ok = false
+}
+
+const settingsSystemPanel = existsSync('src/components/settings/settings-system-panel.tsx')
+  ? readFileSync('src/components/settings/settings-system-panel.tsx', 'utf8')
+  : ''
+if (settingsSystemPanel.includes('audit-recommendation-link-') && settingsSystemPanel.includes('onOpenIntegration')) {
+  console.log('✓ settings system panel links audit recommendations to integrations')
+} else {
+  console.log('✗ settings-system-panel must link audit recommendations to integrations tab')
+  ok = false
+}
+
+if (entityService.includes('getFuelLogsSummary') && entityService.includes('getExpensesSummary')) {
+  console.log('✓ entity-service lightweight KPI summary queries')
+} else {
+  console.log('✗ entity-service must export getFuelLogsSummary and getExpensesSummary')
+  ok = false
+}
+
 const pkgJson = JSON.parse(readFileSync('package.json', 'utf8'))
 if (pkgJson.scripts?.['verify:operator:prod']) {
   console.log('✓ verify:operator:prod npm script')
