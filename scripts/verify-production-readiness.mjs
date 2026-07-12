@@ -1615,6 +1615,51 @@ if (entityService.includes('getFuelLogsSummary') && entityService.includes('getE
   ok = false
 }
 
+if (
+  entityService.includes('getInvoicesSummary')
+  && entityService.includes('fetchInvoiceById')
+  && entityService.includes('getMaterialsSummary')
+) {
+  console.log('✓ entity-service invoice and materials KPI summaries')
+} else {
+  console.log('✗ entity-service must export getInvoicesSummary, fetchInvoiceById, and getMaterialsSummary')
+  ok = false
+}
+
+if (auditLabelsModule.includes('KPI_SUMMARY_AUDIT = true')) {
+  console.log('✓ KPI_SUMMARY_AUDIT gate enabled')
+} else {
+  console.log('✗ KPI_SUMMARY_AUDIT must be true')
+  ok = false
+}
+
+if (platformAuditModule.includes('kpi_summary_audit') && platformAuditModule.includes('KPI_SUMMARY_AUDIT')) {
+  console.log('✓ platform-audit includes KPI summary quality check')
+} else {
+  console.log('✗ platform-audit must include kpi_summary_audit check')
+  ok = false
+}
+
+const invoicesPage = existsSync('src/pages/invoices.tsx')
+  ? readFileSync('src/pages/invoices.tsx', 'utf8')
+  : ''
+if (invoicesPage.includes('useInvoicesSummary') && !invoicesPage.includes('useInvoices()')) {
+  console.log('✓ invoices page uses KPI summary instead of full list')
+} else {
+  console.log('✗ invoices.tsx must use useInvoicesSummary without useInvoices for KPIs')
+  ok = false
+}
+
+const materialsPage = existsSync('src/pages/materials.tsx')
+  ? readFileSync('src/pages/materials.tsx', 'utf8')
+  : ''
+if (materialsPage.includes('useMaterialsSummary') && !materialsPage.includes('useMaterials()')) {
+  console.log('✓ materials page uses KPI summary instead of full list')
+} else {
+  console.log('✗ materials.tsx must use useMaterialsSummary without useMaterials for stock alert')
+  ok = false
+}
+
 const pkgJson = JSON.parse(readFileSync('package.json', 'utf8'))
 if (pkgJson.scripts?.['verify:operator:prod']) {
   console.log('✓ verify:operator:prod npm script')

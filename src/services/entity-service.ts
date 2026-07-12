@@ -790,6 +790,160 @@ export async function getExpensesSummary(companyId: string): Promise<ExpensesSum
   }
 }
 
+export interface InvoicesSummary {
+  outstanding: number
+  paidThisMonth: number
+}
+
+type InvoiceKpiRow = Pick<Invoice, 'status' | 'total' | 'amount_paid' | 'paid_date'>
+
+function isThisMonth(dateStr: string): boolean {
+  const d = new Date(dateStr)
+  const now = new Date()
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
+}
+
+function sumInvoiceKpis(rows: InvoiceKpiRow[]): InvoicesSummary {
+  return rows.reduce(
+    (acc, invoice) => {
+      if (invoice.status !== 'paid') {
+        acc.outstanding += invoice.total - invoice.amount_paid
+      }
+      if (invoice.status === 'paid' && invoice.paid_date && isThisMonth(invoice.paid_date)) {
+        acc.paidThisMonth += invoice.amount_paid
+      }
+      return acc
+    },
+    { outstanding: 0, paidThisMonth: 0 },
+  )
+}
+
+/** Lightweight invoice KPI totals (table uses listEntitiesPage). */
+export async function getInvoicesSummary(companyId: string): Promise<InvoicesSummary> {
+  const local = loadLocalEntities('invoices', companyId) as Invoice[]
+  const sumLocal = () =>
+    sumInvoiceKpis(
+      local.map((invoice) => ({
+        status: invoice.status,
+        total: invoice.total,
+        amount_paid: invoice.amount_paid,
+        paid_date: invoice.paid_date,
+      })),
+    )
+
+  if (!supabase) return sumLocal()
+
+  try {
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('status, total, amount_paid, paid_date')
+      .eq('company_id', companyId)
+
+    if (error) throw error
+    return sumInvoiceKpis((data ?? []) as InvoiceKpiRow[])
+  } catch (err) {
+    warnSupabaseFallback('getInvoicesSummary', err)
+    return sumLocal()
+  }
+}
+
+/** Invoice numbers only — for sequence generation without full list fetch. */
+export async function listInvoiceNumbers(companyId: string): Promise<Pick<Invoice, 'invoice_number'>[]> {
+  const local = (loadLocalEntities('invoices', companyId) as Invoice[]).map((invoice) => ({
+    invoice_number: invoice.invoice_number,
+  }))
+
+  if (!supabase) return local
+
+  try {
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('invoice_number')
+      .eq('company_id', companyId)
+
+    if (error) throw error
+    return (data ?? []) as Pick<Invoice, 'invoice_number'>[]
+  } catch (err) {
+    warnSupabaseFallback('listInvoiceNumbers', err)
+    return local
+  }
+}
+
+/** Fetch a single invoice (e.g. Stripe return URL) without loading the full list. */
+export async function fetchInvoiceById(companyId: string, invoiceId: string): Promise<Invoice | null> {
+  const local = loadLocalEntities('invoices', companyId) as Invoice[]
+  const cached = local.find((invoice) => invoice.id === invoiceId) ?? null
+  if (!supabase) return cached
+
+  try {
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('*')
+      .eq('company_id', companyId)
+      .eq('id', invoiceId)
+      .maybeSingle()
+
+    if (error) throw error
+    if (!data) return cached
+    const invoice = data as Invoice
+    mergeStoreById(STORE_KEYS.invoices, [invoice])
+    return invoice
+  } catch (err) {
+    warnSupabaseFallback('fetchInvoiceById', err)
+    return cached
+  }
+}
+
+export interface MaterialsSummary {
+  lowStock: Pick<Material, 'id' | 'name' | 'quantity' | 'reorder_level'>[]
+  names: Record<string, string>
+}
+
+/** Lightweight materials KPI (table uses listEntitiesPage). */
+export async function getMaterialsSummary(companyId: string): Promise<MaterialsSummary> {
+  const local = loadLocalEntities('materials', companyId) as Material[]
+  const sumLocal = () => {
+    const names: Record<string, string> = {}
+    const lowStock: MaterialsSummary['lowStock'] = []
+    for (const material of local) {
+      names[material.id] = material.name
+      if (material.quantity <= material.reorder_level) {
+        lowStock.push({
+          id: material.id,
+          name: material.name,
+          quantity: material.quantity,
+          reorder_level: material.reorder_level,
+        })
+      }
+    }
+    return { lowStock, names }
+  }
+
+  if (!supabase) return sumLocal()
+
+  try {
+    const { data, error } = await supabase
+      .from('materials')
+      .select('id, name, quantity, reorder_level')
+      .eq('company_id', companyId)
+
+    if (error) throw error
+    const rows = (data ?? []) as Pick<Material, 'id' | 'name' | 'quantity' | 'reorder_level'>[]
+    const names: Record<string, string> = {}
+    const lowStock: MaterialsSummary['lowStock'] = []
+    for (const material of rows) {
+      names[material.id] = material.name
+      if (material.quantity <= material.reorder_level) {
+        lowStock.push(material)
+      }
+    }
+    return { lowStock, names }
+  } catch (err) {
+    warnSupabaseFallback('getMaterialsSummary', err)
+    return sumLocal()
+  }
+}
+
 export async function saveTimeEntry(entry: TimeEntry): Promise<TimeEntry> {
   const previous = loadStore<TimeEntry>(STORE_KEYS.timeEntries).find((e) => e.id === entry.id)
   upsertStore(STORE_KEYS.timeEntries, entry)

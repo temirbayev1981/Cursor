@@ -2,6 +2,19 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.43] — 2026-07-12
+
+Audit P9: invoice and materials KPI summaries, Stripe return fetch by id.
+
+### Performance
+- `getInvoicesSummary` / `getMaterialsSummary` — lightweight KPI queries on paginated pages
+- `fetchInvoiceById` — Stripe `?paid=` return without full invoice list
+- `useInvoicesSummary` / `useMaterialsSummary` on invoices and materials pages
+
+### Operator UX
+- `KPI_SUMMARY_AUDIT` quality gate in platform audit checklist
+- E2E: audit recommendation links open Settings → Integrations
+
 ## [1.14.42] — 2026-07-12
 
 Audit P8: KPI summary queries, platform audit links, server pagination gate.

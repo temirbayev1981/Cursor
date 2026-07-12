@@ -60,7 +60,7 @@ export async function sendInvoiceToCustomer(
   return { invoice: updated, notification }
 }
 
-export function generateInvoiceNumber(existing: Invoice[]): string {
+export function generateInvoiceNumber(existing: Pick<Invoice, 'invoice_number'>[]): string {
   const max = existing.reduce((m, inv) => {
     const num = parseInt(inv.invoice_number.replace(/\D/g, ''), 10)
     return Number.isFinite(num) ? Math.max(m, num) : m

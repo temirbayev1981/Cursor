@@ -770,6 +770,7 @@ export const ru = {
       notification_hub_email_skip_csv_audit: 'Экспорт CSV email skip в hub',
       multi_tenant: 'Мульти-тенант',
       server_pagination_audit: 'Серверная пагинация таблиц',
+      kpi_summary_audit: 'Лёгкие KPI-сводки',
     },
     auditActions: {
       'jobs.bulk_cancel': 'Массовая отмена заказов',

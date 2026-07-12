@@ -125,12 +125,23 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('platform-audit-check-notification_hub_skip_channel_filter_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-notification_hub_email_skip_csv_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-server_pagination_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-kpi_summary_audit')).toBeVisible()
     await expect(page.getByTestId('notification-hub')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history-entry-0')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history-supabase-0')).toHaveText(/supabase|онлайн|live/i)
     await expect(page.getByTestId('audit-coverage-summary')).toBeVisible()
     await expect(page.getByTestId('audit-coverage-summary')).toHaveText(/\d+.*(?:типов действий в журнале|action types in log).*\d+.*(?:локализованных меток|localized labels)/i)
+  })
+
+  test('audit recommendation links open integrations tab', async ({ page }) => {
+    await page.goto('/settings')
+    await page.getByRole('tab', { name: /system|система/i }).click()
+    const stripeLink = page.getByTestId('audit-recommendation-link-configure_stripe')
+    await expect(stripeLink).toBeVisible()
+    await stripeLink.click()
+    await expect(page.getByRole('tab', { name: /интеграции|integrations/i })).toHaveAttribute('data-state', 'active')
+    await expect(page.getByTestId('integration-card-stripe')).toBeVisible()
   })
 
   test('probe history shows unreachable integration badges', async ({ page }) => {

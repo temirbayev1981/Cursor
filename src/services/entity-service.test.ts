@@ -5,6 +5,9 @@ import {
   listFuelLogsPage,
   getFuelLogsSummary,
   getExpensesSummary,
+  getInvoicesSummary,
+  fetchInvoiceById,
+  getMaterialsSummary,
   saveEntity,
   deleteEntity,
   logAudit,
@@ -143,6 +146,25 @@ describe('entity-service', () => {
     const expenses = await getExpensesSummary('comp-001')
     expect(expenses.totalAmount).toBeGreaterThan(0)
     expect(expenses.count).toBeGreaterThan(0)
+  })
+
+  it('getInvoicesSummary returns outstanding and paid-this-month totals', async () => {
+    const summary = await getInvoicesSummary('comp-001')
+    expect(summary.outstanding).toBeGreaterThanOrEqual(0)
+    expect(summary.paidThisMonth).toBeGreaterThanOrEqual(0)
+  })
+
+  it('fetchInvoiceById returns a single invoice without listing all', async () => {
+    const invoices = await listEntitiesPage('invoices', 'comp-001', { page: 1, pageSize: 1 })
+    expect(invoices.items.length).toBeGreaterThan(0)
+    const invoice = await fetchInvoiceById('comp-001', invoices.items[0].id)
+    expect(invoice?.id).toBe(invoices.items[0].id)
+  })
+
+  it('getMaterialsSummary returns low-stock items and name map', async () => {
+    const summary = await getMaterialsSummary('comp-001')
+    expect(Object.keys(summary.names).length).toBeGreaterThan(0)
+    expect(summary.lowStock.every((m) => m.quantity <= m.reorder_level)).toBe(true)
   })
 
   it('listFuelLogsPage clears stale scoped cache when remote total is zero', async () => {

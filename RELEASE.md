@@ -1,6 +1,13 @@
-# HandymanOS AI — Release 1.14.42
+# HandymanOS AI — Release 1.14.43
 
-**Status:** Audit P6–P8 — server pagination + operator UX.
+**Status:** Audit P9 — extended KPI summaries for invoices and materials.
+
+## 1.14.43 — Audit P9
+
+- **KPI summaries** — `getInvoicesSummary`, `getMaterialsSummary` (invoices/materials pages no longer fetch full lists for KPI cards)
+- **Stripe return** — `fetchInvoiceById` for `?paid=` redirect without loading all invoices
+- **Platform audit** — `kpi_summary_audit` quality check
+- **E2E** — audit recommendation links navigate to Integrations tab
 
 ## 1.14.42 — Audit P8
 
