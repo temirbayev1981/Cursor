@@ -13,6 +13,10 @@ export function visibleTestIdMatch(page: Page, pattern: RegExp): Locator {
   return page.getByTestId(pattern).locator('visible=true')
 }
 
+export function visibleCommandPalette(page: Page): Locator {
+  return page.getByTestId('command-palette').locator('visible=true')
+}
+
 export async function expectVisibleText(
   page: Page,
   text: string,

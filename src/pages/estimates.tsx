@@ -15,7 +15,6 @@ import { generateInvoiceNumber } from '@/services/payment-service'
 import { notifyEstimateSent, notifyEstimateSentSms, notifyResultMessage } from '@/services/notification-service'
 import { logAudit } from '@/services/entity-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import { exportEstimatePdf } from '@/lib/export'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
@@ -121,7 +120,8 @@ export default function EstimatesPage() {
     )
   }
 
-  const handleExportPdf = (est: Estimate, customerName: string) => {
+  const handleExportPdf = async (est: Estimate, customerName: string) => {
+    const { exportEstimatePdf } = await import('@/lib/export')
     exportEstimatePdf({
       title: est.title,
       customerName,

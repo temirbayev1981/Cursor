@@ -1319,6 +1319,23 @@ if (estimatesPage.includes("from '@/lib/ai'") || estimatesPage.includes('from "@
   ok = false
 }
 
+for (const [label, file] of [
+  ['invoices.tsx', 'src/pages/invoices.tsx'],
+  ['estimates.tsx', 'src/pages/estimates.tsx'],
+  ['reports.tsx', 'src/pages/reports.tsx'],
+]) {
+  const source = existsSync(file) ? readFileSync(file, 'utf8') : ''
+  if (source.includes("from '@/lib/export'") || source.includes('from "@/lib/export"')) {
+    console.log(`✗ ${label} must not statically import export (use dynamic import on export action)`)
+    ok = false
+  } else if (source.includes("import('@/lib/export')")) {
+    console.log(`✓ ${label} uses dynamic import for export`)
+  } else {
+    console.log(`✗ ${label} must dynamically import export`)
+    ok = false
+  }
+}
+
 const mobileLayoutSpecs = [
   'e2e/jobs-mobile-layout.spec.ts',
   'e2e/customers-mobile-layout.spec.ts',

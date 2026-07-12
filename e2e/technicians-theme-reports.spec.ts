@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, openCommandPalette } from './helpers/auth'
-import { visibleText } from './helpers/visibility'
+import { visibleCommandPalette, visibleText } from './helpers/visibility'
 
 test.describe('Technicians', () => {
   test.beforeEach(async ({ page }) => {
@@ -58,11 +58,9 @@ test.describe('Theme & reports export', () => {
 
   test('command palette toggles theme', async ({ page }) => {
     await page.goto('/dashboard')
-    await openCommandPalette(page)
-    await expect(page.getByTestId('command-palette')).toBeVisible({ timeout: 10000 })
-
     const isDarkBefore = await page.evaluate(() => document.documentElement.classList.contains('dark'))
-    await page.getByTestId('command-palette').getByRole('option', { name: /светлая тема|тёмная тема/i }).click()
+    await openCommandPalette(page)
+    await visibleCommandPalette(page).getByRole('option', { name: /светлая тема|тёмная тема/i }).click()
     await expect.poll(async () =>
       page.evaluate(() => document.documentElement.classList.contains('dark')),
     ).toBe(!isDarkBefore)

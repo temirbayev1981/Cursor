@@ -16,7 +16,6 @@ import { useServerEntityTable } from '@/hooks/use-server-entity-table'
 import { generateInvoiceNumber } from '@/services/payment-service'
 import { notifyInvoiceSentSms, notifyResultMessage } from '@/services/notification-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import { exportInvoicePdf } from '@/lib/export'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
@@ -115,7 +114,8 @@ export default function InvoicesPage() {
     })
   }
 
-  const handleExportPdf = (invoice: Invoice, customerName: string) => {
+  const handleExportPdf = async (invoice: Invoice, customerName: string) => {
+    const { exportInvoicePdf } = await import('@/lib/export')
     exportInvoicePdf({
       invoiceNumber: invoice.invoice_number,
       customerName,

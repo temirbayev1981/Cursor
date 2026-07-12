@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.35] — 2026-07-12
+
+Audit P4: lazy export in billing/reports, mobile-smoke refresh.
+
+### Bundle
+- `invoices.tsx`, `estimates.tsx`, `reports.tsx` — dynamic import of `@/lib/export` on PDF/CSV export
+- `verify-production-readiness` gates for billing/reports export imports
+
+### E2E
+- `visibleCommandPalette` helper; fleet-expenses + technicians-theme-reports use it
+- `mobile-smoke.spec.ts` — customer/job card layouts on iPhone 13 viewport
+
 ## [1.14.34] — 2026-07-12
 
 Audit P4: lazy AI in estimates, dispatch/dashboard mobile E2E.

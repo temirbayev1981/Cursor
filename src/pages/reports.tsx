@@ -28,7 +28,6 @@ import { useJobs, useCustomers, useEmployees, useExpenses, useFuelLogs } from '@
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { formatCurrency } from '@/lib/utils'
 import { ProfitIndicator } from '@/components/shared/status-badge'
-import { exportFullReport, exportReportPdf } from '@/lib/export'
 import { useTranslation } from '@/contexts/locale-context'
 import { subMonths, format } from 'date-fns'
 
@@ -110,7 +109,7 @@ export default function ReportsPage() {
     expenses: t.reports.expenses,
   }
 
-  const handleExportPdf = () => {
+  const handleExportPdf = async () => {
     const pdfLabels = {
       jobs: t.nav.jobs,
       revenue: t.dashboard.revenue,
@@ -132,6 +131,7 @@ export default function ReportsPage() {
       category: t.expenses.category,
       amount: t.expenses.amount,
     }
+    const { exportReportPdf } = await import('@/lib/export')
     exportReportPdf({
       title: t.reports.title,
       dateRangeLabel,
@@ -185,7 +185,10 @@ export default function ReportsPage() {
             <Button variant="outline" data-testid="reports-export-pdf" onClick={handleExportPdf}>
               <Download className="h-4 w-4" />{t.common.exportPdf}
             </Button>
-            <Button variant="outline" data-testid="reports-export-csv" onClick={() => void exportFullReport(filteredJobs, customers, employees)}>
+            <Button variant="outline" data-testid="reports-export-csv" onClick={() => void (async () => {
+              const { exportFullReport } = await import('@/lib/export')
+              await exportFullReport(filteredJobs, customers, employees)
+            })()}>
               <FileSpreadsheet className="h-4 w-4" />{t.common.exportCsv}
             </Button>
           </>

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, openCommandPalette } from './helpers/auth'
-import { visibleText } from './helpers/visibility'
+import { visibleCommandPalette, visibleText } from './helpers/visibility'
 
 test.describe('Fleet & expenses', () => {
   test.beforeEach(async ({ page }) => {
@@ -70,8 +70,8 @@ test.describe('Command palette', () => {
     await expect(page.getByRole('heading', { name: /панель руководителя|executive dashboard/i })).toBeVisible()
     await openCommandPalette(page)
     await page.getByTestId('command-palette-input').fill('ABC Property')
-    await expect(page.getByTestId('command-palette').locator('visible=true').getByText('ABC Property Management').first()).toBeVisible({ timeout: 10000 })
-    await page.getByTestId('command-palette').locator('visible=true').getByText('ABC Property Management').first().click()
+    await expect(visibleCommandPalette(page).getByText('ABC Property Management').first()).toBeVisible({ timeout: 10000 })
+    await visibleCommandPalette(page).getByText('ABC Property Management').first().click()
     await expect(page).toHaveURL(/\/customers/, { timeout: 10000 })
   })
 })
