@@ -7,6 +7,8 @@ import {
 } from '@/data/mock-data'
 import { matchCustomerFromVendorPO } from '@/lib/vendor-po-customer-match'
 import { isUuid } from '@/lib/is-uuid'
+import { getErrorMessage } from '@/lib/error-message'
+import { JobCreateCustomerError, toJobCreateCustomerError } from '@/lib/job-create-errors'
 import { supabase } from '@/lib/supabase'
 import { insertRows, upsertRows, type TableInsert, type TableRow } from '@/lib/supabase-queries'
 import { ENTITY_LIST_LIMIT, ENTITY_PAGE_SIZE_MAX, type EntityListPageParams, type EntityListPageResult } from '@/lib/entity-limits'
@@ -85,6 +87,10 @@ const TABLE_MAP: Record<keyof EntityMap, EntityTable> = {
   services: 'service_catalog',
 }
 
+function warnSupabaseFallback(scope: string, err: unknown): void {
+  console.warn(`[entity-service] ${scope}: using local cache —`, getErrorMessage(err))
+}
+
 async function fetchCompanyEntities<T>(table: EntityTable, companyId: string): Promise<T[]> {
   const { data, error } = await supabase!
     .from(table)
@@ -132,7 +138,8 @@ export async function listEntities<K extends keyof EntityMap>(entity: K, company
       return items
     }
     return loadLocalEntities(entity, companyId)
-  } catch {
+  } catch (err) {
+    warnSupabaseFallback(`listEntities(${entity})`, err)
     return loadLocalEntities(entity, companyId)
   }
 }
@@ -246,7 +253,8 @@ export async function listEntitiesPage<K extends PageableEntity>(
       mergeStoreById(KEY_MAP[entity], result.items)
     }
     return result
-  } catch {
+  } catch (err) {
+    warnSupabaseFallback(`listEntitiesPage(${entity})`, err)
     return listLocalEntitiesPage(entity, companyId, normalized)
   }
 }
@@ -332,8 +340,8 @@ async function listSupabaseCustomers(companyId: string): Promise<Customer[]> {
       mergeStoreById(KEY_MAP.customers, items)
       return items
     }
-  } catch {
-    // fall through to cached Supabase rows in local storage
+  } catch (err) {
+    warnSupabaseFallback('listSupabaseCustomers', err)
   }
 
   return loadLocalEntities('customers', companyId).filter((customer) => isUuid(customer.id))
@@ -357,8 +365,12 @@ async function createCustomerFromVendorPO(
     job_count: 0,
     created_at: new Date().toISOString(),
   }
-  const saved = await saveEntity('customers', customer)
-  return saved.id
+  try {
+    const saved = await saveEntity('customers', customer)
+    return saved.id
+  } catch (err) {
+    throw new JobCreateCustomerError(getErrorMessage(err), err)
+  }
 }
 
 export async function createJobFromVendorPO(
@@ -393,7 +405,13 @@ export async function createJobFromVendorPO(
     profit_margin: 0,
     created_at: new Date().toISOString(),
   }
-  return saveEntity('jobs', job)
+  try {
+    return await saveEntity('jobs', job)
+  } catch (err) {
+    const customerErr = toJobCreateCustomerError(err)
+    if (customerErr) throw customerErr
+    throw err
+  }
 }
 
 export async function createEstimateFromJob(job: Job, companyId: string): Promise<Estimate> {
@@ -512,8 +530,8 @@ export async function logAudit(companyId: string, userId: string, action: string
 
   try {
     await insertRows('audit_logs', log)
-  } catch {
-    // local cache remains authoritative offline
+  } catch (err) {
+    warnSupabaseFallback('logAudit', err)
   }
 }
 
@@ -536,7 +554,8 @@ export async function listAuditLogs(companyId: string): Promise<AuditLog[]> {
       return items
     }
     return loadStore<AuditLog>(STORE_KEYS.auditLogs).filter((l) => l.company_id === companyId)
-  } catch {
+  } catch (err) {
+    warnSupabaseFallback('listAuditLogs', err)
     return loadStore<AuditLog>(STORE_KEYS.auditLogs).filter((l) => l.company_id === companyId)
   }
 }
@@ -586,7 +605,8 @@ export async function listPayments(companyId: string): Promise<Payment[]> {
     }
 
     return filterByCompanyInvoices(loadStore<Payment>(STORE_KEYS.payments))
-  } catch {
+  } catch (err) {
+    warnSupabaseFallback('listPayments', err)
     return filterByCompanyInvoices(loadStore<Payment>(STORE_KEYS.payments))
   }
 }
@@ -635,7 +655,8 @@ export async function listFuelLogs(companyId: string): Promise<FuelLog[]> {
     }
 
     return filterByVehicles(loadStore<FuelLog>(STORE_KEYS.fuelLogs))
-  } catch {
+  } catch (err) {
+    warnSupabaseFallback('listFuelLogs', err)
     return filterByVehicles(loadStore<FuelLog>(STORE_KEYS.fuelLogs))
   }
 }
@@ -678,7 +699,8 @@ export async function listTimeEntries(companyId: string): Promise<TimeEntry[]> {
       return items
     }
     return local
-  } catch {
+  } catch (err) {
+    warnSupabaseFallback('listTimeEntries', err)
     return local
   }
 }

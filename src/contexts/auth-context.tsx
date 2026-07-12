@@ -88,11 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const authUser = data.user ?? data.session?.user
     if (authUser) {
-      try {
-        await ensureOwnerCompanyLinked(authUser)
-      } catch (repairError) {
-        throw repairError
-      }
+      await ensureOwnerCompanyLinked(authUser)
     }
 
     const session = await loadUserSession()

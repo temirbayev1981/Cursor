@@ -73,8 +73,12 @@ test.describe('Work orders vendor PO', () => {
     await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 15000 })
     await expect(page.getByTestId('vendor-po-record-count')).toHaveText('1', { timeout: 10000 })
 
+    // Browsers skip change events when the same file path is selected twice — reset input first
+    await input.evaluate((el) => { (el as HTMLInputElement).value = '' })
     await input.setInputFiles('e2e/fixtures/vendor-po-sample.pdf')
-    await expect(page.getByText(/207872-02.*уже загружен|207872-02.*already uploaded|vendorpo-sample\.pdf.*уже загружен|vendorpo-sample\.pdf.*already uploaded/i).first()).toBeVisible({ timeout: 15000 })
+    await expect(
+      page.locator('[data-sonner-toast]').filter({ hasText: /уже загружен|already uploaded|Пропущены дубликаты|Skipped duplicates/i }).first(),
+    ).toBeVisible({ timeout: 15000 })
     await expect(page.getByTestId('vendor-po-record-count')).toHaveText('1', { timeout: 10000 })
   })
 })

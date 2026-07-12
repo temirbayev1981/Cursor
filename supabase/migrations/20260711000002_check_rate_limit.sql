@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS rate_limit_buckets (
 
 CREATE INDEX IF NOT EXISTS idx_rate_limit_buckets_reset_at ON rate_limit_buckets (reset_at);
 
+ALTER TABLE rate_limit_buckets ENABLE ROW LEVEL SECURITY;
+
 CREATE OR REPLACE FUNCTION public.check_rate_limit(
   p_key TEXT,
   p_limit INTEGER DEFAULT 30,
