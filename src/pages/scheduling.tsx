@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { ScheduleForm } from '@/components/forms/schedule-form'
 import { RouteOptimizerPanel } from '@/components/maps/route-optimizer-panel'
-import { useSchedules, useEmployees, useJobs, useCustomers, useCreateScheduleFromJob } from '@/hooks/use-entities'
+import { useSchedules, useEmployees, useJobs, useCustomerContacts, useCreateScheduleFromJob } from '@/hooks/use-entities'
 import { useOptimizedRouteFromStops } from '@/hooks/use-route-optimizer'
 import { useIsMobileNav } from '@/hooks/use-media-query'
 import { addDays, format, startOfWeek, isSameDay } from 'date-fns'
@@ -32,7 +32,7 @@ export default function SchedulingPage() {
   const { data: schedule = [], isLoading: schedLoading } = useSchedules()
   const { data: employees = [], isLoading: empLoading } = useEmployees()
   const { data: jobs = [] } = useJobs()
-  const { data: customers = [] } = useCustomers()
+  const { data: customers = [] } = useCustomerContacts()
   const createSchedule = useCreateScheduleFromJob()
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 })

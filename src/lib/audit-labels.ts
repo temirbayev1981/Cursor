@@ -189,6 +189,9 @@ export const KPI_SUMMARY_AUDIT = true as const
 /** Estimates page uses lightweight contacts and smart-engine context. */
 export const ESTIMATES_LIGHTWEIGHT_AUDIT = true as const
 
+/** Ops pages use listCustomerContacts instead of full CRM list. */
+export const CUSTOMER_CONTACTS_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }

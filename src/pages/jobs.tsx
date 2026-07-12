@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/contexts/auth-context'
-import { useCustomers, useEmployees, useSaveJob, useBulkUpdateJobStatus, useBulkAssignTechnician, useBulkScheduleJobs, useBulkDeleteJobs } from '@/hooks/use-entities'
+import { useCustomerContacts, useEmployees, useSaveJob, useBulkUpdateJobStatus, useBulkAssignTechnician, useBulkScheduleJobs, useBulkDeleteJobs } from '@/hooks/use-entities'
 import { useServerEntityTable } from '@/hooks/use-server-entity-table'
 import { formatCurrency, formatDate, cn } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
@@ -43,7 +43,7 @@ export default function JobsPage() {
     search,
     status: statusFilter,
   })
-  const { data: customers = [] } = useCustomers()
+  const { data: customers = [] } = useCustomerContacts()
   const { data: employees = [] } = useEmployees()
   const saveJob = useSaveJob()
   const bulkUpdateStatus = useBulkUpdateJobStatus()

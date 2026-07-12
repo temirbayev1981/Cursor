@@ -1,6 +1,12 @@
-# HandymanOS AI — Release 1.14.44
+# HandymanOS AI — Release 1.14.45
 
-**Status:** Audit P10 — estimates page lightweight context.
+**Status:** Audit P11 — customer contacts on ops pages.
+
+## 1.14.45 — Audit P11
+
+- **Customer contacts** — `listCustomerContacts` on invoices, jobs, dispatch, scheduling (no full `useCustomers()`)
+- **Forms** — `InvoiceForm` / `JobForm` accept lightweight `CustomerContact[]`
+- **Platform audit** — `customer_contacts_audit` quality check
 
 ## 1.14.44 — Audit P10
 

@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useJobs, useUpdateJobStatus, useEmployees, useCustomers, useProperties } from '@/hooks/use-entities'
+import { useJobs, useUpdateJobStatus, useEmployees, useCustomerContacts, useProperties } from '@/hooks/use-entities'
 import { useTranslation } from '@/contexts/locale-context'
 import { useOptimizedRoute } from '@/hooks/use-route-optimizer'
 import { TableSkeleton } from '@/components/shared/skeleton'
@@ -141,7 +141,7 @@ export default function DispatchPage() {
   const { user, company } = useAuth()
   const { data: jobs = [], isLoading } = useJobs()
   const { data: employees = [] } = useEmployees()
-  const { data: customers = [] } = useCustomers()
+  const { data: customers = [] } = useCustomerContacts()
   const { data: properties = [] } = useProperties()
   const route = useOptimizedRoute(jobs, customers, properties)
   const updateStatus = useUpdateJobStatus()

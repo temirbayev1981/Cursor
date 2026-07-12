@@ -7,11 +7,12 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useTranslation } from '@/contexts/locale-context'
-import type { Job, Customer } from '@/types'
+import type { CustomerContact } from '@/services/entity-service'
+import type { Job } from '@/types'
 
 interface JobFormProps {
   companyId: string
-  customers: Customer[]
+  customers: CustomerContact[]
   onSubmit: (job: Job) => void
   onCancel?: () => void
 }

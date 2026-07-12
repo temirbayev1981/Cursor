@@ -11,7 +11,7 @@ import { StripePayButton } from '@/components/payments/stripe-pay-button'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/contexts/auth-context'
-import { useCustomers, useInvoicesSummary, useSaveInvoice, useSendInvoice, usePayInvoice } from '@/hooks/use-entities'
+import { useCustomerContacts, useInvoicesSummary, useSaveInvoice, useSendInvoice, usePayInvoice } from '@/hooks/use-entities'
 import { useServerEntityTable } from '@/hooks/use-server-entity-table'
 import { fetchInvoiceById, listInvoiceNumbers } from '@/services/entity-service'
 import { generateInvoiceNumber } from '@/services/payment-service'
@@ -32,7 +32,7 @@ export default function InvoicesPage() {
   const companyId = company?.id ?? ''
   const { isLoading: invoicesLoading, pagination, refetch } = useServerEntityTable('invoices')
   const { data: invoiceSummary, isLoading: summaryLoading } = useInvoicesSummary()
-  const { data: customers = [], isLoading: customersLoading } = useCustomers()
+  const { data: customers = [], isLoading: customersLoading } = useCustomerContacts()
   const saveInvoice = useSaveInvoice()
   const sendInvoice = useSendInvoice()
   const payInvoice = usePayInvoice()

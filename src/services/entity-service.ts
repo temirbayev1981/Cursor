@@ -944,7 +944,7 @@ export async function getMaterialsSummary(companyId: string): Promise<MaterialsS
   }
 }
 
-export type CustomerContact = Pick<Customer, 'id' | 'name' | 'email' | 'phone' | 'notification_preferences'>
+export type CustomerContact = Pick<Customer, 'id' | 'name' | 'email' | 'phone' | 'address' | 'notification_preferences'>
 
 /** Customer picker + notify fields without full CRM rows. */
 export async function listCustomerContacts(companyId: string): Promise<CustomerContact[]> {
@@ -953,6 +953,7 @@ export async function listCustomerContacts(companyId: string): Promise<CustomerC
     name: customer.name,
     email: customer.email,
     phone: customer.phone,
+    address: customer.address,
     notification_preferences: customer.notification_preferences,
   }))
 
@@ -961,7 +962,7 @@ export async function listCustomerContacts(companyId: string): Promise<CustomerC
   try {
     const { data, error } = await supabase
       .from('customers')
-      .select('id, name, email, phone, notification_preferences')
+      .select('id, name, email, phone, address, notification_preferences')
       .eq('company_id', companyId)
       .order('name', { ascending: true })
 
@@ -971,6 +972,7 @@ export async function listCustomerContacts(companyId: string): Promise<CustomerC
       name: customer.name,
       email: customer.email,
       phone: customer.phone,
+      address: customer.address,
       notification_preferences: customer.notification_preferences,
     }))
   } catch (err) {
