@@ -9,6 +9,7 @@ const e2eEnv = [
 
 export default defineConfig({
   testDir: './e2e',
+  testIgnore: ['**/live-backend-smoke.spec.ts', '**/stripe-live.spec.ts'],
   timeout: 60_000,
   retries: process.env.CI ? 2 : 0,
   use: {

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner } from './helpers/auth'
+import { expectEstimateTitleVisible, visibleTestId } from './helpers/visibility'
 
 test.describe('Estimate PDF export', () => {
   test.beforeEach(async ({ page }) => {
@@ -8,10 +9,10 @@ test.describe('Estimate PDF export', () => {
 
   test('export PDF opens estimate preview with title and total', async ({ page }) => {
     await page.goto('/estimates')
-    await expect(page.getByText('Drywall Repair & Paint - Unit 204').first()).toBeVisible()
+    await expectEstimateTitleVisible(page, 'Drywall Repair & Paint - Unit 204')
 
     const popupPromise = page.waitForEvent('popup')
-    await page.getByTestId('estimate-export-pdf-est-001').click()
+    await visibleTestId(page, 'estimate-export-pdf-est-001').click()
     const popup = await popupPromise
 
     await expect(popup.locator('h1')).toContainText('Drywall Repair & Paint - Unit 204')
@@ -23,7 +24,7 @@ test.describe('Estimate PDF export', () => {
   test('estimate PDF preview includes line items table', async ({ page }) => {
     await page.goto('/estimates')
     const popupPromise = page.waitForEvent('popup')
-    await page.getByTestId('estimate-export-pdf-est-001').click()
+    await visibleTestId(page, 'estimate-export-pdf-est-001').click()
     const popup = await popupPromise
 
     await expect(popup.locator('body')).toContainText(/Drywall repair/i)

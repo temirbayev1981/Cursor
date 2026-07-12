@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { Plus, Mail, X, Download } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
+import { TablePagination } from '@/components/shared/table-pagination'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { InvoiceStatusBadge } from '@/components/shared/status-badge'
 import { InvoiceForm } from '@/components/forms/invoice-form'
@@ -15,7 +16,6 @@ import { useServerEntityTable } from '@/hooks/use-server-entity-table'
 import { generateInvoiceNumber } from '@/services/payment-service'
 import { notifyInvoiceSentSms, notifyResultMessage } from '@/services/notification-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import { exportInvoicePdf } from '@/lib/export'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
@@ -114,7 +114,8 @@ export default function InvoicesPage() {
     })
   }
 
-  const handleExportPdf = (invoice: Invoice, customerName: string) => {
+  const handleExportPdf = async (invoice: Invoice, customerName: string) => {
+    const { exportInvoicePdf } = await import('@/lib/export')
     exportInvoicePdf({
       invoiceNumber: invoice.invoice_number,
       customerName,
@@ -184,6 +185,54 @@ export default function InvoicesPage() {
         </div>
       </div>
 
+      <div className="md:hidden space-y-3">
+        {pagination.paginatedItems.map((inv) => {
+          const customer = customers.find((c) => c.id === inv.customer_id)
+          return (
+            <Card key={inv.id} className="p-4" data-testid={`invoice-card-${inv.id}`}>
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="font-medium">{inv.invoice_number}</p>
+                  <InvoiceStatusBadge status={inv.status} />
+                </div>
+                <p className="text-sm text-muted-foreground">{customer?.name ?? '—'}</p>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
+                  <span className="text-muted-foreground">{t.invoices.subtotal}</span>
+                  <span>{formatCurrency(inv.subtotal)}</span>
+                  <span className="text-muted-foreground">{t.invoices.tax}</span>
+                  <span>{formatCurrency(inv.tax)}</span>
+                  <span className="text-muted-foreground">{t.invoices.total}</span>
+                  <span className="font-semibold">{formatCurrency(inv.total)}</span>
+                  <span className="text-muted-foreground">{t.invoices.paid}</span>
+                  <span>{formatCurrency(inv.amount_paid)}</span>
+                  <span className="text-muted-foreground">{t.invoices.dueDate}</span>
+                  <span>{formatDate(inv.due_date, dateLocale)}</span>
+                </div>
+                <div className="flex gap-1 pt-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    title={t.common.exportPdf}
+                    onClick={() => handleExportPdf(inv, customer?.name ?? '')}
+                    data-testid={`invoice-export-pdf-${inv.id}`}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  {inv.status === 'draft' && (
+                    <Button size="sm" variant="ghost" onClick={() => handleSend(inv)} data-testid={`invoice-send-${inv.id}`}>
+                      <Mail className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <StripePayButton invoice={inv} customerEmail={customer?.email} onSuccess={() => refetch()} />
+                </div>
+              </div>
+            </Card>
+          )
+        })}
+        <TablePagination pagination={pagination} testId="invoices-pagination-mobile" />
+      </div>
+
+      <div className="hidden md:block">
       <DataTable
         headers={[t.invoices.invoiceNum, t.invoices.customer, t.invoices.status, t.invoices.subtotal, t.invoices.tax, t.invoices.total, t.invoices.paid, t.invoices.dueDate, '']}
         pagination={pagination}
@@ -224,6 +273,7 @@ export default function InvoicesPage() {
           )
         })}
       </DataTable>
+      </div>
     </div>
   )
 }

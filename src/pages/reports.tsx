@@ -28,7 +28,6 @@ import { useJobs, useCustomers, useEmployees, useExpenses, useFuelLogs } from '@
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { formatCurrency } from '@/lib/utils'
 import { ProfitIndicator } from '@/components/shared/status-badge'
-import { exportFullReport, exportReportPdf } from '@/lib/export'
 import { useTranslation } from '@/contexts/locale-context'
 import { subMonths, format } from 'date-fns'
 
@@ -110,7 +109,7 @@ export default function ReportsPage() {
     expenses: t.reports.expenses,
   }
 
-  const handleExportPdf = () => {
+  const handleExportPdf = async () => {
     const pdfLabels = {
       jobs: t.nav.jobs,
       revenue: t.dashboard.revenue,
@@ -132,6 +131,7 @@ export default function ReportsPage() {
       category: t.expenses.category,
       amount: t.expenses.amount,
     }
+    const { exportReportPdf } = await import('@/lib/export')
     exportReportPdf({
       title: t.reports.title,
       dateRangeLabel,
@@ -185,7 +185,10 @@ export default function ReportsPage() {
             <Button variant="outline" data-testid="reports-export-pdf" onClick={handleExportPdf}>
               <Download className="h-4 w-4" />{t.common.exportPdf}
             </Button>
-            <Button variant="outline" data-testid="reports-export-csv" onClick={() => void exportFullReport(filteredJobs, customers, employees)}>
+            <Button variant="outline" data-testid="reports-export-csv" onClick={() => void (async () => {
+              const { exportFullReport } = await import('@/lib/export')
+              await exportFullReport(filteredJobs, customers, employees)
+            })()}>
               <FileSpreadsheet className="h-4 w-4" />{t.common.exportCsv}
             </Button>
           </>
@@ -263,26 +266,28 @@ export default function ReportsPage() {
               const customer = customers.find((c) => c.id === job.customer_id)
               const totalCost = job.labor_cost + job.material_cost + job.fuel_cost + job.overhead_cost
               return (
-                <Card key={job.id}>
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div>
+                <Card key={job.id} data-testid={`report-profit-card-${job.id}`}>
+                  <CardContent className="p-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
                       <p className="font-medium">{job.title}</p>
                       <p className="text-sm text-muted-foreground">{customer?.name}</p>
                     </div>
-                    <div className="flex items-center gap-6 text-sm">
-                      <div className="text-right">
+                    <div className="grid grid-cols-2 gap-4 text-sm sm:flex sm:items-center sm:gap-6">
+                      <div className="text-left sm:text-right">
                         <p className="text-muted-foreground">{t.dashboard.revenue}</p>
                         <p className="font-semibold text-success">{formatCurrency(job.revenue)}</p>
                       </div>
-                      <div className="text-right">
+                      <div className="text-left sm:text-right">
                         <p className="text-muted-foreground">{t.reports.costs}</p>
                         <p className="font-semibold text-destructive">{formatCurrency(totalCost)}</p>
                       </div>
-                      <div className="text-right">
+                      <div className="text-left sm:text-right">
                         <p className="text-muted-foreground">{t.reports.netProfit}</p>
                         <p className="font-semibold">{formatCurrency(job.profit)}</p>
                       </div>
-                      <ProfitIndicator margin={job.profit_margin} />
+                      <div className="flex items-center sm:justify-end">
+                        <ProfitIndicator margin={job.profit_margin} />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -298,13 +303,13 @@ export default function ReportsPage() {
         <TabsContent value="customers">
           <div className="space-y-3">
             {customers.map((c) => (
-              <Card key={c.id}>
-                <CardContent className="p-4 flex justify-between items-center">
-                  <div>
+              <Card key={c.id} data-testid={`report-customer-card-${c.id}`}>
+                <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
                     <p className="font-medium">{c.name}</p>
                     <p className="text-sm text-muted-foreground">{c.job_count} {t.reports.jobsCount}</p>
                   </div>
-                  <p className="text-lg font-bold">{formatCurrency(c.total_revenue)}</p>
+                  <p className="text-lg font-bold sm:text-right">{formatCurrency(c.total_revenue)}</p>
                 </CardContent>
               </Card>
             ))}

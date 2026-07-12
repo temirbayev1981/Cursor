@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, openCommandPalette } from './helpers/auth'
+import { visibleCommandPalette, visibleText } from './helpers/visibility'
 
 test.describe('Technicians', () => {
   test.beforeEach(async ({ page }) => {
@@ -9,9 +10,9 @@ test.describe('Technicians', () => {
   test('technicians page shows demo team cards with cost metrics', async ({ page }) => {
     await page.goto('/technicians')
     await expect(page.getByRole('heading', { name: /мастера|technicians/i })).toBeVisible()
-    await expect(page.getByText('James Rodriguez').first()).toBeVisible()
-    await expect(page.getByText('Marcus Thompson').first()).toBeVisible()
-    await expect(page.getByText('Plumbing').first()).toBeVisible()
+    await expect(visibleText(page, 'James Rodriguez', true).first()).toBeVisible()
+    await expect(visibleText(page, 'Marcus Thompson', true).first()).toBeVisible()
+    await expect(visibleText(page, 'Plumbing', true).first()).toBeVisible()
     await expect(page.getByText(/ставка|billing rate/i).first()).toBeVisible()
     await expect(page.getByText(/маржа|margin/i).first()).toBeVisible()
   })
@@ -31,8 +32,8 @@ test.describe('Technicians', () => {
     await page.getByTestId('employee-form-submit').click()
 
     await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText('E2E Test Technician').first()).toBeVisible()
-    await expect(page.getByText('Tile').first()).toBeVisible()
+    await expect(visibleText(page, 'E2E Test Technician', true).first()).toBeVisible()
+    await expect(visibleText(page, 'Tile', true).first()).toBeVisible()
   })
 })
 
@@ -57,11 +58,9 @@ test.describe('Theme & reports export', () => {
 
   test('command palette toggles theme', async ({ page }) => {
     await page.goto('/dashboard')
-    await openCommandPalette(page)
-    await expect(page.getByTestId('command-palette')).toBeVisible({ timeout: 10000 })
-
     const isDarkBefore = await page.evaluate(() => document.documentElement.classList.contains('dark'))
-    await page.getByTestId('command-palette').getByRole('option', { name: /светлая тема|тёмная тема/i }).click()
+    await openCommandPalette(page)
+    await visibleCommandPalette(page).getByRole('option', { name: /светлая тема|тёмная тема/i }).click()
     await expect.poll(async () =>
       page.evaluate(() => document.documentElement.classList.contains('dark')),
     ).toBe(!isDarkBefore)

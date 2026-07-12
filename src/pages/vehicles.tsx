@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
+import { TablePagination } from '@/components/shared/table-pagination'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { VehicleForm } from '@/components/forms/vehicle-form'
 import { FuelLogForm } from '@/components/forms/fuel-log-form'
@@ -150,6 +151,44 @@ export default function VehiclesPage() {
           </CardContent>
         )}
         <CardContent className="p-0">
+          <div className="md:hidden space-y-3 p-4">
+            {fuelPagination.paginatedItems.map((log) => {
+              const vehicle = vehicles.find((v) => v.id === log.vehicle_id)
+              return (
+                <Card key={log.id} className="p-4" data-testid={`fuel-log-card-${log.id}`}>
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="font-medium">{vehicle?.name ?? '—'}</p>
+                        <p className="text-sm text-muted-foreground">{formatDate(log.date, dateLocale)}</p>
+                      </div>
+                      <p className="font-semibold">{formatCurrencyPrecise(log.total_cost)}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
+                      <span className="text-muted-foreground">{t.vehicles.miles}</span>
+                      <span>{log.miles}</span>
+                      <span className="text-muted-foreground">{t.vehicles.gallons}</span>
+                      <span>{log.gallons}</span>
+                      <span className="text-muted-foreground">{t.vehicles.pricePerGal}</span>
+                      <span>{formatCurrencyPrecise(log.fuel_price)}</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title={t.common.edit}
+                      data-testid={`fuel-log-edit-${log.id}`}
+                      onClick={() => { setEditingFuelLog(log); setShowFuelForm(true) }}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </Card>
+              )
+            })}
+            <TablePagination pagination={fuelPagination} testId="fuel-logs-pagination-mobile" />
+          </div>
+
+          <div className="hidden md:block">
           <DataTable
             headers={[t.vehicles.date, t.vehicles.vehicle, t.vehicles.miles, t.vehicles.gallons, t.vehicles.pricePerGal, t.vehicles.total]}
             pagination={fuelPagination}
@@ -182,6 +221,7 @@ export default function VehiclesPage() {
               )
             })}
           </DataTable>
+          </div>
         </CardContent>
       </Card>
     </div>

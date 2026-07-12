@@ -11,7 +11,7 @@ import {
   seedDraftInvoice,
   clearPortalReview,
 } from './helpers/auth'
-import { visibleTestId } from './helpers/visibility'
+import { visibleTestId, visibleTestIdMatch, visibleText } from './helpers/visibility'
 
 test.describe('Expanded audit log E2E', () => {
   test.beforeEach(async ({ page }) => {
@@ -38,8 +38,8 @@ test.describe('Expanded audit log E2E', () => {
 
   test('estimate to invoice conversion appears in audit log', async ({ page }) => {
     await page.goto('/estimates')
-    await expect(page.getByText('Leaking Faucet Repair').first()).toBeVisible()
-    await page.getByTestId('estimate-convert-est-002').click()
+    await expect(visibleText(page, 'Leaking Faucet Repair', true).first()).toBeVisible()
+    await visibleTestId(page, 'estimate-convert-est-002').click()
     await expect(page.getByText(/счёт создан из сметы|invoice created from estimate/i).first()).toBeVisible({ timeout: 10000 })
 
     await openSettingsAuditTab(page)
@@ -74,8 +74,8 @@ test.describe('Expanded audit log E2E', () => {
 
   test('estimate send appears in audit log', async ({ page }) => {
     await page.goto('/estimates')
-    await expect(page.getByText('Deck Repair & Staining').first()).toBeVisible()
-    await page.getByTestId('estimate-send-est-003').click()
+    await expect(visibleText(page, 'Deck Repair & Staining', true).first()).toBeVisible()
+    await visibleTestId(page, 'estimate-send-est-003').click()
     await expect(page.getByText(/смета отправлена/i).first()).toBeVisible({ timeout: 10000 })
 
     await openSettingsAuditTab(page)
@@ -99,7 +99,7 @@ test.describe('Expanded audit log E2E', () => {
 
   test('inventory receive appears in audit log', async ({ page }) => {
     await page.goto('/materials')
-    await page.getByTestId('material-receive-mat-003').click()
+    await visibleTestId(page, 'material-receive-mat-003').click()
     await page.getByTestId('materials-receive-dialog').locator('input[type="number"]').fill('2')
     await page.getByTestId('materials-receive-submit').click()
     await expect(page.getByText(/приход на склад|receive stock/i).first()).toBeVisible({ timeout: 10000 })
@@ -110,7 +110,7 @@ test.describe('Expanded audit log E2E', () => {
 
   test('inventory apply appears in audit log', async ({ page }) => {
     await page.goto('/jobs')
-    await page.getByTestId('job-material-usage-job-001').click()
+    await visibleTestId(page, 'job-material-usage-job-001').click()
     await page.getByTestId('job-material-dialog').getByRole('combobox').click()
     await page.getByRole('option', { name: /Joint Compound/i }).click()
     await page.getByTestId('job-material-submit').click()
@@ -252,7 +252,7 @@ test.describe('Vendor PO audit E2E', () => {
     const dropzone = page.getByTestId('work-orders-vendor-po-dropzone')
     await dropzone.locator('input[type="file"]').setInputFiles('e2e/fixtures/vendor-po-sample.pdf')
     await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 15000 })
-    await page.getByTestId(/vendor-po-create-job-/).first().click()
+    await visibleTestIdMatch(page, /vendor-po-create-job-/).first().click()
     await expect(page.getByText(/заказ создан из 207872-02|job created from 207872-02/i).first()).toBeVisible({ timeout: 10000 })
 
     await openSettingsAuditTab(page)
@@ -267,7 +267,7 @@ test.describe('Vendor PO audit E2E', () => {
     const dropzone = page.getByTestId('work-orders-vendor-po-dropzone')
     await dropzone.locator('input[type="file"]').setInputFiles('e2e/fixtures/vendor-po-emergency.pdf')
     await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 15000 })
-    await page.getByTestId(/vendor-po-create-job-/).first().click()
+    await visibleTestIdMatch(page, /vendor-po-create-job-/).first().click()
     await expect(page.getByText(/заказ создан из 210214-01|job created from 210214-01/i).first()).toBeVisible({ timeout: 10000 })
 
     await openSettingsAuditTab(page)
@@ -484,8 +484,8 @@ test.describe('Invoice & sample audit E2E', () => {
 
   test('invoice payment appears in audit log', async ({ page }) => {
     await page.goto('/invoices')
-    await expect(page.getByText('INV-2026-0141').first()).toBeVisible()
-    await page.getByTestId('invoice-pay-inv-002').click()
+    await expect(visibleText(page, 'INV-2026-0141').first()).toBeVisible()
+    await visibleTestId(page, 'invoice-pay-inv-002').click()
     await expect(page.getByText(/оплачено|paid/i).first()).toBeVisible({ timeout: 10000 })
 
     await openSettingsAuditTab(page)
@@ -496,8 +496,8 @@ test.describe('Invoice & sample audit E2E', () => {
   test('invoice sent appears in audit log', async ({ page }) => {
     await seedDraftInvoice(page)
     await page.goto('/invoices')
-    await expect(page.getByText('INV-E2E-DRAFT').first()).toBeVisible()
-    await page.getByTestId('invoice-send-inv-e2e-draft').click()
+    await expect(visibleText(page, 'INV-E2E-DRAFT').first()).toBeVisible()
+    await visibleTestId(page, 'invoice-send-inv-e2e-draft').click()
     await expect(page.getByText(/счёт отправлен|invoice sent/i).first()).toBeVisible({ timeout: 10000 })
 
     await openSettingsAuditTab(page)
@@ -614,7 +614,7 @@ test.describe('Entity update audit E2E', () => {
 
   test('customer update appears in audit log', async ({ page }) => {
     await page.goto('/customers')
-    await page.getByTestId('customer-edit-cust-001').click()
+    await visibleTestId(page, 'customer-edit-cust-001').click()
     const form = page.getByTestId('customer-form')
     await form.locator('input').first().fill('ABC Property Management E2E')
     await page.getByTestId('customer-form-submit').click()
@@ -641,7 +641,7 @@ test.describe('Entity update audit E2E', () => {
 
   test('material update appears in audit log', async ({ page }) => {
     await page.goto('/materials')
-    await page.getByTestId('material-edit-mat-001').click()
+    await visibleTestId(page, 'material-edit-mat-001').click()
     const form = page.getByTestId('material-form')
     await form.locator('input').first().fill('Joint Compound E2E Audit')
     await page.getByTestId('material-form-submit').click()
@@ -680,7 +680,7 @@ test.describe('Entity update audit E2E', () => {
 
   test('vehicle update appears in audit log', async ({ page }) => {
     await page.goto('/vehicles')
-    await page.getByTestId('vehicle-edit-veh-001').click()
+    await visibleTestId(page, 'vehicle-edit-veh-001').click()
     const form = page.getByTestId('vehicle-form')
     await form.locator('input').first().fill('Service Van E2E Audit')
     await page.getByTestId('vehicle-form-submit').click()
@@ -693,7 +693,7 @@ test.describe('Entity update audit E2E', () => {
 
   test('expense update appears in audit log', async ({ page }) => {
     await page.goto('/expenses')
-    await page.getByTestId('expense-edit-exp-003').click()
+    await visibleTestId(page, 'expense-edit-exp-003').click()
     const form = page.getByTestId('expense-form')
     await form.locator('input').nth(2).fill('Drywall saw E2E audit')
     await page.getByTestId('expense-form-submit').click()
@@ -706,7 +706,7 @@ test.describe('Entity update audit E2E', () => {
 
   test('fuel log update appears in audit log', async ({ page }) => {
     await page.goto('/vehicles')
-    await page.getByTestId('fuel-log-edit-fuel-001').click()
+    await visibleTestId(page, 'fuel-log-edit-fuel-001').click()
     const form = page.getByTestId('fuel-log-form')
     await form.locator('input[type="number"]').first().fill('150')
     await page.getByTestId('fuel-log-form-submit').click()

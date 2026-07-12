@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner } from './helpers/auth'
+import { visibleText, visibleTestIdMatch } from './helpers/visibility'
 
 test.describe('Vendor PO 210071 upload', () => {
   test.beforeEach(async ({ page }) => {
@@ -20,9 +21,9 @@ test.describe('Vendor PO 210071 upload', () => {
     const dropzone = page.getByTestId('work-orders-vendor-po-dropzone')
     await dropzone.locator('input[type="file"]').setInputFiles('e2e/fixtures/vendor-po-210071-01.pdf')
 
-    await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 30000 })
-    await expect(page.getByText('210071-01').first()).toBeVisible()
-    await expect(page.getByTestId(/vendor-po-problem-/)).toBeVisible({ timeout: 15000 })
+    await expect(visibleText(page, /pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 30000 })
+    await expect(visibleText(page, '210071-01', true).first()).toBeVisible()
+    await expect(visibleTestIdMatch(page, /vendor-po-problem-/).first()).toBeVisible({ timeout: 15000 })
     await expect(page.getByRole('alert')).toHaveCount(0)
     expect(pageErrors).toEqual([])
   })

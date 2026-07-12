@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, seedInProgressTechJob } from './helpers/auth'
+import { visibleText } from './helpers/visibility'
 
 test.describe('Reports and technician mobile', () => {
   test.beforeEach(async ({ page }) => {
@@ -39,7 +40,7 @@ test.describe('Reports and technician mobile', () => {
     await switcher.click()
     await page.getByRole('option', { name: /Sunrise Property Services/i }).click()
     await page.goto('/jobs')
-    await expect(page.getByText(/Clubhouse touch-up paint|Storefront door repair/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /Clubhouse touch-up paint|Storefront door repair/).first()).toBeVisible({ timeout: 10000 })
   })
 
   test('settings integrations tab shows configure badges', async ({ page }) => {

@@ -1,3 +1,37 @@
+# HandymanOS AI — Release 1.14.37
+
+**Status:** merging to `main` — production deploy **v1.14.37**.
+
+Audit P4 milestone: mobile-first list layouts, bundle splitting, E2E visibility stability.
+
+## 1.14.25–1.14.36 — Audit P4 (bundle + mobile + E2E)
+
+### Bundle splitting (lazy chunks)
+- **v1.14.25** — Dynamic `e2e-mock-supabase`; async bootstrap in `main.tsx`
+- **v1.14.29** — Dynamic `pdf-ocr` in `pdf-extract.ts`
+- **v1.14.30** — Dynamic `mock-data` in `importSampleData`
+- **v1.14.31** — `pdf-utils.ts`; work-orders lazy `pdf-extract` (~584→97 kB chunk)
+- **v1.14.33** — Work-orders lazy `@/lib/ai` on analyze
+- **v1.14.34** — Estimates lazy `generateSmartEstimate` when smart engine opens
+- **v1.14.35** — Invoices/estimates/reports lazy `@/lib/export` on PDF/CSV export
+- **v1.14.36** — Vendor PO lazy export; AI assistant lazy `@/lib/ai` on send; `vendor-po-groups.ts` + `ai-context.ts`
+
+### Mobile cards (dual layout)
+Jobs, customers, vendor PO, invoices, estimates, materials, expenses, vehicles (fuel logs), reports (profit + customers tabs) — `md:hidden` cards + `hidden md:block` tables.
+
+### E2E stability
+- `e2e/helpers/visibility.ts` — visible locators (`visibleText`, `visibleTestId`, `visibleRow`, etc.)
+- **14** mobile-layout specs gated in `verify-production-readiness`
+- `mobile-smoke.spec.ts` refreshed for iPhone 13
+- `stripe-live.spec.ts` nightly edge probe
+
+### Test coverage (target)
+- Unit: `npm test`
+- E2E: `npm run test:e2e`
+- Gates: `npm run verify:production`
+
+---
+
 # HandymanOS AI — Release 1.13.5
 
 **Status:** merged to `main` (current package **1.13.5**).

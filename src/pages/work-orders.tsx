@@ -15,10 +15,7 @@ import { VendorPOTable } from '@/components/vendor-po/vendor-po-table'
 import { useWorkOrders } from '@/hooks/use-entities'
 import { saveWorkOrderFromAI } from '@/services/entity-service'
 import { useAuth } from '@/contexts/auth-context'
-import { analyzeWorkOrderPDF, analyzeEmailWorkOrder, analyzePhoto } from '@/lib/ai'
-import { tryExtractTextFromPdf, isPdfFile, warmUpPdfJs, prefersNoPdfWorker } from '@/lib/pdf-extract'
-import { getCdnPdfJs } from '@/lib/pdf-extract-cdn'
-import { canExtractPdfOnServer, isServerPdfExtractAvailable } from '@/lib/pdf-extract-server'
+import { isPdfFile, prefersNoPdfWorker } from '@/lib/pdf-utils'
 import { ensureSupabaseSession } from '@/lib/supabase-session'
 import { isVendorPOText, parseVendorPOText } from '@/lib/vendor-po-parser'
 import { getErrorMessage, isPdfExtractError, isVendorPOSaveError, isVendorPOStorageError, vendorPoPdfExtractUserMessage } from '@/lib/error-message'
@@ -55,10 +52,11 @@ export default function WorkOrdersPage() {
   const seedVendorPOs = useSeedVendorPOs()
 
   useEffect(() => {
-    warmUpPdfJs()
+    void import('@/lib/pdf-extract').then(({ warmUpPdfJs }) => warmUpPdfJs())
     if (prefersNoPdfWorker()) {
-      void getCdnPdfJs().catch(() => undefined)
-      void ensureSupabaseSession().then(() => {
+      void import('@/lib/pdf-extract-cdn').then(({ getCdnPdfJs }) => getCdnPdfJs().catch(() => undefined))
+      void ensureSupabaseSession().then(async () => {
+        const { canExtractPdfOnServer, isServerPdfExtractAvailable } = await import('@/lib/pdf-extract-server')
         if (canExtractPdfOnServer()) {
           void isServerPdfExtractAvailable().catch(() => undefined)
         }
@@ -83,6 +81,7 @@ export default function WorkOrdersPage() {
     setAnalyzing(true)
     setExtracted(null)
     try {
+      const { analyzeWorkOrderPDF, analyzeEmailWorkOrder, analyzePhoto } = await import('@/lib/ai')
       const result =
         type === 'email'
           ? await analyzeEmailWorkOrder(content)
@@ -123,6 +122,7 @@ export default function WorkOrdersPage() {
     )
     try {
       await ensureSupabaseSession()
+      const { tryExtractTextFromPdf } = await import('@/lib/pdf-extract')
       const parsed = []
       for (const file of pdfFiles) {
         const normalizedFileName = normalizeVendorPoFileName(file.name)

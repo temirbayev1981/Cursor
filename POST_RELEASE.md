@@ -1,4 +1,4 @@
-# Post-release checklist (1.13.5+)
+# Post-release checklist (1.14.26+)
 
 Use this after merging to `main` or cutting a new tag.
 
@@ -21,15 +21,16 @@ Without Supabase secrets, CI still passes (E2E uses mock backend), but the live 
 
 1. Create project at [supabase.com](https://supabase.com)
 2. Run full `supabase/schema.sql` in SQL Editor (see [supabase/UPGRADE.md](./supabase/UPGRADE.md))
-3. **Auth fix (if login fails):** run `supabase/migrations/20260711000001_auth_provision_owner.sql` (same as `auth-login-fix.sql`)
-4. Deploy Edge Functions:
+3. **Auth fix (if login fails):** run `supabase/migrations/20260711000001_auth_provision_owner.sql`
+4. **Vendor PO + RLS (if needed):** run `20260711000003_vendor_po_problem_description.sql`, `20260712000001_rate_limit_buckets_rls.sql`
+5. Deploy Edge Functions:
 
 ```bash
 npm run deploy:edge-functions
 # or see DEPLOYMENT.md §2–8
 ```
 
-5. Set Edge Function secrets (`OPENAI_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, etc.)
+6. Set Edge Function secrets (`OPENAI_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, etc.)
 
 ## 3. Verify locally
 
@@ -47,7 +48,7 @@ npm run smoke:supabase       # needs live Supabase in .env.local
 
 - Push to `main` runs **CI**, **Deploy** (GitHub Pages), and **Deploy FTP** (when FTP secrets are set)
 - **Supabase smoke** runs nightly (`supabase-smoke.yml` at 06:00 UTC)
-- **Live E2E smoke** runs nightly (`nightly-live-e2e.yml` at 07:00 UTC) when Supabase secrets are set
+- **Live E2E smoke** runs nightly (`nightly-live-e2e.yml` at 07:00 UTC) when Supabase secrets are set; optional Stripe edge probe when `VITE_STRIPE_PUBLISHABLE_KEY` is set
 
 ## 5. First login in production
 
@@ -63,11 +64,11 @@ npm run smoke:supabase       # needs live Supabase in .env.local
 
 ## 7. Tags and rollback
 
-Current release: **1.13.5**
+Current release: **1.14.37**
 
 ```bash
-git tag -a v1.13.5 -m "HandymanOS AI 1.13.5"
-git push origin v1.13.5
+git tag -a v1.14.37 -m "HandymanOS AI 1.14.37"
+git push origin v1.14.37
 ```
 
 Rollback: checkout a prior tag per team policy.

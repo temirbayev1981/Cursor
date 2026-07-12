@@ -1,10 +1,5 @@
 import type { Job, Customer, Estimate, Invoice, Property, Employee, Material, Vehicle, Expense, ScheduleEvent, WorkOrder, ServiceCatalogItem, FuelLog, Payment, TimeEntry } from '@/types'
 import { loadStore, saveStore, upsertStore, removeFromStore, filterByCompany, mergeStoreById, STORE_KEYS } from '@/lib/data-store'
-import {
-  DEMO_JOBS, DEMO_CUSTOMERS, DEMO_ESTIMATES, DEMO_INVOICES,
-  DEMO_PROPERTIES, DEMO_EMPLOYEES, DEMO_MATERIALS, DEMO_VEHICLES, DEMO_EXPENSES, DEMO_SCHEDULE,
-  DEMO_WORK_ORDERS, DEMO_SERVICES, DEMO_FUEL_LOGS,
-} from '@/data/mock-data'
 import { matchCustomerFromVendorPO } from '@/lib/vendor-po-customer-match'
 import { isUuid } from '@/lib/is-uuid'
 import { getErrorMessage } from '@/lib/error-message'
@@ -40,21 +35,6 @@ type EntityMap = {
   schedules: ScheduleEvent
   workOrders: WorkOrder
   services: ServiceCatalogItem
-}
-
-const SAMPLE_SEED: Partial<Record<keyof EntityMap, unknown[]>> = {
-  jobs: DEMO_JOBS,
-  customers: DEMO_CUSTOMERS,
-  estimates: DEMO_ESTIMATES,
-  invoices: DEMO_INVOICES,
-  properties: DEMO_PROPERTIES,
-  employees: DEMO_EMPLOYEES,
-  materials: DEMO_MATERIALS,
-  vehicles: DEMO_VEHICLES,
-  expenses: DEMO_EXPENSES,
-  schedules: DEMO_SCHEDULE,
-  workOrders: DEMO_WORK_ORDERS,
-  services: DEMO_SERVICES,
 }
 
 const KEY_MAP: Record<keyof EntityMap, string> = {
@@ -291,11 +271,32 @@ export async function deleteEntity<K extends keyof EntityMap>(entity: K, id: str
 export async function importSampleData(companyId: string): Promise<{ imported: number }> {
   if (!supabase) throw new Error('Supabase is not configured')
 
+  const {
+    DEMO_JOBS, DEMO_CUSTOMERS, DEMO_ESTIMATES, DEMO_INVOICES,
+    DEMO_PROPERTIES, DEMO_EMPLOYEES, DEMO_MATERIALS, DEMO_VEHICLES, DEMO_EXPENSES, DEMO_SCHEDULE,
+    DEMO_WORK_ORDERS, DEMO_SERVICES, DEMO_FUEL_LOGS,
+  } = await import('@/data/mock-data')
+
+  const sampleSeed: Partial<Record<keyof EntityMap, unknown[]>> = {
+    jobs: DEMO_JOBS,
+    customers: DEMO_CUSTOMERS,
+    estimates: DEMO_ESTIMATES,
+    invoices: DEMO_INVOICES,
+    properties: DEMO_PROPERTIES,
+    employees: DEMO_EMPLOYEES,
+    materials: DEMO_MATERIALS,
+    vehicles: DEMO_VEHICLES,
+    expenses: DEMO_EXPENSES,
+    schedules: DEMO_SCHEDULE,
+    workOrders: DEMO_WORK_ORDERS,
+    services: DEMO_SERVICES,
+  }
+
   let imported = 0
-  const entities = Object.keys(SAMPLE_SEED) as (keyof EntityMap)[]
+  const entities = Object.keys(sampleSeed) as (keyof EntityMap)[]
 
   for (const entity of entities) {
-    const seedItems = SAMPLE_SEED[entity] as EntityMap[typeof entity][]
+    const seedItems = sampleSeed[entity] as EntityMap[typeof entity][]
     const items = seedItems.map((i) => ({ ...i, company_id: companyId }))
     for (const item of items) {
       await saveEntity(entity, item)

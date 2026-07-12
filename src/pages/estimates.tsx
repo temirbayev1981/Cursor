@@ -1,7 +1,8 @@
 import { Plus, Sparkles, FileSpreadsheet, Send, X, Download } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
+import { TablePagination } from '@/components/shared/table-pagination'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { EstimateStatusBadge } from '@/components/shared/status-badge'
 import { EstimateForm } from '@/components/forms/estimate-form'
@@ -14,8 +15,6 @@ import { generateInvoiceNumber } from '@/services/payment-service'
 import { notifyEstimateSent, notifyEstimateSentSms, notifyResultMessage } from '@/services/notification-service'
 import { logAudit } from '@/services/entity-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import { generateSmartEstimate } from '@/lib/ai'
-import { exportEstimatePdf } from '@/lib/export'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
@@ -37,15 +36,32 @@ export default function EstimatesPage() {
   const convertToInvoice = useConvertEstimateToInvoice()
   const pagination = useTablePagination(estimates)
 
-  const smartEstimate = generateSmartEstimate(
-    'Drywall Repair',
-    jobs.filter((j) => j.title.toLowerCase().includes('drywall')).map((j) => ({
-      estimated_hours: j.estimated_hours,
-      actual_hours: j.actual_hours,
-      revenue: j.revenue,
-      profit_margin: j.profit_margin,
-    }))
+  const drywallJobStats = useMemo(
+    () =>
+      jobs
+        .filter((j) => j.title.toLowerCase().includes('drywall'))
+        .map((j) => ({
+          estimated_hours: j.estimated_hours,
+          actual_hours: j.actual_hours,
+          revenue: j.revenue,
+          profit_margin: j.profit_margin,
+        })),
+    [jobs],
   )
+
+  const [smartEstimate, setSmartEstimate] = useState({ hours: 4, price: 450, confidence: 0.5 })
+
+  useEffect(() => {
+    if (!showEngine) return
+    let cancelled = false
+    void import('@/lib/ai').then(({ generateSmartEstimate }) => {
+      if (cancelled) return
+      setSmartEstimate(generateSmartEstimate('Drywall Repair', drywallJobStats))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [showEngine, drywallJobStats])
 
   const pricingOptions = [
     { label: t.estimates.hourlyBilling, rate: '$75/' + t.common.hr },
@@ -104,7 +120,8 @@ export default function EstimatesPage() {
     )
   }
 
-  const handleExportPdf = (est: Estimate, customerName: string) => {
+  const handleExportPdf = async (est: Estimate, customerName: string) => {
+    const { exportEstimatePdf } = await import('@/lib/export')
     exportEstimatePdf({
       title: est.title,
       customerName,
@@ -208,6 +225,58 @@ export default function EstimatesPage() {
       {estimatesLoading || jobsLoading || customersLoading ? (
         <TableSkeleton cols={8} />
       ) : (
+      <>
+      <div className="md:hidden space-y-3">
+        {pagination.paginatedItems.map((est) => {
+          const customer = customers.find((c) => c.id === est.customer_id)
+          return (
+            <Card key={est.id} className="p-4" data-testid={`estimate-card-${est.id}`}>
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="font-medium line-clamp-2">{est.title}</p>
+                  <EstimateStatusBadge status={est.status} />
+                </div>
+                <p className="text-sm text-muted-foreground">{customer?.name ?? '—'}</p>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
+                  <span className="text-muted-foreground">{t.estimates.labor}</span>
+                  <span>{est.labor_hours}{t.common.hours} @ {formatCurrency(est.labor_rate)}/{t.common.hr}</span>
+                  <span className="text-muted-foreground">{t.estimates.materials}</span>
+                  <span>{formatCurrency(est.material_cost)}</span>
+                  <span className="text-muted-foreground">{t.estimates.total}</span>
+                  <span className="font-semibold">{formatCurrency(est.total)}</span>
+                  <span className="text-muted-foreground">{t.estimates.validUntil}</span>
+                  <span>{formatDate(est.valid_until, dateLocale)}</span>
+                </div>
+                <div className="flex gap-1 pt-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    title={t.common.exportPdf}
+                    onClick={() => handleExportPdf(est, customer?.name ?? '')}
+                    data-testid={`estimate-export-pdf-${est.id}`}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  {est.status === 'draft' && (
+                    <Button size="sm" variant="ghost" onClick={() => handleSend(est)} data-testid={`estimate-send-${est.id}`}>
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {['sent', 'approved'].includes(est.status) && (
+                    <Button size="sm" variant="ghost" onClick={() => handleConvert(est)} title="Создать счёт"
+                      data-testid={`estimate-convert-${est.id}`}>
+                      <FileSpreadsheet className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </Card>
+          )
+        })}
+        <TablePagination pagination={pagination} testId="estimates-pagination-mobile" />
+      </div>
+
+      <div className="hidden md:block">
       <DataTable
         headers={[t.estimates.estimate, t.customers.customer, t.jobs.status, t.estimates.labor, t.estimates.materials, t.estimates.total, t.estimates.validUntil, '']}
         pagination={pagination}
@@ -252,6 +321,8 @@ export default function EstimatesPage() {
           )
         })}
       </DataTable>
+      </div>
+      </>
       )}
     </div>
   )

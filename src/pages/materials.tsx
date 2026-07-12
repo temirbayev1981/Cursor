@@ -3,6 +3,7 @@ import { Plus, AlertTriangle, X, PackagePlus, Pencil } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
+import { TablePagination } from '@/components/shared/table-pagination'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -101,7 +102,55 @@ export default function MaterialsPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-3">
+          <div className="md:hidden space-y-3">
+            {pagination.paginatedItems.map((mat) => {
+              const isLow = mat.quantity <= mat.reorder_level
+              return (
+                <Card key={mat.id} className="p-4" data-testid={`material-card-${mat.id}`}>
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-medium">{mat.name}</p>
+                      <Badge variant={isLow ? 'warning' : 'success'}>
+                        {isLow ? t.materials.lowStock : t.materials.inStock}
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
+                      <span className="text-muted-foreground">{t.materials.category}</span>
+                      <span>{mat.category}</span>
+                      <span className="text-muted-foreground">{t.materials.cost}</span>
+                      <span>{formatCurrencyPrecise(mat.cost)}</span>
+                      <span className="text-muted-foreground">{t.materials.qty}</span>
+                      <span>{mat.quantity} {mat.unit}</span>
+                    </div>
+                    <div className="flex gap-1 pt-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={t.common.edit}
+                        data-testid={`material-edit-${mat.id}`}
+                        onClick={() => { setEditingMaterial(mat); setShowForm(true) }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={t.materials.receiveStock}
+                        data-testid={`material-receive-${mat.id}`}
+                        onClick={() => setReceiveMaterialId(mat.id)}
+                      >
+                        <PackagePlus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              )
+            })}
+            <TablePagination pagination={pagination} testId="materials-pagination-mobile" />
+          </div>
+
+          <div className="hidden md:block">
           <DataTable
             headers={[t.materials.material, t.materials.category, t.materials.cost, t.materials.qty, t.materials.stockStatus, '']}
             pagination={pagination}
@@ -146,6 +195,7 @@ export default function MaterialsPage() {
               )
             })}
           </DataTable>
+          </div>
         </div>
 
         <Card>

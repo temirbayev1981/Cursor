@@ -1,5 +1,7 @@
 import type { VendorPORecord } from '@/types/vendor-po'
 import { getProblemDescriptionEn, getProblemDescriptionRu } from '@/lib/vendor-po-problem'
+
+export { groupVendorPOsByAddress } from '@/lib/vendor-po-groups'
 import type { Job, Customer, Employee, Estimate, Invoice } from '@/types'
 import type { ChartDataPoint } from '@/lib/analytics'
 import { computeTechnicianPerformance, computeServiceProfitability, computeReportSummary } from '@/lib/analytics'
@@ -42,17 +44,6 @@ export async function exportVendorPOsToExcel(records: VendorPORecord[], filename
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Vendor PO')
   XLSX.writeFile(wb, filename)
-}
-
-export function groupVendorPOsByAddress(records: VendorPORecord[]): Map<string, VendorPORecord[]> {
-  const groups = new Map<string, VendorPORecord[]>()
-  for (const r of records) {
-    const key = `${r.service_address}, ${r.service_city}, ${r.service_state}`
-    const list = groups.get(key) ?? []
-    list.push(r)
-    groups.set(key, list)
-  }
-  return groups
 }
 
 export async function exportJobsToCsv(jobs: import('@/types').Job[], filename = 'jobs-report.csv') {

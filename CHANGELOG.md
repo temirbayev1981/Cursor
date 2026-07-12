@@ -2,6 +2,177 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.37] — 2026-07-12
+
+Pre-merge E2E fixes for dual mobile/desktop layouts and portal invoice seeding.
+
+### E2E
+- `expectCustomerNameVisible` helper restored in `visibility.ts`
+- Vendor PO specs use visible locators (`vendor-po-210071`, `vendor-po-null-render`, `vendor-search-ai-invoice`)
+- Portal invoice pay tests: seed after portal mount, wait for pay button
+- `playwright.config.ts` ignores live-only specs (`stripe-live`, `live-backend-smoke`)
+
+## [1.14.36] — 2026-07-12
+
+Audit P4: lazy export in vendor PO, lazy AI in assistant, RELEASE sync.
+
+### Bundle
+- `vendor-po-table.tsx` — dynamic import of `@/lib/export` on Excel export; `vendor-po-groups.ts` for address grouping
+- `ai-assistant.tsx` — dynamic import of `@/lib/ai` on send; `ai-context.ts` for lightweight business context
+- `verify-production-readiness` gates for vendor-po export + ai-assistant lazy imports
+
+### Docs
+- `RELEASE.md` — Audit P4 summary (1.14.25–1.14.36)
+
+## [1.14.35] — 2026-07-12
+
+Audit P4: lazy export in billing/reports, mobile-smoke refresh.
+
+### Bundle
+- `invoices.tsx`, `estimates.tsx`, `reports.tsx` — dynamic import of `@/lib/export` on PDF/CSV export
+- `verify-production-readiness` gates for billing/reports export imports
+
+### E2E
+- `visibleCommandPalette` helper; fleet-expenses + technicians-theme-reports use it
+- `mobile-smoke.spec.ts` — customer/job card layouts on iPhone 13 viewport
+
+## [1.14.34] — 2026-07-12
+
+Audit P4: lazy AI in estimates, dispatch/dashboard mobile E2E.
+
+### Bundle
+- `estimates.tsx` — dynamic import of `generateSmartEstimate` when smart engine opens
+- `verify-production-readiness` gate for estimates dynamic ai import
+
+### E2E
+- `dispatch-mobile-layout.spec.ts`, `dashboard-mobile-layout.spec.ts`
+- Visible locators in dispatch-map-i18n-pdf, dispatch-ai-pdf, settings-dashboard
+- 14 mobile-layout E2E specs gated in verify-production
+
+## [1.14.33] — 2026-07-12
+
+Audit P4: lazy AI in work-orders, properties/technicians mobile E2E.
+
+### Bundle
+- `work-orders.tsx` — dynamic import of `@/lib/ai` (analysis only on user action)
+- `verify-production-readiness` gates for dynamic ai import + `pdf-utils.ts`
+
+### E2E
+- `properties-mobile-layout.spec.ts`, `technicians-mobile-layout.spec.ts`
+- Visible locators in scheduling, technicians-theme-reports, vendor-search global search
+- `jobs-bulk-estimate-i18n` uses `visibleTestId` for estimate PDF export
+
+## [1.14.32] — 2026-07-12
+
+Audit P4: vendor PO visible E2E, scheduling mobile spec, pdf-utils tests.
+
+### E2E
+- `visibleTestIdMatch` helper for regex testids (vendor PO create-job buttons)
+- Visible locators in `work-orders-vendor-po`, `mobile-vendor-po-pdf`, `vendor-search-ai-invoice`, `audit-expanded`
+- `scheduling-mobile-layout.spec.ts` — day view on mobile viewport
+- `properties-inventory` uses `visibleRow`; command palette uses visible palette scope
+
+### Tests
+- `src/lib/pdf-utils.test.ts` — isPdfFile / prefersNoPdfWorker unit coverage
+
+## [1.14.31] — 2026-07-12
+
+Audit P4: lazy work-orders PDF chunk, E2E visible helpers, mobile-layout gates.
+
+### Bundle
+- `pdf-utils.ts` — lightweight `isPdfFile` / `prefersNoPdfWorker` without pdf.js
+- `work-orders.tsx` — dynamic import of `pdf-extract`, CDN and server probes
+- `verify-production-readiness` gates for work-orders pdf-extract + 9 mobile-layout E2E specs
+
+### E2E
+- `visibility.ts` — `expectEstimateTitleVisible`, `visibleRow` helpers
+- `materials`, `estimate-pdf-release`, `scheduling` specs use visible locators
+
+## [1.14.30] — 2026-07-12
+
+Audit P4: lazy sample seed chunk, reports customers mobile, E2E visible fixes.
+
+### Bundle
+- `entity-service.ts` — dynamic import of `mock-data` only when importing sample data
+- `verify-production-readiness` gate for static mock-data import
+
+### UI
+- **Reports** — customers tab stacks on small screens (`report-customer-card-*`)
+
+### E2E
+- `audit-expanded` — visible estimate titles (dual mobile/desktop layout)
+- `properties-inventory` — visible property names and material table rows
+- `reports-mobile-layout` — customers tab on mobile viewport
+
+## [1.14.29] — 2026-07-12
+
+Audit P4: lazy pdf-ocr chunk, reports mobile profit cards, E2E stability.
+
+### Bundle
+- `pdf-extract.ts` — dynamic import of `pdf-ocr` (OCR fallback only when needed)
+- `verify-production-readiness` gate for static pdf-ocr import
+
+### UI
+- **Reports** — profit tab stacks metrics on small screens (`report-profit-card-*`)
+
+### E2E
+- `e2e/reports-mobile-layout.spec.ts` — profit cards on mobile viewport
+- Command palette opens via `Control+k`; fleet-expenses uses visible locators
+
+## [1.14.28] — 2026-07-12
+
+Audit P4: fuel log mobile cards, live Stripe edge smoke.
+
+### UI
+- **Vehicles** — fuel log card layout on `< md`, `fuel-logs-pagination-mobile`
+
+### Live E2E
+- `e2e/stripe-live.spec.ts` — probes `create-subscription-checkout` edge (nightly when Stripe key set)
+- `playwright.live.config.ts` + `nightly-live-e2e.yml` pass `VITE_STRIPE_PUBLISHABLE_KEY`
+
+## [1.14.27] — 2026-07-12
+
+Audit P4: mobile cards for materials and expenses, docs sync.
+
+### UI — Mobile cards
+- **Materials** (`materials.tsx`) — card layout + `materials-pagination-mobile`; transactions panel unchanged
+- **Expenses** (`expenses.tsx`) — card layout + `expenses-pagination-mobile`
+
+### E2E & docs
+- `e2e/materials-mobile-layout.spec.ts`, `e2e/expenses-mobile-layout.spec.ts`
+- Visible locators in materials, fleet-expenses, audit-expanded specs
+- `POST_RELEASE.md` updated to 1.14.26+ with migration list
+
+## [1.14.26] — 2026-07-12
+
+Audit P4 continued: mobile cards for invoices and estimates, a11y scope fix.
+
+### UI — Mobile cards
+- **Invoices** (`invoices.tsx`) — card layout + `invoices-pagination-mobile`
+- **Estimates** (`estimates.tsx`) — card layout + `estimates-pagination-mobile`
+
+### E2E & a11y
+- `e2e/invoices-mobile-layout.spec.ts`, `e2e/estimates-mobile-layout.spec.ts`
+- Visible locators for billing actions across estimates/invoices specs
+- Axe on `/instructions` scoped to `.instructions-doc`
+
+## [1.14.25] — 2026-07-12
+
+Audit P4: production bundle trim, mobile cards for vendor PO and customers.
+
+### Bundle
+- `src/lib/supabase.ts` — dynamic import of `e2e-mock-supabase` (excluded from production chunk)
+- `main.tsx` — async bootstrap awaits E2E mock init when `VITE_E2E_MOCK_BACKEND=true`
+- `verify-production-readiness` gate for static import + missing migrations
+
+### UI — Mobile cards
+- **Vendor PO** (`vendor-po-table.tsx`) — card layout on `< md`; desktop table unchanged
+- **Customers** (`customers.tsx`) — card layout + mobile pagination test id
+
+### Tests
+- `e2e/customers-mobile-layout.spec.ts`, `e2e/vendor-po-mobile-layout.spec.ts`
+- `mobile-smoke.spec.ts` — customers cards + mobile pagination
+
 ## [1.14.24] — 2026-07-12
 
 Audit P3: E2E stability after mobile jobs layout, Sentry Session Replay.

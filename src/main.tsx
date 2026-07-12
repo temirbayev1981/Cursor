@@ -5,13 +5,23 @@ import App from './App.tsx'
 import { initObservability } from '@/lib/observability'
 import { registerServiceWorker } from '@/lib/pwa'
 import { installChunkLoadRecovery } from '@/lib/chunk-reload'
+import { initSupabaseBackend } from '@/lib/supabase'
+import { isE2eMockBackend } from '@/lib/env'
 
-initObservability()
-installChunkLoadRecovery()
-registerServiceWorker()
+async function bootstrap() {
+  if (isE2eMockBackend) {
+    await initSupabaseBackend()
+  }
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+  initObservability()
+  installChunkLoadRecovery()
+  registerServiceWorker()
+
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  )
+}
+
+void bootstrap()

@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { askBusinessAssistant, buildBusinessContext } from '@/lib/ai'
+import { buildBusinessContext } from '@/lib/ai-context'
 import { useJobs, useInvoices, useCustomers } from '@/hooks/use-entities'
 import type { AIChatMessage } from '@/types'
 import { useTranslation } from '@/contexts/locale-context'
@@ -53,6 +53,7 @@ export default function AIAssistantPage() {
     setLoading(true)
 
     try {
+      const { askBusinessAssistant } = await import('@/lib/ai')
       const response = await askBusinessAssistant(text, locale, businessContext)
       setMessages((prev) => [
         ...prev,

@@ -1164,7 +1164,9 @@ const nightlyLiveE2e = existsSync('.github/workflows/nightly-live-e2e.yml')
   : ''
 
 if (
-  livePlaywright.includes("testMatch: 'live-backend-smoke.spec.ts'")
+  (livePlaywright.includes("testMatch: 'live-backend-smoke.spec.ts'")
+    || livePlaywright.includes("'live-backend-smoke.spec.ts'"))
+  && livePlaywright.includes('stripe-live.spec.ts')
   && !livePlaywright.includes('VITE_E2E_MOCK_BACKEND')
   && liveE2e.includes('Live backend smoke')
   && nightlyLiveE2e.includes('LIVE_E2E_OPTIONAL')
@@ -1229,8 +1231,157 @@ const migrationFiles = [
   'supabase/migrations/README.md',
   'supabase/migrations/20260711000001_auth_provision_owner.sql',
   'supabase/migrations/20260711000002_check_rate_limit.sql',
+  'supabase/migrations/20260711000003_vendor_po_problem_description.sql',
+  'supabase/migrations/20260712000001_rate_limit_buckets_rls.sql',
 ]
 for (const file of migrationFiles) {
+  if (existsSync(file)) {
+    console.log(`✓ ${file}`)
+  } else {
+    console.log(`✗ missing: ${file}`)
+    ok = false
+  }
+}
+
+const supabaseModule = readFileSync('src/lib/supabase.ts', 'utf8')
+if (supabaseModule.includes("from '@/lib/e2e-mock-supabase'") || supabaseModule.includes('from "@/lib/e2e-mock-supabase"')) {
+  console.log('✗ src/lib/supabase.ts must not statically import e2e-mock-supabase (use dynamic import)')
+  ok = false
+} else if (supabaseModule.includes("import('@/lib/e2e-mock-supabase')")) {
+  console.log('✓ supabase.ts uses dynamic import for E2E mock')
+} else {
+  console.log('✗ supabase.ts must dynamically import e2e-mock-supabase for E2E builds')
+  ok = false
+}
+
+const pdfExtractModule = readFileSync('src/lib/pdf-extract.ts', 'utf8')
+if (pdfExtractModule.includes("from '@/lib/pdf-ocr'") || pdfExtractModule.includes('from "@/lib/pdf-ocr"')) {
+  console.log('✗ src/lib/pdf-extract.ts must not statically import pdf-ocr (use dynamic import)')
+  ok = false
+} else if (pdfExtractModule.includes("import('@/lib/pdf-ocr')")) {
+  console.log('✓ pdf-extract.ts uses dynamic import for pdf-ocr')
+} else {
+  console.log('✗ pdf-extract.ts must dynamically import pdf-ocr for OCR fallback')
+  ok = false
+}
+
+const entityServiceModule = readFileSync('src/services/entity-service.ts', 'utf8')
+if (entityServiceModule.includes("from '@/data/mock-data'") || entityServiceModule.includes('from "@/data/mock-data"')) {
+  console.log('✗ entity-service.ts must not statically import mock-data (use dynamic import in importSampleData)')
+  ok = false
+} else if (entityServiceModule.includes("import('@/data/mock-data')")) {
+  console.log('✓ entity-service.ts uses dynamic import for sample seed data')
+} else {
+  console.log('✗ entity-service.ts must dynamically import mock-data for importSampleData')
+  ok = false
+}
+
+const workOrdersPage = existsSync('src/pages/work-orders.tsx')
+  ? readFileSync('src/pages/work-orders.tsx', 'utf8')
+  : ''
+if (workOrdersPage.includes("from '@/lib/pdf-extract'") || workOrdersPage.includes('from "@/lib/pdf-extract"')) {
+  console.log('✗ work-orders.tsx must not statically import pdf-extract (use dynamic import)')
+  ok = false
+} else if (workOrdersPage.includes("import('@/lib/pdf-extract')")) {
+  console.log('✓ work-orders.tsx uses dynamic import for pdf-extract')
+} else {
+  console.log('✗ work-orders.tsx must dynamically import pdf-extract for PDF upload')
+  ok = false
+}
+
+if (workOrdersPage.includes("from '@/lib/ai'") || workOrdersPage.includes('from "@/lib/ai"')) {
+  console.log('✗ work-orders.tsx must not statically import ai (use dynamic import in handleAnalyze)')
+  ok = false
+} else if (workOrdersPage.includes("import('@/lib/ai')")) {
+  console.log('✓ work-orders.tsx uses dynamic import for AI analysis')
+} else {
+  console.log('✗ work-orders.tsx must dynamically import ai for work order analysis')
+  ok = false
+}
+
+if (existsSync('src/lib/pdf-utils.ts')) {
+  console.log('✓ pdf-utils.ts (lightweight PDF helpers)')
+} else {
+  console.log('✗ missing src/lib/pdf-utils.ts')
+  ok = false
+}
+
+const estimatesPage = existsSync('src/pages/estimates.tsx')
+  ? readFileSync('src/pages/estimates.tsx', 'utf8')
+  : ''
+if (estimatesPage.includes("from '@/lib/ai'") || estimatesPage.includes('from "@/lib/ai"')) {
+  console.log('✗ estimates.tsx must not statically import ai (use dynamic import for smart engine)')
+  ok = false
+} else if (estimatesPage.includes("import('@/lib/ai')")) {
+  console.log('✓ estimates.tsx uses dynamic import for smart engine')
+} else {
+  console.log('✗ estimates.tsx must dynamically import ai for smart engine')
+  ok = false
+}
+
+for (const [label, file] of [
+  ['invoices.tsx', 'src/pages/invoices.tsx'],
+  ['estimates.tsx', 'src/pages/estimates.tsx'],
+  ['reports.tsx', 'src/pages/reports.tsx'],
+  ['vendor-po-table.tsx', 'src/components/vendor-po/vendor-po-table.tsx'],
+]) {
+  const source = existsSync(file) ? readFileSync(file, 'utf8') : ''
+  if (source.includes("from '@/lib/export'") || source.includes('from "@/lib/export"')) {
+    console.log(`✗ ${label} must not statically import export (use dynamic import on export action)`)
+    ok = false
+  } else if (source.includes("import('@/lib/export')")) {
+    console.log(`✓ ${label} uses dynamic import for export`)
+  } else {
+    console.log(`✗ ${label} must dynamically import export`)
+    ok = false
+  }
+}
+
+const aiAssistantPage = existsSync('src/pages/ai-assistant.tsx')
+  ? readFileSync('src/pages/ai-assistant.tsx', 'utf8')
+  : ''
+if (aiAssistantPage.includes("from '@/lib/ai'") || aiAssistantPage.includes('from "@/lib/ai"')) {
+  console.log('✗ ai-assistant.tsx must not statically import ai (use dynamic import on send)')
+  ok = false
+} else if (aiAssistantPage.includes("import('@/lib/ai')")) {
+  console.log('✓ ai-assistant.tsx uses dynamic import for AI chat')
+} else {
+  console.log('✗ ai-assistant.tsx must dynamically import ai for chat')
+  ok = false
+}
+
+if (existsSync('src/lib/vendor-po-groups.ts')) {
+  console.log('✓ vendor-po-groups.ts (lightweight address grouping)')
+} else {
+  console.log('✗ missing src/lib/vendor-po-groups.ts')
+  ok = false
+}
+
+if (existsSync('src/lib/ai-context.ts')) {
+  console.log('✓ ai-context.ts (lightweight business context)')
+} else {
+  console.log('✗ missing src/lib/ai-context.ts')
+  ok = false
+}
+
+const mobileLayoutSpecs = [
+  'e2e/jobs-mobile-layout.spec.ts',
+  'e2e/customers-mobile-layout.spec.ts',
+  'e2e/vendor-po-mobile-layout.spec.ts',
+  'e2e/invoices-mobile-layout.spec.ts',
+  'e2e/estimates-mobile-layout.spec.ts',
+  'e2e/materials-mobile-layout.spec.ts',
+  'e2e/expenses-mobile-layout.spec.ts',
+  'e2e/vehicles-mobile-layout.spec.ts',
+  'e2e/reports-mobile-layout.spec.ts',
+  'e2e/scheduling-mobile-layout.spec.ts',
+  'e2e/properties-mobile-layout.spec.ts',
+  'e2e/technicians-mobile-layout.spec.ts',
+  'e2e/dispatch-mobile-layout.spec.ts',
+  'e2e/dashboard-mobile-layout.spec.ts',
+]
+console.log('\nMobile layout E2E:')
+for (const file of mobileLayoutSpecs) {
   if (existsSync(file)) {
     console.log(`✓ ${file}`)
   } else {

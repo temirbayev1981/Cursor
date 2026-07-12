@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, setCustomerPortalSession, seedDraftJob } from './helpers/auth'
+import { visibleTestId } from './helpers/visibility'
 
 test.describe('Customer notification prefs sync', () => {
   test('staff CRM email opt-out syncs to customer portal', async ({ page }) => {
     await loginAsOwner(page, 'ru')
     await page.goto('/customers')
-    await page.getByTestId('customer-edit-cust-002').click()
+    await visibleTestId(page, 'customer-edit-cust-002').click()
     await expect(page.getByTestId('customer-form-notification-prefs')).toBeVisible()
 
     const emailToggle = page.getByTestId('customer-form-notify-email')
@@ -13,7 +14,7 @@ test.describe('Customer notification prefs sync', () => {
       await emailToggle.click()
     }
     await page.getByTestId('customer-form-submit').click()
-    await expect(page.getByTestId('customer-email-optout-cust-002')).toBeVisible({ timeout: 10000 })
+    await expect(visibleTestId(page, 'customer-email-optout-cust-002')).toBeVisible({ timeout: 10000 })
 
     await setCustomerPortalSession(page)
     await page.goto('/portal/customer')
@@ -46,15 +47,15 @@ test.describe('Customer notification prefs sync', () => {
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
 
     await page.goto('/customers')
-    await expect(page.getByTestId('customer-email-optout-cust-002')).toBeVisible({ timeout: 10000 })
-    await page.getByTestId('customer-edit-cust-002').click()
+    await expect(visibleTestId(page, 'customer-email-optout-cust-002')).toBeVisible({ timeout: 10000 })
+    await visibleTestId(page, 'customer-edit-cust-002').click()
     await expect(page.getByTestId('customer-form-notify-email')).toHaveAttribute('data-state', 'unchecked')
   })
 
   test('staff CRM SMS opt-out syncs to customer portal', async ({ page }) => {
     await loginAsOwner(page, 'ru')
     await page.goto('/customers')
-    await page.getByTestId('customer-edit-cust-002').click()
+    await visibleTestId(page, 'customer-edit-cust-002').click()
     await expect(page.getByTestId('customer-form-notification-prefs')).toBeVisible()
 
     const smsToggle = page.getByTestId('customer-form-notify-sms')
@@ -94,7 +95,7 @@ test.describe('Customer notification prefs sync', () => {
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
 
     await page.goto('/customers')
-    await page.getByTestId('customer-edit-cust-002').click()
+    await visibleTestId(page, 'customer-edit-cust-002').click()
     await expect(page.getByTestId('customer-form-notify-sms')).toHaveAttribute('data-state', 'unchecked')
   })
 
@@ -103,13 +104,13 @@ test.describe('Customer notification prefs sync', () => {
     await seedDraftJob(page, true)
 
     await page.goto('/customers')
-    await page.getByTestId('customer-edit-cust-001').click()
+    await visibleTestId(page, 'customer-edit-cust-001').click()
     const emailToggle = page.getByTestId('customer-form-notify-email')
     if ((await emailToggle.getAttribute('data-state')) === 'checked') {
       await emailToggle.click()
     }
     await page.getByTestId('customer-form-submit').click()
-    await expect(page.getByTestId('customer-email-optout-cust-001')).toBeVisible({ timeout: 10000 })
+    await expect(visibleTestId(page, 'customer-email-optout-cust-001')).toBeVisible({ timeout: 10000 })
 
     await page.goto('/dispatch')
     await page.getByTestId('dispatch-status-job-e2e-draft').click()
