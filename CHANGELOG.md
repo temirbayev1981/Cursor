@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.47] — 2026-07-12
+
+Audit P13: AI assistant lightweight business context.
+
+### Performance
+- `getAiBusinessContextStats` — aggregate snapshot without full jobs/invoices/customers lists
+- `buildBusinessContext` accepts stats object instead of entity arrays
+- AI assistant page uses `useAiBusinessContext` hook
+
+### Operator UX
+- `AI_ASSISTANT_LIGHTWEIGHT_AUDIT` quality gate in platform audit checklist
+
 ## [1.14.46] — 2026-07-12
 
 Audit P12: dashboard and reports lightweight queries.

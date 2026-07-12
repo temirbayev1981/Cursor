@@ -1772,6 +1772,32 @@ if (
   ok = false
 }
 
+if (auditLabelsModule.includes('AI_ASSISTANT_LIGHTWEIGHT_AUDIT = true')) {
+  console.log('✓ AI_ASSISTANT_LIGHTWEIGHT_AUDIT gate enabled')
+} else {
+  console.log('✗ AI_ASSISTANT_LIGHTWEIGHT_AUDIT must be true')
+  ok = false
+}
+
+if (platformAuditModule.includes('ai_assistant_lightweight_audit') && platformAuditModule.includes('AI_ASSISTANT_LIGHTWEIGHT_AUDIT')) {
+  console.log('✓ platform-audit includes AI assistant lightweight quality check')
+} else {
+  console.log('✗ platform-audit must include ai_assistant_lightweight_audit check')
+  ok = false
+}
+
+if (
+  aiAssistantPage.includes('useAiBusinessContext')
+  && !aiAssistantPage.includes('useJobs()')
+  && !aiAssistantPage.includes('useInvoices()')
+  && !aiAssistantPage.includes('useCustomers()')
+) {
+  console.log('✓ ai-assistant uses lightweight business context stats')
+} else {
+  console.log('✗ ai-assistant.tsx must use useAiBusinessContext without full entity lists')
+  ok = false
+}
+
 const pkgJson = JSON.parse(readFileSync('package.json', 'utf8'))
 if (pkgJson.scripts?.['verify:operator:prod']) {
   console.log('✓ verify:operator:prod npm script')

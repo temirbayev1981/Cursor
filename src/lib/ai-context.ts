@@ -1,24 +1,26 @@
 import { getAIFallbacks } from '@/i18n/ai-fallbacks'
 import type { Locale } from '@/contexts/locale-context'
+import type { AiBusinessContextStats } from '@/services/entity-service'
+
+export const EMPTY_AI_BUSINESS_CONTEXT: AiBusinessContextStats = {
+  customerCount: 0,
+  jobCount: 0,
+  openJobs: 0,
+  revenue: 0,
+  profit: 0,
+  outstanding: 0,
+}
 
 export function buildBusinessContext(
-  data: {
-    jobs: import('@/types').Job[]
-    invoices: import('@/types').Invoice[]
-    customers: import('@/types').Customer[]
-  },
+  stats: AiBusinessContextStats,
   locale: Locale = 'en',
 ): string {
-  const revenue = data.jobs.reduce((s, j) => s + j.revenue, 0)
-  const profit = data.jobs.reduce((s, j) => s + j.profit, 0)
-  const openJobs = data.jobs.filter((j) => !['completed', 'cancelled'].includes(j.status)).length
-  const outstanding = data.invoices.filter((i) => i.status !== 'paid').reduce((s, i) => s + (i.total - i.amount_paid), 0)
   const { businessSnapshot } = getAIFallbacks(locale)
   return businessSnapshot
-    .replace('{customers}', String(data.customers.length))
-    .replace('{jobs}', String(data.jobs.length))
-    .replace('{openJobs}', String(openJobs))
-    .replace('{revenue}', revenue.toFixed(0))
-    .replace('{profit}', profit.toFixed(0))
-    .replace('{outstanding}', outstanding.toFixed(0))
+    .replace('{customers}', String(stats.customerCount))
+    .replace('{jobs}', String(stats.jobCount))
+    .replace('{openJobs}', String(stats.openJobs))
+    .replace('{revenue}', stats.revenue.toFixed(0))
+    .replace('{profit}', stats.profit.toFixed(0))
+    .replace('{outstanding}', stats.outstanding.toFixed(0))
 }

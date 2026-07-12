@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
 import { useCompanyQueryScope, useMutationCompanyScope, requireCompanyId } from '@/hooks/use-company-scope'
-import { listEntities, saveEntity, deleteEntity, createJobFromVendorPO, createEstimateFromJob, createInvoiceFromEstimate, createScheduleFromJob, importSampleData, listFuelLogs, getFuelLogsSummary, getExpensesSummary, getInvoicesSummary, getMaterialsSummary, listCustomerContacts, listCustomerReportSummaries, getEstimatesPendingSummary, getSmartEngineJobContext, saveFuelLog, listAuditLogs, logAudit, type CustomerContact } from '@/services/entity-service'
+import { listEntities, saveEntity, deleteEntity, createJobFromVendorPO, createEstimateFromJob, createInvoiceFromEstimate, createScheduleFromJob, importSampleData, listFuelLogs, getFuelLogsSummary, getExpensesSummary, getInvoicesSummary, getMaterialsSummary, listCustomerContacts, listCustomerReportSummaries, getEstimatesPendingSummary, getAiBusinessContextStats, getSmartEngineJobContext, saveFuelLog, listAuditLogs, logAudit, type CustomerContact } from '@/services/entity-service'
 import { recordInvoicePayment, sendInvoiceToCustomer } from '@/services/payment-service'
 import { listInventoryTransactions, applyMaterialsOnJob, receiveStock } from '@/services/inventory-service'
 import type { Job, Customer, Estimate, Invoice, Employee, Material, Vehicle, Expense, FuelLog } from '@/types'
@@ -151,6 +151,16 @@ export function useEstimatesPendingSummary() {
     queryFn: () => getEstimatesPendingSummary(companyId),
     enabled,
     staleTime: 30_000,
+  })
+}
+
+export function useAiBusinessContext() {
+  const { companyId, enabled, queryKey } = useCompanyQueryScope()
+  return useQuery({
+    queryKey: ['ai', queryKey, 'business-context'],
+    queryFn: () => getAiBusinessContextStats(companyId),
+    enabled,
+    staleTime: 60_000,
   })
 }
 

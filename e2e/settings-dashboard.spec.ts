@@ -129,6 +129,7 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('platform-audit-check-estimates_lightweight_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-customer_contacts_audit')).toBeVisible()
     await expect(page.getByTestId('platform-audit-check-dashboard_reports_lightweight_audit')).toBeVisible()
+    await expect(page.getByTestId('platform-audit-check-ai_assistant_lightweight_audit')).toBeVisible()
     await expect(page.getByTestId('notification-hub')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history')).toBeVisible()
     await expect(page.getByTestId('integration-probe-history-entry-0')).toBeVisible()

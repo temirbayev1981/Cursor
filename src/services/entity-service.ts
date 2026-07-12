@@ -1043,6 +1043,75 @@ export async function getEstimatesPendingSummary(companyId: string): Promise<Est
   }
 }
 
+export interface AiBusinessContextStats {
+  customerCount: number
+  jobCount: number
+  openJobs: number
+  revenue: number
+  profit: number
+  outstanding: number
+}
+
+type JobAiRow = Pick<Job, 'status' | 'revenue' | 'profit'>
+
+function sumJobAiStats(rows: JobAiRow[]): Pick<AiBusinessContextStats, 'jobCount' | 'openJobs' | 'revenue' | 'profit'> {
+  return {
+    jobCount: rows.length,
+    openJobs: rows.filter((job) => !['completed', 'cancelled'].includes(job.status)).length,
+    revenue: rows.reduce((sum, job) => sum + job.revenue, 0),
+    profit: rows.reduce((sum, job) => sum + job.profit, 0),
+  }
+}
+
+/** AI assistant snapshot without full jobs/invoices/customers lists. */
+export async function getAiBusinessContextStats(companyId: string): Promise<AiBusinessContextStats> {
+  const localJobs = loadLocalEntities('jobs', companyId) as Job[]
+  const localCustomers = loadLocalEntities('customers', companyId) as Customer[]
+  const localJobStats = sumJobAiStats(
+    localJobs.map((job) => ({ status: job.status, revenue: job.revenue, profit: job.profit })),
+  )
+  const localOutstanding = (await getInvoicesSummary(companyId)).outstanding
+
+  if (!supabase) {
+    return {
+      customerCount: localCustomers.length,
+      ...localJobStats,
+      outstanding: localOutstanding,
+    }
+  }
+
+  try {
+    const [customerResult, jobResult, invoiceSummary] = await Promise.all([
+      supabase
+        .from('customers')
+        .select('id', { count: 'exact', head: true })
+        .eq('company_id', companyId),
+      supabase
+        .from('jobs')
+        .select('status, revenue, profit')
+        .eq('company_id', companyId),
+      getInvoicesSummary(companyId),
+    ])
+
+    if (customerResult.error) throw customerResult.error
+    if (jobResult.error) throw jobResult.error
+
+    const jobStats = sumJobAiStats((jobResult.data ?? []) as JobAiRow[])
+    return {
+      customerCount: customerResult.count ?? localCustomers.length,
+      ...jobStats,
+      outstanding: invoiceSummary.outstanding,
+    }
+  } catch (err) {
+    warnSupabaseFallback('getAiBusinessContextStats', err)
+    return {
+      customerCount: localCustomers.length,
+      ...localJobStats,
+      outstanding: localOutstanding,
+    }
+  }
+}
+
 export interface SmartEngineJobContext {
   totalJobs: number
   drywallStats: Pick<Job, 'estimated_hours' | 'actual_hours' | 'revenue' | 'profit_margin'>[]

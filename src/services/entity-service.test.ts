@@ -11,6 +11,7 @@ import {
   listCustomerContacts,
   listCustomerReportSummaries,
   getEstimatesPendingSummary,
+  getAiBusinessContextStats,
   getSmartEngineJobContext,
   saveEntity,
   deleteEntity,
@@ -190,6 +191,16 @@ describe('entity-service', () => {
   it('getEstimatesPendingSummary returns draft and sent count', async () => {
     const summary = await getEstimatesPendingSummary('comp-001')
     expect(summary.pendingCount).toBeGreaterThanOrEqual(0)
+  })
+
+  it('getAiBusinessContextStats returns aggregate snapshot fields', async () => {
+    const stats = await getAiBusinessContextStats('comp-001')
+    expect(stats.customerCount).toBeGreaterThan(0)
+    expect(stats.jobCount).toBeGreaterThan(0)
+    expect(stats.openJobs).toBeGreaterThanOrEqual(0)
+    expect(stats.revenue).toBeGreaterThanOrEqual(0)
+    expect(stats.profit).toBeGreaterThanOrEqual(0)
+    expect(stats.outstanding).toBeGreaterThanOrEqual(0)
   })
 
   it('getSmartEngineJobContext returns drywall stats and job count', async () => {
