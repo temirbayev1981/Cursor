@@ -307,6 +307,7 @@ export const ru = {
     multiSiteBadge: '{count} адрес(а) с несколькими нарядами — группируйте визиты',
     jobCreatedFrom: 'Заказ создан из {poNumber}',
     jobCreateFailed: 'Ошибка создания заказа',
+    jobCreateNoCustomer: 'Не удалось привязать клиента. Повторите попытку — клиент создаётся автоматически.',
     createJob: 'Создать заказ',
     createJobAndEstimate: 'Создать заказ + смету',
   },

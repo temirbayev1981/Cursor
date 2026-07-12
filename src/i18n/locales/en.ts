@@ -309,6 +309,7 @@ export const en: TranslationKeys = {
     multiSiteBadge: '{count} address(es) with multiple orders — group visits',
     jobCreatedFrom: 'Job created from {poNumber}',
     jobCreateFailed: 'Failed to create job',
+    jobCreateNoCustomer: 'Could not attach a customer. Please try again — a client record is created automatically.',
     createJob: 'Create job',
     createJobAndEstimate: 'Create job + estimate',
   },

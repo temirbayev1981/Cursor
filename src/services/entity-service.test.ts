@@ -5,7 +5,11 @@ import {
   saveEntity,
   deleteEntity,
   logAudit,
+  createJobFromVendorPO,
+  resolveCustomerForVendorPO,
 } from './entity-service'
+import { isUuid } from '@/lib/is-uuid'
+import type { VendorPORecord } from '@/types/vendor-po'
 import { STORE_KEYS } from '@/lib/data-store'
 
 describe('entity-service', () => {
@@ -106,6 +110,81 @@ describe('entity-service', () => {
       expect(page2.items[0]?.id).not.toBe(page1.items[0]?.id)
     }
     expect(page1.pageSize).toBe(2)
+  })
+
+  it('resolveCustomerForVendorPO auto-creates customer when only demo ids exist', async () => {
+    const po: VendorPORecord = {
+      id: 'po-test-1',
+      company_id: 'comp-empty',
+      vendor_po_number: '207872-99',
+      client_po_number: '350531955',
+      priority: 'P5',
+      order_type: 'REPAIR',
+      nte_amount: 115,
+      client_company: 'CD Maintenance',
+      client_contact: 'Max',
+      client_phone: '555-0100',
+      client_email: 'test@example.com',
+      client_address: '2170 W State Road',
+      service_location_name: 'Walgreen Drug Store #09236',
+      service_address: '3703 Lawndale Dr',
+      service_city: 'Greensboro',
+      service_state: 'NC',
+      service_zip: '27403',
+      service_phone: '555-0101',
+      vendor_name: 'ReadyFix',
+      vendor_address: '929 15th St',
+      vendor_phone: '555-0102',
+      service_category: 'Bell',
+      service_description: 'Drive thru sensor bell repair',
+      work_summary: 'Bell sensor repair',
+      source_file_name: 'walgreens.pdf',
+      status: 'parsed',
+      created_at: new Date().toISOString(),
+    }
+
+    const customerId = await resolveCustomerForVendorPO(po, 'comp-empty')
+    expect(isUuid(customerId)).toBe(true)
+
+    const customers = await listEntities('customers', 'comp-empty')
+    expect(customers.some((customer) => customer.id === customerId)).toBe(true)
+  })
+
+  it('createJobFromVendorPO uses uuid customer id', async () => {
+    const po: VendorPORecord = {
+      id: 'po-test-2',
+      company_id: 'comp-job',
+      vendor_po_number: '207872-98',
+      client_po_number: '350531956',
+      priority: 'P5',
+      order_type: 'REPAIR',
+      nte_amount: 115,
+      client_company: 'CD Maintenance',
+      client_contact: 'Max',
+      client_phone: '555-0100',
+      client_email: 'test@example.com',
+      client_address: '2170 W State Road',
+      service_location_name: 'Walgreen',
+      service_address: '3703 Lawndale Dr',
+      service_city: 'Greensboro',
+      service_state: 'NC',
+      service_zip: '27403',
+      service_phone: '555-0101',
+      vendor_name: 'ReadyFix',
+      vendor_address: '929 15th St',
+      vendor_phone: '555-0102',
+      service_category: 'Bell',
+      service_description: 'Drive thru sensor bell repair',
+      work_summary: 'Bell sensor repair',
+      source_file_name: 'walgreens2.pdf',
+      status: 'parsed',
+      created_at: new Date().toISOString(),
+    }
+
+    const job = await createJobFromVendorPO(po, 'comp-job')
+    expect(isUuid(job.customer_id)).toBe(true)
+    expect(job.status).toBe('draft')
+    expect(job.title).toContain('REPAIR')
   })
 
   it('trims audit log cache to 500 entries', async () => {

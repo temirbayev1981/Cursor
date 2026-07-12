@@ -127,8 +127,11 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
       toast.success(t.vendorPO.jobCreatedFrom.replace('{poNumber}', po.vendor_po_number))
       navigate('/jobs')
     } catch (error) {
-      console.error('Vendor PO create job failed:', getErrorMessage(error))
-      toast.error(t.vendorPO.jobCreateFailed)
+      const message = getErrorMessage(error)
+      console.error('Vendor PO create job failed:', message)
+      toast.error(/customer|клиент|uuid|foreign key|violates foreign key/i.test(message)
+        ? t.vendorPO.jobCreateNoCustomer
+        : t.vendorPO.jobCreateFailed)
     }
   }
 

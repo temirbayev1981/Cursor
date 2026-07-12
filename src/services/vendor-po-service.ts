@@ -310,9 +310,23 @@ export async function saveVendorPOBatch(inputs: VendorPOInput[]): Promise<Vendor
   return saved
 }
 
-export async function updateVendorPOStatus(id: string, status: VendorPORecord['status']): Promise<void> {
+export type VendorPOStatusLookup = {
+  company_id: string
+  vendor_po_number: string
+}
+
+export async function updateVendorPOStatus(
+  id: string,
+  status: VendorPORecord['status'],
+  lookup?: VendorPOStatusLookup,
+): Promise<void> {
   const local = loadLocal()
-  const index = local.findIndex((row) => row.id === id)
+  let index = local.findIndex((row) => row.id === id)
+  if (index < 0 && lookup) {
+    index = local.findIndex(
+      (row) => row.company_id === lookup.company_id && row.vendor_po_number === lookup.vendor_po_number,
+    )
+  }
   if (index >= 0) {
     local[index] = { ...local[index], status }
     saveLocal(local)
@@ -324,10 +338,23 @@ export async function updateVendorPOStatus(id: string, status: VendorPORecord['s
     updateRows('vendor_po_records', { status }, 'id', id),
     'vendor PO status update',
   )
-  if (error) {
-    console.error('Vendor PO status update failed:', getErrorMessage(error))
-    throw error
+  if (!error) return
+
+  if (lookup) {
+    const { error: fallbackError } = await supabaseOp(
+      supabase
+        .from('vendor_po_records')
+        .update({ status } as never)
+        .eq('company_id', lookup.company_id)
+        .eq('vendor_po_number', lookup.vendor_po_number),
+      'vendor PO status update by number',
+    )
+    if (!fallbackError) return
+    console.error('Vendor PO status update by number failed:', getErrorMessage(fallbackError))
   }
+
+  console.error('Vendor PO status update failed:', getErrorMessage(error))
+  throw error
 }
 
 export async function updateVendorPOProblemRu(id: string, problemDescriptionRu: string): Promise<void> {
