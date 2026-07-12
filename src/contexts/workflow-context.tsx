@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 import type { VendorPORecord } from '@/types/vendor-po'
 import { createJobFromVendorPO, createEstimateFromJob, logAudit } from '@/services/entity-service'
+import { getErrorMessage } from '@/lib/error-message'
 import { updateVendorPOStatus } from '@/services/vendor-po-service'
 import type { Job } from '@/types'
 
@@ -20,7 +21,14 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
       const job = await createJobFromVendorPO(po, companyId)
       const estimate = await createEstimateFromJob(job, companyId)
       await logAudit(companyId, userId, 'estimate.create', 'estimate', estimate.id)
-      await updateVendorPOStatus(po.id, 'approved')
+      try {
+        await updateVendorPOStatus(po.id, 'approved', {
+          company_id: po.company_id,
+          vendor_po_number: po.vendor_po_number,
+        })
+      } catch (statusError) {
+        console.warn('Vendor PO status update failed after job created:', getErrorMessage(statusError))
+      }
       await logAudit(companyId, userId, 'vendor_po_to_job', 'job', job.id)
 
       const priority = po.priority ?? ''

@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.18] — 2026-07-12
+
+Fix «Создать заказ + смету» when no Supabase customers exist (demo IDs in cache).
+
+### Hotfix — Vendor PO to job workflow
+- Resolve customer from Supabase UUID rows only; ignore demo `cust-001` local cache
+- Auto-create property-management customer from vendor PO when none exist
+- Update PO status by `vendor_po_number` when local `id` differs from Supabase
+- PO status update failure no longer blocks job creation success
+- Estimate `valid_until` stored as date-only (`YYYY-MM-DD`)
+
 ## [1.14.17] — 2026-07-12
 
 Fix «Создать заказ + смету» error for existing Vendor PO records.

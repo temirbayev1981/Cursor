@@ -107,4 +107,16 @@ describe('vendor-po-service', () => {
     expect(list).toHaveLength(1)
     expect(list[0]?.status).toBe('approved')
   })
+
+  it('updateVendorPOStatus falls back to vendor_po_number for local cache', async () => {
+    const saved = await saveVendorPO(sampleInput)
+    const staleId = crypto.randomUUID()
+    await updateVendorPOStatus(staleId, 'approved', {
+      company_id: COMPANY_ID,
+      vendor_po_number: saved.vendor_po_number,
+    })
+    const list = await getVendorPOs(COMPANY_ID)
+    expect(list).toHaveLength(1)
+    expect(list[0]?.status).toBe('approved')
+  })
 })

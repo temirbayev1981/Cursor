@@ -6,6 +6,7 @@ import {
   DEMO_WORK_ORDERS, DEMO_SERVICES, DEMO_FUEL_LOGS,
 } from '@/data/mock-data'
 import { matchCustomerFromVendorPO } from '@/lib/vendor-po-customer-match'
+import { isUuid } from '@/lib/is-uuid'
 import { supabase } from '@/lib/supabase'
 import { insertRows, upsertRows, type TableInsert, type TableRow } from '@/lib/supabase-queries'
 import { ENTITY_LIST_LIMIT, ENTITY_PAGE_SIZE_MAX, type EntityListPageParams, type EntityListPageResult } from '@/lib/entity-limits'
@@ -302,6 +303,64 @@ export async function importSampleData(companyId: string): Promise<{ imported: n
 }
 
 /** Creates a draft job from a parsed vendor PO. */
+export async function resolveCustomerForVendorPO(
+  po: import('@/types/vendor-po').VendorPORecord,
+  companyId: string,
+): Promise<string> {
+  const customers = await listSupabaseCustomers(companyId)
+  const validCustomers = customers.filter((customer) => isUuid(customer.id))
+
+  if (validCustomers.length > 0) {
+    const matched = matchCustomerFromVendorPO(po, validCustomers)
+    if (matched && isUuid(matched.id)) return matched.id
+
+    const propertyMgmt = validCustomers.find((customer) => customer.type === 'property_management')
+    if (propertyMgmt) return propertyMgmt.id
+
+    return validCustomers[0].id
+  }
+
+  return createCustomerFromVendorPO(po, companyId)
+}
+
+async function listSupabaseCustomers(companyId: string): Promise<Customer[]> {
+  if (!supabase) throw new Error('Supabase not configured')
+
+  try {
+    const items = await fetchCompanyEntities<Customer>('customers', companyId)
+    if (items.length > 0) {
+      mergeStoreById(KEY_MAP.customers, items)
+      return items
+    }
+  } catch {
+    // fall through to cached Supabase rows in local storage
+  }
+
+  return loadLocalEntities('customers', companyId).filter((customer) => isUuid(customer.id))
+}
+
+async function createCustomerFromVendorPO(
+  po: import('@/types/vendor-po').VendorPORecord,
+  companyId: string,
+): Promise<string> {
+  const customer: Customer = {
+    id: crypto.randomUUID(),
+    company_id: companyId,
+    name: po.client_company?.trim() || po.service_location_name?.trim() || 'CD Maintenance',
+    email: po.client_email?.trim() || '',
+    phone: po.client_phone?.trim() || '',
+    address: [po.service_address, po.service_city, po.service_state].filter(Boolean).join(', ')
+      || po.client_address?.trim()
+      || '',
+    type: 'property_management',
+    total_revenue: 0,
+    job_count: 0,
+    created_at: new Date().toISOString(),
+  }
+  const saved = await saveEntity('customers', customer)
+  return saved.id
+}
+
 export async function createJobFromVendorPO(
   po: import('@/types/vendor-po').VendorPORecord,
   companyId: string
@@ -313,15 +372,7 @@ export async function createJobFromVendorPO(
       ? 'high' as const
       : priorityText.startsWith('P5') ? 'medium' as const : 'low' as const
 
-  const customers = await listEntities('customers', companyId)
-  const matched = matchCustomerFromVendorPO(po, customers)
-  const customerId = matched?.id
-    ?? customers.find((c) => c.type === 'property_management')?.id
-    ?? customers[0]?.id
-
-  if (!customerId) {
-    throw new Error('No customer available to attach vendor PO job')
-  }
+  const customerId = await resolveCustomerForVendorPO(po, companyId)
 
   const job: Job = {
     id: crypto.randomUUID(),
@@ -359,7 +410,7 @@ export async function createEstimateFromJob(job: Job, companyId: string): Promis
     material_cost: 0,
     markup_percent: 25,
     total: job.revenue,
-    valid_until: new Date(Date.now() + 14 * 86400000).toISOString(),
+    valid_until: new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10),
     line_items: [{
       id: crypto.randomUUID(),
       description: job.title,
