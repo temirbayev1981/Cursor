@@ -2,6 +2,15 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.21] — 2026-07-12
+
+Wider jobs table cells for three-line text without truncation.
+
+### UI — Jobs list
+- Job column `20rem`, customer `14rem`, technician `10rem`
+- Up to 3 lines with normal word breaks (`line-clamp-3`, no mid-word breaks)
+- Table min-width `1320px` for horizontal scroll on mobile
+
 ## [1.14.20] — 2026-07-12
 
 Fix blank page after deploy (stale cached `index.html` / JS chunks).
