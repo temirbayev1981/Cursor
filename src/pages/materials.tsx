@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { MaterialForm } from '@/components/forms/material-form'
 import { useAuth } from '@/contexts/auth-context'
-import { useMaterials, useSaveMaterial, useInventoryTransactionsList, useReceiveStock } from '@/hooks/use-entities'
+import { useMaterialsSummary, useSaveMaterial, useInventoryTransactionsList, useReceiveStock } from '@/hooks/use-entities'
 import { useServerEntityTable } from '@/hooks/use-server-entity-table'
 import { formatCurrencyPrecise, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
@@ -29,11 +29,14 @@ export default function MaterialsPage() {
   const [receiveMaterialId, setReceiveMaterialId] = useState<string | null>(null)
   const [receiveQty, setReceiveQty] = useState(10)
   const { isLoading: tableLoading, pagination } = useServerEntityTable('materials')
-  const { data: materials = [], isLoading: stockLoading } = useMaterials()
+  const { data: materialsSummary, isLoading: summaryLoading } = useMaterialsSummary()
   const { data: transactions = [] } = useInventoryTransactionsList()
   const saveMaterial = useSaveMaterial()
   const receiveStock = useReceiveStock()
-  const lowStock = materials.filter((m) => m.quantity <= m.reorder_level)
+  const lowStock = materialsSummary?.lowStock ?? []
+  const materialNames = materialsSummary?.names ?? {}
+
+  const getMaterialName = (materialId: string) => materialNames[materialId] ?? materialId
 
   const handleSave = (material: Material) => {
     saveMaterial.mutate(material, {
@@ -59,10 +62,7 @@ export default function MaterialsPage() {
     )
   }
 
-  const getMaterialName = (materialId: string) =>
-    materials.find((m) => m.id === materialId)?.name ?? materialId
-
-  if (tableLoading || stockLoading) return <TableSkeleton />
+  if (tableLoading || summaryLoading) return <TableSkeleton />
 
   return (
     <div>

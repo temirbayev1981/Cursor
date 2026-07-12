@@ -11,8 +11,9 @@ import { StripePayButton } from '@/components/payments/stripe-pay-button'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/contexts/auth-context'
-import { useInvoices, useCustomers, useSaveInvoice, useSendInvoice, usePayInvoice } from '@/hooks/use-entities'
+import { useCustomers, useInvoicesSummary, useSaveInvoice, useSendInvoice, usePayInvoice } from '@/hooks/use-entities'
 import { useServerEntityTable } from '@/hooks/use-server-entity-table'
+import { fetchInvoiceById, listInvoiceNumbers } from '@/services/entity-service'
 import { generateInvoiceNumber } from '@/services/payment-service'
 import { notifyInvoiceSentSms, notifyResultMessage } from '@/services/notification-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -21,21 +22,16 @@ import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
 import type { Invoice } from '@/types'
 
-function isThisMonth(dateStr: string): boolean {
-  const d = new Date(dateStr)
-  const now = new Date()
-  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
-}
-
 export default function InvoicesPage() {
   const { t } = useTranslation()
   const dateLocale = useDateLocale()
   const [searchParams, setSearchParams] = useSearchParams()
   const [showForm, setShowForm] = useState(false)
+  const [invoiceNumberSeed, setInvoiceNumberSeed] = useState<Pick<Invoice, 'invoice_number'>[]>([])
   const { company } = useAuth()
   const companyId = company?.id ?? ''
   const { isLoading: invoicesLoading, pagination, refetch } = useServerEntityTable('invoices')
-  const { data: allInvoices = [] } = useInvoices()
+  const { data: invoiceSummary, isLoading: summaryLoading } = useInvoicesSummary()
   const { data: customers = [], isLoading: customersLoading } = useCustomers()
   const saveInvoice = useSaveInvoice()
   const sendInvoice = useSendInvoice()
@@ -44,33 +40,48 @@ export default function InvoicesPage() {
 
   useEffect(() => {
     const paidId = searchParams.get('paid')
-    if (!paidId || allInvoices.length === 0 || processedPaidRef.current === paidId) return
-    const invoice = allInvoices.find((i) => i.id === paidId)
-    if (!invoice || invoice.status === 'paid') {
-      setSearchParams({}, { replace: true })
-      return
-    }
-    processedPaidRef.current = paidId
-    payInvoice.mutate(
-      { invoice, amount: invoice.total - invoice.amount_paid },
-      {
-        onSuccess: () => {
-          toast.success(t.invoices.paymentReceived)
-          setSearchParams({}, { replace: true })
-          refetch()
-        },
+    if (!paidId || !companyId || processedPaidRef.current === paidId) return
+
+    let cancelled = false
+    void fetchInvoiceById(companyId, paidId).then((invoice) => {
+      if (cancelled) return
+      if (!invoice || invoice.status === 'paid') {
+        setSearchParams({}, { replace: true })
+        return
       }
-    )
-  }, [searchParams, allInvoices, payInvoice, setSearchParams, refetch, t.invoices.paymentReceived])
+      processedPaidRef.current = paidId
+      payInvoice.mutate(
+        { invoice, amount: invoice.total - invoice.amount_paid },
+        {
+          onSuccess: () => {
+            toast.success(t.invoices.paymentReceived)
+            setSearchParams({}, { replace: true })
+            refetch()
+          },
+        },
+      )
+    })
 
-  const outstanding = allInvoices
-    .filter((i) => i.status !== 'paid')
-    .reduce((s, i) => s + (i.total - i.amount_paid), 0)
-  const paidMonth = allInvoices
-    .filter((i) => i.status === 'paid' && i.paid_date && isThisMonth(i.paid_date))
-    .reduce((s, i) => s + i.amount_paid, 0)
+    return () => {
+      cancelled = true
+    }
+  }, [searchParams, companyId, payInvoice, setSearchParams, refetch, t.invoices.paymentReceived])
 
-  if (invoicesLoading || customersLoading) return <TableSkeleton cols={8} />
+  useEffect(() => {
+    if (!showForm || !companyId) return
+    let cancelled = false
+    void listInvoiceNumbers(companyId).then((numbers) => {
+      if (!cancelled) setInvoiceNumberSeed(numbers)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [showForm, companyId])
+
+  const outstanding = invoiceSummary?.outstanding ?? 0
+  const paidMonth = invoiceSummary?.paidThisMonth ?? 0
+
+  if (invoicesLoading || customersLoading || summaryLoading) return <TableSkeleton cols={8} />
 
   const handleCreate = (invoice: Invoice) => {
     saveInvoice.mutate(invoice, {
@@ -162,7 +173,7 @@ export default function InvoicesPage() {
             <InvoiceForm
               companyId={companyId}
               customers={customers}
-              invoiceNumber={generateInvoiceNumber(allInvoices)}
+              invoiceNumber={generateInvoiceNumber(invoiceNumberSeed)}
               onSubmit={handleCreate}
               onCancel={() => setShowForm(false)}
             />

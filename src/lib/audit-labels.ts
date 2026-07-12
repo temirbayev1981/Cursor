@@ -183,6 +183,9 @@ export const NOTIFICATION_HUB_EMAIL_SKIP_CSV_AUDIT = true as const
 /** Server-side paginated entity tables (Phase 135 complete). */
 export const SERVER_PAGINATION_AUDIT = true as const
 
+/** Lightweight KPI summary queries on paginated entity pages. */
+export const KPI_SUMMARY_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }
