@@ -2,6 +2,19 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.32] — 2026-07-12
+
+Audit P4: vendor PO visible E2E, scheduling mobile spec, pdf-utils tests.
+
+### E2E
+- `visibleTestIdMatch` helper for regex testids (vendor PO create-job buttons)
+- Visible locators in `work-orders-vendor-po`, `mobile-vendor-po-pdf`, `vendor-search-ai-invoice`, `audit-expanded`
+- `scheduling-mobile-layout.spec.ts` — day view on mobile viewport
+- `properties-inventory` uses `visibleRow`; command palette uses visible palette scope
+
+### Tests
+- `src/lib/pdf-utils.test.ts` — isPdfFile / prefersNoPdfWorker unit coverage
+
 ## [1.14.31] — 2026-07-12
 
 Audit P4: lazy work-orders PDF chunk, E2E visible helpers, mobile-layout gates.

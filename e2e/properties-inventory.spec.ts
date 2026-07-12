@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner } from './helpers/auth'
-import { visibleTestId, visibleText } from './helpers/visibility'
+import { visibleRow, visibleTestId, visibleText } from './helpers/visibility'
 
 test.describe('Properties & job inventory', () => {
   test.beforeEach(async ({ page }) => {
@@ -32,7 +32,7 @@ test.describe('Properties & job inventory', () => {
 
   test('deduct job materials updates inventory quantity', async ({ page }) => {
     await page.goto('/materials')
-    const materialRow = page.getByRole('row').filter({ hasText: 'Joint Compound (5 gal)' }).locator('visible=true')
+    const materialRow = visibleRow(page, 'Joint Compound (5 gal)')
     const qtyBefore = await materialRow.locator('td').nth(3).textContent()
 
     await page.goto('/jobs')
@@ -45,7 +45,7 @@ test.describe('Properties & job inventory', () => {
     await expect(page.getByText(/материалы списаны|materials deducted/i).first()).toBeVisible({ timeout: 10000 })
 
     await page.goto('/materials')
-    const qtyAfter = await page.getByRole('row').filter({ hasText: 'Joint Compound (5 gal)' }).locator('visible=true').locator('td').nth(3).textContent()
+    const qtyAfter = await visibleRow(page, 'Joint Compound (5 gal)').locator('td').nth(3).textContent()
     expect(Number.parseInt(qtyAfter ?? '0', 10)).toBe(Number.parseInt(qtyBefore ?? '0', 10) - 1)
   })
 })

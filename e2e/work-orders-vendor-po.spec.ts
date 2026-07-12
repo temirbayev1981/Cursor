@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner } from './helpers/auth'
+import { visibleTestIdMatch, visibleText } from './helpers/visibility'
 
 test.describe('Work orders vendor PO', () => {
   test.beforeEach(async ({ page }) => {
@@ -18,9 +19,9 @@ test.describe('Work orders vendor PO', () => {
     await dropzone.locator('input[type="file"]').setInputFiles('e2e/fixtures/vendor-po-sample.pdf')
 
     await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 15000 })
-    await expect(page.getByText('207872-02').first()).toBeVisible()
-    await expect(page.getByText('350531955').first()).toBeVisible()
-    await expect(page.getByText(/317 Main St/i).first()).toBeVisible()
+    await expect(visibleText(page, '207872-02', true).first()).toBeVisible()
+    await expect(visibleText(page, '350531955', true).first()).toBeVisible()
+    await expect(visibleText(page, /317 Main St/i).first()).toBeVisible()
   })
 
   test('Facil-IT Walgreens PO 210072-01 parses from user PDF fixture', async ({ page }) => {
@@ -30,9 +31,9 @@ test.describe('Work orders vendor PO', () => {
     await dropzone.locator('input[type="file"]').setInputFiles('e2e/fixtures/vendor-po-210072-01.pdf')
 
     await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 20000 })
-    await expect(page.getByText('210072-01').first()).toBeVisible()
-    await expect(page.getByText('355708360').first()).toBeVisible()
-    await expect(page.getByText(/3101 New Bern Ave/i).first()).toBeVisible()
+    await expect(visibleText(page, '210072-01', true).first()).toBeVisible()
+    await expect(visibleText(page, '355708360', true).first()).toBeVisible()
+    await expect(visibleText(page, /3101 New Bern Ave/i).first()).toBeVisible()
   })
 
   test('create job from parsed vendor PO navigates to jobs list', async ({ page }) => {
@@ -42,11 +43,11 @@ test.describe('Work orders vendor PO', () => {
     await dropzone.locator('input[type="file"]').setInputFiles('e2e/fixtures/vendor-po-sample.pdf')
     await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 15000 })
 
-    await page.getByTestId(/vendor-po-create-job-/).first().click()
+    await visibleTestIdMatch(page, /vendor-po-create-job-/).first().click()
 
     await expect(page).toHaveURL(/\/jobs/, { timeout: 10000 })
     await expect(page.getByText(/заказ создан из 207872-02|job created from 207872-02/i).first()).toBeVisible()
-    await expect(page.getByText(/REPLACE:.*BUILDING INTERIOR/i).first()).toBeVisible()
+    await expect(visibleText(page, /REPLACE:.*BUILDING INTERIOR/i).first()).toBeVisible()
   })
 
   test('multi-PDF batch upload parses two vendor PO records', async ({ page }) => {
@@ -60,8 +61,8 @@ test.describe('Work orders vendor PO', () => {
 
     await expect(page.getByText(/успешно разобран.*: 2|parsed and saved.*: 2/i).first()).toBeVisible({ timeout: 20000 })
     await expect(page.getByTestId('vendor-po-record-count')).toHaveText('2', { timeout: 10000 })
-    await expect(page.getByText('207872-02').first()).toBeVisible()
-    await expect(page.getByText('210214-01').first()).toBeVisible()
+    await expect(visibleText(page, '207872-02', true).first()).toBeVisible()
+    await expect(visibleText(page, '210214-01', true).first()).toBeVisible()
   })
 
   test('rejects duplicate vendor PO upload', async ({ page }) => {
@@ -73,7 +74,6 @@ test.describe('Work orders vendor PO', () => {
     await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 15000 })
     await expect(page.getByTestId('vendor-po-record-count')).toHaveText('1', { timeout: 10000 })
 
-    // Browsers skip change events when the same file path is selected twice — reset input first
     await input.evaluate((el) => { (el as HTMLInputElement).value = '' })
     await input.setInputFiles('e2e/fixtures/vendor-po-sample.pdf')
     await expect(

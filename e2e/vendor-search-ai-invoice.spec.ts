@@ -13,13 +13,13 @@ test.describe('Vendor PO multi-site', () => {
     await expect(page.getByTestId('vendor-po-multi-site-badge')).toBeVisible({ timeout: 15000 })
     await expect(page.getByTestId('vendor-po-multi-site-badge')).toContainText(/1/)
     await expect(page.getByText(/несколькими нарядами|multiple orders/i).first()).toBeVisible()
-    await expect(page.getByText('200 N Lasalle St').first()).toBeVisible()
+    await expect(visibleText(page, '200 N Lasalle St', true).first()).toBeVisible()
   })
 
   test('highlights emergency priority vendor PO rows', async ({ page }) => {
     await page.goto('/work-orders')
     await page.getByRole('tab', { name: /vendor po/i }).click()
-    await expect(page.getByText('210214-01').first()).toBeVisible({ timeout: 15000 })
+    await expect(visibleText(page, '210214-01', true).first()).toBeVisible({ timeout: 15000 })
     await expect(page.getByText(/P1.*EMERGENCY|EMERGENCY/i).first()).toBeVisible()
   })
 })

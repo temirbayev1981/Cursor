@@ -1,5 +1,6 @@
 import { test, expect, devices } from '@playwright/test'
 import { loginAsOwner } from './helpers/auth'
+import { visibleText } from './helpers/visibility'
 
 const iPhone13 = devices['iPhone 13']
 
@@ -28,7 +29,7 @@ test.describe('Mobile vendor PO PDF', () => {
     await dropzone.locator('input[type="file"]').setInputFiles('e2e/fixtures/vendor-po-210072-01.pdf')
 
     await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 30000 })
-    await expect(page.getByText('210072-01').first()).toBeVisible()
-    await expect(page.getByText('355708360').first()).toBeVisible()
+    await expect(visibleText(page, '210072-01', true).first()).toBeVisible()
+    await expect(visibleText(page, '355708360', true).first()).toBeVisible()
   })
 })

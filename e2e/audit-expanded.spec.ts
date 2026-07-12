@@ -11,7 +11,7 @@ import {
   seedDraftInvoice,
   clearPortalReview,
 } from './helpers/auth'
-import { visibleTestId, visibleText } from './helpers/visibility'
+import { visibleTestId, visibleTestIdMatch, visibleText } from './helpers/visibility'
 
 test.describe('Expanded audit log E2E', () => {
   test.beforeEach(async ({ page }) => {
@@ -252,7 +252,7 @@ test.describe('Vendor PO audit E2E', () => {
     const dropzone = page.getByTestId('work-orders-vendor-po-dropzone')
     await dropzone.locator('input[type="file"]').setInputFiles('e2e/fixtures/vendor-po-sample.pdf')
     await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 15000 })
-    await page.getByTestId(/vendor-po-create-job-/).first().click()
+    await visibleTestIdMatch(page, /vendor-po-create-job-/).first().click()
     await expect(page.getByText(/заказ создан из 207872-02|job created from 207872-02/i).first()).toBeVisible({ timeout: 10000 })
 
     await openSettingsAuditTab(page)
@@ -267,7 +267,7 @@ test.describe('Vendor PO audit E2E', () => {
     const dropzone = page.getByTestId('work-orders-vendor-po-dropzone')
     await dropzone.locator('input[type="file"]').setInputFiles('e2e/fixtures/vendor-po-emergency.pdf')
     await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 15000 })
-    await page.getByTestId(/vendor-po-create-job-/).first().click()
+    await visibleTestIdMatch(page, /vendor-po-create-job-/).first().click()
     await expect(page.getByText(/заказ создан из 210214-01|job created from 210214-01/i).first()).toBeVisible({ timeout: 10000 })
 
     await openSettingsAuditTab(page)

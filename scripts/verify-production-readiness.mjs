@@ -1299,6 +1299,7 @@ const mobileLayoutSpecs = [
   'e2e/expenses-mobile-layout.spec.ts',
   'e2e/vehicles-mobile-layout.spec.ts',
   'e2e/reports-mobile-layout.spec.ts',
+  'e2e/scheduling-mobile-layout.spec.ts',
 ]
 console.log('\nMobile layout E2E:')
 for (const file of mobileLayoutSpecs) {
