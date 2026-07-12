@@ -2,6 +2,21 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.29] — 2026-07-12
+
+Audit P4: lazy pdf-ocr chunk, reports mobile profit cards, E2E stability.
+
+### Bundle
+- `pdf-extract.ts` — dynamic import of `pdf-ocr` (OCR fallback only when needed)
+- `verify-production-readiness` gate for static pdf-ocr import
+
+### UI
+- **Reports** — profit tab stacks metrics on small screens (`report-profit-card-*`)
+
+### E2E
+- `e2e/reports-mobile-layout.spec.ts` — profit cards on mobile viewport
+- Command palette opens via `Control+k`; fleet-expenses uses visible locators
+
 ## [1.14.28] — 2026-07-12
 
 Audit P4: fuel log mobile cards, live Stripe edge smoke.

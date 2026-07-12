@@ -1164,7 +1164,9 @@ const nightlyLiveE2e = existsSync('.github/workflows/nightly-live-e2e.yml')
   : ''
 
 if (
-  livePlaywright.includes("testMatch: 'live-backend-smoke.spec.ts'")
+  (livePlaywright.includes("testMatch: 'live-backend-smoke.spec.ts'")
+    || livePlaywright.includes("'live-backend-smoke.spec.ts'"))
+  && livePlaywright.includes('stripe-live.spec.ts')
   && !livePlaywright.includes('VITE_E2E_MOCK_BACKEND')
   && liveE2e.includes('Live backend smoke')
   && nightlyLiveE2e.includes('LIVE_E2E_OPTIONAL')
@@ -1249,6 +1251,17 @@ if (supabaseModule.includes("from '@/lib/e2e-mock-supabase'") || supabaseModule.
   console.log('✓ supabase.ts uses dynamic import for E2E mock')
 } else {
   console.log('✗ supabase.ts must dynamically import e2e-mock-supabase for E2E builds')
+  ok = false
+}
+
+const pdfExtractModule = readFileSync('src/lib/pdf-extract.ts', 'utf8')
+if (pdfExtractModule.includes("from '@/lib/pdf-ocr'") || pdfExtractModule.includes('from "@/lib/pdf-ocr"')) {
+  console.log('✗ src/lib/pdf-extract.ts must not statically import pdf-ocr (use dynamic import)')
+  ok = false
+} else if (pdfExtractModule.includes("import('@/lib/pdf-ocr')")) {
+  console.log('✓ pdf-extract.ts uses dynamic import for pdf-ocr')
+} else {
+  console.log('✗ pdf-extract.ts must dynamically import pdf-ocr for OCR fallback')
   ok = false
 }
 

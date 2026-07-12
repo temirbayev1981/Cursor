@@ -10,10 +10,11 @@ test.describe('Fleet & expenses', () => {
   test('vehicles page shows fleet cards and fuel log table', async ({ page }) => {
     await page.goto('/vehicles')
     await expect(page.getByRole('heading', { name: /транспорт и топливо|vehicles/i })).toBeVisible()
-    await expect(page.getByText('Service Van #1').first()).toBeVisible()
-    await expect(page.getByText(/расходы на топливо|monthly fuel/i).first()).toBeVisible()
+    await expect(visibleText(page, 'Service Van #1').first()).toBeVisible()
+    await expect(visibleText(page, /расходы на топливо|monthly fuel/i).first()).toBeVisible()
     await expect(page.getByTestId('vehicles-fuel-logs')).toBeVisible()
-    await expect(page.getByText(/журнал заправок|fuel logs/i).first()).toBeVisible()
+    await expect(visibleText(page, /журнал заправок|fuel logs/i).first()).toBeVisible()
+    await expect(page.getByTestId('vehicles-fuel-logs').getByRole('table').locator('visible=true')).toBeVisible()
   })
 
   test('create vehicle via form adds fleet card', async ({ page }) => {
@@ -30,7 +31,7 @@ test.describe('Fleet & expenses', () => {
     await page.getByTestId('vehicle-form-submit').click()
 
     await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText('E2E Service Van').first()).toBeVisible()
+    await expect(visibleText(page, 'E2E Service Van').first()).toBeVisible()
   })
 
   test('create expense via form adds row and updates monthly total', async ({ page }) => {
@@ -66,6 +67,7 @@ test.describe('Command palette', () => {
 
   test('search finds customer and navigates to customers page', async ({ page }) => {
     await page.goto('/dashboard')
+    await expect(page.getByRole('heading', { name: /панель руководителя|executive dashboard/i })).toBeVisible()
     await openCommandPalette(page)
     await page.getByTestId('command-palette-input').fill('ABC Property')
     await expect(page.getByTestId('command-palette').getByText('ABC Property Management').first()).toBeVisible({ timeout: 10000 })

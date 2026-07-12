@@ -1,5 +1,4 @@
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
-import { ocrImagesToText } from '@/lib/pdf-ocr'
 import { hasOpenAI } from '@/lib/env'
 import { getErrorMessage } from '@/lib/error-message'
 import { extractTextFromPdfCdn } from '@/lib/pdf-extract-cdn'
@@ -148,6 +147,7 @@ async function ocrPdfPages(pdf: PdfDocument): Promise<string> {
   for (let i = 1; i <= pageCount; i++) {
     images.push(await renderPageToDataUrl(pdf, i))
   }
+  const { ocrImagesToText } = await import('@/lib/pdf-ocr')
   const text = await ocrImagesToText(images)
   if (!text) throw new Error('PDF OCR failed — configure OpenAI proxy')
   return text

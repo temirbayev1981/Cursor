@@ -4,9 +4,11 @@ const E2E_PASSWORD = 'demo1234'
 const E2E_OWNER_EMAIL = 'owner@profixhandyman.com'
 
 export async function openCommandPalette(page: Page) {
-  await page.evaluate(() => {
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true, cancelable: true }))
-  })
+  const palette = page.getByTestId('command-palette')
+  if (!(await palette.isVisible())) {
+    await page.keyboard.press('Control+k')
+  }
+  await expect(palette).toBeVisible({ timeout: 10_000 })
 }
 
 const E2E_INIT_KEY = '__e2e_storage_init__'
