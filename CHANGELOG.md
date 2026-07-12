@@ -2,6 +2,19 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.48] — 2026-07-12
+
+Audit P14: scheduling and dispatch lightweight job queries.
+
+### Performance
+- `listUnscheduledJobOptions` — scheduling form picker (draft/on_hold only)
+- `listDispatchBoardJobs` — dispatch kanban columns without full job rows
+- `fetchJobById` — on-demand full job for schedule/status mutations
+- Scheduling uses lazy `useUnscheduledJobOptions`; dispatch uses `useDispatchBoardJobs`
+
+### Operator UX
+- `SCHEDULING_DISPATCH_LIGHTWEIGHT_AUDIT` quality gate in platform audit checklist
+
 ## [1.14.47] — 2026-07-12
 
 Audit P13: AI assistant lightweight business context.

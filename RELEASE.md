@@ -1,6 +1,12 @@
-# HandymanOS AI — Release 1.14.47
+# HandymanOS AI — Release 1.14.48
 
-**Status:** Audit P13 — AI assistant lightweight context.
+**Status:** Audit P14 — scheduling/dispatch lightweight jobs.
+
+## 1.14.48 — Audit P14
+
+- **Scheduling** — `useUnscheduledJobOptions` + `fetchJobById` on submit (no `useJobs()`)
+- **Dispatch** — `useDispatchBoardJobs` + `fetchJobById` on status change
+- **Platform audit** — `scheduling_dispatch_lightweight_audit` quality check
 
 ## 1.14.47 — Audit P13
 

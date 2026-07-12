@@ -894,6 +894,118 @@ export async function fetchInvoiceById(companyId: string, invoiceId: string): Pr
   }
 }
 
+/** Fetch a single job for mutations without loading the full list. */
+export async function fetchJobById(companyId: string, jobId: string): Promise<Job | null> {
+  const local = loadLocalEntities('jobs', companyId) as Job[]
+  const cached = local.find((job) => job.id === jobId) ?? null
+  if (!supabase) return cached
+
+  try {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('company_id', companyId)
+      .eq('id', jobId)
+      .maybeSingle()
+
+    if (error) throw error
+    if (!data) return cached
+    const job = data as Job
+    mergeStoreById(STORE_KEYS.jobs, [job])
+    return job
+  } catch (err) {
+    warnSupabaseFallback('fetchJobById', err)
+    return cached
+  }
+}
+
+export type JobScheduleOption = Pick<Job, 'id' | 'title' | 'status'>
+
+const UNSCHEDULED_JOB_STATUSES: Job['status'][] = ['draft', 'on_hold']
+
+/** Scheduling form picker without full jobs list. */
+export async function listUnscheduledJobOptions(companyId: string): Promise<JobScheduleOption[]> {
+  const local = (loadLocalEntities('jobs', companyId) as Job[])
+    .filter((job) => UNSCHEDULED_JOB_STATUSES.includes(job.status))
+    .map((job) => ({ id: job.id, title: job.title, status: job.status }))
+
+  if (!supabase) return local
+
+  try {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('id, title, status')
+      .eq('company_id', companyId)
+      .in('status', UNSCHEDULED_JOB_STATUSES)
+      .order('title', { ascending: true })
+
+    if (error) throw error
+    return (data ?? []) as JobScheduleOption[]
+  } catch (err) {
+    warnSupabaseFallback('listUnscheduledJobOptions', err)
+    return local
+  }
+}
+
+export type DispatchBoardJob = Pick<
+  Job,
+  | 'id'
+  | 'customer_id'
+  | 'property_id'
+  | 'title'
+  | 'status'
+  | 'priority'
+  | 'revenue'
+  | 'assigned_technician_id'
+  | 'scheduled_date'
+>
+
+const DISPATCH_BOARD_STATUSES: Job['status'][] = ['draft', 'scheduled', 'in_progress', 'completed']
+
+/** Dispatch kanban + route optimizer without full jobs list. */
+export async function listDispatchBoardJobs(companyId: string): Promise<DispatchBoardJob[]> {
+  const local = (loadLocalEntities('jobs', companyId) as Job[])
+    .filter((job) => DISPATCH_BOARD_STATUSES.includes(job.status))
+    .map((job) => ({
+      id: job.id,
+      customer_id: job.customer_id,
+      property_id: job.property_id,
+      title: job.title,
+      status: job.status,
+      priority: job.priority,
+      revenue: job.revenue,
+      assigned_technician_id: job.assigned_technician_id,
+      scheduled_date: job.scheduled_date,
+    }))
+
+  if (!supabase) return local
+
+  try {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('id, customer_id, property_id, title, status, priority, revenue, assigned_technician_id, scheduled_date')
+      .eq('company_id', companyId)
+      .in('status', DISPATCH_BOARD_STATUSES)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return ((data ?? []) as Job[]).map((job) => ({
+      id: job.id,
+      customer_id: job.customer_id,
+      property_id: job.property_id,
+      title: job.title,
+      status: job.status,
+      priority: job.priority,
+      revenue: job.revenue,
+      assigned_technician_id: job.assigned_technician_id,
+      scheduled_date: job.scheduled_date,
+    }))
+  } catch (err) {
+    warnSupabaseFallback('listDispatchBoardJobs', err)
+    return local
+  }
+}
+
 export interface MaterialsSummary {
   lowStock: Pick<Material, 'id' | 'name' | 'quantity' | 'reorder_level'>[]
   names: Record<string, string>

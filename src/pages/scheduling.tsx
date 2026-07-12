@@ -8,7 +8,9 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { ScheduleForm } from '@/components/forms/schedule-form'
 import { RouteOptimizerPanel } from '@/components/maps/route-optimizer-panel'
-import { useSchedules, useEmployees, useJobs, useCustomerContacts, useCreateScheduleFromJob } from '@/hooks/use-entities'
+import { useSchedules, useEmployees, useUnscheduledJobOptions, useCustomerContacts, useCreateScheduleFromJob } from '@/hooks/use-entities'
+import { fetchJobById } from '@/services/entity-service'
+import { useAuth } from '@/contexts/auth-context'
 import { useOptimizedRouteFromStops } from '@/hooks/use-route-optimizer'
 import { useIsMobileNav } from '@/hooks/use-media-query'
 import { addDays, format, startOfWeek, isSameDay } from 'date-fns'
@@ -28,10 +30,12 @@ export default function SchedulingPage() {
     typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches ? 'day' : 'week',
   )
   const [currentDate, setCurrentDate] = useState(new Date())
+  const { company } = useAuth()
+  const companyId = company?.id ?? ''
   const [showForm, setShowForm] = useState(false)
   const { data: schedule = [], isLoading: schedLoading } = useSchedules()
   const { data: employees = [], isLoading: empLoading } = useEmployees()
-  const { data: jobs = [] } = useJobs()
+  const { data: jobOptions = [] } = useUnscheduledJobOptions(showForm)
   const { data: customers = [] } = useCustomerContacts()
   const createSchedule = useCreateScheduleFromJob()
 
@@ -57,8 +61,8 @@ export default function SchedulingPage() {
 
   const route = useOptimizedRouteFromStops(routeItems)
 
-  const handleSchedule = (values: ScheduleFormValues) => {
-    const job = jobs.find((j) => j.id === values.job_id)
+  const handleSchedule = async (values: ScheduleFormValues) => {
+    const job = await fetchJobById(companyId, values.job_id)
     if (!job) return
 
     const customer = customers.find((c) => c.id === job.customer_id)
@@ -151,7 +155,7 @@ export default function SchedulingPage() {
           </CardHeader>
           <CardContent>
             <ScheduleForm
-              jobs={jobs}
+              jobs={jobOptions}
               technicians={technicians}
               onSubmit={handleSchedule}
               onCancel={() => setShowForm(false)}

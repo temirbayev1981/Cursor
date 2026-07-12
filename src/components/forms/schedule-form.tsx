@@ -6,10 +6,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useTranslation } from '@/contexts/locale-context'
-import type { Employee, Job } from '@/types'
+import type { Employee } from '@/types'
+import type { JobScheduleOption } from '@/services/entity-service'
 
 interface ScheduleFormProps {
-  jobs: Job[]
+  jobs: JobScheduleOption[]
   technicians: Employee[]
   onSubmit: (values: ScheduleFormValues) => void
   onCancel?: () => void

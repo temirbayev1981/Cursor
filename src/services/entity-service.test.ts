@@ -7,9 +7,12 @@ import {
   getExpensesSummary,
   getInvoicesSummary,
   fetchInvoiceById,
+  fetchJobById,
   getMaterialsSummary,
   listCustomerContacts,
   listCustomerReportSummaries,
+  listUnscheduledJobOptions,
+  listDispatchBoardJobs,
   getEstimatesPendingSummary,
   getAiBusinessContextStats,
   getSmartEngineJobContext,
@@ -201,6 +204,29 @@ describe('entity-service', () => {
     expect(stats.revenue).toBeGreaterThanOrEqual(0)
     expect(stats.profit).toBeGreaterThanOrEqual(0)
     expect(stats.outstanding).toBeGreaterThanOrEqual(0)
+  })
+
+  it('listUnscheduledJobOptions returns draft and on_hold picker rows', async () => {
+    const options = await listUnscheduledJobOptions('comp-001')
+    expect(options.every((job) => ['draft', 'on_hold'].includes(job.status))).toBe(true)
+    if (options.length > 0) {
+      expect(options[0]).not.toHaveProperty('revenue')
+    }
+  })
+
+  it('listDispatchBoardJobs returns board columns without full CRM fields', async () => {
+    const jobs = await listDispatchBoardJobs('comp-001')
+    expect(jobs.length).toBeGreaterThan(0)
+    expect(jobs[0]).toHaveProperty('title')
+    expect(jobs[0]).toHaveProperty('priority')
+    expect(jobs[0]).not.toHaveProperty('description')
+  })
+
+  it('fetchJobById returns a full job row', async () => {
+    const all = await listEntities('jobs', 'comp-001') as import('@/types').Job[]
+    const job = await fetchJobById('comp-001', all[0]!.id)
+    expect(job?.id).toBe(all[0]!.id)
+    expect(job).toHaveProperty('description')
   })
 
   it('getSmartEngineJobContext returns drywall stats and job count', async () => {

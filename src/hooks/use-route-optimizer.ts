@@ -3,8 +3,10 @@ import type { Job, Property } from '@/types'
 import type { CustomerContact } from '@/services/entity-service'
 import { geocodeAddressForRouting, optimizeRoute, buildGoogleMapsDirectionsUrl, type RouteStop } from '@/lib/route-optimizer'
 
+export type RoutableJob = Pick<Job, 'id' | 'title' | 'status' | 'customer_id' | 'property_id'>
+
 export function resolveJobAddress(
-  job: Job,
+  job: RoutableJob,
   customers: CustomerContact[],
   properties: Property[]
 ): string {
@@ -18,7 +20,7 @@ export function resolveJobAddress(
 }
 
 export function useOptimizedRoute(
-  jobs: Job[],
+  jobs: RoutableJob[],
   customers: CustomerContact[],
   properties: Property[]
 ) {

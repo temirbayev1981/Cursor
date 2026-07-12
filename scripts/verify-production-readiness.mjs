@@ -1798,6 +1798,34 @@ if (
   ok = false
 }
 
+if (auditLabelsModule.includes('SCHEDULING_DISPATCH_LIGHTWEIGHT_AUDIT = true')) {
+  console.log('✓ SCHEDULING_DISPATCH_LIGHTWEIGHT_AUDIT gate enabled')
+} else {
+  console.log('✗ SCHEDULING_DISPATCH_LIGHTWEIGHT_AUDIT must be true')
+  ok = false
+}
+
+if (platformAuditModule.includes('scheduling_dispatch_lightweight_audit') && platformAuditModule.includes('SCHEDULING_DISPATCH_LIGHTWEIGHT_AUDIT')) {
+  console.log('✓ platform-audit includes scheduling/dispatch lightweight quality check')
+} else {
+  console.log('✗ platform-audit must include scheduling_dispatch_lightweight_audit check')
+  ok = false
+}
+
+if (
+  schedulingPage.includes('useUnscheduledJobOptions')
+  && schedulingPage.includes('fetchJobById')
+  && !schedulingPage.includes('useJobs()')
+  && dispatchPage.includes('useDispatchBoardJobs')
+  && dispatchPage.includes('fetchJobById')
+  && !dispatchPage.includes('useJobs()')
+) {
+  console.log('✓ scheduling and dispatch use scoped job queries')
+} else {
+  console.log('✗ scheduling/dispatch must use lightweight job hooks and fetchJobById without useJobs')
+  ok = false
+}
+
 const pkgJson = JSON.parse(readFileSync('package.json', 'utf8'))
 if (pkgJson.scripts?.['verify:operator:prod']) {
   console.log('✓ verify:operator:prod npm script')
