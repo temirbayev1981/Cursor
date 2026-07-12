@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/contexts/auth-context'
 import { useCustomers, useEmployees, useSaveJob, useBulkUpdateJobStatus, useBulkAssignTechnician, useBulkScheduleJobs, useBulkDeleteJobs } from '@/hooks/use-entities'
 import { useServerEntityTable } from '@/hooks/use-server-entity-table'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { formatCurrency, formatDate, cn } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
 import { toast } from 'sonner'
@@ -22,6 +22,9 @@ import { JobMaterialUsageDialog } from '@/components/inventory/job-material-usag
 import type { Job, JobStatus } from '@/types'
 
 const BULK_STATUSES: JobStatus[] = ['draft', 'scheduled', 'in_progress', 'completed', 'on_hold', 'cancelled']
+
+/** Up to 3 lines; wide columns avoid mid-word breaks and ellipsis for typical job text. */
+const JOBS_TEXT_CELL = 'line-clamp-3 break-normal hyphens-none whitespace-normal leading-snug'
 
 export default function JobsPage() {
   const { t } = useTranslation()
@@ -285,19 +288,19 @@ export default function JobsPage() {
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <DataTable
-          tableClassName="min-w-[1120px]"
+          tableClassName="min-w-[1320px]"
           headers={['', t.jobs.job, t.jobs.customer, t.jobs.technician, t.jobs.status, t.jobs.priority, t.jobs.revenue, t.jobs.profit, t.jobs.scheduledDate, '']}
           columnClassNames={[
             'w-10',
+            'w-[20rem]',
             'w-[14rem]',
             'w-[10rem]',
-            'w-[8rem]',
             'w-[7rem]',
-            'w-[6rem]',
             'w-[6.5rem]',
-            'w-[5rem]',
             'w-[7rem]',
-            'w-[4rem]',
+            'w-[5.5rem]',
+            'w-[7.5rem]',
+            'w-[4.5rem]',
           ]}
           pagination={pagination}
           paginationTestId="jobs-pagination"
@@ -318,15 +321,15 @@ export default function JobsPage() {
                 </DataTableCell>
                 <DataTableCell className="align-top">
                   <div>
-                    <p className="font-medium line-clamp-2 break-words whitespace-normal leading-snug">{job.title}</p>
+                    <p className={cn('font-medium', JOBS_TEXT_CELL)}>{job.title}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">{job.estimated_hours}{t.common.hours} {t.jobs.estimated}</p>
                   </div>
                 </DataTableCell>
                 <DataTableCell className="align-top">
-                  <span className="line-clamp-2 break-words whitespace-normal leading-snug">{customer?.name ?? '—'}</span>
+                  <span className={JOBS_TEXT_CELL}>{customer?.name ?? '—'}</span>
                 </DataTableCell>
                 <DataTableCell className="align-top" data-testid={`job-technician-${job.id}`}>
-                  <span className="line-clamp-2 break-words whitespace-normal leading-snug">{tech?.name || '—'}</span>
+                  <span className={JOBS_TEXT_CELL}>{tech?.name || '—'}</span>
                 </DataTableCell>
                 <DataTableCell className="align-top"><JobStatusBadge status={job.status} /></DataTableCell>
                 <DataTableCell className="align-top"><PriorityBadge priority={job.priority} /></DataTableCell>
