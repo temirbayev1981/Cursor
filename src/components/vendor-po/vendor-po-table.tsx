@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { VendorPORecord } from '@/types/vendor-po'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { formatCurrency, formatDate, cn } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
 import { useWorkflow } from '@/contexts/workflow-context'
@@ -157,6 +157,100 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
         )}
       </div>
 
+      <div className="md:hidden space-y-3">
+        {records.map((rawRow) => {
+          const row = normalizeVendorPORecord(rawRow)
+          const priority = row.priority
+          const isEmergency = priority.includes('EMERGENCY') || priority.startsWith('P1')
+          const problemCell = getProblemDescriptionCell(row, {
+            translated: problemTranslations[row.id],
+            isTranslating: translatingProblemIds.has(row.id),
+          })
+          return (
+            <Card
+              key={row.id}
+              className={cn('p-4', isEmergency && 'border-destructive/40 bg-destructive/5')}
+              data-testid={`vendor-po-card-${row.id}`}
+            >
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="font-mono font-semibold">
+                      {row.vendor_po_number}
+                      {isEmergency && <AlertTriangle className="inline h-3.5 w-3.5 ml-1 text-destructive" />}
+                    </p>
+                    <p className="text-xs text-muted-foreground font-mono">{row.client_po_number}</p>
+                  </div>
+                  <Badge variant={isEmergency ? 'destructive' : priority.includes('URGENT') ? 'warning' : 'outline'}>
+                    {priority || '—'}
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
+                  <span className="text-muted-foreground">{t.vendorPO.orderType}</span>
+                  <span>{row.order_type}</span>
+                  <span className="text-muted-foreground">{t.vendorPO.nte}</span>
+                  <span className="font-medium">
+                    {formatCurrency(row.nte_amount)}
+                    {row.nte_amount === 0 && <span className="text-xs text-warning ml-1">NTE↑</span>}
+                  </span>
+                  <span className="text-muted-foreground">{t.vendorPO.location}</span>
+                  <span className="line-clamp-2 break-words">
+                    {row.service_location_name}
+                    {row.location_number ? ` — #${row.location_number}` : ''}
+                  </span>
+                  <span className="text-muted-foreground">{t.vendorPO.address}</span>
+                  <span className="line-clamp-2 break-words">
+                    {[row.service_address, row.service_city, row.service_state].filter(Boolean).join(', ') || '—'}
+                  </span>
+                </div>
+                {problemCell.text ? (
+                  <button
+                    type="button"
+                    className={cn(
+                      'text-sm line-clamp-3 break-words text-left w-full',
+                      problemCell.state === 'en' ? 'text-muted-foreground' : '',
+                    )}
+                    onClick={() => setCellHint({ title: t.vendorPO.problemDescription, text: problemCell.text })}
+                    data-testid={`vendor-po-problem-${row.id}`}
+                  >
+                    {problemCell.text}
+                  </button>
+                ) : null}
+                {row.work_summary ? (
+                  <button
+                    type="button"
+                    className="text-sm line-clamp-2 break-words text-left w-full text-muted-foreground"
+                    onClick={() => setCellHint({ title: t.vendorPO.workScope, text: row.work_summary || row.service_description })}
+                    data-testid={`vendor-po-work-scope-${row.id}`}
+                  >
+                    {row.work_summary}
+                  </button>
+                ) : null}
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-xs text-muted-foreground">{formatDate(row.created_at, dateLocale)}</span>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelected(row)} title={t.common.view}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" disabled={isRunning}
+                      onClick={() => handleCreateJob(row)} title={t.vendorPO.createJob}
+                      data-testid={`vendor-po-create-job-${row.id}`}>
+                      <Briefcase className="h-4 w-4" />
+                    </Button>
+                    {onDelete && (
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => onDelete(row.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )
+        })}
+      </div>
+
+      <div className="hidden md:block">
       <DataTable
         headers={[
           t.vendorPO.vendorPoNumber, t.vendorPO.clientPoNumber, t.vendorPO.priority,
@@ -269,6 +363,7 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
           )
         })}
       </DataTable>
+      </div>
 
       {cellHint && (
         <div

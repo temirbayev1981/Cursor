@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner } from './helpers/auth'
-import { expectJobTitleVisible } from './helpers/visibility'
+import { expectCustomerNameVisible, expectJobTitleVisible, visibleTestId, visibleText } from './helpers/visibility'
 
 test.describe('Jobs & customers', () => {
   test.beforeEach(async ({ page }) => {
@@ -20,12 +20,12 @@ test.describe('Jobs & customers', () => {
     await page.getByTestId('customer-form-submit').click()
 
     await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText('E2E Test Customer').first()).toBeVisible()
+    await expectCustomerNameVisible(page, 'E2E Test Customer')
   })
 
   test('customer form saves email notification opt-out', async ({ page }) => {
     await page.goto('/customers')
-    await page.getByTestId('customer-edit-cust-004').click()
+    await visibleTestId(page, 'customer-edit-cust-004').click()
     await expect(page.getByTestId('customer-form-notification-prefs')).toBeVisible()
 
     const emailToggle = page.getByTestId('customer-form-notify-email')
@@ -36,42 +36,42 @@ test.describe('Jobs & customers', () => {
     await page.getByTestId('customer-form-submit').click()
 
     await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByTestId('customer-email-optout-cust-004')).toBeVisible()
+    await expect(visibleTestId(page, 'customer-email-optout-cust-004')).toBeVisible()
   })
 
   test('customers table shows SMS opt-out badge by default', async ({ page }) => {
     await page.goto('/customers')
-    await expect(page.getByTestId('customer-sms-optout-cust-004')).toBeVisible()
+    await expect(visibleTestId(page, 'customer-sms-optout-cust-004')).toBeVisible()
   })
 
   test('customer form enabling SMS removes opt-out badge', async ({ page }) => {
     await page.goto('/customers')
-    await page.getByTestId('customer-edit-cust-004').click()
+    await visibleTestId(page, 'customer-edit-cust-004').click()
     const smsToggle = page.getByTestId('customer-form-notify-sms')
     if ((await smsToggle.getAttribute('data-state')) !== 'checked') {
       await smsToggle.click()
     }
     await page.getByTestId('customer-form-submit').click()
     await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByTestId('customer-sms-optout-cust-004')).not.toBeVisible()
+    await expect(visibleTestId(page, 'customer-sms-optout-cust-004')).not.toBeVisible()
   })
 
   test('customer search filters the table', async ({ page }) => {
     await page.goto('/customers')
-    await expect(page.getByText('ABC Property Management').first()).toBeVisible()
+    await expectCustomerNameVisible(page, 'ABC Property Management')
 
     await page.getByTestId('customers-search').fill('ABC Property')
-    await expect(page.getByText('ABC Property Management').first()).toBeVisible()
-    await expect(page.getByText('Mike & Lisa Chen').first()).not.toBeVisible()
+    await expectCustomerNameVisible(page, 'ABC Property Management')
+    await expect(visibleText(page, 'Mike & Lisa Chen')).not.toBeVisible()
 
     await page.getByTestId('customers-search').fill('nonexistent-customer-xyz')
-    await expect(page.getByText('ABC Property Management').first()).not.toBeVisible()
+    await expect(visibleText(page, 'ABC Property Management')).not.toBeVisible()
   })
 
   test('copy portal link shows success toast', async ({ page, context }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
     await page.goto('/customers')
-    await page.getByTestId('customer-portal-link-cust-001').click()
+    await visibleTestId(page, 'customer-portal-link-cust-001').click()
 
     await expect(page.getByText(/ссылка на портал скопирована|portal link copied/i).first()).toBeVisible({ timeout: 10000 })
   })

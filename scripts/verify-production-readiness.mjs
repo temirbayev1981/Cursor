@@ -1229,6 +1229,8 @@ const migrationFiles = [
   'supabase/migrations/README.md',
   'supabase/migrations/20260711000001_auth_provision_owner.sql',
   'supabase/migrations/20260711000002_check_rate_limit.sql',
+  'supabase/migrations/20260711000003_vendor_po_problem_description.sql',
+  'supabase/migrations/20260712000001_rate_limit_buckets_rls.sql',
 ]
 for (const file of migrationFiles) {
   if (existsSync(file)) {
@@ -1237,6 +1239,17 @@ for (const file of migrationFiles) {
     console.log(`✗ missing: ${file}`)
     ok = false
   }
+}
+
+const supabaseModule = readFileSync('src/lib/supabase.ts', 'utf8')
+if (supabaseModule.includes("from '@/lib/e2e-mock-supabase'") || supabaseModule.includes('from "@/lib/e2e-mock-supabase"')) {
+  console.log('✗ src/lib/supabase.ts must not statically import e2e-mock-supabase (use dynamic import)')
+  ok = false
+} else if (supabaseModule.includes("import('@/lib/e2e-mock-supabase')")) {
+  console.log('✓ supabase.ts uses dynamic import for E2E mock')
+} else {
+  console.log('✗ supabase.ts must dynamically import e2e-mock-supabase for E2E builds')
+  ok = false
 }
 
 const instructionsEn = existsSync('public/INSTRUCTIONS.en.md') && existsSync('INSTRUCTIONS.en.md')

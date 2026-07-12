@@ -26,3 +26,11 @@ export async function expectJobTitleVisible(
 ): Promise<void> {
   await expectVisibleText(page, title, { exact: true, timeout: options?.timeout })
 }
+
+export async function expectCustomerNameVisible(
+  page: Page,
+  name: string,
+  options?: { timeout?: number },
+): Promise<void> {
+  await expectVisibleText(page, name, { exact: true, timeout: options?.timeout })
+}

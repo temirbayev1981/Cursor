@@ -2,6 +2,7 @@ import { Plus, Search, X, Link2, Pencil } from 'lucide-react'
 import { useState } from 'react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
+import { TablePagination } from '@/components/shared/table-pagination'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -108,6 +109,68 @@ export default function CustomersPage() {
         <Input placeholder={t.customers.search} className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} data-testid="customers-search" />
       </div>
 
+      <div className="md:hidden space-y-3">
+        {pagination.paginatedItems.map((customer) => (
+          <Card key={customer.id} className="p-4" data-testid={`customer-card-${customer.id}`}>
+            <div className="space-y-3">
+              <div>
+                <p className="font-medium">{customer.name}</p>
+                <p className="text-sm text-muted-foreground">{customer.address}</p>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {!customerAllowsNotification(customer.id, 'email', customer) && (
+                    <Badge variant="secondary" className="text-xs" data-testid={`customer-email-optout-${customer.id}`}>
+                      {t.customers.emailOptOut}
+                    </Badge>
+                  )}
+                  {!customerAllowsNotification(customer.id, 'sms', customer) && (
+                    <Badge variant="secondary" className="text-xs" data-testid={`customer-sms-optout-${customer.id}`}>
+                      {t.customers.smsOptOut}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
+                <span className="text-muted-foreground">{t.customers.type}</span>
+                <Badge variant="outline" className="w-fit">{getCustomerTypeLabel(customer.type)}</Badge>
+                <span className="text-muted-foreground">{t.customers.contact}</span>
+                <span>
+                  <span className="block">{customer.email}</span>
+                  <span className="text-muted-foreground">{customer.phone}</span>
+                </span>
+                <span className="text-muted-foreground">{t.customers.jobs}</span>
+                <span>{customer.job_count}</span>
+                <span className="text-muted-foreground">{t.customers.revenue}</span>
+                <span className="font-medium">{formatCurrency(customer.total_revenue)}</span>
+                <span className="text-muted-foreground">{t.common.since}</span>
+                <span>{new Date(customer.created_at).toLocaleDateString(dateLocale)}</span>
+              </div>
+              <div className="flex gap-1 pt-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  title={t.common.edit}
+                  data-testid={`customer-edit-${customer.id}`}
+                  onClick={() => openEditForm(customer)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  title={t.customers.copyPortalLink}
+                  data-testid={`customer-portal-link-${customer.id}`}
+                  onClick={() => void handlePortalLink(customer, customer.type === 'property_management' ? 'property' : 'customer')}
+                >
+                  <Link2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+        <TablePagination pagination={pagination} testId="customers-pagination-mobile" />
+      </div>
+
+      <div className="hidden md:block">
       <DataTable
         headers={[t.customers.customer, t.customers.type, t.customers.contact, t.customers.jobs, t.customers.revenue, t.common.since, '']}
         pagination={pagination}
@@ -178,6 +241,7 @@ export default function CustomersPage() {
           </DataTableRow>
         ))}
       </DataTable>
+      </div>
     </div>
   )
 }

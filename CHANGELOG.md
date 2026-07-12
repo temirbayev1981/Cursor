@@ -2,6 +2,23 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.25] — 2026-07-12
+
+Audit P4: production bundle trim, mobile cards for vendor PO and customers.
+
+### Bundle
+- `src/lib/supabase.ts` — dynamic import of `e2e-mock-supabase` (excluded from production chunk)
+- `main.tsx` — async bootstrap awaits E2E mock init when `VITE_E2E_MOCK_BACKEND=true`
+- `verify-production-readiness` gate for static import + missing migrations
+
+### UI — Mobile cards
+- **Vendor PO** (`vendor-po-table.tsx`) — card layout on `< md`; desktop table unchanged
+- **Customers** (`customers.tsx`) — card layout + mobile pagination test id
+
+### Tests
+- `e2e/customers-mobile-layout.spec.ts`, `e2e/vendor-po-mobile-layout.spec.ts`
+- `mobile-smoke.spec.ts` — customers cards + mobile pagination
+
 ## [1.14.24] — 2026-07-12
 
 Audit P3: E2E stability after mobile jobs layout, Sentry Session Replay.
