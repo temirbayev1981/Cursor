@@ -11,6 +11,7 @@ import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
 import { useWorkflow } from '@/contexts/workflow-context'
 import { useQueryClient } from '@tanstack/react-query'
+import { getErrorMessage } from '@/lib/error-message'
 import { useAuth } from '@/contexts/auth-context'
 import { requireCompanyId } from '@/hooks/use-company-scope'
 import { exportVendorPOsToExcel, groupVendorPOsByAddress } from '@/lib/export'
@@ -121,10 +122,12 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
     try {
       const companyId = requireCompanyId(company?.id)
       const userId = user?.id ?? 'user-001'
-      await runVendorPOWorkflow(po, companyId, userId)
+      await runVendorPOWorkflow(normalizeVendorPORecord(po), companyId, userId)
+      void queryClient.invalidateQueries({ queryKey: ['vendor-pos'] })
       toast.success(t.vendorPO.jobCreatedFrom.replace('{poNumber}', po.vendor_po_number))
       navigate('/jobs')
-    } catch {
+    } catch (error) {
+      console.error('Vendor PO create job failed:', getErrorMessage(error))
       toast.error(t.vendorPO.jobCreateFailed)
     }
   }

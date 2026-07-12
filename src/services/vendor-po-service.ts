@@ -310,6 +310,26 @@ export async function saveVendorPOBatch(inputs: VendorPOInput[]): Promise<Vendor
   return saved
 }
 
+export async function updateVendorPOStatus(id: string, status: VendorPORecord['status']): Promise<void> {
+  const local = loadLocal()
+  const index = local.findIndex((row) => row.id === id)
+  if (index >= 0) {
+    local[index] = { ...local[index], status }
+    saveLocal(local)
+  }
+
+  if (!supabase) return
+
+  const { error } = await supabaseOp(
+    updateRows('vendor_po_records', { status }, 'id', id),
+    'vendor PO status update',
+  )
+  if (error) {
+    console.error('Vendor PO status update failed:', getErrorMessage(error))
+    throw error
+  }
+}
+
 export async function updateVendorPOProblemRu(id: string, problemDescriptionRu: string): Promise<void> {
   const trimmed = problemDescriptionRu.trim().slice(0, 500)
   if (!trimmed) return

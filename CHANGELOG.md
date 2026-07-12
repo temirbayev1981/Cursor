@@ -2,6 +2,14 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.17] — 2026-07-12
+
+Fix «Создать заказ + смету» error for existing Vendor PO records.
+
+### Hotfix — Vendor PO to job workflow
+- Update existing PO status to `approved` instead of inserting duplicate row
+- Null-safe priority mapping when creating job from vendor PO
+
 ## [1.14.16] — 2026-07-11
 
 Fix intermittent Vendor PO PDF parse failures (especially on mobile).
