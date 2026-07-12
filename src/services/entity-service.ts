@@ -944,6 +944,90 @@ export async function getMaterialsSummary(companyId: string): Promise<MaterialsS
   }
 }
 
+export type CustomerContact = Pick<Customer, 'id' | 'name' | 'email' | 'phone' | 'notification_preferences'>
+
+/** Customer picker + notify fields without full CRM rows. */
+export async function listCustomerContacts(companyId: string): Promise<CustomerContact[]> {
+  const local = (loadLocalEntities('customers', companyId) as Customer[]).map((customer) => ({
+    id: customer.id,
+    name: customer.name,
+    email: customer.email,
+    phone: customer.phone,
+    notification_preferences: customer.notification_preferences,
+  }))
+
+  if (!supabase) return local
+
+  try {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('id, name, email, phone, notification_preferences')
+      .eq('company_id', companyId)
+      .order('name', { ascending: true })
+
+    if (error) throw error
+    return ((data ?? []) as Customer[]).map((customer) => ({
+      id: customer.id,
+      name: customer.name,
+      email: customer.email,
+      phone: customer.phone,
+      notification_preferences: customer.notification_preferences,
+    }))
+  } catch (err) {
+    warnSupabaseFallback('listCustomerContacts', err)
+    return local
+  }
+}
+
+export interface SmartEngineJobContext {
+  totalJobs: number
+  drywallStats: Pick<Job, 'estimated_hours' | 'actual_hours' | 'revenue' | 'profit_margin'>[]
+}
+
+function buildSmartEngineJobContext(jobs: Pick<Job, 'title' | 'estimated_hours' | 'actual_hours' | 'revenue' | 'profit_margin'>[]): SmartEngineJobContext {
+  const drywallStats = jobs
+    .filter((job) => job.title.toLowerCase().includes('drywall'))
+    .map((job) => ({
+      estimated_hours: job.estimated_hours,
+      actual_hours: job.actual_hours,
+      revenue: job.revenue,
+      profit_margin: job.profit_margin,
+    }))
+  return { totalJobs: jobs.length, drywallStats }
+}
+
+/** Smart estimate engine context without loading full job records. */
+export async function getSmartEngineJobContext(companyId: string): Promise<SmartEngineJobContext> {
+  const local = loadLocalEntities('jobs', companyId) as Job[]
+  const sumLocal = () =>
+    buildSmartEngineJobContext(
+      local.map((job) => ({
+        title: job.title,
+        estimated_hours: job.estimated_hours,
+        actual_hours: job.actual_hours,
+        revenue: job.revenue,
+        profit_margin: job.profit_margin,
+      })),
+    )
+
+  if (!supabase) return sumLocal()
+
+  try {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('title, estimated_hours, actual_hours, revenue, profit_margin')
+      .eq('company_id', companyId)
+
+    if (error) throw error
+    return buildSmartEngineJobContext(
+      (data ?? []) as Pick<Job, 'title' | 'estimated_hours' | 'actual_hours' | 'revenue' | 'profit_margin'>[],
+    )
+  } catch (err) {
+    warnSupabaseFallback('getSmartEngineJobContext', err)
+    return sumLocal()
+  }
+}
+
 export async function saveTimeEntry(entry: TimeEntry): Promise<TimeEntry> {
   const previous = loadStore<TimeEntry>(STORE_KEYS.timeEntries).find((e) => e.id === entry.id)
   upsertStore(STORE_KEYS.timeEntries, entry)

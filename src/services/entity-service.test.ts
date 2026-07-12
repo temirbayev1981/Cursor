@@ -8,6 +8,8 @@ import {
   getInvoicesSummary,
   fetchInvoiceById,
   getMaterialsSummary,
+  listCustomerContacts,
+  getSmartEngineJobContext,
   saveEntity,
   deleteEntity,
   logAudit,
@@ -165,6 +167,20 @@ describe('entity-service', () => {
     const summary = await getMaterialsSummary('comp-001')
     expect(Object.keys(summary.names).length).toBeGreaterThan(0)
     expect(summary.lowStock.every((m) => m.quantity <= m.reorder_level)).toBe(true)
+  })
+
+  it('listCustomerContacts returns picker fields without full CRM rows', async () => {
+    const contacts = await listCustomerContacts('comp-001')
+    expect(contacts.length).toBeGreaterThan(0)
+    expect(contacts[0]).toHaveProperty('name')
+    expect(contacts[0]).toHaveProperty('email')
+    expect(contacts[0]).not.toHaveProperty('address')
+  })
+
+  it('getSmartEngineJobContext returns drywall stats and job count', async () => {
+    const context = await getSmartEngineJobContext('comp-001')
+    expect(context.totalJobs).toBeGreaterThan(0)
+    expect(context.drywallStats.every((job) => typeof job.estimated_hours === 'number')).toBe(true)
   })
 
   it('listFuelLogsPage clears stale scoped cache when remote total is zero', async () => {

@@ -1660,6 +1660,43 @@ if (materialsPage.includes('useMaterialsSummary') && !materialsPage.includes('us
   ok = false
 }
 
+if (
+  entityService.includes('listCustomerContacts')
+  && entityService.includes('getSmartEngineJobContext')
+) {
+  console.log('✓ entity-service estimates lightweight context queries')
+} else {
+  console.log('✗ entity-service must export listCustomerContacts and getSmartEngineJobContext')
+  ok = false
+}
+
+if (auditLabelsModule.includes('ESTIMATES_LIGHTWEIGHT_AUDIT = true')) {
+  console.log('✓ ESTIMATES_LIGHTWEIGHT_AUDIT gate enabled')
+} else {
+  console.log('✗ ESTIMATES_LIGHTWEIGHT_AUDIT must be true')
+  ok = false
+}
+
+if (platformAuditModule.includes('estimates_lightweight_audit') && platformAuditModule.includes('ESTIMATES_LIGHTWEIGHT_AUDIT')) {
+  console.log('✓ platform-audit includes estimates lightweight quality check')
+} else {
+  console.log('✗ platform-audit must include estimates_lightweight_audit check')
+  ok = false
+}
+
+if (
+  estimatesPage.includes('useCustomerContacts')
+  && estimatesPage.includes('useSmartEngineJobContext')
+  && !estimatesPage.includes('useJobs()')
+  && !estimatesPage.includes('useCustomers()')
+  && !estimatesPage.includes('useInvoices()')
+) {
+  console.log('✓ estimates page uses lightweight contacts and smart-engine context')
+} else {
+  console.log('✗ estimates.tsx must use useCustomerContacts/useSmartEngineJobContext without full entity lists')
+  ok = false
+}
+
 const pkgJson = JSON.parse(readFileSync('package.json', 'utf8'))
 if (pkgJson.scripts?.['verify:operator:prod']) {
   console.log('✓ verify:operator:prod npm script')

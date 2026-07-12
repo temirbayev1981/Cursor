@@ -186,6 +186,9 @@ export const SERVER_PAGINATION_AUDIT = true as const
 /** Lightweight KPI summary queries on paginated entity pages. */
 export const KPI_SUMMARY_AUDIT = true as const
 
+/** Estimates page uses lightweight contacts and smart-engine context. */
+export const ESTIMATES_LIGHTWEIGHT_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }

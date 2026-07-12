@@ -771,6 +771,7 @@ export const ru = {
       multi_tenant: 'Мульти-тенант',
       server_pagination_audit: 'Серверная пагинация таблиц',
       kpi_summary_audit: 'Лёгкие KPI-сводки',
+      estimates_lightweight_audit: 'Лёгкий контекст смет',
     },
     auditActions: {
       'jobs.bulk_cancel': 'Массовая отмена заказов',
