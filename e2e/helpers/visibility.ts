@@ -27,10 +27,14 @@ export async function expectJobTitleVisible(
   await expectVisibleText(page, title, { exact: true, timeout: options?.timeout })
 }
 
-export async function expectCustomerNameVisible(
+export async function expectEstimateTitleVisible(
   page: Page,
-  name: string,
+  title: string,
   options?: { timeout?: number },
 ): Promise<void> {
-  await expectVisibleText(page, name, { exact: true, timeout: options?.timeout })
+  await expectVisibleText(page, title, { exact: true, timeout: options?.timeout })
+}
+
+export function visibleRow(page: Page, text: string | RegExp): Locator {
+  return page.getByRole('row').filter({ hasText: text }).locator('visible=true')
 }

@@ -2,6 +2,19 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.31] — 2026-07-12
+
+Audit P4: lazy work-orders PDF chunk, E2E visible helpers, mobile-layout gates.
+
+### Bundle
+- `pdf-utils.ts` — lightweight `isPdfFile` / `prefersNoPdfWorker` without pdf.js
+- `work-orders.tsx` — dynamic import of `pdf-extract`, CDN and server probes
+- `verify-production-readiness` gates for work-orders pdf-extract + 9 mobile-layout E2E specs
+
+### E2E
+- `visibility.ts` — `expectEstimateTitleVisible`, `visibleRow` helpers
+- `materials`, `estimate-pdf-release`, `scheduling` specs use visible locators
+
 ## [1.14.30] — 2026-07-12
 
 Audit P4: lazy sample seed chunk, reports customers mobile, E2E visible fixes.

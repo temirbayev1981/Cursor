@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner } from './helpers/auth'
-import { visibleTestId, visibleText } from './helpers/visibility'
+import { visibleRow, visibleTestId, visibleText } from './helpers/visibility'
 
 test.describe('Materials inventory', () => {
   test.beforeEach(async ({ page }) => {
@@ -16,7 +16,7 @@ test.describe('Materials inventory', () => {
 
   test('receive stock dialog increases material quantity', async ({ page }) => {
     await page.goto('/materials')
-    const row = page.getByRole('row').filter({ hasText: 'Door Trim (8ft)' })
+    const row = visibleRow(page, 'Door Trim (8ft)')
     await expect(row).toContainText('3')
 
     await visibleTestId(page, 'material-receive-mat-003').click()

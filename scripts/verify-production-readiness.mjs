@@ -1276,6 +1276,40 @@ if (entityServiceModule.includes("from '@/data/mock-data'") || entityServiceModu
   ok = false
 }
 
+const workOrdersPage = existsSync('src/pages/work-orders.tsx')
+  ? readFileSync('src/pages/work-orders.tsx', 'utf8')
+  : ''
+if (workOrdersPage.includes("from '@/lib/pdf-extract'") || workOrdersPage.includes('from "@/lib/pdf-extract"')) {
+  console.log('✗ work-orders.tsx must not statically import pdf-extract (use dynamic import)')
+  ok = false
+} else if (workOrdersPage.includes("import('@/lib/pdf-extract')")) {
+  console.log('✓ work-orders.tsx uses dynamic import for pdf-extract')
+} else {
+  console.log('✗ work-orders.tsx must dynamically import pdf-extract for PDF upload')
+  ok = false
+}
+
+const mobileLayoutSpecs = [
+  'e2e/jobs-mobile-layout.spec.ts',
+  'e2e/customers-mobile-layout.spec.ts',
+  'e2e/vendor-po-mobile-layout.spec.ts',
+  'e2e/invoices-mobile-layout.spec.ts',
+  'e2e/estimates-mobile-layout.spec.ts',
+  'e2e/materials-mobile-layout.spec.ts',
+  'e2e/expenses-mobile-layout.spec.ts',
+  'e2e/vehicles-mobile-layout.spec.ts',
+  'e2e/reports-mobile-layout.spec.ts',
+]
+console.log('\nMobile layout E2E:')
+for (const file of mobileLayoutSpecs) {
+  if (existsSync(file)) {
+    console.log(`✓ ${file}`)
+  } else {
+    console.log(`✗ missing: ${file}`)
+    ok = false
+  }
+}
+
 const instructionsEn = existsSync('public/INSTRUCTIONS.en.md') && existsSync('INSTRUCTIONS.en.md')
 if (instructionsEn) {
   console.log('✓ bilingual user guide (INSTRUCTIONS.en.md)')
