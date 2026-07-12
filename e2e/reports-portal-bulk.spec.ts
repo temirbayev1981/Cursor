@@ -50,8 +50,8 @@ test.describe('Jobs bulk technician assign', () => {
     await page.getByTestId('jobs-bulk-assign').click()
 
     await expect(page.getByText(/назначено мастеров:\s*2|assigned technician to 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByTestId('job-technician-job-bulk-001')).toContainText('Marcus Thompson')
-    await expect(page.getByTestId('job-technician-job-bulk-002')).toContainText('Marcus Thompson')
+    await expect(visibleTestId(page, 'job-technician-job-bulk-001')).toContainText('Marcus Thompson')
+    await expect(visibleTestId(page, 'job-technician-job-bulk-002')).toContainText('Marcus Thompson')
   })
 })
 
