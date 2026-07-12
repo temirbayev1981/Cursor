@@ -1006,6 +1006,147 @@ export async function listDispatchBoardJobs(companyId: string): Promise<Dispatch
   }
 }
 
+const ANALYTICS_JOB_COLUMNS =
+  'id, customer_id, title, status, priority, created_at, completed_date, scheduled_date, revenue, profit, profit_margin, labor_cost, material_cost, fuel_cost, overhead_cost, assigned_technician_id, estimated_hours, actual_hours' as const
+
+export type AnalyticsJob = Pick<
+  Job,
+  | 'id'
+  | 'customer_id'
+  | 'title'
+  | 'status'
+  | 'priority'
+  | 'created_at'
+  | 'completed_date'
+  | 'scheduled_date'
+  | 'revenue'
+  | 'profit'
+  | 'profit_margin'
+  | 'labor_cost'
+  | 'material_cost'
+  | 'fuel_cost'
+  | 'overhead_cost'
+  | 'assigned_technician_id'
+  | 'estimated_hours'
+  | 'actual_hours'
+>
+
+function toAnalyticsJob(job: Job): AnalyticsJob {
+  return {
+    id: job.id,
+    customer_id: job.customer_id,
+    title: job.title,
+    status: job.status,
+    priority: job.priority,
+    created_at: job.created_at,
+    completed_date: job.completed_date,
+    scheduled_date: job.scheduled_date,
+    revenue: job.revenue,
+    profit: job.profit,
+    profit_margin: job.profit_margin,
+    labor_cost: job.labor_cost,
+    material_cost: job.material_cost,
+    fuel_cost: job.fuel_cost,
+    overhead_cost: job.overhead_cost,
+    assigned_technician_id: job.assigned_technician_id,
+    estimated_hours: job.estimated_hours,
+    actual_hours: job.actual_hours,
+  }
+}
+
+/** Dashboard/reports analytics without full job rows. */
+export async function listAnalyticsJobs(companyId: string): Promise<AnalyticsJob[]> {
+  const local = (loadLocalEntities('jobs', companyId) as Job[]).map(toAnalyticsJob)
+
+  if (!supabase) return local
+
+  try {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select(ANALYTICS_JOB_COLUMNS)
+      .eq('company_id', companyId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return ((data ?? []) as Job[]).map(toAnalyticsJob)
+  } catch (err) {
+    warnSupabaseFallback('listAnalyticsJobs', err)
+    return local
+  }
+}
+
+export type TechnicianMobileJob = Pick<
+  Job,
+  | 'id'
+  | 'company_id'
+  | 'customer_id'
+  | 'property_id'
+  | 'title'
+  | 'description'
+  | 'status'
+  | 'priority'
+  | 'revenue'
+  | 'scheduled_date'
+  | 'assigned_technician_id'
+>
+
+const TECHNICIAN_ACTIVE_STATUSES: Job['status'][] = ['scheduled', 'in_progress']
+
+function toTechnicianMobileJob(job: Job): TechnicianMobileJob {
+  return {
+    id: job.id,
+    company_id: job.company_id,
+    customer_id: job.customer_id,
+    property_id: job.property_id,
+    title: job.title,
+    description: job.description,
+    status: job.status,
+    priority: job.priority,
+    revenue: job.revenue,
+    scheduled_date: job.scheduled_date,
+    assigned_technician_id: job.assigned_technician_id,
+  }
+}
+
+/** Technician mobile field view without full jobs list. */
+export async function listTechnicianAssignedJobs(
+  companyId: string,
+  technicianId?: string,
+  limit = 10,
+): Promise<TechnicianMobileJob[]> {
+  const local = (loadLocalEntities('jobs', companyId) as Job[])
+    .filter((job) => {
+      if (!TECHNICIAN_ACTIVE_STATUSES.includes(job.status)) return false
+      if (technicianId) return job.assigned_technician_id === technicianId
+      return true
+    })
+    .slice(0, limit)
+    .map(toTechnicianMobileJob)
+
+  if (!supabase) return local
+
+  try {
+    let query = supabase
+      .from('jobs')
+      .select('id, company_id, customer_id, property_id, title, description, status, priority, revenue, scheduled_date, assigned_technician_id')
+      .eq('company_id', companyId)
+      .in('status', TECHNICIAN_ACTIVE_STATUSES)
+      .order('scheduled_date', { ascending: true, nullsFirst: false })
+      .limit(limit)
+
+    if (technicianId) {
+      query = query.eq('assigned_technician_id', technicianId)
+    }
+
+    const { data, error } = await query
+    if (error) throw error
+    return ((data ?? []) as Job[]).map(toTechnicianMobileJob)
+  } catch (err) {
+    warnSupabaseFallback('listTechnicianAssignedJobs', err)
+    return local
+  }
+}
+
 export interface MaterialsSummary {
   lowStock: Pick<Material, 'id' | 'name' | 'quantity' | 'reorder_level'>[]
   names: Record<string, string>

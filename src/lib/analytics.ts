@@ -1,4 +1,5 @@
 import type { Job, Expense, Employee, FuelLog, DashboardMetrics } from '@/types'
+import type { AnalyticsJob } from '@/services/entity-service'
 
 export interface ChartDataPoint {
   name: string
@@ -11,11 +12,11 @@ export interface ChartDataPoint {
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-export function getJobReportDate(job: Job): string {
+export function getJobReportDate(job: Pick<Job, 'completed_date' | 'scheduled_date' | 'created_at'>): string {
   return job.completed_date ?? job.scheduled_date ?? job.created_at
 }
 
-export function filterJobsByDateRange(jobs: Job[], startDate?: string, endDate?: string): Job[] {
+export function filterJobsByDateRange(jobs: AnalyticsJob[], startDate?: string, endDate?: string): AnalyticsJob[] {
   if (!startDate && !endDate) return jobs
 
   const start = startDate ? new Date(`${startDate}T00:00:00`) : null
@@ -29,7 +30,7 @@ export function filterJobsByDateRange(jobs: Job[], startDate?: string, endDate?:
   })
 }
 
-export function computeReportSummary(jobs: Job[]) {
+export function computeReportSummary(jobs: AnalyticsJob[]) {
   const revenue = jobs.reduce((sum, job) => sum + job.revenue, 0)
   const profit = jobs.reduce((sum, job) => sum + job.profit, 0)
   return {
@@ -53,18 +54,18 @@ export interface PeriodComparison {
   jobsTrend: number
 }
 
-export function computePeriodComparison(jobs: Job[], referenceDate = new Date()): PeriodComparison {
+export function computePeriodComparison(jobs: AnalyticsJob[], referenceDate = new Date()): PeriodComparison {
   const currentMonth = referenceDate.getMonth()
   const currentYear = referenceDate.getFullYear()
   const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1
   const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear
 
-  const inMonth = (job: Job, month: number, year: number) => {
+  const inMonth = (job: AnalyticsJob, month: number, year: number) => {
     const date = new Date(getJobReportDate(job))
     return date.getMonth() === month && date.getFullYear() === year
   }
 
-  const summarize = (list: Job[]) => ({
+  const summarize = (list: AnalyticsJob[]) => ({
     revenue: list.reduce((sum, job) => sum + job.revenue, 0),
     profit: list.reduce((sum, job) => sum + job.profit, 0),
     jobs: list.length,
@@ -82,19 +83,19 @@ export function computePeriodComparison(jobs: Job[], referenceDate = new Date())
   }
 }
 
-export function computeRangeComparison(jobs: Job[], startDate: string, endDate: string): PeriodComparison {
+export function computeRangeComparison(jobs: AnalyticsJob[], startDate: string, endDate: string): PeriodComparison {
   const start = new Date(`${startDate}T00:00:00`)
   const end = new Date(`${endDate}T23:59:59`)
   const durationMs = end.getTime() - start.getTime()
   const previousEnd = new Date(start.getTime() - 1)
   const previousStart = new Date(previousEnd.getTime() - durationMs)
 
-  const inRange = (job: Job, from: Date, to: Date) => {
+  const inRange = (job: AnalyticsJob, from: Date, to: Date) => {
     const date = new Date(getJobReportDate(job))
     return date >= from && date <= to
   }
 
-  const summarize = (list: Job[]) => ({
+  const summarize = (list: AnalyticsJob[]) => ({
     revenue: list.reduce((sum, job) => sum + job.revenue, 0),
     profit: list.reduce((sum, job) => sum + job.profit, 0),
     jobs: list.length,
@@ -153,7 +154,7 @@ function isThisMonth(dateStr: string): boolean {
 }
 
 export function computeDashboardMetrics(
-  jobs: Job[],
+  jobs: AnalyticsJob[],
   expenses: Expense[],
   fuelLogs: FuelLog[],
   pendingEstimates = 0,
@@ -186,7 +187,7 @@ export function computeDashboardMetrics(
   }
 }
 
-export function computeRevenueChart(jobs: Job[]): ChartDataPoint[] {
+export function computeRevenueChart(jobs: AnalyticsJob[]): ChartDataPoint[] {
   const byMonth = new Map<string, { revenue: number; profit: number; sortKey: string }>()
   for (const job of jobs) {
     const d = new Date(getJobReportDate(job))
@@ -205,7 +206,7 @@ export function computeRevenueChart(jobs: Job[]): ChartDataPoint[] {
     .map(([name, value]) => ({ name, revenue: value.revenue, profit: value.profit }))
 }
 
-export function computeExpenseBreakdown(jobs: Job[], expenses: Expense[], fuelLogs: FuelLog[]): ChartDataPoint[] {
+export function computeExpenseBreakdown(jobs: AnalyticsJob[], expenses: Expense[], fuelLogs: FuelLog[]): ChartDataPoint[] {
   const labor = jobs.reduce((s, j) => s + j.labor_cost, 0)
   const materials = jobs.reduce((s, j) => s + j.material_cost, 0)
   const fuel = jobs.reduce((s, j) => s + j.fuel_cost, 0) + fuelLogs.reduce((s, f) => s + f.total_cost, 0)
@@ -258,7 +259,7 @@ export function localizeExpenseChart(
   }))
 }
 
-export function computeServiceProfitability(jobs: Job[]): ChartDataPoint[] {
+export function computeServiceProfitability(jobs: AnalyticsJob[]): ChartDataPoint[] {
   const keywords: [string, RegExp][] = [
     ['Electrical', /electr|outlet|panel/i],
     ['Plumbing', /plumb|faucet|pipe|leak/i],
@@ -277,7 +278,7 @@ export function computeServiceProfitability(jobs: Job[]): ChartDataPoint[] {
   }).filter((p) => (p.jobs ?? 0) > 0)
 }
 
-export function computeTechnicianPerformance(jobs: Job[], employees: Employee[]): ChartDataPoint[] {
+export function computeTechnicianPerformance(jobs: AnalyticsJob[], employees: Employee[]): ChartDataPoint[] {
   return employees
     .filter((e) => e.billing_rate > 0)
     .map((emp) => {

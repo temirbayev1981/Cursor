@@ -1,6 +1,12 @@
-# HandymanOS AI — Release 1.14.48
+# HandymanOS AI — Release 1.14.49
 
-**Status:** Audit P14 — scheduling/dispatch lightweight jobs.
+**Status:** Audit P15 — analytics/field jobs lightweight queries.
+
+## 1.14.49 — Audit P15
+
+- **Dashboard/reports** — `listAnalyticsJobs` + `useAnalyticsJobs` (no `useJobs()`)
+- **Technician mobile** — `listTechnicianAssignedJobs` + `fetchJobById` on status/notes mutations
+- **Platform audit** — `analytics_field_jobs_lightweight_audit` quality check
 
 ## 1.14.48 — Audit P14
 

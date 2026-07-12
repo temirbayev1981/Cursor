@@ -8,8 +8,8 @@ import { useTranslation } from '@/contexts/locale-context'
 import type { Job } from '@/types'
 
 interface JobNotesDialogProps {
-  job: Job
-  onSave: (job: Job, notes: string) => void
+  job: Pick<Job, 'id' | 'title' | 'description'>
+  onSave: (job: Pick<Job, 'id' | 'title' | 'description'>, notes: string) => void | Promise<void>
   isSaving?: boolean
 }
 

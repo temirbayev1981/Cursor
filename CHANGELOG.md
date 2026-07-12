@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.49] — 2026-07-12
+
+Audit P15: analytics and field jobs lightweight queries.
+
+### Performance
+- `listAnalyticsJobs` — dashboard/reports charts without full job rows
+- `listTechnicianAssignedJobs` — technician mobile scoped to active assigned jobs
+- Dashboard/reports use `useAnalyticsJobs`; technician mobile uses `useTechnicianAssignedJobs` + `fetchJobById` on mutations
+
+### Operator UX
+- `ANALYTICS_FIELD_JOBS_LIGHTWEIGHT_AUDIT` quality gate in platform audit checklist
+
 ## [1.14.48] — 2026-07-12
 
 Audit P14: scheduling and dispatch lightweight job queries.
