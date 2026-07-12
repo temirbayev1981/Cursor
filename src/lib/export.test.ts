@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { groupVendorPOsByAddress, isNTEExceeded } from '@/lib/export'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { groupVendorPOsByAddress, isNTEExceeded, exportEstimatePdf, exportInvoicePdf } from '@/lib/export'
 import type { VendorPORecord } from '@/types/vendor-po'
 
 const baseRecord: VendorPORecord = {
@@ -52,5 +52,89 @@ describe('export', () => {
     expect(isNTEExceeded(1000, 1200)).toBe(true)
     expect(isNTEExceeded(1000, 800)).toBe(false)
     expect(isNTEExceeded(0, 5000)).toBe(false)
+  })
+
+  describe('PDF export', () => {
+    let writeSpy: ReturnType<typeof vi.fn>
+    let closeSpy: ReturnType<typeof vi.fn>
+    let mockWindow: { document: { write: ReturnType<typeof vi.fn>; close: ReturnType<typeof vi.fn> }; focus: ReturnType<typeof vi.fn>; close: ReturnType<typeof vi.fn>; print: ReturnType<typeof vi.fn> }
+
+    beforeEach(() => {
+      writeSpy = vi.fn()
+      closeSpy = vi.fn()
+      mockWindow = {
+        document: { write: writeSpy, close: closeSpy },
+        focus: vi.fn(),
+        close: vi.fn(),
+        print: vi.fn(),
+      }
+      vi.stubGlobal('open', vi.fn(() => mockWindow))
+    })
+
+    afterEach(() => {
+      vi.unstubAllGlobals()
+    })
+
+    it('exportEstimatePdf opens printable HTML', () => {
+      exportEstimatePdf({
+        title: 'Estimate EST-001',
+        customerName: 'ABC Property',
+        status: 'sent',
+        laborHours: 4,
+        laborRate: 75,
+        materialCost: 120,
+        total: 420,
+        validUntil: '2026-08-01',
+        lineItems: [{ id: 'li-1', description: 'Labor', quantity: 1, unit_price: 300, total: 300, type: 'labor' }],
+        labels: {
+          labor: 'Labor',
+          materials: 'Materials',
+          validUntil: 'Valid until',
+          laborHoursSuffix: 'h @ ',
+          perHour: '/hr',
+          lineItems: 'Line items',
+          description: 'Description',
+          qty: 'Qty',
+          unit: 'Unit',
+          total: 'Total',
+          noLineItems: 'No line items',
+        },
+      })
+
+      expect(open).toHaveBeenCalled()
+      expect(writeSpy).toHaveBeenCalledWith(expect.stringContaining('Estimate EST-001'))
+      expect(writeSpy).toHaveBeenCalledWith(expect.stringContaining('ABC Property'))
+    })
+
+    it('exportInvoicePdf opens printable HTML with balance', () => {
+      exportInvoicePdf({
+        invoiceNumber: 'INV-2026-100',
+        customerName: 'Sarah Johnson',
+        status: 'sent',
+        subtotal: 300,
+        tax: 24.75,
+        total: 324.75,
+        amountPaid: 100,
+        dueDate: '2026-08-15',
+        lineItems: [],
+        labels: {
+          invoiceTitle: 'Invoice',
+          subtotal: 'Subtotal',
+          tax: 'Tax',
+          dueDate: 'Due',
+          paid: 'Paid',
+          balance: 'Balance',
+          lineItems: 'Line items',
+          description: 'Description',
+          qty: 'Qty',
+          unit: 'Unit',
+          total: 'Total',
+          noLineItems: 'No line items',
+        },
+      })
+
+      expect(writeSpy).toHaveBeenCalledWith(expect.stringContaining('INV-2026-100'))
+      expect(writeSpy).toHaveBeenCalledWith(expect.stringContaining('$224.75'))
+    })
   })
 })

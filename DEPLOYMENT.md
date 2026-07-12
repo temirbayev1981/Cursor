@@ -47,11 +47,11 @@ After deploy:
 ```bash
 npm run verify:production
 npm run verify:operator   # post-deploy operator checklist (needs VITE_SUPABASE_*)
-npm run test:e2e   # 186 tests across 31 spec files
+npm run test:e2e   # 275 tests across 56 spec files (267 in default CI config; live-only specs excluded)
 npm run smoke:supabase   # optional, needs live Supabase env
 ```
 
-**1.7.x highlights:** portal RPC-only security, localized platform audit & audit log (Settings → System), 138/138 E2E with mock backend, manual invoice pay when Stripe key is unset.
+**1.7.x highlights:** portal RPC-only security, localized platform audit & audit log (Settings → System), E2E with mock backend, manual invoice pay when Stripe key is unset.
 
 Merge stacked PRs in order — see [MERGE.md](./MERGE.md).
 
@@ -61,7 +61,7 @@ No schema changes required. Frontend-only release (i18n, AI fallbacks, invite si
 
 ```bash
 npm run verify:production
-npm run test:e2e   # 185 tests (see e2e/*.spec.ts)
+npm run test:e2e   # 275 tests across 56 spec files (see e2e/*.spec.ts)
 ```
 
 Merge to `main` to redeploy GitHub Pages with `VITE_APP_VERSION` from the release branch.
@@ -302,7 +302,7 @@ Set all `VITE_*` env vars in your hosting provider.
 npm run test:e2e
 ```
 
-Playwright builds the app, runs **185 tests** across 31 spec files against `http://127.0.0.1:4173` (in-memory Supabase mock).
+Playwright builds the app, runs **275 tests** across **56** spec files against `http://127.0.0.1:4173` (in-memory Supabase mock). Default `playwright.config.ts` runs **267** tests (excludes live-only `stripe-live` and `live-backend-smoke` specs). Unit tests: **259** (`npm test`).
 
 ### Optional: live Supabase smoke
 

@@ -1,5 +1,5 @@
 import type { Job, Customer, Estimate, Invoice, Property, Employee, Material, Vehicle, Expense, ScheduleEvent, WorkOrder, ServiceCatalogItem, FuelLog, Payment, TimeEntry } from '@/types'
-import { loadStore, saveStore, upsertStore, removeFromStore, filterByCompany, mergeStoreById, STORE_KEYS } from '@/lib/data-store'
+import { loadStore, saveStore, upsertStore, removeFromStore, filterByCompany, mergeStoreById, replaceCompanyInStore, replaceScopedInStore, STORE_KEYS } from '@/lib/data-store'
 import { matchCustomerFromVendorPO } from '@/lib/vendor-po-customer-match'
 import { isUuid } from '@/lib/is-uuid'
 import { getErrorMessage } from '@/lib/error-message'
@@ -113,11 +113,8 @@ export async function listEntities<K extends keyof EntityMap>(entity: K, company
 
   try {
     const items = await fetchCompanyEntities<EntityMap[K]>(TABLE_MAP[entity], companyId)
-    if (items.length > 0) {
-      mergeStoreById(KEY_MAP[entity], items)
-      return items
-    }
-    return loadLocalEntities(entity, companyId)
+    replaceCompanyInStore(KEY_MAP[entity], companyId, items)
+    return items
   } catch (err) {
     warnSupabaseFallback(`listEntities(${entity})`, err)
     return loadLocalEntities(entity, companyId)
@@ -337,10 +334,8 @@ async function listSupabaseCustomers(companyId: string): Promise<Customer[]> {
 
   try {
     const items = await fetchCompanyEntities<Customer>('customers', companyId)
-    if (items.length > 0) {
-      mergeStoreById(KEY_MAP.customers, items)
-      return items
-    }
+    replaceCompanyInStore(KEY_MAP.customers, companyId, items)
+    return items.filter((customer) => isUuid(customer.id))
   } catch (err) {
     warnSupabaseFallback('listSupabaseCustomers', err)
   }
@@ -550,11 +545,8 @@ export async function listAuditLogs(companyId: string): Promise<AuditLog[]> {
 
     if (error) throw error
     const items = (data ?? []) as AuditLog[]
-    if (items.length > 0) {
-      mergeStoreById(STORE_KEYS.auditLogs, items)
-      return items
-    }
-    return loadStore<AuditLog>(STORE_KEYS.auditLogs).filter((l) => l.company_id === companyId)
+    replaceCompanyInStore(STORE_KEYS.auditLogs, companyId, items)
+    return items
   } catch (err) {
     warnSupabaseFallback('listAuditLogs', err)
     return loadStore<AuditLog>(STORE_KEYS.auditLogs).filter((l) => l.company_id === companyId)
@@ -600,12 +592,8 @@ export async function listPayments(companyId: string): Promise<Payment[]> {
     if (error) throw error
 
     const items = (data ?? []) as Payment[]
-    if (items.length > 0) {
-      mergeStoreById(STORE_KEYS.payments, items)
-      return items
-    }
-
-    return filterByCompanyInvoices(loadStore<Payment>(STORE_KEYS.payments))
+    replaceScopedInStore(STORE_KEYS.payments, (p) => invoiceIds.includes(p.invoice_id), items)
+    return items
   } catch (err) {
     warnSupabaseFallback('listPayments', err)
     return filterByCompanyInvoices(loadStore<Payment>(STORE_KEYS.payments))
@@ -650,12 +638,8 @@ export async function listFuelLogs(companyId: string): Promise<FuelLog[]> {
     if (error) throw error
 
     const items = (data ?? []) as FuelLog[]
-    if (items.length > 0) {
-      mergeStoreById(STORE_KEYS.fuelLogs, items)
-      return items
-    }
-
-    return filterByVehicles(loadStore<FuelLog>(STORE_KEYS.fuelLogs))
+    replaceScopedInStore(STORE_KEYS.fuelLogs, (f) => vehicleIds.includes(f.vehicle_id), items)
+    return items
   } catch (err) {
     warnSupabaseFallback('listFuelLogs', err)
     return filterByVehicles(loadStore<FuelLog>(STORE_KEYS.fuelLogs))
@@ -695,11 +679,8 @@ export async function listTimeEntries(companyId: string): Promise<TimeEntry[]> {
 
     if (error) throw error
     const items = (data ?? []) as TimeEntry[]
-    if (items.length > 0) {
-      mergeStoreById(STORE_KEYS.timeEntries, items)
-      return items
-    }
-    return local
+    replaceCompanyInStore(STORE_KEYS.timeEntries, companyId, items)
+    return items
   } catch (err) {
     warnSupabaseFallback('listTimeEntries', err)
     return local

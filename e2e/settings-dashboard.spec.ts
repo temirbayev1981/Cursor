@@ -18,7 +18,7 @@ test.describe('Settings billing & team', () => {
     await expect(page.getByTestId('billing-upgrade-enterprise')).toBeVisible()
 
     await page.getByTestId('billing-upgrade-enterprise').click()
-    await expect(page.getByText(/план обновлён|plan upgraded/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /план обновлён|plan upgraded/i).first()).toBeVisible({ timeout: 10000 })
 
     const enterprise = page.getByTestId('billing-plan-enterprise')
     await expect(enterprise.getByText(/текущий|current/i)).toBeVisible()
@@ -32,7 +32,7 @@ test.describe('Settings billing & team', () => {
     await page.getByTestId('team-invite-email').fill('e2e-invite@handyman.test')
     await page.getByTestId('team-invite-submit').click()
 
-    await expect(page.getByText(/ссылка-приглашение скопирована|invite link copied/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /ссылка-приглашение скопирована|invite link copied/i).first()).toBeVisible({ timeout: 10000 })
     const pending = page.getByTestId('team-pending-invites')
     await expect(pending.getByText('e2e-invite@handyman.test').first()).toBeVisible()
     await expect(pending.getByText(/technician/i).first()).toBeVisible()
@@ -43,10 +43,10 @@ test.describe('Settings billing & team', () => {
     await page.getByRole('tab', { name: /команда|team/i }).click()
     await page.getByTestId('team-invite-email').fill('audit-log-e2e@test.com')
     await page.getByTestId('team-invite-submit').click()
-    await expect(page.getByText(/ссылка-приглашение скопирована|invite link copied/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /ссылка-приглашение скопирована|invite link copied/i).first()).toBeVisible({ timeout: 10000 })
 
     await page.getByRole('tab', { name: /system|система/i }).click()
-    await expect(page.getByText(/приглашение в команду отправлено|team invite sent/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /приглашение в команду отправлено|team invite sent/i).first()).toBeVisible({ timeout: 10000 })
   })
 
   test('integrations tab lists integration cards including observability', async ({ page }) => {
@@ -236,14 +236,14 @@ test.describe('Settings billing & team', () => {
     })
     await page.goto('/estimates')
     await visibleTestId(page, 'estimate-send-est-003').click()
-    await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
     await page.getByRole('tab', { name: /system|система/i }).click()
     await page.getByTestId('notification-hub-filter-skipped').click()
-    await expect(page.getByText(/chen\.family@email\.com/i).first()).toBeVisible()
-    await expect(page.getByText(/пропущено|skipped/i).first()).toBeVisible()
-    await expect(page.getByText(/отключил email|opted out/i).first()).toBeVisible()
+    await expect(visibleText(page, /chen\.family@email\.com/i).first()).toBeVisible()
+    await expect(visibleText(page, /пропущено|skipped/i).first()).toBeVisible()
+    await expect(visibleText(page, /отключил email|opted out/i).first()).toBeVisible()
   })
 
   test('notification hub shows SMS opt-out skip from dispatch', async ({ page }) => {
@@ -253,13 +253,13 @@ test.describe('Settings billing & team', () => {
     await page.goto('/dispatch')
     await page.getByTestId('dispatch-status-job-e2e-draft').click()
     await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
-    await expect(page.getByText(/SMS.*пропущено|SMS skipped|opt-out/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /SMS.*пропущено|SMS skipped|opt-out/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
     await page.getByRole('tab', { name: /system|система/i }).click()
     await page.getByTestId('notification-hub-filter-skipped').click()
-    await expect(page.getByText(/555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
-    await expect(page.getByText(/отключил SMS|opted out of SMS/i).first()).toBeVisible()
+    await expect(visibleText(page, /555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
+    await expect(visibleText(page, /отключил SMS|opted out of SMS/i).first()).toBeVisible()
   })
 
   test('notification hub shows estimate SMS opt-out skip', async ({ page }) => {
@@ -267,13 +267,13 @@ test.describe('Settings billing & team', () => {
     await clearNotificationQueue(page)
     await page.goto('/estimates')
     await visibleTestId(page, 'estimate-send-est-003').click()
-    await expect(page.getByText(/SMS.*отключён|SMS disabled/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /SMS.*отключён|SMS disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
     await page.getByRole('tab', { name: /system|система/i }).click()
     await page.getByTestId('notification-hub-filter-skipped').click()
-    await expect(page.getByText(/567.*8901|\(555\) 567-8901/).first()).toBeVisible()
-    await expect(page.getByText(/отключил SMS|opted out of SMS/i).first()).toBeVisible()
+    await expect(visibleText(page, /567.*8901|\(555\) 567-8901/).first()).toBeVisible()
+    await expect(visibleText(page, /отключил SMS|opted out of SMS/i).first()).toBeVisible()
   })
 
   test('notification hub shows invoice SMS opt-out skip', async ({ page }) => {
@@ -282,13 +282,13 @@ test.describe('Settings billing & team', () => {
     await seedDraftInvoice(page)
     await page.goto('/invoices')
     await visibleTestId(page, 'invoice-send-inv-e2e-draft').click()
-    await expect(page.getByText(/SMS.*отключён|SMS disabled/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /SMS.*отключён|SMS disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
     await page.getByRole('tab', { name: /system|система/i }).click()
     await page.getByTestId('notification-hub-filter-skipped').click()
-    await expect(page.getByText(/555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
-    await expect(page.getByText(/отключил SMS|opted out of SMS/i).first()).toBeVisible()
+    await expect(visibleText(page, /555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
+    await expect(visibleText(page, /отключил SMS|opted out of SMS/i).first()).toBeVisible()
   })
 
   test('notification hub shows dispatch ETA SMS opt-out skip', async ({ page }) => {
@@ -300,13 +300,13 @@ test.describe('Settings billing & team', () => {
     await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
     await page.getByTestId('dispatch-status-job-e2e-draft').click()
     await page.getByRole('option', { name: /в работе|in progress/i }).click()
-    await expect(page.getByText(/ETA SMS.*пропущено|ETA SMS skipped/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /ETA SMS.*пропущено|ETA SMS skipped/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
     await page.getByRole('tab', { name: /system|система/i }).click()
     await page.getByTestId('notification-hub-filter-skipped').click()
-    await expect(page.getByText(/555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
-    await expect(page.getByText(/отключил SMS|opted out of SMS/i).first()).toBeVisible()
+    await expect(visibleText(page, /555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
+    await expect(visibleText(page, /отключил SMS|opted out of SMS/i).first()).toBeVisible()
   })
 
   test('notification hub shows scheduling SMS opt-out skip', async ({ page }) => {
@@ -316,19 +316,19 @@ test.describe('Settings billing & team', () => {
     await page.goto('/scheduling')
     await page.getByRole('button', { name: /запланировать заказ|schedule job/i }).click()
 
-    const scheduleForm = page.locator('form').filter({ has: page.getByText(/^Заказ$|^Job$/i) })
+    const scheduleForm = page.locator('form').filter({ has: visibleText(page, /^Заказ$|^Job$/i) })
     await scheduleForm.getByRole('combobox').first().click()
     await page.getByRole('option', { name: /E2E Draft Job for Scheduling/i }).click()
     await scheduleForm.getByRole('combobox').nth(1).click()
     await page.getByRole('option', { name: /Marcus Thompson/i }).click()
     await scheduleForm.getByRole('button', { name: /запланировать заказ|schedule job/i }).click()
-    await expect(page.getByText(/SMS.*отключён|SMS disabled/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /SMS.*отключён|SMS disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
     await page.getByRole('tab', { name: /system|система/i }).click()
     await page.getByTestId('notification-hub-filter-skipped').click()
-    await expect(page.getByText(/555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
-    await expect(page.getByText(/отключил SMS|opted out of SMS/i).first()).toBeVisible()
+    await expect(visibleText(page, /555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
+    await expect(visibleText(page, /отключил SMS|opted out of SMS/i).first()).toBeVisible()
   })
 
   test('notification hub shows dispatch scheduled email opt-out skip', async ({ page }) => {
@@ -341,13 +341,13 @@ test.describe('Settings billing & team', () => {
     await page.goto('/dispatch')
     await page.getByTestId('dispatch-status-job-e2e-draft').click()
     await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
-    await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
     await page.getByRole('tab', { name: /system|система/i }).click()
     await page.getByTestId('notification-hub-filter-skipped').click()
-    await expect(page.getByText(/workorders@abcprop\.com/i).first()).toBeVisible()
-    await expect(page.getByText(/отключил email|opted out/i).first()).toBeVisible()
+    await expect(visibleText(page, /workorders@abcprop\.com/i).first()).toBeVisible()
+    await expect(visibleText(page, /отключил email|opted out/i).first()).toBeVisible()
   })
 
   test('notification hub shows scheduling email opt-out skip', async ({ page }) => {
@@ -360,19 +360,19 @@ test.describe('Settings billing & team', () => {
     await page.goto('/scheduling')
     await page.getByRole('button', { name: /запланировать заказ|schedule job/i }).click()
 
-    const scheduleForm = page.locator('form').filter({ has: page.getByText(/^Заказ$|^Job$/i) })
+    const scheduleForm = page.locator('form').filter({ has: visibleText(page, /^Заказ$|^Job$/i) })
     await scheduleForm.getByRole('combobox').first().click()
     await page.getByRole('option', { name: /E2E Draft Job for Scheduling/i }).click()
     await scheduleForm.getByRole('combobox').nth(1).click()
     await page.getByRole('option', { name: /Marcus Thompson/i }).click()
     await scheduleForm.getByRole('button', { name: /запланировать заказ|schedule job/i }).click()
-    await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
     await page.getByRole('tab', { name: /system|система/i }).click()
     await page.getByTestId('notification-hub-filter-skipped').click()
-    await expect(page.getByText(/workorders@abcprop\.com/i).first()).toBeVisible()
-    await expect(page.getByText(/отключил email|opted out/i).first()).toBeVisible()
+    await expect(visibleText(page, /workorders@abcprop\.com/i).first()).toBeVisible()
+    await expect(visibleText(page, /отключил email|opted out/i).first()).toBeVisible()
   })
 
   test('notification hub shows dispatch ETA email opt-out skip', async ({ page }) => {
@@ -387,13 +387,13 @@ test.describe('Settings billing & team', () => {
     await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
     await page.getByTestId('dispatch-status-job-e2e-draft').click()
     await page.getByRole('option', { name: /в работе|in progress/i }).click()
-    await expect(page.getByText(/ETA.*пропущено|ETA skipped|email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /ETA.*пропущено|ETA skipped|email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
     await page.getByRole('tab', { name: /system|система/i }).click()
     await page.getByTestId('notification-hub-filter-skipped').click()
-    await expect(page.getByText(/workorders@abcprop\.com/i).first()).toBeVisible()
-    await expect(page.getByText(/отключил email|opted out/i).first()).toBeVisible()
+    await expect(visibleText(page, /workorders@abcprop\.com/i).first()).toBeVisible()
+    await expect(visibleText(page, /отключил email|opted out/i).first()).toBeVisible()
   })
 
   test('notification hub shows invoice email opt-out skip', async ({ page }) => {
@@ -405,13 +405,13 @@ test.describe('Settings billing & team', () => {
     await seedDraftInvoice(page)
     await page.goto('/invoices')
     await visibleTestId(page, 'invoice-send-inv-e2e-draft').click()
-    await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
     await page.getByRole('tab', { name: /system|система/i }).click()
     await page.getByTestId('notification-hub-filter-skipped').click()
-    await expect(page.getByText(/workorders@abcprop\.com/i).first()).toBeVisible()
-    await expect(page.getByText(/отключил email|opted out/i).first()).toBeVisible()
+    await expect(visibleText(page, /workorders@abcprop\.com/i).first()).toBeVisible()
+    await expect(visibleText(page, /отключил email|opted out/i).first()).toBeVisible()
   })
 
   test('notification hub exports and clears skip log', async ({ page }) => {
@@ -421,7 +421,7 @@ test.describe('Settings billing & team', () => {
     })
     await page.goto('/estimates')
     await visibleTestId(page, 'estimate-send-est-003').click()
-    await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
     await page.getByRole('tab', { name: /system|система/i }).click()
@@ -433,9 +433,9 @@ test.describe('Settings billing & team', () => {
     expect(download.suggestedFilename()).toMatch(/handymanos-skip-log.*\.csv$/i)
 
     await page.getByTestId('notification-hub-clear-skip-log').click()
-    await expect(page.getByText(/журнал пропусков очищен|skip log cleared/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /журнал пропусков очищен|skip log cleared/i).first()).toBeVisible({ timeout: 5000 })
     await page.getByTestId('notification-hub-filter-skipped').click()
-    await expect(page.getByText(/chen\.family@email\.com/i)).not.toBeVisible()
+    await expect(visibleText(page, /chen\.family@email\.com/i)).not.toBeVisible()
   })
 
   test('notification hub skip summary shows email and SMS counts', async ({ page }) => {
@@ -447,13 +447,13 @@ test.describe('Settings billing & team', () => {
     })
     await page.goto('/estimates')
     await visibleTestId(page, 'estimate-send-est-003').click()
-    await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await seedDraftJob(page, true)
     await page.goto('/dispatch')
     await page.getByTestId('dispatch-status-job-e2e-draft').click()
     await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
-    await expect(page.getByText(/SMS.*пропущено|SMS skipped|opt-out/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /SMS.*пропущено|SMS skipped|opt-out/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
     await page.getByRole('tab', { name: /system|система/i }).click()
@@ -473,7 +473,7 @@ test.describe('Settings billing & team', () => {
     await page.goto('/dispatch')
     await page.getByTestId('dispatch-status-job-e2e-draft').click()
     await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
-    await expect(page.getByText(/SMS.*пропущено|SMS skipped|opt-out/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /SMS.*пропущено|SMS skipped|opt-out/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
     await page.getByRole('tab', { name: /system|система/i }).click()
@@ -497,7 +497,7 @@ test.describe('Settings billing & team', () => {
     })
     await page.goto('/estimates')
     await visibleTestId(page, 'estimate-send-est-003').click()
-    await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
 
     await page.goto('/settings')
     await page.getByRole('tab', { name: /system|система/i }).click()
@@ -546,8 +546,8 @@ test.describe('Dashboard analytics', () => {
 
   test('dashboard service and technician charts render bar data', async ({ page }) => {
     await page.goto('/dashboard')
-    await expect(page.getByText(/прибыльные услуги|profitable services/i).first()).toBeVisible()
-    await expect(page.getByText(/эффективность мастеров|technician performance/i).first()).toBeVisible()
+    await expect(visibleText(page, /прибыльные услуги|profitable services/i).first()).toBeVisible()
+    await expect(visibleText(page, /эффективность мастеров|technician performance/i).first()).toBeVisible()
     await expect(page.getByRole('img').filter({ hasText: /J R\.|M T\.|Drywall|Plumb/i }).first()).toBeVisible({ timeout: 10000 })
   })
 })

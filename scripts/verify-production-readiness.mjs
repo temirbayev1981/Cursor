@@ -1030,7 +1030,7 @@ const pdfExtract = readFileSync('src/lib/pdf-extract.ts', 'utf8')
 if (
   pdfExtract.includes("import * as pdfjsLib from 'pdfjs-dist'")
   || pdfExtract.includes("import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'")
-  || (pdfExtract.includes("await import('pdfjs-dist')") && !pdfExtract.includes("import * as pdfjsLib from 'pdfjs-dist'"))
+  || (pdfExtract.includes("import('pdfjs-dist/legacy/build/pdf.mjs')") && !pdfExtract.includes("import * as pdfjsLib"))
 ) {
   console.log('✓ pdf-extract loads pdfjs (static import or lazy on demand)')
 } else {
@@ -1133,11 +1133,12 @@ const lazyReportsCharts = existsSync('src/components/charts/lazy-reports-charts.
 if (
   chartPrefetch.includes("import('@/components/charts/dashboard-charts')")
   && chartPrefetch.includes("import('@/components/charts/reports-recharts')")
-  && appLayout.includes('prefetchChartBundles')
+  && chartPrefetch.includes('pathname')
+  && appLayout.includes('prefetchChartBundles(location.pathname)')
 ) {
-  console.log('✓ chart bundles prefetch on app shell load')
+  console.log('✓ chart bundles prefetch on dashboard/reports routes')
 } else {
-  console.log('✗ app layout must prefetch lazy chart chunks')
+  console.log('✗ app layout must prefetch lazy chart chunks on dashboard/reports')
   ok = false
 }
 
@@ -1273,6 +1274,17 @@ if (entityServiceModule.includes("from '@/data/mock-data'") || entityServiceModu
   console.log('✓ entity-service.ts uses dynamic import for sample seed data')
 } else {
   console.log('✗ entity-service.ts must dynamically import mock-data for importSampleData')
+  ok = false
+}
+
+if (
+  entityServiceModule.includes('replaceCompanyInStore')
+  && entityServiceModule.includes('replaceScopedInStore')
+  && entityServiceModule.includes('replaceCompanyInStore(KEY_MAP[entity], companyId, items)')
+) {
+  console.log('✓ entity-service uses authoritative server cache sync')
+} else {
+  console.log('✗ entity-service must replace company cache on empty Supabase responses')
   ok = false
 }
 
