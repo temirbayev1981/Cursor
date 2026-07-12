@@ -1,6 +1,11 @@
-# HandymanOS AI — Release 1.14.38
+# HandymanOS AI — Release 1.14.39
 
-**Status:** PR in progress — Audit P5 fixes (cache, E2E, bundle, tests, docs).
+**Status:** PR [#183](https://github.com/temirbayev1981/Cursor/pull/183) — Audit P5/P5+.
+
+## 1.14.39 — Audit P5+
+
+- **E2E** — all specs use `visibleText` instead of raw `page.getByText`
+- **portal-service** — authoritative empty portal token list from Supabase
 
 ## 1.14.38 — Audit P5
 

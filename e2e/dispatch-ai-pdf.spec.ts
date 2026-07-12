@@ -68,14 +68,14 @@ test.describe('AI assistant chat', () => {
     await page.getByTestId('ai-chat-submit').click()
 
     await expect(page.getByTestId('ai-chat-user-message')).toContainText(question)
-    await expect(page.getByText(/James Rodriguez|Marcus Thompson/i).first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText(/прибыль|margin|маржа/i).first()).toBeVisible()
+    await expect(visibleText(page, /James Rodriguez|Marcus Thompson/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /прибыль|margin|маржа/i).first()).toBeVisible()
   })
 
   test('suggested question buttons trigger assistant response', async ({ page }) => {
     await page.goto('/ai-assistant')
     await page.getByTestId('ai-suggested-question').filter({ hasText: /замену двери|replacing a door/i }).click()
-    await expect(page.getByText(/\$325|\$385|325/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /\$325|\$385|325/i).first()).toBeVisible({ timeout: 10000 })
   })
 })
 

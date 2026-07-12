@@ -32,14 +32,14 @@ test.describe('AI assistant follow-up', () => {
   test('supports multi-turn chat with suggested and custom questions', async ({ page }) => {
     await page.goto('/ai-assistant')
     await page.getByTestId('ai-suggested-question').filter({ hasText: /увеличить прибыль|increase profit/i }).click()
-    await expect(page.getByText(/оптимизац|routing|маршрут/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /оптимизац|routing|маршрут/i).first()).toBeVisible({ timeout: 10000 })
 
     const followUp = 'Какой мастер самый прибыльный?'
     await page.getByTestId('ai-chat-input').fill(followUp)
     await page.getByTestId('ai-chat-submit').click()
 
     await expect(page.getByTestId('ai-chat-user-message').last()).toContainText(followUp)
-    await expect(page.getByText(/James Rodriguez|Marcus Thompson/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /James Rodriguez|Marcus Thompson/i).first()).toBeVisible({ timeout: 10000 })
     await expect(page.getByTestId('ai-chat-assistant-message')).toHaveCount(3)
   })
 })
@@ -64,7 +64,7 @@ test.describe('Global search & invoice send', () => {
     await page.goto('/invoices')
     await expect(visibleText(page, 'INV-E2E-DRAFT').first()).toBeVisible()
     await visibleTestId(page, 'invoice-send-inv-e2e-draft').click()
-    await expect(page.getByText(/счёт отправлен.*workorders@abcprop\.com/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /счёт отправлен.*workorders@abcprop\.com/i).first()).toBeVisible({ timeout: 10000 })
   })
 
   test('send draft invoice skips email when customer opted out', async ({ page }) => {
@@ -74,7 +74,7 @@ test.describe('Global search & invoice send', () => {
     })
     await page.goto('/invoices')
     await visibleTestId(page, 'invoice-send-inv-e2e-draft').click()
-    await expect(page.getByText(/email disabled|email отключён/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /email disabled|email отключён/i).first()).toBeVisible({ timeout: 5000 })
   })
 
   test('send draft invoice skips customer SMS when opted out', async ({ page }) => {
@@ -82,9 +82,9 @@ test.describe('Global search & invoice send', () => {
     await seedDraftInvoice(page)
     await page.goto('/invoices')
     await visibleTestId(page, 'invoice-send-inv-e2e-draft').click()
-    await expect(page.getByText(/счёт отправлен|invoice sent/i).first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText(/SMS.*отключён|SMS disabled/i).first()).toBeVisible({ timeout: 5000 })
-    await expect(page.getByText(/555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
+    await expect(visibleText(page, /счёт отправлен|invoice sent/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /SMS.*отключён|SMS disabled/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
   })
 
   test('send draft invoice queues customer SMS when enabled', async ({ page }) => {
@@ -97,11 +97,11 @@ test.describe('Global search & invoice send', () => {
       await smsToggle.click()
     }
     await page.getByTestId('customer-form-submit').click()
-    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
 
     await page.goto('/invoices')
     await visibleTestId(page, 'invoice-send-inv-e2e-draft').click()
-    await expect(page.getByText(/SMS.*очереди|SMS queued/i).first()).toBeVisible({ timeout: 5000 })
-    await expect(page.getByText(/555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
+    await expect(visibleText(page, /SMS.*очереди|SMS queued/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /555.*234.*5678|\(555\) 234-5678/).first()).toBeVisible()
   })
 })

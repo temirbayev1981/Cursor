@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { visibleText } from './helpers/visibility'
 import { clearPortalReview, setCustomerPortalSession, setPropertyPortalSession } from './helpers/auth'
 
 test.describe('Portals', () => {
@@ -14,18 +15,18 @@ test.describe('Portals', () => {
     await page.getByRole('button', { name: '5' }).click()
     await page.locator('#portal-review-comment').fill('Excellent service, very professional.')
     await page.getByRole('button', { name: /отправить отзыв|submit review/i }).click()
-    await expect(page.getByText(/спасибо за отзыв|thank you for your review/i).first()).toBeVisible({ timeout: 5000 })
-    await expect(page.getByText(/уже оставили отзыв|already left a review/i)).toBeVisible()
+    await expect(visibleText(page, /спасибо за отзыв|thank you for your review/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /уже оставили отзыв|already left a review/i)).toBeVisible()
   })
 
   test('customer portal shows estimates and approve action', async ({ page }) => {
     await page.goto('/portal/customer')
     await expect(page.getByRole('heading', { name: /клиентский портал|customer portal/i })).toBeVisible()
-    await expect(page.getByText(/Bathroom Fixture|замен/i).first()).toBeVisible()
+    await expect(visibleText(page, /Bathroom Fixture|замен/i).first()).toBeVisible()
     const approveBtn = page.getByTestId('portal-estimate-approve-est-004')
     await expect(approveBtn).toBeVisible()
     await approveBtn.click()
-    await expect(page.getByText(/утверждена|approved/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /утверждена|approved/i).first()).toBeVisible({ timeout: 5000 })
   })
 
   test('customer portal shows SMS opt-out badge by default', async ({ page }) => {
@@ -40,7 +41,7 @@ test.describe('Portals', () => {
     const emailToggle = page.getByTestId('customer-portal-notify-email')
     if ((await emailToggle.getAttribute('data-state')) === 'checked') {
       await emailToggle.click()
-      await expect(page.getByText(/настройки уведомлений сохранены|notification preferences saved/i).first()).toBeVisible({ timeout: 5000 })
+      await expect(visibleText(page, /настройки уведомлений сохранены|notification preferences saved/i).first()).toBeVisible({ timeout: 5000 })
     }
     await expect(page.getByTestId('customer-portal-email-optout-badge')).toBeVisible()
   })
@@ -49,8 +50,8 @@ test.describe('Portals', () => {
     await page.goto('/portal/customer')
     await expect(page.getByTestId('portal-estimate-decline-est-004')).toBeVisible()
     await page.getByTestId('portal-estimate-decline-est-004').click()
-    await expect(page.getByText(/отклонена|declined|rejected/i).first()).toBeVisible({ timeout: 5000 })
-    await expect(page.getByText(/отклонена|rejected/i).first()).toBeVisible()
+    await expect(visibleText(page, /отклонена|declined|rejected/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /отклонена|rejected/i).first()).toBeVisible()
   })
 
   test('property portal submit request form', async ({ page }) => {
@@ -61,8 +62,8 @@ test.describe('Portals', () => {
     await page.locator('input').first().fill('HVAC maintenance - lobby')
     await page.locator('textarea').first().fill('Air conditioning unit needs inspection and filter replacement')
     await page.getByRole('button', { name: /сохранить|save/i }).click()
-    await expect(page.getByText(/заявка отправлена|request submitted/i).first()).toBeVisible({ timeout: 5000 })
-    await expect(page.getByText('HVAC maintenance - lobby')).toBeVisible()
+    await expect(visibleText(page, /заявка отправлена|request submitted/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, 'HVAC maintenance - lobby')).toBeVisible()
   })
 })
 

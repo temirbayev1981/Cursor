@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { visibleText } from './helpers/visibility'
 import { loginAsOwner } from './helpers/auth'
 
 test.describe('HandymanOS AI', () => {
@@ -12,11 +13,11 @@ test.describe('HandymanOS AI', () => {
 
   test('vendor PO tab on work orders', async ({ page }) => {
     await page.goto('/work-orders')
-    await expect(page.getByText(/Vendor PO/i).first()).toBeVisible()
+    await expect(visibleText(page, /Vendor PO/i).first()).toBeVisible()
   })
 
   test('invoices page shows outstanding', async ({ page }) => {
     await page.goto('/invoices')
-    await expect(page.getByText(/к оплате|outstanding/i).first()).toBeVisible()
+    await expect(visibleText(page, /к оплате|outstanding/i).first()).toBeVisible()
   })
 })

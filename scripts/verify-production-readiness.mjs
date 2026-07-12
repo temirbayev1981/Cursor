@@ -1376,6 +1376,38 @@ if (existsSync('src/lib/ai-context.ts')) {
   ok = false
 }
 
+const e2eVisibleSpecs = [
+  'e2e/audit-expanded.spec.ts',
+  'e2e/settings-dashboard.spec.ts',
+  'e2e/tech-offline.spec.ts',
+  'e2e/notifications.spec.ts',
+  'e2e/dispatch-notifications.spec.ts',
+  'e2e/portals.spec.ts',
+]
+console.log('\nE2E visibleText coverage (key specs):')
+for (const file of e2eVisibleSpecs) {
+  const source = existsSync(file) ? readFileSync(file, 'utf8') : ''
+  if (!source.includes("from './helpers/visibility'") || !source.includes('visibleText(page,')) {
+    console.log(`✗ ${file} must use visibleText helper`)
+    ok = false
+  } else if (source.includes('page.getByText(')) {
+    console.log(`✗ ${file} must not use raw page.getByText`)
+    ok = false
+  } else {
+    console.log(`✓ ${file}`)
+  }
+}
+
+const portalService = existsSync('src/services/portal-service.ts')
+  ? readFileSync('src/services/portal-service.ts', 'utf8')
+  : ''
+if (portalService.includes('replaceScopedInStore') && portalService.includes('listPortalTokens')) {
+  console.log('✓ portal-service authoritative portal token cache sync')
+} else {
+  console.log('✗ portal-service must replace scoped portal tokens on empty remote')
+  ok = false
+}
+
 const mobileLayoutSpecs = [
   'e2e/jobs-mobile-layout.spec.ts',
   'e2e/customers-mobile-layout.spec.ts',

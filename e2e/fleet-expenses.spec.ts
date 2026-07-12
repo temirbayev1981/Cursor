@@ -30,7 +30,7 @@ test.describe('Fleet & expenses', () => {
     await form.locator('input').nth(4).fill('E2E-9999')
     await page.getByTestId('vehicle-form-submit').click()
 
-    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
     await expect(visibleText(page, 'E2E Service Van').first()).toBeVisible()
   })
 
@@ -45,7 +45,7 @@ test.describe('Fleet & expenses', () => {
     await form.locator('input[type="number"]').fill('49.99')
     await page.getByTestId('expense-form-submit').click()
 
-    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
     await expect(visibleText(page, 'E2E drill purchase').first()).toBeVisible()
     await expect(page.getByTestId('expenses-monthly-total')).not.toHaveText(totalBefore ?? '')
   })

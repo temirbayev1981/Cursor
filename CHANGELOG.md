@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.39] — 2026-07-12
+
+Audit P5+: full E2E visibleText migration, portal token cache fix.
+
+### E2E
+- All remaining specs — `page.getByText` → `visibleText` (dual-layout safe)
+- `verify-production` gates for key visibleText specs
+
+### Data integrity
+- `portal-service.listPortalTokens` — empty remote list clears company-scoped token cache
+
 ## [1.14.38] — 2026-07-12
 
 Audit P5: entity cache fix, E2E visibility, scoped chart prefetch, pdfjs lazy, tests, docs.

@@ -19,7 +19,7 @@ test.describe('Jobs & customers', () => {
     await form.locator('input').nth(3).fill('100 E2E Lane, Austin, TX')
     await page.getByTestId('customer-form-submit').click()
 
-    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
     await expectCustomerNameVisible(page, 'E2E Test Customer')
   })
 
@@ -35,7 +35,7 @@ test.describe('Jobs & customers', () => {
     }
     await page.getByTestId('customer-form-submit').click()
 
-    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
     await expect(visibleTestId(page, 'customer-email-optout-cust-004')).toBeVisible()
   })
 
@@ -52,7 +52,7 @@ test.describe('Jobs & customers', () => {
       await smsToggle.click()
     }
     await page.getByTestId('customer-form-submit').click()
-    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
     await expect(visibleTestId(page, 'customer-sms-optout-cust-004')).not.toBeVisible()
   })
 
@@ -73,7 +73,7 @@ test.describe('Jobs & customers', () => {
     await page.goto('/customers')
     await visibleTestId(page, 'customer-portal-link-cust-001').click()
 
-    await expect(page.getByText(/ссылка на портал скопирована|portal link copied/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /ссылка на портал скопирована|portal link copied/i).first()).toBeVisible({ timeout: 10000 })
   })
 
   test('create job via form adds draft to table', async ({ page }) => {
@@ -86,7 +86,7 @@ test.describe('Jobs & customers', () => {
     await page.getByRole('option', { name: /ABC Property Management/i }).click()
     await page.getByTestId('job-form-submit').click()
 
-    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
     await expectJobTitleVisible(page, 'E2E Plumbing Repair')
   })
 
@@ -101,7 +101,7 @@ test.describe('Jobs & customers', () => {
 
     await page.getByTestId('jobs-search').fill('E2E Filter Draft')
     await expectJobTitleVisible(page, 'E2E Filter Draft Job')
-    await expect(page.getByText(/electrical panel/i).locator('visible=true').first()).not.toBeVisible()
+    await expect(visibleText(page, /electrical panel/i).locator('visible=true').first()).not.toBeVisible()
 
     await page.getByTestId('jobs-search').fill('')
     await page.getByRole('tab', { name: /черновик|draft/i }).click()

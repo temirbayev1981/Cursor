@@ -18,7 +18,7 @@ test.describe('Work orders vendor PO', () => {
     const dropzone = page.getByTestId('work-orders-vendor-po-dropzone')
     await dropzone.locator('input[type="file"]').setInputFiles('e2e/fixtures/vendor-po-sample.pdf')
 
-    await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 15000 })
+    await expect(visibleText(page, /pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 15000 })
     await expect(visibleText(page, '207872-02', true).first()).toBeVisible()
     await expect(visibleText(page, '350531955', true).first()).toBeVisible()
     await expect(visibleText(page, /317 Main St/i).first()).toBeVisible()
@@ -30,7 +30,7 @@ test.describe('Work orders vendor PO', () => {
     const dropzone = page.getByTestId('work-orders-vendor-po-dropzone')
     await dropzone.locator('input[type="file"]').setInputFiles('e2e/fixtures/vendor-po-210072-01.pdf')
 
-    await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 20000 })
+    await expect(visibleText(page, /pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 20000 })
     await expect(visibleText(page, '210072-01', true).first()).toBeVisible()
     await expect(visibleText(page, '355708360', true).first()).toBeVisible()
     await expect(visibleText(page, /3101 New Bern Ave/i).first()).toBeVisible()
@@ -41,12 +41,12 @@ test.describe('Work orders vendor PO', () => {
 
     const dropzone = page.getByTestId('work-orders-vendor-po-dropzone')
     await dropzone.locator('input[type="file"]').setInputFiles('e2e/fixtures/vendor-po-sample.pdf')
-    await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 15000 })
+    await expect(visibleText(page, /pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 15000 })
 
     await visibleTestIdMatch(page, /vendor-po-create-job-/).first().click()
 
     await expect(page).toHaveURL(/\/jobs/, { timeout: 10000 })
-    await expect(page.getByText(/заказ создан из 207872-02|job created from 207872-02/i).first()).toBeVisible()
+    await expect(visibleText(page, /заказ создан из 207872-02|job created from 207872-02/i).first()).toBeVisible()
     await expect(visibleText(page, /REPLACE:.*BUILDING INTERIOR/i).first()).toBeVisible()
   })
 
@@ -59,7 +59,7 @@ test.describe('Work orders vendor PO', () => {
       'e2e/fixtures/vendor-po-emergency.pdf',
     ])
 
-    await expect(page.getByText(/успешно разобран.*: 2|parsed and saved.*: 2/i).first()).toBeVisible({ timeout: 20000 })
+    await expect(visibleText(page, /успешно разобран.*: 2|parsed and saved.*: 2/i).first()).toBeVisible({ timeout: 20000 })
     await expect(page.getByTestId('vendor-po-record-count')).toHaveText('2', { timeout: 10000 })
     await expect(visibleText(page, '207872-02', true).first()).toBeVisible()
     await expect(visibleText(page, '210214-01', true).first()).toBeVisible()
@@ -71,7 +71,7 @@ test.describe('Work orders vendor PO', () => {
     const dropzone = page.getByTestId('work-orders-vendor-po-dropzone')
     const input = dropzone.locator('input[type="file"]')
     await input.setInputFiles('e2e/fixtures/vendor-po-sample.pdf')
-    await expect(page.getByText(/pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 15000 })
+    await expect(visibleText(page, /pdf успешно разобран|pdf parsed and saved/i).first()).toBeVisible({ timeout: 15000 })
     await expect(page.getByTestId('vendor-po-record-count')).toHaveText('1', { timeout: 10000 })
 
     await input.evaluate((el) => { (el as HTMLInputElement).value = '' })

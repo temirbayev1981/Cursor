@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, setCustomerPortalSession, seedDraftJob } from './helpers/auth'
-import { visibleTestId } from './helpers/visibility'
+import { visibleTestId, visibleText } from './helpers/visibility'
 
 test.describe('Customer notification prefs sync', () => {
   test('staff CRM email opt-out syncs to customer portal', async ({ page }) => {
@@ -31,7 +31,7 @@ test.describe('Customer notification prefs sync', () => {
     const portalEmailToggle = page.getByTestId('customer-portal-notify-email')
     if ((await portalEmailToggle.getAttribute('data-state')) === 'checked') {
       await portalEmailToggle.click()
-      await expect(page.getByText(/настройки уведомлений сохранены|notification preferences saved/i).first()).toBeVisible({ timeout: 5000 })
+      await expect(visibleText(page, /настройки уведомлений сохранены|notification preferences saved/i).first()).toBeVisible({ timeout: 5000 })
     }
     await expect(page.getByTestId('customer-portal-email-optout-badge')).toBeVisible()
 
@@ -63,7 +63,7 @@ test.describe('Customer notification prefs sync', () => {
       await smsToggle.click()
     }
     await page.getByTestId('customer-form-submit').click()
-    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
 
     await setCustomerPortalSession(page)
     await page.goto('/portal/customer')
@@ -80,7 +80,7 @@ test.describe('Customer notification prefs sync', () => {
     const portalSmsToggle = page.getByTestId('customer-portal-notify-sms')
     if ((await portalSmsToggle.getAttribute('data-state')) === 'checked') {
       await portalSmsToggle.click()
-      await expect(page.getByText(/настройки уведомлений сохранены|notification preferences saved/i).first()).toBeVisible({ timeout: 5000 })
+      await expect(visibleText(page, /настройки уведомлений сохранены|notification preferences saved/i).first()).toBeVisible({ timeout: 5000 })
     }
 
     await page.evaluate(() => {
@@ -116,7 +116,7 @@ test.describe('Customer notification prefs sync', () => {
     await page.getByTestId('dispatch-status-job-e2e-draft').click()
     await page.getByRole('option', { name: /запланирован|scheduled/i }).click()
 
-    await expect(page.getByText(/email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
-    await expect(page.getByText(/Email.*очереди|email queued/i)).not.toBeVisible()
+    await expect(visibleText(page, /email отключён|email disabled/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(visibleText(page, /Email.*очереди|email queued/i)).not.toBeVisible()
   })
 })

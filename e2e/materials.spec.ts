@@ -9,9 +9,9 @@ test.describe('Materials inventory', () => {
 
   test('shows low stock alert for materials below reorder level', async ({ page }) => {
     await page.goto('/materials')
-    await expect(page.getByText(/предупреждение о низком запасе|low stock alert/i).first()).toBeVisible()
+    await expect(visibleText(page, /предупреждение о низком запасе|low stock alert/i).first()).toBeVisible()
     await expect(visibleText(page, /Door Trim/i).first()).toBeVisible()
-    await expect(page.getByText(/мало на складе|low stock/i).locator('visible=true').first()).toBeVisible()
+    await expect(visibleText(page, /мало на складе|low stock/i).locator('visible=true').first()).toBeVisible()
   })
 
   test('receive stock dialog increases material quantity', async ({ page }) => {
@@ -24,7 +24,7 @@ test.describe('Materials inventory', () => {
     await page.getByTestId('materials-receive-dialog').locator('input[type="number"]').fill('7')
     await page.getByTestId('materials-receive-submit').click()
 
-    await expect(page.getByText(/приход на склад|receive stock/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /приход на склад|receive stock/i).first()).toBeVisible({ timeout: 10000 })
     await expect(row).toContainText('10')
   })
 
@@ -40,7 +40,7 @@ test.describe('Materials inventory', () => {
     await form.locator('input[type="number"]').first().fill('12.50')
     await page.getByTestId('material-form-submit').click()
 
-    await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
     await expect(visibleText(page, 'E2E Copper Pipe').first()).toBeVisible()
   })
 })

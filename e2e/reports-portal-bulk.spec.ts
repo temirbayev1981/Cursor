@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, seedBulkDraftJobs, seedPortalCustomerInvoice, setCustomerPortalSession } from './helpers/auth'
-import { visibleTestId } from './helpers/visibility'
+import { visibleTestId, visibleText } from './helpers/visibility'
 
 test.describe('Report PDF i18n', () => {
   test('Russian locale uses Russian PDF labels', async ({ page }) => {
@@ -49,7 +49,7 @@ test.describe('Jobs bulk technician assign', () => {
     await page.getByRole('option', { name: /Marcus Thompson/i }).click()
     await page.getByTestId('jobs-bulk-assign').click()
 
-    await expect(page.getByText(/назначено мастеров:\s*2|assigned technician to 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(visibleText(page, /назначено мастеров:\s*2|assigned technician to 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
     await expect(visibleTestId(page, 'job-technician-job-bulk-001')).toContainText('Marcus Thompson')
     await expect(visibleTestId(page, 'job-technician-job-bulk-002')).toContainText('Marcus Thompson')
   })

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { visibleText } from './helpers/visibility'
 
 const hasSupabaseCreds = Boolean(process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_ANON_KEY)
 const skipLive = process.env.LIVE_E2E_OPTIONAL === '1' && !hasSupabaseCreds
@@ -15,7 +16,7 @@ test.describe('Live backend smoke', () => {
 
   test('app shell does not show Supabase required screen', async ({ page }) => {
     await page.goto('/login')
-    await expect(page.getByText(/supabase required/i)).not.toBeVisible()
+    await expect(visibleText(page, /supabase required/i)).not.toBeVisible()
   })
 
   test('unauthenticated visit redirects to login', async ({ page }) => {
