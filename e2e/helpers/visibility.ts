@@ -1,7 +1,7 @@
 import { expect, type Locator, type Page } from '@playwright/test'
 
 /** Assert text is visible when duplicate nodes exist (e.g. mobile + desktop layouts). */
-export function visibleText(page: Page, text: string, exact = false): Locator {
+export function visibleText(page: Page, text: string | RegExp, exact = false): Locator {
   return page.getByText(text, { exact }).locator('visible=true')
 }
 
