@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 
 const hasSupabaseCreds = Boolean(process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_ANON_KEY)
 const hasStripeKey = Boolean(process.env.VITE_STRIPE_PUBLISHABLE_KEY)
-const skipLive = process.env.LIVE_E2E_OPTIONAL === '1' && (!hasSupabaseCreds || !hasStripeKey)
+const skipLive = !hasSupabaseCreds || !hasStripeKey
 
 function functionsBaseUrl(): string {
   const url = process.env.VITE_SUPABASE_URL!.replace(/\/$/, '')

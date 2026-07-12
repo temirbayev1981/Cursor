@@ -338,9 +338,13 @@ export async function clearPortalReview(page: Page, customerId = 'cust-002') {
 }
 
 /** Seeds unpaid invoice for demo customer portal (cust-002). */
-export async function seedPortalCustomerInvoice(page: Page) {
+export async function seedPortalCustomerInvoice(page: Page, options?: { reload?: boolean }) {
   await page.evaluate(() => {
-    const invoices = JSON.parse(localStorage.getItem('handymanos_invoices') || '[]') as Array<Record<string, unknown>>
+    const raw =
+      localStorage.getItem('__e2e_supabase__invoices')
+      ?? localStorage.getItem('handymanos_invoices')
+      ?? '[]'
+    const invoices = JSON.parse(raw) as Array<Record<string, unknown>>
     const invoice = {
       id: 'inv-portal-e2e',
       company_id: 'comp-001',
@@ -363,7 +367,9 @@ export async function seedPortalCustomerInvoice(page: Page) {
     localStorage.setItem('handymanos_invoices', JSON.stringify(invoices))
     localStorage.setItem('__e2e_supabase__invoices', JSON.stringify(invoices))
   })
-  await page.reload()
+  if (options?.reload !== false) {
+    await page.reload({ waitUntil: 'networkidle' })
+  }
 }
 
 export async function openSettingsAuditTab(page: Page) {

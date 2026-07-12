@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner } from './helpers/auth'
+import { visibleText } from './helpers/visibility'
 
 test.describe('Vendor PO null-safe render', () => {
   test.beforeEach(async ({ page }) => {
@@ -34,7 +35,7 @@ test.describe('Vendor PO null-safe render', () => {
     page.on('pageerror', (err) => pageErrors.push(err.message))
 
     await page.goto('/work-orders')
-    await expect(page.getByText('999999-01')).toBeVisible({ timeout: 15000 })
+    await expect(visibleText(page, '999999-01', true).first()).toBeVisible({ timeout: 15000 })
     await expect(page.getByRole('alert')).toHaveCount(0)
     expect(pageErrors).toEqual([])
   })

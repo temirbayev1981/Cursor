@@ -2,6 +2,16 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.37] — 2026-07-12
+
+Pre-merge E2E fixes for dual mobile/desktop layouts and portal invoice seeding.
+
+### E2E
+- `expectCustomerNameVisible` helper restored in `visibility.ts`
+- Vendor PO specs use visible locators (`vendor-po-210071`, `vendor-po-null-render`, `vendor-search-ai-invoice`)
+- Portal invoice pay tests: seed after portal mount, wait for pay button
+- `playwright.config.ts` ignores live-only specs (`stripe-live`, `live-backend-smoke`)
+
 ## [1.14.36] — 2026-07-12
 
 Audit P4: lazy export in vendor PO, lazy AI in assistant, RELEASE sync.

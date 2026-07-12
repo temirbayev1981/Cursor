@@ -119,9 +119,10 @@ test.describe('Customer portal English', () => {
 
   test('customer portal shows English invoices section and pays invoice', async ({ page }) => {
     await page.goto('/portal/customer')
+    await expect(page.getByTestId('customer-portal-invoices-heading')).toBeVisible({ timeout: 15000 })
     await seedPortalCustomerInvoice(page)
     await expect(page.getByTestId('customer-portal-invoices-heading')).toHaveText('Invoices')
-    await expect(page.getByText('INV-PORTAL-E2E').first()).toBeVisible()
+    await expect(page.getByTestId('invoice-pay-inv-portal-e2e')).toBeVisible({ timeout: 20000 })
     await page.getByTestId('invoice-pay-inv-portal-e2e').click()
     await expect(page.getByTestId('invoice-pay-inv-portal-e2e')).not.toBeVisible({ timeout: 15000 })
   })

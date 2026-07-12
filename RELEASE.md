@@ -1,6 +1,6 @@
-# HandymanOS AI — Release 1.14.36
+# HandymanOS AI — Release 1.14.37
 
-**Status:** PR [#182](https://github.com/temirbayev1981/Cursor/pull/182) (`cursor/audit-p4-bundle-mobile-1b4a`) — not merged; production on **1.14.24**.
+**Status:** merging to `main` — production deploy **v1.14.37**.
 
 Audit P4 milestone: mobile-first list layouts, bundle splitting, E2E visibility stability.
 

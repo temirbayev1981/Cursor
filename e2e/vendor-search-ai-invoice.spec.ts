@@ -10,17 +10,17 @@ test.describe('Vendor PO multi-site', () => {
   test('shows multi-site grouping badge for duplicate addresses', async ({ page }) => {
     await page.goto('/work-orders')
     await page.getByRole('tab', { name: /vendor po/i }).click()
-    await expect(page.getByTestId('vendor-po-multi-site-badge')).toBeVisible({ timeout: 15000 })
-    await expect(page.getByTestId('vendor-po-multi-site-badge')).toContainText(/1/)
-    await expect(page.getByText(/несколькими нарядами|multiple orders/i).first()).toBeVisible()
-    await expect(visibleText(page, '200 N Lasalle St', true).first()).toBeVisible()
+    await expect(visibleTestId(page, 'vendor-po-multi-site-badge')).toBeVisible({ timeout: 15000 })
+    await expect(visibleTestId(page, 'vendor-po-multi-site-badge')).toContainText(/1/)
+    await expect(visibleText(page, /несколькими нарядами|multiple orders/i).first()).toBeVisible()
+    await expect(visibleText(page, /200 N Lasalle St/i).first()).toBeVisible()
   })
 
   test('highlights emergency priority vendor PO rows', async ({ page }) => {
     await page.goto('/work-orders')
     await page.getByRole('tab', { name: /vendor po/i }).click()
     await expect(visibleText(page, '210214-01', true).first()).toBeVisible({ timeout: 15000 })
-    await expect(page.getByText(/P1.*EMERGENCY|EMERGENCY/i).first()).toBeVisible()
+    await expect(visibleText(page, /P1.*EMERGENCY|EMERGENCY/i).first()).toBeVisible()
   })
 })
 

@@ -43,6 +43,15 @@ export async function expectEstimateTitleVisible(
   await expectVisibleText(page, title, { exact: true, timeout: options?.timeout })
 }
 
+/** Customers page renders mobile cards and a desktop table with the same names. */
+export async function expectCustomerNameVisible(
+  page: Page,
+  name: string,
+  options?: { timeout?: number },
+): Promise<void> {
+  await expectVisibleText(page, name, { exact: true, timeout: options?.timeout })
+}
+
 export function visibleRow(page: Page, text: string | RegExp): Locator {
   return page.getByRole('row').filter({ hasText: text }).locator('visible=true')
 }
