@@ -2,6 +2,19 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.33] — 2026-07-12
+
+Audit P4: lazy AI in work-orders, properties/technicians mobile E2E.
+
+### Bundle
+- `work-orders.tsx` — dynamic import of `@/lib/ai` (analysis only on user action)
+- `verify-production-readiness` gates for dynamic ai import + `pdf-utils.ts`
+
+### E2E
+- `properties-mobile-layout.spec.ts`, `technicians-mobile-layout.spec.ts`
+- Visible locators in scheduling, technicians-theme-reports, vendor-search global search
+- `jobs-bulk-estimate-i18n` uses `visibleTestId` for estimate PDF export
+
 ## [1.14.32] — 2026-07-12
 
 Audit P4: vendor PO visible E2E, scheduling mobile spec, pdf-utils tests.

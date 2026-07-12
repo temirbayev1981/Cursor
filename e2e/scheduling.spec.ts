@@ -13,7 +13,7 @@ test.describe('Scheduling', () => {
     await expect(page.getByRole('heading', { name: /расписание|scheduling/i })).toBeVisible()
     await expect(page.getByRole('tab', { name: /неделя|week/i })).toBeVisible()
     await expect(page.getByText(/доступность мастеров|technician availability/i).first()).toBeVisible()
-    await expect(page.getByText(/James Rodriguez|Marcus Thompson/i).first()).toBeVisible()
+    await expect(visibleText(page, /James Rodriguez|Marcus Thompson/i).first()).toBeVisible()
   })
 
   test('schedule draft job from form adds event to calendar', async ({ page }) => {

@@ -15,7 +15,6 @@ import { VendorPOTable } from '@/components/vendor-po/vendor-po-table'
 import { useWorkOrders } from '@/hooks/use-entities'
 import { saveWorkOrderFromAI } from '@/services/entity-service'
 import { useAuth } from '@/contexts/auth-context'
-import { analyzeWorkOrderPDF, analyzeEmailWorkOrder, analyzePhoto } from '@/lib/ai'
 import { isPdfFile, prefersNoPdfWorker } from '@/lib/pdf-utils'
 import { ensureSupabaseSession } from '@/lib/supabase-session'
 import { isVendorPOText, parseVendorPOText } from '@/lib/vendor-po-parser'
@@ -82,6 +81,7 @@ export default function WorkOrdersPage() {
     setAnalyzing(true)
     setExtracted(null)
     try {
+      const { analyzeWorkOrderPDF, analyzeEmailWorkOrder, analyzePhoto } = await import('@/lib/ai')
       const result =
         type === 'email'
           ? await analyzeEmailWorkOrder(content)

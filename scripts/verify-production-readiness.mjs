@@ -1289,6 +1289,23 @@ if (workOrdersPage.includes("from '@/lib/pdf-extract'") || workOrdersPage.includ
   ok = false
 }
 
+if (workOrdersPage.includes("from '@/lib/ai'") || workOrdersPage.includes('from "@/lib/ai"')) {
+  console.log('✗ work-orders.tsx must not statically import ai (use dynamic import in handleAnalyze)')
+  ok = false
+} else if (workOrdersPage.includes("import('@/lib/ai')")) {
+  console.log('✓ work-orders.tsx uses dynamic import for AI analysis')
+} else {
+  console.log('✗ work-orders.tsx must dynamically import ai for work order analysis')
+  ok = false
+}
+
+if (existsSync('src/lib/pdf-utils.ts')) {
+  console.log('✓ pdf-utils.ts (lightweight PDF helpers)')
+} else {
+  console.log('✗ missing src/lib/pdf-utils.ts')
+  ok = false
+}
+
 const mobileLayoutSpecs = [
   'e2e/jobs-mobile-layout.spec.ts',
   'e2e/customers-mobile-layout.spec.ts',
@@ -1300,6 +1317,8 @@ const mobileLayoutSpecs = [
   'e2e/vehicles-mobile-layout.spec.ts',
   'e2e/reports-mobile-layout.spec.ts',
   'e2e/scheduling-mobile-layout.spec.ts',
+  'e2e/properties-mobile-layout.spec.ts',
+  'e2e/technicians-mobile-layout.spec.ts',
 ]
 console.log('\nMobile layout E2E:')
 for (const file of mobileLayoutSpecs) {

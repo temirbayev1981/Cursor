@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, seedDraftInvoice, clearNotificationQueue } from './helpers/auth'
-import { visibleTestId, visibleText } from './helpers/visibility'
+import { expectJobTitleVisible, visibleTestId, visibleText } from './helpers/visibility'
 
 test.describe('Vendor PO multi-site', () => {
   test.beforeEach(async ({ page }) => {
@@ -56,6 +56,7 @@ test.describe('Global search & invoice send', () => {
     await expect(results.getByText(/Drywall Repair/i).first()).toBeVisible({ timeout: 10000 })
     await results.getByRole('button').first().click()
     await expect(page).toHaveURL(/\/jobs/, { timeout: 10000 })
+    await expectJobTitleVisible(page, 'Drywall Repair & Paint - Unit 204')
   })
 
   test('send draft invoice queues customer email without webhook', async ({ page }) => {

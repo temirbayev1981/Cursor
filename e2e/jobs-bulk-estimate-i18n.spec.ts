@@ -8,7 +8,7 @@ test.describe('Estimate PDF i18n', () => {
     await page.goto('/estimates')
 
     const popupPromise = page.waitForEvent('popup')
-    await page.getByTestId('estimate-export-pdf-est-001').locator('visible=true').click()
+    await visibleTestId(page, 'estimate-export-pdf-est-001').click()
     const popup = await popupPromise
 
     await expect(popup.locator('body')).toContainText(/Труд/i)
@@ -23,7 +23,7 @@ test.describe('Estimate PDF i18n', () => {
     await page.goto('/estimates')
 
     const popupPromise = page.waitForEvent('popup')
-    await page.getByTestId('estimate-export-pdf-est-001').locator('visible=true').click()
+    await visibleTestId(page, 'estimate-export-pdf-est-001').click()
     const popup = await popupPromise
 
     await expect(popup.locator('body')).toContainText(/Labor/i)
