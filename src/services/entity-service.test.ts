@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import {
   listEntities,
   listEntitiesPage,
+  listFuelLogsPage,
   saveEntity,
   deleteEntity,
   logAudit,
@@ -123,6 +124,48 @@ describe('entity-service', () => {
     const materials = await listEntitiesPage('materials', 'comp-001', { page: 1, pageSize: 5 })
     expect(materials.total).toBeGreaterThan(0)
     expect(materials.items.every((row) => row.company_id === 'comp-001')).toBe(true)
+  })
+
+  it('listFuelLogsPage returns paginated fuel logs for company vehicles', async () => {
+    const page = await listFuelLogsPage('comp-001', { page: 1, pageSize: 5 })
+    expect(page.total).toBeGreaterThan(0)
+    expect(page.items.length).toBeLessThanOrEqual(5)
+    expect(page.items.every((log) => typeof log.vehicle_id === 'string')).toBe(true)
+  })
+
+  it('listFuelLogsPage clears stale scoped cache when remote total is zero', async () => {
+    const vehicle = {
+      id: 'veh-empty-fuel',
+      company_id: 'comp-empty-fuel',
+      name: 'Test Van',
+      type: 'van' as const,
+      make: 'Ford',
+      model: 'Transit',
+      year: 2022,
+      license_plate: 'TST-0001',
+      mileage: 1000,
+      is_active: true,
+      created_at: new Date().toISOString(),
+    }
+    await saveEntity('vehicles', vehicle)
+
+    const staleLog = {
+      id: 'fuel-stale-cache',
+      vehicle_id: 'veh-empty-fuel',
+      date: new Date().toISOString(),
+      miles: 10,
+      gallons: 1,
+      fuel_price: 3.5,
+      total_cost: 3.5,
+    }
+    localStorage.setItem(STORE_KEYS.fuelLogs, JSON.stringify([staleLog]))
+
+    const page = await listFuelLogsPage('comp-empty-fuel', { page: 1, pageSize: 25 })
+    expect(page.total).toBe(0)
+    expect(page.items).toEqual([])
+
+    const cached = JSON.parse(localStorage.getItem(STORE_KEYS.fuelLogs) || '[]') as Array<{ vehicle_id: string }>
+    expect(cached.filter((row) => row.vehicle_id === 'veh-empty-fuel')).toHaveLength(0)
   })
 
   it('listEntitiesPage clears stale cache when unfiltered first page is empty', async () => {

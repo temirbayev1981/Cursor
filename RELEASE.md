@@ -1,6 +1,12 @@
-# HandymanOS AI — Release 1.14.40
+# HandymanOS AI — Release 1.14.41
 
-**Status:** Audit P6 — server pagination (Phase 135 completion).
+**Status:** Audit P6/P7 — server pagination (Phase 135 complete).
+
+## 1.14.41 — Audit P7
+
+- **Fuel logs** — `listFuelLogsPage` + `useServerFuelLogsTable` on vehicles page
+- **Phase 135 complete** — all entity tables use server-side pagination (no `useTablePagination` in pages)
+- Scoped fuel log cache cleared when remote total is zero
 
 ## 1.14.40 — Audit P6
 

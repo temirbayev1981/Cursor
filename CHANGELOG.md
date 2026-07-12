@@ -2,6 +2,19 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.41] — 2026-07-12
+
+Audit P7: server-side fuel log pagination — completes Phase 135 table pagination.
+
+### Performance
+- `listFuelLogsPage` — paginated fuel logs scoped to company vehicles
+- `useServerFuelLogsTable` — vehicles page fuel log table
+- No entity pages use client-side `useTablePagination`
+
+### Tests
+- `entity-service.test.ts` — fuel log pagination + scoped cache tests
+- `a11y-axe.spec.ts` — fuel logs server pagination gate
+
 ## [1.14.40] — 2026-07-12
 
 Audit P6: server-side pagination for estimates, expenses, materials (Phase 135 completion).

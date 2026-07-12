@@ -168,6 +168,9 @@ class MockQueryBuilder implements PromiseLike<{ data: unknown; error: { message:
   private singleRow = false
   private maybeSingleRow = false
   private limitCount: number | null = null
+  private rangeFrom: number | null = null
+  private rangeTo: number | null = null
+  private countExact = false
   private upsertConflict: string | null = null
 
   constructor(table: string) {
@@ -175,7 +178,10 @@ class MockQueryBuilder implements PromiseLike<{ data: unknown; error: { message:
     ensureSeeded()
   }
 
-  select(_columns = '*') { return this }
+  select(_columns = '*', options?: { count?: 'exact' }) {
+    this.countExact = options?.count === 'exact'
+    return this
+  }
   insert(rows: Row | Row[]) { this.op = 'insert'; this.payload = rows; return this }
   upsert(rows: Row | Row[], opts?: { onConflict?: string }) {
     this.op = 'upsert'
@@ -197,15 +203,20 @@ class MockQueryBuilder implements PromiseLike<{ data: unknown; error: { message:
   single() { this.singleRow = true; return this }
   maybeSingle() { this.maybeSingleRow = true; this.singleRow = true; return this }
   limit(n: number) { this.limitCount = n; return this }
+  range(from: number, to: number) {
+    this.rangeFrom = from
+    this.rangeTo = to
+    return this
+  }
 
-  then<TResult1 = { data: unknown; error: { message: string } | null }, TResult2 = never>(
-    onfulfilled?: ((value: { data: unknown; error: { message: string } | null }) => TResult1 | PromiseLike<TResult1>) | null,
+  then<TResult1 = { data: unknown; error: { message: string } | null; count?: number | null }, TResult2 = never>(
+    onfulfilled?: ((value: { data: unknown; error: { message: string } | null; count?: number | null }) => TResult1 | PromiseLike<TResult1>) | null,
     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
   ): Promise<TResult1 | TResult2> {
     return Promise.resolve(this.execute()).then(onfulfilled, onrejected)
   }
 
-  private execute(): { data: unknown; error: { message: string } | null } {
+  private execute(): { data: unknown; error: { message: string } | null; count?: number | null } {
     let rows = loadTable(this.table)
 
     if (this.op === 'insert' || this.op === 'upsert') {
@@ -249,14 +260,18 @@ class MockQueryBuilder implements PromiseLike<{ data: unknown; error: { message:
     if (this.limitCount != null) {
       rows = rows.slice(0, this.limitCount)
     }
+    const totalCount = rows.length
+    if (this.rangeFrom != null && this.rangeTo != null) {
+      rows = rows.slice(this.rangeFrom, this.rangeTo + 1)
+    }
     if (this.singleRow) {
       const row = rows[0] ?? null
       if (!row && !this.maybeSingleRow) {
-        return { data: null, error: { message: 'Row not found' } }
+        return { data: null, error: { message: 'Row not found' }, count: this.countExact ? totalCount : null }
       }
-      return { data: row, error: null }
+      return { data: row, error: null, count: this.countExact ? totalCount : null }
     }
-    return { data: rows, error: null }
+    return { data: rows, error: null, count: this.countExact ? totalCount : null }
   }
 }
 

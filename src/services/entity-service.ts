@@ -658,6 +658,67 @@ export async function listFuelLogs(companyId: string): Promise<FuelLog[]> {
   }
 }
 
+function listLocalFuelLogsPage(vehicleIds: string[], params: EntityListPageParams): EntityListPageResult<FuelLog> {
+  const pageSize = Math.min(Math.max(1, params.pageSize), ENTITY_PAGE_SIZE_MAX)
+  const page = Math.max(1, params.page)
+  const filtered = loadStore<FuelLog>(STORE_KEYS.fuelLogs).filter((f) => vehicleIds.includes(f.vehicle_id))
+  const start = (page - 1) * pageSize
+  return {
+    items: filtered.slice(start, start + pageSize),
+    total: filtered.length,
+    page,
+    pageSize,
+  }
+}
+
+/** Server-side paginated fuel log list scoped to company vehicles. */
+export async function listFuelLogsPage(
+  companyId: string,
+  params: EntityListPageParams,
+): Promise<EntityListPageResult<FuelLog>> {
+  const pageSize = Math.min(Math.max(1, params.pageSize), ENTITY_PAGE_SIZE_MAX)
+  const page = Math.max(1, params.page)
+  const normalized: EntityListPageParams = { ...params, page, pageSize }
+
+  const vehicles = await listEntities('vehicles', companyId)
+  const vehicleIds = vehicles.map((v) => v.id)
+
+  if (vehicleIds.length === 0) {
+    return { items: [], total: 0, page, pageSize }
+  }
+
+  if (!supabase) {
+    return listLocalFuelLogsPage(vehicleIds, normalized)
+  }
+
+  try {
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
+
+    const { data, error, count } = await supabase
+      .from('fuel_logs')
+      .select('*', { count: 'exact' })
+      .in('vehicle_id', vehicleIds)
+      .order('date', { ascending: false })
+      .range(from, to)
+
+    if (error) throw error
+
+    const items = (data ?? []) as FuelLog[]
+    const isUnfilteredFirstPage = page === 1 && !normalized.search?.trim()
+    if ((count ?? 0) === 0 && isUnfilteredFirstPage) {
+      replaceScopedInStore<FuelLog>(STORE_KEYS.fuelLogs, (f) => vehicleIds.includes(f.vehicle_id), [])
+    } else if (items.length > 0) {
+      mergeStoreById(STORE_KEYS.fuelLogs, items)
+    }
+
+    return { items, total: count ?? 0, page, pageSize }
+  } catch (err) {
+    warnSupabaseFallback('listFuelLogsPage', err)
+    return listLocalFuelLogsPage(vehicleIds, normalized)
+  }
+}
+
 export async function saveTimeEntry(entry: TimeEntry): Promise<TimeEntry> {
   const previous = loadStore<TimeEntry>(STORE_KEYS.timeEntries).find((e) => e.id === entry.id)
   upsertStore(STORE_KEYS.timeEntries, entry)

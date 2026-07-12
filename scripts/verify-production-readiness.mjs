@@ -1533,6 +1533,46 @@ if (
   ok = false
 }
 
+const vehiclesPage = existsSync('src/pages/vehicles.tsx')
+  ? readFileSync('src/pages/vehicles.tsx', 'utf8')
+  : ''
+if (
+  vehiclesPage.includes('useServerFuelLogsTable')
+  && !vehiclesPage.includes('useTablePagination(')
+  && entityService.includes('listFuelLogsPage')
+) {
+  console.log('✓ vehicles.tsx uses server-side fuel log pagination')
+} else {
+  console.log('✗ vehicles.tsx must use useServerFuelLogsTable and listFuelLogsPage')
+  ok = false
+}
+
+if (existsSync('src/hooks/use-server-fuel-logs-table.ts')) {
+  console.log('✓ use-server-fuel-logs-table hook present')
+} else {
+  console.log('✗ missing src/hooks/use-server-fuel-logs-table.ts')
+  ok = false
+}
+
+const clientPaginationInPages = [
+  'src/pages/customers.tsx',
+  'src/pages/jobs.tsx',
+  'src/pages/invoices.tsx',
+  'src/pages/estimates.tsx',
+  'src/pages/expenses.tsx',
+  'src/pages/materials.tsx',
+  'src/pages/vehicles.tsx',
+].filter((file) => {
+  const source = existsSync(file) ? readFileSync(file, 'utf8') : ''
+  return source.includes('useTablePagination(')
+})
+if (clientPaginationInPages.length === 0) {
+  console.log('✓ no entity pages use client-side useTablePagination')
+} else {
+  console.log(`✗ pages must not use client-side useTablePagination: ${clientPaginationInPages.join(', ')}`)
+  ok = false
+}
+
 const pkgJson = JSON.parse(readFileSync('package.json', 'utf8'))
 if (pkgJson.scripts?.['verify:operator:prod']) {
   console.log('✓ verify:operator:prod npm script')

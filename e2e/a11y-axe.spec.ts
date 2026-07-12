@@ -53,4 +53,10 @@ test.describe('Axe accessibility', () => {
     await page.goto('/materials')
     await expect(page.getByTestId('materials-pagination')).toBeVisible({ timeout: 15000 })
   })
+
+  test('vehicles fuel logs table exposes server pagination controls', async ({ page }) => {
+    await loginAsOwner(page, 'en')
+    await page.goto('/vehicles')
+    await expect(page.getByTestId('fuel-logs-pagination')).toBeVisible({ timeout: 15000 })
+  })
 })
