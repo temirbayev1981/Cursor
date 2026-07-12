@@ -776,6 +776,7 @@ export const en: TranslationKeys = {
       estimates_lightweight_audit: 'Estimates lightweight context',
       customer_contacts_audit: 'Customer contact lookups',
       dashboard_reports_lightweight_audit: 'Dashboard/reports lightweight queries',
+      ai_assistant_lightweight_audit: 'AI assistant lightweight context',
     },
     auditActions: {
       'jobs.bulk_cancel': 'Bulk cancelled jobs',

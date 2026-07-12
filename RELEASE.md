@@ -1,6 +1,12 @@
-# HandymanOS AI — Release 1.14.46
+# HandymanOS AI — Release 1.14.47
 
-**Status:** Audit P12 — dashboard/reports lightweight queries.
+**Status:** Audit P13 — AI assistant lightweight context.
+
+## 1.14.47 — Audit P13
+
+- **AI assistant** — `getAiBusinessContextStats` + `useAiBusinessContext` (no full entity lists)
+- **Context builder** — `buildBusinessContext` uses aggregate stats snapshot
+- **Platform audit** — `ai_assistant_lightweight_audit` quality check
 
 ## 1.14.46 — Audit P12
 
