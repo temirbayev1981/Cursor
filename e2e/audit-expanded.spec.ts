@@ -38,7 +38,7 @@ test.describe('Expanded audit log E2E', () => {
 
   test('estimate to invoice conversion appears in audit log', async ({ page }) => {
     await page.goto('/estimates')
-    await expect(page.getByText('Leaking Faucet Repair').first()).toBeVisible()
+    await expect(visibleText(page, 'Leaking Faucet Repair', true).first()).toBeVisible()
     await visibleTestId(page, 'estimate-convert-est-002').click()
     await expect(page.getByText(/счёт создан из сметы|invoice created from estimate/i).first()).toBeVisible({ timeout: 10000 })
 
@@ -74,7 +74,7 @@ test.describe('Expanded audit log E2E', () => {
 
   test('estimate send appears in audit log', async ({ page }) => {
     await page.goto('/estimates')
-    await expect(page.getByText('Deck Repair & Staining').first()).toBeVisible()
+    await expect(visibleText(page, 'Deck Repair & Staining', true).first()).toBeVisible()
     await visibleTestId(page, 'estimate-send-est-003').click()
     await expect(page.getByText(/смета отправлена/i).first()).toBeVisible({ timeout: 10000 })
 

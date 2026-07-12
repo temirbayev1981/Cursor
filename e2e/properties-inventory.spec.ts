@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner } from './helpers/auth'
-import { visibleTestId } from './helpers/visibility'
+import { visibleTestId, visibleText } from './helpers/visibility'
 
 test.describe('Properties & job inventory', () => {
   test.beforeEach(async ({ page }) => {
@@ -10,8 +10,8 @@ test.describe('Properties & job inventory', () => {
   test('properties page shows demo property cards', async ({ page }) => {
     await page.goto('/properties')
     await expect(page.getByRole('heading', { name: /объекты|properties/i })).toBeVisible()
-    await expect(page.getByText('Riverside Apartments - Unit 204').first()).toBeVisible()
-    await expect(page.getByText(/ABC Property Management/i).first()).toBeVisible()
+    await expect(visibleText(page, 'Riverside Apartments - Unit 204', true).first()).toBeVisible()
+    await expect(visibleText(page, /ABC Property Management/i).first()).toBeVisible()
   })
 
   test('create property via form adds card', async ({ page }) => {
@@ -27,12 +27,12 @@ test.describe('Properties & job inventory', () => {
     await page.getByTestId('property-form-submit').click()
 
     await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText('E2E Test Property').first()).toBeVisible()
+    await expect(visibleText(page, 'E2E Test Property', true).first()).toBeVisible()
   })
 
   test('deduct job materials updates inventory quantity', async ({ page }) => {
     await page.goto('/materials')
-    const materialRow = page.getByRole('row').filter({ hasText: 'Joint Compound (5 gal)' })
+    const materialRow = page.getByRole('row').filter({ hasText: 'Joint Compound (5 gal)' }).locator('visible=true')
     const qtyBefore = await materialRow.locator('td').nth(3).textContent()
 
     await page.goto('/jobs')
@@ -45,7 +45,7 @@ test.describe('Properties & job inventory', () => {
     await expect(page.getByText(/материалы списаны|materials deducted/i).first()).toBeVisible({ timeout: 10000 })
 
     await page.goto('/materials')
-    const qtyAfter = await page.getByRole('row').filter({ hasText: 'Joint Compound (5 gal)' }).locator('td').nth(3).textContent()
+    const qtyAfter = await page.getByRole('row').filter({ hasText: 'Joint Compound (5 gal)' }).locator('visible=true').locator('td').nth(3).textContent()
     expect(Number.parseInt(qtyAfter ?? '0', 10)).toBe(Number.parseInt(qtyBefore ?? '0', 10) - 1)
   })
 })

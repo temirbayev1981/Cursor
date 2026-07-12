@@ -300,13 +300,13 @@ export default function ReportsPage() {
         <TabsContent value="customers">
           <div className="space-y-3">
             {customers.map((c) => (
-              <Card key={c.id}>
-                <CardContent className="p-4 flex justify-between items-center">
-                  <div>
+              <Card key={c.id} data-testid={`report-customer-card-${c.id}`}>
+                <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
                     <p className="font-medium">{c.name}</p>
                     <p className="text-sm text-muted-foreground">{c.job_count} {t.reports.jobsCount}</p>
                   </div>
-                  <p className="text-lg font-bold">{formatCurrency(c.total_revenue)}</p>
+                  <p className="text-lg font-bold sm:text-right">{formatCurrency(c.total_revenue)}</p>
                 </CardContent>
               </Card>
             ))}

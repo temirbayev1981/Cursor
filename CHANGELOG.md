@@ -2,6 +2,22 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.30] — 2026-07-12
+
+Audit P4: lazy sample seed chunk, reports customers mobile, E2E visible fixes.
+
+### Bundle
+- `entity-service.ts` — dynamic import of `mock-data` only when importing sample data
+- `verify-production-readiness` gate for static mock-data import
+
+### UI
+- **Reports** — customers tab stacks on small screens (`report-customer-card-*`)
+
+### E2E
+- `audit-expanded` — visible estimate titles (dual mobile/desktop layout)
+- `properties-inventory` — visible property names and material table rows
+- `reports-mobile-layout` — customers tab on mobile viewport
+
 ## [1.14.29] — 2026-07-12
 
 Audit P4: lazy pdf-ocr chunk, reports mobile profit cards, E2E stability.

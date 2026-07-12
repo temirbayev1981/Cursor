@@ -13,4 +13,11 @@ test.describe('Reports mobile layout', () => {
     await expect(page.getByTestId(/^report-profit-card-/).locator('visible=true').first()).toBeVisible()
     await expect(page.getByRole('table')).not.toBeVisible()
   })
+
+  test('customers tab shows revenue cards on small screens', async ({ page }) => {
+    await page.goto('/reports')
+    await page.getByTestId('reports-tab-customers').click()
+    await expect(page.getByTestId(/^report-customer-card-/).locator('visible=true').first()).toBeVisible()
+    await expect(page.getByRole('table')).not.toBeVisible()
+  })
 })

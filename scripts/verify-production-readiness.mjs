@@ -1265,6 +1265,17 @@ if (pdfExtractModule.includes("from '@/lib/pdf-ocr'") || pdfExtractModule.includ
   ok = false
 }
 
+const entityServiceModule = readFileSync('src/services/entity-service.ts', 'utf8')
+if (entityServiceModule.includes("from '@/data/mock-data'") || entityServiceModule.includes('from "@/data/mock-data"')) {
+  console.log('✗ entity-service.ts must not statically import mock-data (use dynamic import in importSampleData)')
+  ok = false
+} else if (entityServiceModule.includes("import('@/data/mock-data')")) {
+  console.log('✓ entity-service.ts uses dynamic import for sample seed data')
+} else {
+  console.log('✗ entity-service.ts must dynamically import mock-data for importSampleData')
+  ok = false
+}
+
 const instructionsEn = existsSync('public/INSTRUCTIONS.en.md') && existsSync('INSTRUCTIONS.en.md')
 if (instructionsEn) {
   console.log('✓ bilingual user guide (INSTRUCTIONS.en.md)')
