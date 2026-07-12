@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner } from './helpers/auth'
+import { expectJobTitleVisible } from './helpers/visibility'
 
 test.describe('Jobs & customers', () => {
   test.beforeEach(async ({ page }) => {
@@ -86,7 +87,7 @@ test.describe('Jobs & customers', () => {
     await page.getByTestId('job-form-submit').click()
 
     await expect(page.getByText(/сохранить|saved/i).first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText('E2E Plumbing Repair').first()).toBeVisible()
+    await expectJobTitleVisible(page, 'E2E Plumbing Repair')
   })
 
   test('job search and draft status filter', async ({ page }) => {
@@ -96,14 +97,14 @@ test.describe('Jobs & customers', () => {
     await page.getByTestId('job-form').getByRole('combobox').first().click()
     await page.getByRole('option', { name: /ABC Property Management/i }).click()
     await page.getByTestId('job-form-submit').click()
-    await expect(page.getByText('E2E Filter Draft Job').first()).toBeVisible({ timeout: 10000 })
+    await expectJobTitleVisible(page, 'E2E Filter Draft Job')
 
     await page.getByTestId('jobs-search').fill('E2E Filter Draft')
-    await expect(page.getByText('E2E Filter Draft Job').first()).toBeVisible()
-    await expect(page.getByText(/electrical panel/i).first()).not.toBeVisible()
+    await expectJobTitleVisible(page, 'E2E Filter Draft Job')
+    await expect(page.getByText(/electrical panel/i).locator('visible=true').first()).not.toBeVisible()
 
     await page.getByTestId('jobs-search').fill('')
     await page.getByRole('tab', { name: /черновик|draft/i }).click()
-    await expect(page.getByText('E2E Filter Draft Job').first()).toBeVisible()
+    await expectJobTitleVisible(page, 'E2E Filter Draft Job')
   })
 })

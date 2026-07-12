@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, seedBulkDraftJobs, seedPortalCustomerInvoice, setCustomerPortalSession } from './helpers/auth'
+import { visibleTestId } from './helpers/visibility'
 
 test.describe('Report PDF i18n', () => {
   test('Russian locale uses Russian PDF labels', async ({ page }) => {
@@ -41,8 +42,8 @@ test.describe('Jobs bulk technician assign', () => {
     await page.goto('/jobs')
     await page.getByRole('tab', { name: /черновик|draft/i }).click()
 
-    await page.getByTestId('job-select-job-bulk-001').check()
-    await page.getByTestId('job-select-job-bulk-002').check()
+    await visibleTestId(page, 'job-select-job-bulk-001').check()
+    await visibleTestId(page, 'job-select-job-bulk-002').check()
 
     await page.getByTestId('jobs-bulk-technician').click()
     await page.getByRole('option', { name: /Marcus Thompson/i }).click()

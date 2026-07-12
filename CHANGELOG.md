@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.24] — 2026-07-12
+
+Audit P3: E2E stability after mobile jobs layout, Sentry Session Replay.
+
+### E2E — Jobs dual layout
+- `e2e/helpers/visibility.ts` — assert visible text/testids when mobile cards + desktop table both render
+- Fix flaky `jobs-customers`, bulk actions, and portal bulk specs after v1.14.23 mobile cards
+- New `e2e/jobs-mobile-layout.spec.ts` for small-screen card layout
+
+### Observability
+- Sentry Session Replay (`replayIntegration`) — 5% sessions in prod, 100% on errors
+
 ## [1.14.23] — 2026-07-12
 
 Audit P2: mobile jobs, PWA icons, tenant cache, Sentry context, Stripe E2E.

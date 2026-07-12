@@ -11,6 +11,7 @@ import {
   seedDraftInvoice,
   clearPortalReview,
 } from './helpers/auth'
+import { visibleTestId } from './helpers/visibility'
 
 test.describe('Expanded audit log E2E', () => {
   test.beforeEach(async ({ page }) => {
@@ -397,8 +398,8 @@ test.describe('Bulk & billing audit E2E', () => {
   test('bulk cancel appears in audit log', async ({ page }) => {
     await page.goto('/jobs')
     await page.getByRole('tab', { name: /черновик|draft/i }).click()
-    await page.getByTestId('job-select-job-bulk-001').check()
-    await page.getByTestId('job-select-job-bulk-002').check()
+    await visibleTestId(page, 'job-select-job-bulk-001').check()
+    await visibleTestId(page, 'job-select-job-bulk-002').check()
     await page.getByTestId('jobs-bulk-cancel').click()
     await expect(page.getByText(/отменено заказов:\s*2|cancelled 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
 
@@ -410,8 +411,8 @@ test.describe('Bulk & billing audit E2E', () => {
   test('bulk delete appears in audit log', async ({ page }) => {
     await page.goto('/jobs')
     await page.getByRole('tab', { name: /черновик|draft/i }).click()
-    await page.getByTestId('job-select-job-bulk-001').check()
-    await page.getByTestId('job-select-job-bulk-002').check()
+    await visibleTestId(page, 'job-select-job-bulk-001').check()
+    await visibleTestId(page, 'job-select-job-bulk-002').check()
     await page.getByTestId('jobs-bulk-delete').click()
     await expect(page.getByTestId('jobs-bulk-delete')).toContainText(/подтвердить удаление|confirm delete/i)
     await page.getByTestId('jobs-bulk-delete').click()
@@ -425,8 +426,8 @@ test.describe('Bulk & billing audit E2E', () => {
   test('bulk schedule appears in audit log', async ({ page }) => {
     await page.goto('/jobs')
     await page.getByRole('tab', { name: /черновик|draft/i }).click()
-    await page.getByTestId('job-select-job-bulk-001').check()
-    await page.getByTestId('job-select-job-bulk-002').check()
+    await visibleTestId(page, 'job-select-job-bulk-001').check()
+    await visibleTestId(page, 'job-select-job-bulk-002').check()
     await page.getByTestId('jobs-bulk-schedule').click()
     await expect(page.getByText(/запланировано заказов:\s*2|scheduled 2 jobs/i).first()).toBeVisible({ timeout: 10000 })
 
@@ -438,8 +439,8 @@ test.describe('Bulk & billing audit E2E', () => {
   test('bulk assign appears in audit log', async ({ page }) => {
     await page.goto('/jobs')
     await page.getByRole('tab', { name: /черновик|draft/i }).click()
-    await page.getByTestId('job-select-job-bulk-001').check()
-    await page.getByTestId('job-select-job-bulk-002').check()
+    await visibleTestId(page, 'job-select-job-bulk-001').check()
+    await visibleTestId(page, 'job-select-job-bulk-002').check()
     await page.getByTestId('jobs-bulk-technician').click()
     await page.getByRole('option', { name: /Marcus Thompson/i }).click()
     await page.getByTestId('jobs-bulk-assign').click()
