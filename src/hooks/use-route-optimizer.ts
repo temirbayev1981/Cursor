@@ -1,10 +1,11 @@
 import { useMemo } from 'react'
-import type { Job, Customer, Property } from '@/types'
+import type { Job, Property } from '@/types'
+import type { CustomerContact } from '@/services/entity-service'
 import { geocodeAddressForRouting, optimizeRoute, buildGoogleMapsDirectionsUrl, type RouteStop } from '@/lib/route-optimizer'
 
 export function resolveJobAddress(
   job: Job,
-  customers: Customer[],
+  customers: CustomerContact[],
   properties: Property[]
 ): string {
   const property = job.property_id
@@ -18,7 +19,7 @@ export function resolveJobAddress(
 
 export function useOptimizedRoute(
   jobs: Job[],
-  customers: Customer[],
+  customers: CustomerContact[],
   properties: Property[]
 ) {
   return useMemo(() => {

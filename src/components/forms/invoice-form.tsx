@@ -6,11 +6,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useTranslation } from '@/contexts/locale-context'
-import type { Customer, Invoice } from '@/types'
+import type { CustomerContact } from '@/services/entity-service'
+import type { Invoice } from '@/types'
 
 interface InvoiceFormProps {
   companyId: string
-  customers: Customer[]
+  customers: CustomerContact[]
   invoiceNumber: string
   onSubmit: (invoice: Invoice) => void
   onCancel?: () => void

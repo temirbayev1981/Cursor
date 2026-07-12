@@ -774,6 +774,7 @@ export const en: TranslationKeys = {
       server_pagination_audit: 'Server-side pagination',
       kpi_summary_audit: 'Lightweight KPI summaries',
       estimates_lightweight_audit: 'Estimates lightweight context',
+      customer_contacts_audit: 'Customer contact lookups',
     },
     auditActions: {
       'jobs.bulk_cancel': 'Bulk cancelled jobs',

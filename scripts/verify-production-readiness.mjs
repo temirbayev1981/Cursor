@@ -1697,6 +1697,38 @@ if (
   ok = false
 }
 
+if (auditLabelsModule.includes('CUSTOMER_CONTACTS_AUDIT = true')) {
+  console.log('✓ CUSTOMER_CONTACTS_AUDIT gate enabled')
+} else {
+  console.log('✗ CUSTOMER_CONTACTS_AUDIT must be true')
+  ok = false
+}
+
+if (platformAuditModule.includes('customer_contacts_audit') && platformAuditModule.includes('CUSTOMER_CONTACTS_AUDIT')) {
+  console.log('✓ platform-audit includes customer contacts quality check')
+} else {
+  console.log('✗ platform-audit must include customer_contacts_audit check')
+  ok = false
+}
+
+const jobsPage = existsSync('src/pages/jobs.tsx') ? readFileSync('src/pages/jobs.tsx', 'utf8') : ''
+const dispatchPage = existsSync('src/pages/dispatch.tsx') ? readFileSync('src/pages/dispatch.tsx', 'utf8') : ''
+const schedulingPage = existsSync('src/pages/scheduling.tsx') ? readFileSync('src/pages/scheduling.tsx', 'utf8') : ''
+
+const customerContactPages = [
+  ['invoices.tsx', invoicesPage],
+  ['jobs.tsx', jobsPage],
+  ['dispatch.tsx', dispatchPage],
+  ['scheduling.tsx', schedulingPage],
+].filter(([, source]) => source.includes('useCustomerContacts') && !source.includes('useCustomers()'))
+
+if (customerContactPages.length === 4) {
+  console.log('✓ ops pages use useCustomerContacts instead of useCustomers')
+} else {
+  console.log('✗ invoices, jobs, dispatch, scheduling must use useCustomerContacts without useCustomers')
+  ok = false
+}
+
 const pkgJson = JSON.parse(readFileSync('package.json', 'utf8'))
 if (pkgJson.scripts?.['verify:operator:prod']) {
   console.log('✓ verify:operator:prod npm script')

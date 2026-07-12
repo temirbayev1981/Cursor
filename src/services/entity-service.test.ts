@@ -174,7 +174,7 @@ describe('entity-service', () => {
     expect(contacts.length).toBeGreaterThan(0)
     expect(contacts[0]).toHaveProperty('name')
     expect(contacts[0]).toHaveProperty('email')
-    expect(contacts[0]).not.toHaveProperty('address')
+    expect(contacts[0]).not.toHaveProperty('total_revenue')
   })
 
   it('getSmartEngineJobContext returns drywall stats and job count', async () => {

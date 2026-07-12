@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.45] — 2026-07-12
+
+Audit P11: customer contact lookups on ops pages.
+
+### Performance
+- `listCustomerContacts` extended with `address` for scheduling locations
+- Invoices, jobs, dispatch, scheduling use `useCustomerContacts` instead of `useCustomers()`
+- Invoice and job forms accept lightweight `CustomerContact[]`
+
+### Operator UX
+- `CUSTOMER_CONTACTS_AUDIT` quality gate in platform audit checklist
+
 ## [1.14.44] — 2026-07-12
 
 Audit P10: estimates page lightweight context queries.

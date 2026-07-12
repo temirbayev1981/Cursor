@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/auth-context'
 import { useCompanyQueryScope, useMutationCompanyScope, requireCompanyId } from '@/hooks/use-company-scope'
-import { listEntities, saveEntity, deleteEntity, createJobFromVendorPO, createEstimateFromJob, createInvoiceFromEstimate, createScheduleFromJob, importSampleData, listFuelLogs, getFuelLogsSummary, getExpensesSummary, getInvoicesSummary, getMaterialsSummary, listCustomerContacts, getSmartEngineJobContext, saveFuelLog, listAuditLogs, logAudit } from '@/services/entity-service'
+import { listEntities, saveEntity, deleteEntity, createJobFromVendorPO, createEstimateFromJob, createInvoiceFromEstimate, createScheduleFromJob, importSampleData, listFuelLogs, getFuelLogsSummary, getExpensesSummary, getInvoicesSummary, getMaterialsSummary, listCustomerContacts, getSmartEngineJobContext, saveFuelLog, listAuditLogs, logAudit, type CustomerContact } from '@/services/entity-service'
 import { recordInvoicePayment, sendInvoiceToCustomer } from '@/services/payment-service'
 import { listInventoryTransactions, applyMaterialsOnJob, receiveStock } from '@/services/inventory-service'
 import type { Job, Customer, Estimate, Invoice, Employee, Material, Vehicle, Expense, FuelLog } from '@/types'
@@ -368,7 +368,7 @@ export function useSendInvoice() {
   const { companyId, queryKey } = useMutationCompanyScope()
   const { user } = useAuth()
   return useMutation({
-    mutationFn: ({ invoice, email, customer }: { invoice: Invoice; email: string; customer?: Customer }) =>
+    mutationFn: ({ invoice, email, customer }: { invoice: Invoice; email: string; customer?: CustomerContact }) =>
       sendInvoiceToCustomer(invoice, email, invoice.customer_id, customer),
     onSuccess: (_data, { invoice }) => {
       if (user && companyId) void logAudit(companyId, user.id, 'invoice.sent', 'invoice', invoice.id)

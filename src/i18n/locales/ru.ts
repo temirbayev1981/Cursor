@@ -772,6 +772,7 @@ export const ru = {
       server_pagination_audit: 'Серверная пагинация таблиц',
       kpi_summary_audit: 'Лёгкие KPI-сводки',
       estimates_lightweight_audit: 'Лёгкий контекст смет',
+      customer_contacts_audit: 'Лёгкие контакты клиентов',
     },
     auditActions: {
       'jobs.bulk_cancel': 'Массовая отмена заказов',
