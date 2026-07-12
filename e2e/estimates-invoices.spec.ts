@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner } from './helpers/auth'
+import { visibleTestId } from './helpers/visibility'
 
 test.describe('Estimates & invoices', () => {
   test.beforeEach(async ({ page }) => {
@@ -58,7 +59,7 @@ test.describe('Estimates & invoices', () => {
 
   test('send draft estimate queues customer SMS when enabled', async ({ page }) => {
     await page.goto('/customers')
-    await page.getByTestId('customer-edit-cust-004').click()
+    await visibleTestId(page, 'customer-edit-cust-004').click()
     const smsToggle = page.getByTestId('customer-form-notify-sms')
     if ((await smsToggle.getAttribute('data-state')) !== 'checked') {
       await smsToggle.click()

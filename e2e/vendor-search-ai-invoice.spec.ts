@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, seedDraftInvoice, clearNotificationQueue } from './helpers/auth'
+import { visibleTestId } from './helpers/visibility'
 
 test.describe('Vendor PO multi-site', () => {
   test.beforeEach(async ({ page }) => {
@@ -89,7 +90,7 @@ test.describe('Global search & invoice send', () => {
     await clearNotificationQueue(page)
     await seedDraftInvoice(page)
     await page.goto('/customers')
-    await page.getByTestId('customer-edit-cust-001').click()
+    await visibleTestId(page, 'customer-edit-cust-001').click()
     const smsToggle = page.getByTestId('customer-form-notify-sms')
     if ((await smsToggle.getAttribute('data-state')) !== 'checked') {
       await smsToggle.click()

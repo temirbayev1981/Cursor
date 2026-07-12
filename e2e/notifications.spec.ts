@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { loginAsOwner, seedDraftJob, clearNotificationQueue } from './helpers/auth'
+import { visibleTestId } from './helpers/visibility'
 
 test.describe('Notification queue flows', () => {
   test.beforeEach(async ({ page }) => {
@@ -87,7 +88,7 @@ test.describe('Notification queue flows', () => {
   test('scheduling queues customer SMS when enabled', async ({ page }) => {
     await seedDraftJob(page)
     await page.goto('/customers')
-    await page.getByTestId('customer-edit-cust-001').click()
+    await visibleTestId(page, 'customer-edit-cust-001').click()
     const smsToggle = page.getByTestId('customer-form-notify-sms')
     if ((await smsToggle.getAttribute('data-state')) !== 'checked') {
       await smsToggle.click()

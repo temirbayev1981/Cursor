@@ -614,7 +614,7 @@ test.describe('Entity update audit E2E', () => {
 
   test('customer update appears in audit log', async ({ page }) => {
     await page.goto('/customers')
-    await page.getByTestId('customer-edit-cust-001').click()
+    await visibleTestId(page, 'customer-edit-cust-001').click()
     const form = page.getByTestId('customer-form')
     await form.locator('input').first().fill('ABC Property Management E2E')
     await page.getByTestId('customer-form-submit').click()
