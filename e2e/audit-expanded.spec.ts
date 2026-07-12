@@ -680,7 +680,7 @@ test.describe('Entity update audit E2E', () => {
 
   test('vehicle update appears in audit log', async ({ page }) => {
     await page.goto('/vehicles')
-    await page.getByTestId('vehicle-edit-veh-001').click()
+    await visibleTestId(page, 'vehicle-edit-veh-001').click()
     const form = page.getByTestId('vehicle-form')
     await form.locator('input').first().fill('Service Van E2E Audit')
     await page.getByTestId('vehicle-form-submit').click()
@@ -706,7 +706,7 @@ test.describe('Entity update audit E2E', () => {
 
   test('fuel log update appears in audit log', async ({ page }) => {
     await page.goto('/vehicles')
-    await page.getByTestId('fuel-log-edit-fuel-001').click()
+    await visibleTestId(page, 'fuel-log-edit-fuel-001').click()
     const form = page.getByTestId('fuel-log-form')
     await form.locator('input[type="number"]').first().fill('150')
     await page.getByTestId('fuel-log-form-submit').click()

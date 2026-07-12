@@ -48,7 +48,7 @@ npm run smoke:supabase       # needs live Supabase in .env.local
 
 - Push to `main` runs **CI**, **Deploy** (GitHub Pages), and **Deploy FTP** (when FTP secrets are set)
 - **Supabase smoke** runs nightly (`supabase-smoke.yml` at 06:00 UTC)
-- **Live E2E smoke** runs nightly (`nightly-live-e2e.yml` at 07:00 UTC) when Supabase secrets are set
+- **Live E2E smoke** runs nightly (`nightly-live-e2e.yml` at 07:00 UTC) when Supabase secrets are set; optional Stripe edge probe when `VITE_STRIPE_PUBLISHABLE_KEY` is set
 
 ## 5. First login in production
 
@@ -64,11 +64,11 @@ npm run smoke:supabase       # needs live Supabase in .env.local
 
 ## 7. Tags and rollback
 
-Current release: **1.14.26**
+Current release: **1.14.28**
 
 ```bash
-git tag -a v1.14.26 -m "HandymanOS AI 1.14.26"
-git push origin v1.14.26
+git tag -a v1.14.28 -m "HandymanOS AI 1.14.28"
+git push origin v1.14.28
 ```
 
 Rollback: checkout a prior tag per team policy.

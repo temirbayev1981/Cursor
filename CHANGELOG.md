@@ -2,6 +2,17 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.28] — 2026-07-12
+
+Audit P4: fuel log mobile cards, live Stripe edge smoke.
+
+### UI
+- **Vehicles** — fuel log card layout on `< md`, `fuel-logs-pagination-mobile`
+
+### Live E2E
+- `e2e/stripe-live.spec.ts` — probes `create-subscription-checkout` edge (nightly when Stripe key set)
+- `playwright.live.config.ts` + `nightly-live-e2e.yml` pass `VITE_STRIPE_PUBLISHABLE_KEY`
+
 ## [1.14.27] — 2026-07-12
 
 Audit P4: mobile cards for materials and expenses, docs sync.
