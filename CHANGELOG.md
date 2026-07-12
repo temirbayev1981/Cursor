@@ -2,6 +2,21 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.22] — 2026-07-12
+
+Audit fixes: CI, security, PWA offline, observability.
+
+### Hotfix — CI & security
+- Fix E2E vendor PO duplicate-file regex (`vendor-po-sample.pdf`)
+- Playwright `retries: 2` in CI for flaky specs
+- Enable RLS on `rate_limit_buckets` (migration `20260712000001`)
+- Security headers on FTP deploy: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`
+
+### Hotfix — PWA & errors
+- Service worker v6: cache latest `index.html` for offline cold start (no forced tab reload)
+- `entity-service` logs Supabase fallback instead of silent `catch {}`
+- Typed `JobCreateCustomerError` for vendor PO → job workflow toasts
+
 ## [1.14.21] — 2026-07-12
 
 Wider jobs table cells for three-line text without truncation.

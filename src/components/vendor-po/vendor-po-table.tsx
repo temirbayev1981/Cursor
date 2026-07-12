@@ -12,6 +12,7 @@ import { useDateLocale } from '@/hooks/use-date-locale'
 import { useWorkflow } from '@/contexts/workflow-context'
 import { useQueryClient } from '@tanstack/react-query'
 import { getErrorMessage } from '@/lib/error-message'
+import { isJobCreateCustomerError } from '@/lib/job-create-errors'
 import { useAuth } from '@/contexts/auth-context'
 import { requireCompanyId } from '@/hooks/use-company-scope'
 import { exportVendorPOsToExcel, groupVendorPOsByAddress } from '@/lib/export'
@@ -129,7 +130,7 @@ export function VendorPOTable({ records, onDelete, loading }: VendorPOTableProps
     } catch (error) {
       const message = getErrorMessage(error)
       console.error('Vendor PO create job failed:', message)
-      toast.error(/customer|клиент|uuid|foreign key|violates foreign key/i.test(message)
+      toast.error(isJobCreateCustomerError(error)
         ? t.vendorPO.jobCreateNoCustomer
         : t.vendorPO.jobCreateFailed)
     }

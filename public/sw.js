@@ -1,10 +1,11 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = 'handymanos-v5'
+const CACHE_NAME = 'handymanos-v6'
+const OFFLINE_INDEX = '/index.html'
 const SHELL = ['/manifest.json', '/favicon.svg']
 
 function isNavigationRequest(request) {
-  return request.mode === 'navigate' || SHELL.includes(new URL(request.url).pathname)
+  return request.mode === 'navigate' || request.url.endsWith('/') || request.url.endsWith('/index.html')
 }
 
 function isHashedAsset(pathname) {
@@ -21,13 +22,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    ).then(() => self.clients.claim()).then(() => {
-      return self.clients.matchAll({ type: 'window' }).then((clients) => {
-        for (const client of clients) {
-          client.navigate(client.url)
-        }
-      })
-    })
+    ).then(() => self.clients.claim())
   )
 })
 
@@ -36,12 +31,18 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
   if (url.origin !== self.location.origin) return
 
-  // HTML/navigation: always network — stale index.html breaks hashed chunk URLs after deploy
+  // HTML/navigation: network-first, cache latest index for offline cold start
   if (isNavigationRequest(event.request)) {
     event.respondWith(
       fetch(event.request, { cache: 'no-store' })
-        .then((res) => res)
-        .catch(() => caches.match('/index.html'))
+        .then((res) => {
+          if (res.ok) {
+            const clone = res.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(OFFLINE_INDEX, clone))
+          }
+          return res
+        })
+        .catch(() => caches.match(OFFLINE_INDEX))
     )
     return
   }
