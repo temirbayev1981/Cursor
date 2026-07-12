@@ -2,6 +2,15 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.19] — 2026-07-12
+
+Wider jobs table columns with two-line text wrapping.
+
+### UI — Jobs list
+- Wider job, customer, and technician columns on `/jobs`
+- Title and names wrap to two lines (`line-clamp-2`) instead of truncating
+- Slightly wider table min-width for readability on mobile scroll
+
 ## [1.14.18] — 2026-07-12
 
 Fix «Создать заказ + смету» when no Supabase customers exist (demo IDs in cache).

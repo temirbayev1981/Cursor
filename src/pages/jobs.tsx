@@ -285,7 +285,20 @@ export default function JobsPage() {
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <DataTable
+          className="[&_table]:min-w-[1120px]"
           headers={['', t.jobs.job, t.jobs.customer, t.jobs.technician, t.jobs.status, t.jobs.priority, t.jobs.revenue, t.jobs.profit, t.jobs.scheduledDate, '']}
+          columnClassNames={[
+            'w-10',
+            'w-[14rem]',
+            'w-[10rem]',
+            'w-[8rem]',
+            'w-[7rem]',
+            'w-[6rem]',
+            'w-[6.5rem]',
+            'w-[5rem]',
+            'w-[7rem]',
+            'w-[4rem]',
+          ]}
           pagination={pagination}
           paginationTestId="jobs-pagination"
         >
@@ -294,7 +307,7 @@ export default function JobsPage() {
             const tech = employees.find((e) => e.id === job.assigned_technician_id)
             return (
               <DataTableRow key={job.id}>
-                <DataTableCell>
+                <DataTableCell className="align-top">
                   <input
                     type="checkbox"
                     className="rounded"
@@ -303,22 +316,26 @@ export default function JobsPage() {
                     data-testid={`job-select-${job.id}`}
                   />
                 </DataTableCell>
-                <DataTableCell>
+                <DataTableCell className="align-top">
                   <div>
-                    <p className="font-medium">{job.title}</p>
-                    <p className="text-xs text-muted-foreground">{job.estimated_hours}{t.common.hours} {t.jobs.estimated}</p>
+                    <p className="font-medium line-clamp-2 break-words whitespace-normal leading-snug">{job.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{job.estimated_hours}{t.common.hours} {t.jobs.estimated}</p>
                   </div>
                 </DataTableCell>
-                <DataTableCell>{customer?.name}</DataTableCell>
-                <DataTableCell data-testid={`job-technician-${job.id}`}>{tech?.name || '—'}</DataTableCell>
-                <DataTableCell><JobStatusBadge status={job.status} /></DataTableCell>
-                <DataTableCell><PriorityBadge priority={job.priority} /></DataTableCell>
-                <DataTableCell className="font-medium">{formatCurrency(job.revenue)}</DataTableCell>
-                <DataTableCell>{job.profit_margin > 0 ? <ProfitIndicator margin={job.profit_margin} /> : '—'}</DataTableCell>
-                <DataTableCell className="text-muted-foreground">
+                <DataTableCell className="align-top">
+                  <span className="line-clamp-2 break-words whitespace-normal leading-snug">{customer?.name ?? '—'}</span>
+                </DataTableCell>
+                <DataTableCell className="align-top" data-testid={`job-technician-${job.id}`}>
+                  <span className="line-clamp-2 break-words whitespace-normal leading-snug">{tech?.name || '—'}</span>
+                </DataTableCell>
+                <DataTableCell className="align-top"><JobStatusBadge status={job.status} /></DataTableCell>
+                <DataTableCell className="align-top"><PriorityBadge priority={job.priority} /></DataTableCell>
+                <DataTableCell className="align-top font-medium">{formatCurrency(job.revenue)}</DataTableCell>
+                <DataTableCell className="align-top">{job.profit_margin > 0 ? <ProfitIndicator margin={job.profit_margin} /> : '—'}</DataTableCell>
+                <DataTableCell className="align-top text-muted-foreground">
                   {job.scheduled_date ? formatDate(job.scheduled_date, dateLocale) : '—'}
                 </DataTableCell>
-                <DataTableCell>
+                <DataTableCell className="align-top">
                   <JobMaterialUsageDialog job={job} companyId={companyId} />
                 </DataTableCell>
               </DataTableRow>
