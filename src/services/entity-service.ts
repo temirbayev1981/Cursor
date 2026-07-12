@@ -121,7 +121,19 @@ export async function listEntities<K extends keyof EntityMap>(entity: K, company
   }
 }
 
-type PageableEntity = 'customers' | 'jobs' | 'invoices'
+type PageableEntity = 'customers' | 'jobs' | 'invoices' | 'estimates' | 'expenses' | 'materials'
+
+const PAGE_ENTITY_CONFIG: Record<
+  PageableEntity,
+  { searchColumn: string; statusColumn?: string; localSearch: (row: EntityMap[PageableEntity]) => string }
+> = {
+  customers: { searchColumn: 'name', localSearch: (row) => (row as Customer).name },
+  jobs: { searchColumn: 'title', statusColumn: 'status', localSearch: (row) => (row as Job).title },
+  invoices: { searchColumn: 'invoice_number', localSearch: (row) => (row as Invoice).invoice_number },
+  estimates: { searchColumn: 'title', statusColumn: 'status', localSearch: (row) => (row as Estimate).title },
+  expenses: { searchColumn: 'description', localSearch: (row) => (row as Expense).description },
+  materials: { searchColumn: 'name', localSearch: (row) => (row as Material).name },
+}
 
 function filterLocalPageEntities<K extends PageableEntity>(
   entity: K,
@@ -130,17 +142,12 @@ function filterLocalPageEntities<K extends PageableEntity>(
 ): EntityMap[K][] {
   let filtered = [...items]
   const search = params.search?.trim().toLowerCase()
+  const config = PAGE_ENTITY_CONFIG[entity]
   if (search) {
-    if (entity === 'customers') {
-      filtered = (filtered as Customer[]).filter((row) => row.name.toLowerCase().includes(search)) as EntityMap[K][]
-    } else if (entity === 'jobs') {
-      filtered = (filtered as Job[]).filter((row) => row.title.toLowerCase().includes(search)) as EntityMap[K][]
-    } else {
-      filtered = (filtered as Invoice[]).filter((row) => row.invoice_number.toLowerCase().includes(search)) as EntityMap[K][]
-    }
+    filtered = filtered.filter((row) => config.localSearch(row).toLowerCase().includes(search))
   }
-  if (entity === 'jobs' && params.status && params.status !== 'all') {
-    filtered = (filtered as Job[]).filter((row) => row.status === params.status) as EntityMap[K][]
+  if (config.statusColumn && params.status && params.status !== 'all') {
+    filtered = filtered.filter((row) => (row as { status: string }).status === params.status)
   }
   return filtered
 }
@@ -202,7 +209,7 @@ function listLocalEntitiesPage<K extends PageableEntity>(
   }
 }
 
-/** Server-side paginated list for customers, jobs, and invoices. */
+/** Server-side paginated list for customers, jobs, invoices, estimates, expenses, and materials. */
 export async function listEntitiesPage<K extends PageableEntity>(
   entity: K,
   companyId: string,
@@ -216,8 +223,7 @@ export async function listEntitiesPage<K extends PageableEntity>(
     return listLocalEntitiesPage(entity, companyId, normalized)
   }
 
-  const searchColumn = entity === 'customers' ? 'name' : entity === 'jobs' ? 'title' : 'invoice_number'
-  const statusColumn = entity === 'jobs' ? 'status' : undefined
+  const { searchColumn, statusColumn } = PAGE_ENTITY_CONFIG[entity]
 
   try {
     const result = await fetchCompanyEntitiesPage<EntityMap[K]>(
@@ -226,7 +232,13 @@ export async function listEntitiesPage<K extends PageableEntity>(
       normalized,
       { searchColumn, statusColumn },
     )
-    if (result.items.length > 0) {
+    const isUnfilteredFirstPage =
+      page === 1
+      && !normalized.search?.trim()
+      && (!normalized.status || normalized.status === 'all')
+    if (result.total === 0 && isUnfilteredFirstPage) {
+      replaceCompanyInStore(KEY_MAP[entity], companyId, [])
+    } else if (result.items.length > 0) {
       mergeStoreById(KEY_MAP[entity], result.items)
     }
     return result

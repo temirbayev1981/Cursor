@@ -2,6 +2,19 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.40] — 2026-07-12
+
+Audit P6: server-side pagination for estimates, expenses, materials (Phase 135 completion).
+
+### Performance
+- `listEntitiesPage` — extends to estimates, expenses, materials
+- `useServerEntityTable` — estimates, expenses, materials pages
+- Empty unfiltered first page clears company-scoped cache (no ghost rows)
+
+### Tests
+- `entity-service.test.ts` — pagination + empty-page cache tests
+- `a11y-axe.spec.ts` — server pagination on estimates/expenses/materials
+
 ## [1.14.39] — 2026-07-12
 
 Audit P5+: full E2E visibleText migration, portal token cache fix.

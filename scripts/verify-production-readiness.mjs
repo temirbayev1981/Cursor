@@ -1504,6 +1504,35 @@ if (entityService.includes('listEntitiesPage')) {
   ok = false
 }
 
+const serverPaginationPages = [
+  ['customers.tsx', 'src/pages/customers.tsx', 'useServerEntityTable'],
+  ['jobs.tsx', 'src/pages/jobs.tsx', 'useServerEntityTable'],
+  ['invoices.tsx', 'src/pages/invoices.tsx', 'useServerEntityTable'],
+  ['estimates.tsx', 'src/pages/estimates.tsx', 'useServerEntityTable'],
+  ['expenses.tsx', 'src/pages/expenses.tsx', 'useServerEntityTable'],
+  ['materials.tsx', 'src/pages/materials.tsx', 'useServerEntityTable'],
+]
+console.log('\nServer pagination coverage (Phase 135 P6):')
+for (const [label, file, hook] of serverPaginationPages) {
+  const source = existsSync(file) ? readFileSync(file, 'utf8') : ''
+  if (source.includes(hook) && !source.includes('useTablePagination(')) {
+    console.log(`✓ ${label} uses ${hook}`)
+  } else {
+    console.log(`✗ ${label} must use ${hook} instead of client-side useTablePagination`)
+    ok = false
+  }
+}
+
+if (
+  entityService.includes("'estimates' | 'expenses' | 'materials'")
+  && entityService.includes('replaceCompanyInStore(KEY_MAP[entity], companyId, [])')
+) {
+  console.log('✓ listEntitiesPage clears company cache on empty unfiltered first page')
+} else {
+  console.log('✗ listEntitiesPage must replace company cache when remote page total is zero')
+  ok = false
+}
+
 const pkgJson = JSON.parse(readFileSync('package.json', 'utf8'))
 if (pkgJson.scripts?.['verify:operator:prod']) {
   console.log('✓ verify:operator:prod npm script')

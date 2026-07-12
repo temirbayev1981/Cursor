@@ -1,6 +1,12 @@
-# HandymanOS AI — Release 1.14.39
+# HandymanOS AI — Release 1.14.40
 
-**Status:** PR [#183](https://github.com/temirbayev1981/Cursor/pull/183) — Audit P5/P5+.
+**Status:** Audit P6 — server pagination (Phase 135 completion).
+
+## 1.14.40 — Audit P6
+
+- **Server pagination** — estimates, expenses, materials use `useServerEntityTable` (same as customers/jobs/invoices)
+- **Cache integrity** — `listEntitiesPage` clears company cache when remote total is zero on unfiltered page 1
+- **Tests** — entity-service pagination tests; a11y-axe server pagination gates
 
 ## 1.14.39 — Audit P5+
 

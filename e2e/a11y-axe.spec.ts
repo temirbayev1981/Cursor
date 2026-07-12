@@ -43,4 +43,14 @@ test.describe('Axe accessibility', () => {
     await page.goto('/invoices')
     await expect(page.getByTestId('invoices-pagination')).toBeVisible({ timeout: 15000 })
   })
+
+  test('estimates, expenses, and materials tables expose server pagination controls', async ({ page }) => {
+    await loginAsOwner(page, 'en')
+    await page.goto('/estimates')
+    await expect(page.getByTestId('estimates-pagination')).toBeVisible({ timeout: 15000 })
+    await page.goto('/expenses')
+    await expect(page.getByTestId('expenses-pagination')).toBeVisible({ timeout: 15000 })
+    await page.goto('/materials')
+    await expect(page.getByTestId('materials-pagination')).toBeVisible({ timeout: 15000 })
+  })
 })

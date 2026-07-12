@@ -112,6 +112,45 @@ describe('entity-service', () => {
     expect(page1.pageSize).toBe(2)
   })
 
+  it('listEntitiesPage paginates estimates, expenses, and materials', async () => {
+    const estimates = await listEntitiesPage('estimates', 'comp-001', { page: 1, pageSize: 5 })
+    expect(estimates.total).toBeGreaterThan(0)
+    expect(estimates.items.length).toBeLessThanOrEqual(5)
+
+    const expenses = await listEntitiesPage('expenses', 'comp-001', { page: 1, pageSize: 5 })
+    expect(expenses.total).toBeGreaterThan(0)
+
+    const materials = await listEntitiesPage('materials', 'comp-001', { page: 1, pageSize: 5 })
+    expect(materials.total).toBeGreaterThan(0)
+    expect(materials.items.every((row) => row.company_id === 'comp-001')).toBe(true)
+  })
+
+  it('listEntitiesPage clears stale cache when unfiltered first page is empty', async () => {
+    const staleEstimate = {
+      id: 'est-stale-cache',
+      company_id: 'comp-empty-page',
+      customer_id: 'cust-001',
+      job_id: null,
+      title: 'Stale estimate',
+      status: 'draft' as const,
+      labor_hours: 1,
+      labor_rate: 75,
+      material_cost: 0,
+      total: 75,
+      valid_until: new Date().toISOString(),
+      line_items: [],
+      created_at: new Date().toISOString(),
+    }
+    localStorage.setItem(STORE_KEYS.estimates, JSON.stringify([staleEstimate]))
+
+    const page = await listEntitiesPage('estimates', 'comp-empty-page', { page: 1, pageSize: 25 })
+    expect(page.total).toBe(0)
+    expect(page.items).toEqual([])
+
+    const cached = JSON.parse(localStorage.getItem(STORE_KEYS.estimates) || '[]') as Array<{ company_id: string }>
+    expect(cached.filter((row) => row.company_id === 'comp-empty-page')).toHaveLength(0)
+  })
+
   it('resolveCustomerForVendorPO auto-creates customer when only demo ids exist', async () => {
     const po: VendorPORecord = {
       id: 'po-test-1',

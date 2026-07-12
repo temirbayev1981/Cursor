@@ -3,12 +3,15 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { useCompanyQueryScope } from '@/hooks/use-company-scope'
 import { listEntitiesPage } from '@/services/entity-service'
 import { DEFAULT_PAGE_SIZE, type PageSizeOption, type TablePaginationResult } from '@/hooks/use-table-pagination'
-import type { Customer, Job, Invoice } from '@/types'
+import type { Customer, Job, Invoice, Estimate, Expense, Material } from '@/types'
 
 type PageableEntityMap = {
   customers: Customer
   jobs: Job
   invoices: Invoice
+  estimates: Estimate
+  expenses: Expense
+  materials: Material
 }
 
 export interface ServerEntityTableOptions {

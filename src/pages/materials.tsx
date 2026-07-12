@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label'
 import { MaterialForm } from '@/components/forms/material-form'
 import { useAuth } from '@/contexts/auth-context'
 import { useMaterials, useSaveMaterial, useInventoryTransactionsList, useReceiveStock } from '@/hooks/use-entities'
-import { useTablePagination } from '@/hooks/use-table-pagination'
+import { useServerEntityTable } from '@/hooks/use-server-entity-table'
 import { formatCurrencyPrecise, formatDate } from '@/lib/utils'
 import { useTranslation } from '@/contexts/locale-context'
 import { useDateLocale } from '@/hooks/use-date-locale'
@@ -28,12 +28,12 @@ export default function MaterialsPage() {
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null)
   const [receiveMaterialId, setReceiveMaterialId] = useState<string | null>(null)
   const [receiveQty, setReceiveQty] = useState(10)
-  const { data: materials = [], isLoading } = useMaterials()
+  const { isLoading: tableLoading, pagination } = useServerEntityTable('materials')
+  const { data: materials = [], isLoading: stockLoading } = useMaterials()
   const { data: transactions = [] } = useInventoryTransactionsList()
   const saveMaterial = useSaveMaterial()
   const receiveStock = useReceiveStock()
   const lowStock = materials.filter((m) => m.quantity <= m.reorder_level)
-  const pagination = useTablePagination(materials)
 
   const handleSave = (material: Material) => {
     saveMaterial.mutate(material, {
@@ -62,7 +62,7 @@ export default function MaterialsPage() {
   const getMaterialName = (materialId: string) =>
     materials.find((m) => m.id === materialId)?.name ?? materialId
 
-  if (isLoading) return <TableSkeleton />
+  if (tableLoading || stockLoading) return <TableSkeleton />
 
   return (
     <div>

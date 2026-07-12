@@ -9,8 +9,8 @@ import { EstimateForm } from '@/components/forms/estimate-form'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/contexts/auth-context'
-import { useEstimates, useJobs, useCustomers, useServices, useSaveEstimate, useConvertEstimateToInvoice, useInvoices } from '@/hooks/use-entities'
-import { useTablePagination } from '@/hooks/use-table-pagination'
+import { useJobs, useCustomers, useServices, useSaveEstimate, useConvertEstimateToInvoice, useInvoices } from '@/hooks/use-entities'
+import { useServerEntityTable } from '@/hooks/use-server-entity-table'
 import { generateInvoiceNumber } from '@/services/payment-service'
 import { notifyEstimateSent, notifyEstimateSentSms, notifyResultMessage } from '@/services/notification-service'
 import { logAudit } from '@/services/entity-service'
@@ -27,14 +27,13 @@ export default function EstimatesPage() {
   const [showForm, setShowForm] = useState(false)
   const { company, user } = useAuth()
   const companyId = company?.id ?? ''
-  const { data: estimates = [], isLoading: estimatesLoading } = useEstimates()
+  const { isLoading: estimatesLoading, pagination } = useServerEntityTable('estimates')
   const { data: jobs = [], isLoading: jobsLoading } = useJobs()
   const { data: customers = [], isLoading: customersLoading } = useCustomers()
   const { data: services = [] } = useServices()
   const { data: invoices = [] } = useInvoices()
   const saveEstimate = useSaveEstimate()
   const convertToInvoice = useConvertEstimateToInvoice()
-  const pagination = useTablePagination(estimates)
 
   const drywallJobStats = useMemo(
     () =>
