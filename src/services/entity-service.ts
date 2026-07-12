@@ -306,11 +306,12 @@ export async function createJobFromVendorPO(
   po: import('@/types/vendor-po').VendorPORecord,
   companyId: string
 ): Promise<Job> {
-  const priority = po.priority.includes('EMERGENCY') || po.priority.startsWith('P1')
+  const priorityText = po.priority ?? ''
+  const priority = priorityText.includes('EMERGENCY') || priorityText.startsWith('P1')
     ? 'emergency' as const
-    : po.priority.includes('URGENT') || po.priority.startsWith('P2')
+    : priorityText.includes('URGENT') || priorityText.startsWith('P2')
       ? 'high' as const
-      : po.priority.startsWith('P5') ? 'medium' as const : 'low' as const
+      : priorityText.startsWith('P5') ? 'medium' as const : 'low' as const
 
   const customers = await listEntities('customers', companyId)
   const matched = matchCustomerFromVendorPO(po, customers)

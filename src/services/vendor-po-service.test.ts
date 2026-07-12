@@ -4,6 +4,7 @@ import {
   saveVendorPO,
   saveVendorPOBatch,
   deleteVendorPO,
+  updateVendorPOStatus,
   VendorPoDuplicateError,
   isVendorPoDuplicateError,
 } from './vendor-po-service'
@@ -97,5 +98,13 @@ describe('vendor-po-service', () => {
     await deleteVendorPO(saved.id)
     const list = await getVendorPOs(COMPANY_ID)
     expect(list).toHaveLength(0)
+  })
+
+  it('updateVendorPOStatus updates existing record without duplicate error', async () => {
+    const saved = await saveVendorPO(sampleInput)
+    await updateVendorPOStatus(saved.id, 'approved')
+    const list = await getVendorPOs(COMPANY_ID)
+    expect(list).toHaveLength(1)
+    expect(list[0]?.status).toBe('approved')
   })
 })
