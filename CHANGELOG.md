@@ -2,6 +2,19 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.46] — 2026-07-12
+
+Audit P12: dashboard and reports lightweight queries.
+
+### Performance
+- `listCustomerReportSummaries` — customer revenue tab + CSV export without full CRM rows
+- `getEstimatesPendingSummary` — dashboard pending-estimates KPI without full estimates list
+- `computeDashboardMetrics` accepts pending count instead of full estimates array
+- Dashboard, reports, properties, technician-mobile use `useCustomerContacts` / summary hooks
+
+### Operator UX
+- `DASHBOARD_REPORTS_LIGHTWEIGHT_AUDIT` quality gate in platform audit checklist
+
 ## [1.14.45] — 2026-07-12
 
 Audit P11: customer contact lookups on ops pages.

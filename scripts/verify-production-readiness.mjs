@@ -1729,6 +1729,49 @@ if (customerContactPages.length === 4) {
   ok = false
 }
 
+const propertiesPage = existsSync('src/pages/properties.tsx') ? readFileSync('src/pages/properties.tsx', 'utf8') : ''
+const technicianMobilePage = existsSync('src/pages/technician-mobile.tsx') ? readFileSync('src/pages/technician-mobile.tsx', 'utf8') : ''
+
+if (auditLabelsModule.includes('DASHBOARD_REPORTS_LIGHTWEIGHT_AUDIT = true')) {
+  console.log('✓ DASHBOARD_REPORTS_LIGHTWEIGHT_AUDIT gate enabled')
+} else {
+  console.log('✗ DASHBOARD_REPORTS_LIGHTWEIGHT_AUDIT must be true')
+  ok = false
+}
+
+if (platformAuditModule.includes('dashboard_reports_lightweight_audit') && platformAuditModule.includes('DASHBOARD_REPORTS_LIGHTWEIGHT_AUDIT')) {
+  console.log('✓ platform-audit includes dashboard/reports lightweight quality check')
+} else {
+  console.log('✗ platform-audit must include dashboard_reports_lightweight_audit check')
+  ok = false
+}
+
+const lightweightDashboardReportsPages = [
+  ['dashboard.tsx', dashboardPage],
+  ['reports.tsx', reportsPage],
+  ['properties.tsx', propertiesPage],
+  ['technician-mobile.tsx', technicianMobilePage],
+].filter(([, source]) => source.includes('useCustomerContacts') && !source.includes('useCustomers()'))
+
+if (lightweightDashboardReportsPages.length === 4) {
+  console.log('✓ dashboard, reports, properties, technician-mobile use lightweight customer contacts')
+} else {
+  console.log('✗ dashboard, reports, properties, technician-mobile must use useCustomerContacts without useCustomers')
+  ok = false
+}
+
+if (
+  dashboardPage.includes('useEstimatesPendingSummary')
+  && !dashboardPage.includes('useEstimates()')
+  && reportsPage.includes('useCustomerReportSummaries')
+  && !reportsPage.includes('useCustomers()')
+) {
+  console.log('✓ dashboard/reports use lightweight estimate and customer summary queries')
+} else {
+  console.log('✗ dashboard must use useEstimatesPendingSummary; reports must use useCustomerReportSummaries without useCustomers')
+  ok = false
+}
+
 const pkgJson = JSON.parse(readFileSync('package.json', 'utf8'))
 if (pkgJson.scripts?.['verify:operator:prod']) {
   console.log('✓ verify:operator:prod npm script')

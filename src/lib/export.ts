@@ -2,7 +2,8 @@ import type { VendorPORecord } from '@/types/vendor-po'
 import { getProblemDescriptionEn, getProblemDescriptionRu } from '@/lib/vendor-po-problem'
 
 export { groupVendorPOsByAddress } from '@/lib/vendor-po-groups'
-import type { Job, Customer, Employee, Estimate, Invoice } from '@/types'
+import type { Job, Employee, Estimate, Invoice } from '@/types'
+import type { CustomerReportSummary } from '@/services/entity-service'
 import type { ChartDataPoint } from '@/lib/analytics'
 import { computeTechnicianPerformance, computeServiceProfitability, computeReportSummary } from '@/lib/analytics'
 
@@ -66,7 +67,7 @@ export async function exportJobsToCsv(jobs: import('@/types').Job[], filename = 
 
 export async function exportFinancialReport(
   jobs: Job[],
-  customers: Customer[],
+  customers: CustomerReportSummary[],
   filename = 'financial-report.xlsx'
 ) {
   await exportFullReport(jobs, customers, [], filename)
@@ -102,7 +103,7 @@ export interface ReportPdfData {
   revenueChart?: ChartDataPoint[]
   technicians?: ChartDataPoint[]
   services?: ChartDataPoint[]
-  customers?: Customer[]
+  customers?: CustomerReportSummary[]
   profitJobs?: Array<{
     title: string
     customer: string
@@ -117,7 +118,7 @@ export interface ReportPdfData {
 
 export async function exportFullReport(
   jobs: Job[],
-  customers: Customer[],
+  customers: CustomerReportSummary[],
   employees: Employee[],
   filename = 'handymanos-report.xlsx'
 ) {

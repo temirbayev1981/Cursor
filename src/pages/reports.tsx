@@ -24,11 +24,12 @@ import {
   LazyReportsServicesChart,
   LazyReportsTechniciansChart,
 } from '@/components/charts/lazy-reports-charts'
-import { useJobs, useCustomers, useEmployees, useExpenses, useFuelLogs } from '@/hooks/use-entities'
+import { useJobs, useCustomerContacts, useCustomerReportSummaries, useEmployees, useExpenses, useFuelLogs } from '@/hooks/use-entities'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { formatCurrency } from '@/lib/utils'
 import { ProfitIndicator } from '@/components/shared/status-badge'
 import { useTranslation } from '@/contexts/locale-context'
+import { useAuth } from '@/contexts/auth-context'
 import { subMonths, format } from 'date-fns'
 
 type ReportTab = 'financial' | 'profit' | 'technicians' | 'customers' | 'services' | 'expenses'
@@ -43,11 +44,16 @@ function defaultEndDate() {
 
 export default function ReportsPage() {
   const { t } = useTranslation()
+  const { company } = useAuth()
+  const companyId = company?.id ?? ''
   const [activeTab, setActiveTab] = useState<ReportTab>('financial')
   const [startDate, setStartDate] = useState(defaultStartDate)
   const [endDate, setEndDate] = useState(defaultEndDate)
   const { data: jobs = [], isLoading: jobsLoading } = useJobs()
-  const { data: customers = [], isLoading: custLoading } = useCustomers()
+  const { data: customers = [], isLoading: contactsLoading } = useCustomerContacts()
+  const { data: customerSummaries = [], isLoading: summariesLoading } = useCustomerReportSummaries(
+    activeTab === 'customers',
+  )
   const { data: employees = [] } = useEmployees()
   const { data: expenses = [] } = useExpenses()
   const { data: fuelLogs = [] } = useFuelLogs()
@@ -141,7 +147,7 @@ export default function ReportsPage() {
       revenueChart: activeTab === 'financial' ? revenueChart : undefined,
       technicians: activeTab === 'technicians' ? techChart : undefined,
       services: activeTab === 'services' ? serviceChart : undefined,
-      customers: activeTab === 'customers' ? customers : undefined,
+      customers: activeTab === 'customers' ? customerSummaries : undefined,
       profitJobs: activeTab === 'profit'
         ? filteredJobs
             .filter((job) => job.status === 'completed')
@@ -173,7 +179,9 @@ export default function ReportsPage() {
     noData: t.common.noData,
   }
 
-  if (jobsLoading || custLoading) return <TableSkeleton rows={6} cols={4} />
+  if (jobsLoading || contactsLoading || (activeTab === 'customers' && summariesLoading)) {
+    return <TableSkeleton rows={6} cols={4} />
+  }
 
   return (
     <div>
@@ -187,7 +195,11 @@ export default function ReportsPage() {
             </Button>
             <Button variant="outline" data-testid="reports-export-csv" onClick={() => void (async () => {
               const { exportFullReport } = await import('@/lib/export')
-              await exportFullReport(filteredJobs, customers, employees)
+              const { listCustomerReportSummaries } = await import('@/services/entity-service')
+              const summaries = customerSummaries.length > 0
+                ? customerSummaries
+                : await listCustomerReportSummaries(companyId)
+              await exportFullReport(filteredJobs, summaries, employees)
             })()}>
               <FileSpreadsheet className="h-4 w-4" />{t.common.exportCsv}
             </Button>
@@ -302,7 +314,7 @@ export default function ReportsPage() {
 
         <TabsContent value="customers">
           <div className="space-y-3">
-            {customers.map((c) => (
+            {customerSummaries.map((c) => (
               <Card key={c.id} data-testid={`report-customer-card-${c.id}`}>
                 <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">

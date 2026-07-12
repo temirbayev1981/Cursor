@@ -981,6 +981,68 @@ export async function listCustomerContacts(companyId: string): Promise<CustomerC
   }
 }
 
+export type CustomerReportSummary = Pick<Customer, 'id' | 'name' | 'job_count' | 'total_revenue' | 'type'>
+
+/** Customer revenue tab + CSV export without full CRM rows. */
+export async function listCustomerReportSummaries(companyId: string): Promise<CustomerReportSummary[]> {
+  const local = (loadLocalEntities('customers', companyId) as Customer[]).map((customer) => ({
+    id: customer.id,
+    name: customer.name,
+    job_count: customer.job_count,
+    total_revenue: customer.total_revenue,
+    type: customer.type,
+  }))
+
+  if (!supabase) return local
+
+  try {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('id, name, job_count, total_revenue, type')
+      .eq('company_id', companyId)
+      .order('total_revenue', { ascending: false })
+
+    if (error) throw error
+    return ((data ?? []) as Customer[]).map((customer) => ({
+      id: customer.id,
+      name: customer.name,
+      job_count: customer.job_count,
+      total_revenue: customer.total_revenue,
+      type: customer.type,
+    }))
+  } catch (err) {
+    warnSupabaseFallback('listCustomerReportSummaries', err)
+    return local
+  }
+}
+
+export interface EstimatesPendingSummary {
+  pendingCount: number
+}
+
+/** Dashboard KPI: draft + sent estimates count. */
+export async function getEstimatesPendingSummary(companyId: string): Promise<EstimatesPendingSummary> {
+  const local = (loadLocalEntities('estimates', companyId) as Estimate[]).filter((estimate) =>
+    ['draft', 'sent'].includes(estimate.status),
+  ).length
+
+  if (!supabase) return { pendingCount: local }
+
+  try {
+    const { count, error } = await supabase
+      .from('estimates')
+      .select('id', { count: 'exact', head: true })
+      .eq('company_id', companyId)
+      .in('status', ['draft', 'sent'])
+
+    if (error) throw error
+    return { pendingCount: count ?? 0 }
+  } catch (err) {
+    warnSupabaseFallback('getEstimatesPendingSummary', err)
+    return { pendingCount: local }
+  }
+}
+
 export interface SmartEngineJobContext {
   totalJobs: number
   drywallStats: Pick<Job, 'estimated_hours' | 'actual_hours' | 'revenue' | 'profit_margin'>[]
