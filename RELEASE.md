@@ -1,6 +1,12 @@
-# HandymanOS AI — Release 1.14.43
+# HandymanOS AI — Release 1.14.44
 
-**Status:** Audit P9 — extended KPI summaries for invoices and materials.
+**Status:** Audit P10 — estimates page lightweight context.
+
+## 1.14.44 — Audit P10
+
+- **Estimates** — `listCustomerContacts`, `getSmartEngineJobContext` (no full jobs/customers/invoices lists)
+- **Convert to invoice** — `listInvoiceNumbers` on demand
+- **Platform audit** — `estimates_lightweight_audit` quality check
 
 ## 1.14.43 — Audit P9
 

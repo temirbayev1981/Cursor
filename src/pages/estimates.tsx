@@ -1,5 +1,5 @@
 import { Plus, Sparkles, FileSpreadsheet, Send, X, Download } from 'lucide-react'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
 import { TablePagination } from '@/components/shared/table-pagination'
@@ -9,8 +9,9 @@ import { EstimateForm } from '@/components/forms/estimate-form'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/contexts/auth-context'
-import { useJobs, useCustomers, useServices, useSaveEstimate, useConvertEstimateToInvoice, useInvoices } from '@/hooks/use-entities'
+import { useCustomerContacts, useServices, useSaveEstimate, useConvertEstimateToInvoice, useSmartEngineJobContext } from '@/hooks/use-entities'
 import { useServerEntityTable } from '@/hooks/use-server-entity-table'
+import { listInvoiceNumbers } from '@/services/entity-service'
 import { generateInvoiceNumber } from '@/services/payment-service'
 import { notifyEstimateSent, notifyEstimateSentSms, notifyResultMessage } from '@/services/notification-service'
 import { logAudit } from '@/services/entity-service'
@@ -28,39 +29,25 @@ export default function EstimatesPage() {
   const { company, user } = useAuth()
   const companyId = company?.id ?? ''
   const { isLoading: estimatesLoading, pagination } = useServerEntityTable('estimates')
-  const { data: jobs = [], isLoading: jobsLoading } = useJobs()
-  const { data: customers = [], isLoading: customersLoading } = useCustomers()
+  const { data: customers = [], isLoading: customersLoading } = useCustomerContacts()
   const { data: services = [] } = useServices()
-  const { data: invoices = [] } = useInvoices()
+  const { data: smartEngineContext, isLoading: smartEngineLoading } = useSmartEngineJobContext(showEngine)
   const saveEstimate = useSaveEstimate()
   const convertToInvoice = useConvertEstimateToInvoice()
-
-  const drywallJobStats = useMemo(
-    () =>
-      jobs
-        .filter((j) => j.title.toLowerCase().includes('drywall'))
-        .map((j) => ({
-          estimated_hours: j.estimated_hours,
-          actual_hours: j.actual_hours,
-          revenue: j.revenue,
-          profit_margin: j.profit_margin,
-        })),
-    [jobs],
-  )
 
   const [smartEstimate, setSmartEstimate] = useState({ hours: 4, price: 450, confidence: 0.5 })
 
   useEffect(() => {
-    if (!showEngine) return
+    if (!showEngine || !smartEngineContext) return
     let cancelled = false
     void import('@/lib/ai').then(({ generateSmartEstimate }) => {
       if (cancelled) return
-      setSmartEstimate(generateSmartEstimate('Drywall Repair', drywallJobStats))
+      setSmartEstimate(generateSmartEstimate('Drywall Repair', smartEngineContext.drywallStats))
     })
     return () => {
       cancelled = true
     }
-  }, [showEngine, drywallJobStats])
+  }, [showEngine, smartEngineContext])
 
   const pricingOptions = [
     { label: t.estimates.hourlyBilling, rate: '$75/' + t.common.hr },
@@ -113,10 +100,12 @@ export default function EstimatesPage() {
   }
 
   const handleConvert = (est: Estimate) => {
-    convertToInvoice.mutate(
-      { estimate: est, invoiceNumber: generateInvoiceNumber(invoices) },
-      { onSuccess: () => toast.success(t.estimates.invoiceCreatedFromEstimate) }
-    )
+    void listInvoiceNumbers(companyId).then((numbers) => {
+      convertToInvoice.mutate(
+        { estimate: est, invoiceNumber: generateInvoiceNumber(numbers) },
+        { onSuccess: () => toast.success(t.estimates.invoiceCreatedFromEstimate) },
+      )
+    })
   }
 
   const handleExportPdf = async (est: Estimate, customerName: string) => {
@@ -147,6 +136,8 @@ export default function EstimatesPage() {
       },
     })
   }
+
+  const totalJobs = smartEngineContext?.totalJobs ?? 0
 
   return (
     <div>
@@ -188,6 +179,9 @@ export default function EstimatesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {smartEngineLoading ? (
+              <p className="text-sm text-muted-foreground">…</p>
+            ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-3">
                 <h4 className="text-sm font-semibold">{t.estimates.serviceCatalog}</h4>
@@ -201,7 +195,7 @@ export default function EstimatesPage() {
               <div className="space-y-3">
                 <h4 className="text-sm font-semibold">{t.estimates.aiRecommendation}</h4>
                 <div className="rounded-lg bg-primary/10 p-4 space-y-2">
-                  <p className="text-sm">Drywall Repair ({t.estimates.basedOnJobs.replace('{count}', String(jobs.length))})</p>
+                  <p className="text-sm">Drywall Repair ({t.estimates.basedOnJobs.replace('{count}', String(totalJobs))})</p>
                   <p className="text-2xl font-bold">{formatCurrency(smartEstimate.price)}</p>
                   <p className="text-sm text-muted-foreground">{smartEstimate.hours} {t.common.hours} {t.jobs.estimated}</p>
                   <p className="text-xs text-accent">{t.estimates.confidence}: {(smartEstimate.confidence * 100).toFixed(0)}%</p>
@@ -217,11 +211,12 @@ export default function EstimatesPage() {
                 ))}
               </div>
             </div>
+            )}
           </CardContent>
         </Card>
       )}
 
-      {estimatesLoading || jobsLoading || customersLoading ? (
+      {estimatesLoading || customersLoading ? (
         <TableSkeleton cols={8} />
       ) : (
       <>

@@ -773,6 +773,7 @@ export const en: TranslationKeys = {
       multi_tenant: 'Multi-tenant',
       server_pagination_audit: 'Server-side pagination',
       kpi_summary_audit: 'Lightweight KPI summaries',
+      estimates_lightweight_audit: 'Estimates lightweight context',
     },
     auditActions: {
       'jobs.bulk_cancel': 'Bulk cancelled jobs',

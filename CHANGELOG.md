@@ -2,6 +2,18 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.44] — 2026-07-12
+
+Audit P10: estimates page lightweight context queries.
+
+### Performance
+- `listCustomerContacts` — customer picker + notify fields without full CRM rows
+- `getSmartEngineJobContext` — smart engine stats without full job list
+- Estimates convert uses `listInvoiceNumbers` on demand
+
+### Operator UX
+- `ESTIMATES_LIGHTWEIGHT_AUDIT` quality gate in platform audit checklist
+
 ## [1.14.43] — 2026-07-12
 
 Audit P9: invoice and materials KPI summaries, Stripe return fetch by id.

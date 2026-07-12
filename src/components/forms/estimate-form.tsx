@@ -6,11 +6,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useTranslation } from '@/contexts/locale-context'
-import type { Customer, Estimate } from '@/types'
+import type { CustomerContact } from '@/services/entity-service'
+import type { Estimate } from '@/types'
 
 interface EstimateFormProps {
   companyId: string
-  customers: Customer[]
+  customers: CustomerContact[]
   defaultLaborRate?: number
   onSubmit: (estimate: Estimate) => void
   onCancel?: () => void
