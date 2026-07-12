@@ -2,6 +2,23 @@
 
 All notable changes to HandymanOS AI are documented here.
 
+## [1.14.23] — 2026-07-12
+
+Audit P2: mobile jobs, PWA icons, tenant cache, Sentry context, Stripe E2E.
+
+### UI — Jobs mobile
+- Card layout on screens `< md` instead of horizontal-scroll table
+- Desktop table unchanged
+
+### PWA & observability
+- PNG icons 192/512 + maskable 512 for Android install
+- Clear entity localStorage on company switch and sign-out
+- Sentry `setUser` + `company_id` tag; release fallback `dev` not `1.3.0`
+
+### Tests
+- Dedicated `e2e/stripe-billing.spec.ts` smoke tests
+- `tenant-cache` unit tests
+
 ## [1.14.22] — 2026-07-12
 
 Audit fixes: CI, security, PWA offline, observability.

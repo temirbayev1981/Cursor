@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Plus, Search, X } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable, DataTableRow, DataTableCell } from '@/components/shared/data-table'
+import { TablePagination } from '@/components/shared/table-pagination'
 import { JobStatusBadge, PriorityBadge, ProfitIndicator } from '@/components/shared/status-badge'
 import { TableSkeleton } from '@/components/shared/skeleton'
 import { JobForm } from '@/components/forms/job-form'
@@ -286,7 +287,50 @@ export default function JobsPage() {
         </div>
       )}
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="md:hidden space-y-3">
+        {pagination.paginatedItems.map((job) => {
+          const customer = customers.find((c) => c.id === job.customer_id)
+          const tech = employees.find((e) => e.id === job.assigned_technician_id)
+          return (
+            <Card key={job.id} className="p-4" data-testid={`job-card-${job.id}`}>
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  className="rounded mt-1"
+                  checked={selectedIds.has(job.id)}
+                  onChange={() => toggleJob(job.id)}
+                  data-testid={`job-select-${job.id}`}
+                />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <p className={cn('font-medium', JOBS_TEXT_CELL)}>{job.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {job.estimated_hours}{t.common.hours} {t.jobs.estimated}
+                  </p>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
+                    <span className="text-muted-foreground">{t.jobs.customer}</span>
+                    <span className={JOBS_TEXT_CELL}>{customer?.name ?? '—'}</span>
+                    <span className="text-muted-foreground">{t.jobs.technician}</span>
+                    <span className={JOBS_TEXT_CELL} data-testid={`job-technician-${job.id}`}>{tech?.name || '—'}</span>
+                    <span className="text-muted-foreground">{t.jobs.revenue}</span>
+                    <span className="font-medium">{formatCurrency(job.revenue)}</span>
+                    <span className="text-muted-foreground">{t.jobs.scheduledDate}</span>
+                    <span>{job.scheduled_date ? formatDate(job.scheduled_date, dateLocale) : '—'}</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <JobStatusBadge status={job.status} />
+                    <PriorityBadge priority={job.priority} />
+                    {job.profit_margin > 0 && <ProfitIndicator margin={job.profit_margin} />}
+                    <JobMaterialUsageDialog job={job} companyId={companyId} />
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )
+        })}
+        <TablePagination pagination={pagination} testId="jobs-pagination-mobile" />
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="hidden md:block">
         <DataTable
           tableClassName="min-w-[1320px]"
           headers={['', t.jobs.job, t.jobs.customer, t.jobs.technician, t.jobs.status, t.jobs.priority, t.jobs.revenue, t.jobs.profit, t.jobs.scheduledDate, '']}
