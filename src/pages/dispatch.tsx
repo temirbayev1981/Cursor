@@ -17,7 +17,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useJobs, useUpdateJobStatus, useEmployees, useCustomerContacts, useProperties } from '@/hooks/use-entities'
+import { useUpdateJobStatus, useEmployees, useCustomerContacts, useProperties, useDispatchBoardJobs } from '@/hooks/use-entities'
+import { fetchJobById } from '@/services/entity-service'
 import { useTranslation } from '@/contexts/locale-context'
 import { useOptimizedRoute } from '@/hooks/use-route-optimizer'
 import { TableSkeleton } from '@/components/shared/skeleton'
@@ -27,7 +28,8 @@ import { notifyTechnicianSms, notifyJobScheduled, notifyCustomerEta, notifyCusto
 import { logAudit } from '@/services/entity-service'
 import { useAuth } from '@/contexts/auth-context'
 import { toast } from 'sonner'
-import type { Job, JobStatus } from '@/types'
+import type { JobStatus } from '@/types'
+import type { DispatchBoardJob } from '@/services/entity-service'
 import { MapPin } from 'lucide-react'
 import { JobMap } from '@/components/maps/job-map'
 import { RouteOptimizerPanel } from '@/components/maps/route-optimizer-panel'
@@ -46,9 +48,9 @@ function JobCard({
   statusLabels,
   onStatusChange,
 }: {
-  job: Job
+  job: DispatchBoardJob
   statusLabels: Record<JobStatus, string>
-  onStatusChange: (job: Job, status: JobStatus) => void
+  onStatusChange: (job: DispatchBoardJob, status: JobStatus) => void
 }) {
   const { t } = useTranslation()
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: job.id })
@@ -99,9 +101,9 @@ function DispatchColumn({
   onStatusChange,
 }: {
   col: (typeof COLUMNS)[number]
-  colJobs: Job[]
+  colJobs: DispatchBoardJob[]
   statusLabels: Record<JobStatus, string>
-  onStatusChange: (job: Job, status: JobStatus) => void
+  onStatusChange: (job: DispatchBoardJob, status: JobStatus) => void
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: col.status })
 
@@ -139,7 +141,8 @@ function DispatchColumn({
 export default function DispatchPage() {
   const { t } = useTranslation()
   const { user, company } = useAuth()
-  const { data: jobs = [], isLoading } = useJobs()
+  const companyId = company?.id ?? ''
+  const { data: jobs = [], isLoading } = useDispatchBoardJobs()
   const { data: employees = [] } = useEmployees()
   const { data: customers = [] } = useCustomerContacts()
   const { data: properties = [] } = useProperties()
@@ -152,10 +155,13 @@ export default function DispatchPage() {
   const statusLabels = t.status.job as Record<JobStatus, string>
 
   const handleJobStatusChange = useCallback(
-    async (job: Job, newStatus: JobStatus) => {
+    async (job: DispatchBoardJob, newStatus: JobStatus) => {
       if (job.status === newStatus) return
 
-      await updateStatus.mutateAsync({ job, status: newStatus })
+      const fullJob = await fetchJobById(companyId, job.id)
+      if (!fullJob) return
+
+      await updateStatus.mutateAsync({ job: fullJob, status: newStatus })
       if (user && company) {
         void logAudit(company.id, user.id, 'dispatch.status_change', 'job', job.id)
       }
@@ -242,7 +248,7 @@ export default function DispatchPage() {
         }
       }
     },
-    [company, customers, employees, t, updateStatus, user],
+    [company, companyId, customers, employees, t, updateStatus, user],
   )
 
   const handleDragStart = (e: DragStartEvent) => setActiveId(String(e.active.id))

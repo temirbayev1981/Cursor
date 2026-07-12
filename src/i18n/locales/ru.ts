@@ -775,6 +775,7 @@ export const ru = {
       customer_contacts_audit: 'Лёгкие контакты клиентов',
       dashboard_reports_lightweight_audit: 'Лёгкие запросы дашборда и отчётов',
       ai_assistant_lightweight_audit: 'Лёгкий контекст ИИ-помощника',
+      scheduling_dispatch_lightweight_audit: 'Лёгкие запросы расписания и диспетчеризации',
     },
     auditActions: {
       'jobs.bulk_cancel': 'Массовая отмена заказов',

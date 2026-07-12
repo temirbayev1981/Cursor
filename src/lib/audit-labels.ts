@@ -198,6 +198,9 @@ export const DASHBOARD_REPORTS_LIGHTWEIGHT_AUDIT = true as const
 /** AI assistant uses aggregate stats instead of full entity lists. */
 export const AI_ASSISTANT_LIGHTWEIGHT_AUDIT = true as const
 
+/** Scheduling/dispatch use scoped job queries instead of full jobs list. */
+export const SCHEDULING_DISPATCH_LIGHTWEIGHT_AUDIT = true as const
+
 export function countUniqueAuditActions(logs: { action: string }[]): number {
   return new Set(logs.map((log) => log.action)).size
 }
